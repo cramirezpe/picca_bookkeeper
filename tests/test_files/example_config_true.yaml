@@ -1,0 +1,81 @@
+system:
+  python_environment: picca_add_tests
+
+data:
+  output_dir: results_directory
+  input_dir: results_directory
+
+  healpix data:
+
+  release: v9.0.0
+  survey: desi-2.0-1000
+  catalog: LyaCoLoRe
+  catalog_tracer:
+
+continuum fitting:
+  prefix: true
+  calib: 0
+  dla: 0
+  bal: 0
+  suffix: 0
+
+correlations:
+  input_dir:
+
+export:
+  input_dir:
+
+fitter:
+  input_dir:
+
+  fit_config_dir: fitter_directory
+
+
+# Slurm arguments to be used by the bookkeeper
+slurm args:
+  picca_delta_extraction:
+  
+  picca_deltas:
+
+  picca_cf:
+
+  picca_xcf:
+
+  picca_cf:
+
+  picca_dmat:
+
+  picca_xdmat:
+
+  picca_metal_dmat:
+
+  picca_export:
+
+  picca_fitter2:
+
+# Picca args to be used by the bookkeeper
+picca args:
+  picca_convert_transmission:
+
+  picca_delta_extraction:
+    expected flux:
+      raw statistics file: /global/cfs/cdirs/desi/users/mail/Continuum_fitting/picca_runs/v9.0.0/raw/v9.0.0_cat_reduced/raw_0.0.0_0/deltas/lya/Delta-stats.fits.gz
+
+  picca_deltas:
+
+  picca_cf:
+    nside: 16
+
+  picca_xcf:
+
+  picca_cf:
+
+  picca_dmat:
+
+  picca_xdmat:
+
+  picca_metal_dmat:
+
+  picca_export:
+
+  picca_fitter2:

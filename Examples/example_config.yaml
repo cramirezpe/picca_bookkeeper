@@ -1,0 +1,147 @@
+system:
+  #python environment to be used when running jobs
+  #something that would be activated as:
+  # source activate picca
+  python_environment: picca
+  # default system to run bookkeeper on
+  # slurm_cori: slurm for cori
+  # slurm_perlmutter: slurm for perlmutter
+  # bash: run on terminal (login nodes at NERSC)
+  system: slurm_cori
+  
+data:
+  # Define the ouput_dir where the results will be stored on.
+  # also define a default input_dir where all the input values 
+  # will be read by default.
+  output_dir: /path/to/analysis
+  input_dir: /global/cfs/cdirs/desi/science/lya/early-3d/
+  
+  # Hardcode the healpix data location, by default it will be set
+  # according to the release, e.g. for everest:
+  # /global/cfs/cdirs/desi/spectro/redux/everest/healpix/
+  healpix data:
+  # The structure of folders and sub-folders is the following:
+  # /global/cfs/cdirs/desi/science/lya/early-3d/{release}/{survey}/{qso_cat}
+  # where:
+  #   - release (everest, fuji): specifies the version of the pipeline used.
+  #   - survey (sv1, sv2, sv3, sv, all, main): specifies the survey (or 
+  #           combination of surveys) used.
+  #   - qso_cat (redrock_v0, redrock_v1, afterburner_v0, etc): specifiec the
+  #           quasar catalog used (containing BAL information).
+  release: guadalupe
+  survey: main
+  # Catalog could be a name (and therefore will be used the bookkeeper one)
+  # or could be a full path to a catalog
+  catalog: afterburn_v0
+  # catalog_tracer could be set up to use a different catalog for cross-correlations
+  # by default will use the previous one for all the analyses.
+  catalog_tracer: 
+  # mask to be applied in the continuum fitting process.
+  mask file:
+  
+continuum fitting:
+  # The structure of folders and sub-folders is the following:
+  # .../early-3d/{relase}/{survey}/{qso_cat}/{prefix}_{calib}.{dla}.{bal}_{suffix}
+  # where {prefix}_{calib}.{dla}.{bal}_{suffix} defines de continuum fitting used:
+  #   - prefix (dMdB20, pca, etc): specifies the type of continuum fit (dMdB20 is the 
+  #           one used in eBOSS DR16, default in Picca).
+  #   - calib (0, 1, 2, etc): integer identifying the version of pre-calibration 
+  #           and weight estimation
+  #       - 0: no calibration.
+  #       - 1: dMdB20 calibration: Two step calibration (first for flux, second for IVAR).
+  #                                weighting scheme includes eta, var_lss, fudge
+  #       - 2: early3D calibration: One step calibration (flux).
+  #                                weighting scheme uses eta and var_lss
+  #       - 3: dMdB20 1 step calibration: One step calibration (flux).
+  #                                weighting scheme uses eta, var_lss, fudge
+  #       - 4: Accept custom options for calibration in yaml file.
+  #   - dla (0, 1, 2, etc): integer identifying the version of DLA masking used
+  #       - 0: no DLA masking.
+  #       - 1: First version of DLA catalog.
+  #   - bal (0, 1, 2, etc): integer identifying the version of BAL masking used 
+  #       - 0: No BAL masking.
+  #       - 1: Drop BAL objects (not implemented).
+  #       - 2: Mask BAL objects.
+  #   - suffix (0, any string): any string identifying anything else particular
+  #           in the analysis (0 means nothing).
+  prefix: dMdB20
+  calib: 0
+  calib region: mgii
+  dla: 0
+  bal: 0
+  suffix: 0
+  
+  # In each of the steps, we could change the input or leave the default one (if blank)
+  # We usually want to read from the continuum fitting output (our results are
+  # being saved there)
+correlations:
+  input_dir: /path/to/analysis
+  
+export:
+  input_dir: /path/to/analysis
+  
+fitter:
+  input_dir: /path/to/analysis
+  
+  fit_config_dir: /global/u2/c/cramirez/Codes/picca_bookkeeper/Examples/fit_config
+
+# Slurm arguments to be used by the bookkeeper
+slurm args:
+  general:
+    mail-type: fail
+    mail-user: user@host.com
+
+  picca_delta_extraction:
+    time: 00:16:00
+    qos: debug
+
+  picca_delta_extaction_calib_1:
+
+  picca_delta_extraction_calib_2:
+  
+  picca_deltas:
+
+  picca_cf:
+  
+  picca_xcf:
+  
+  picca_dmat:
+
+  picca_xdmat:
+
+  picca_metal_dmat:
+
+  picca_export:
+
+  picca_fitter2:
+
+# Picca args to be used by the bookkeeper
+picca args:
+  picca_convert_transmission:
+    nspec: 30
+  
+  picca_delta_extraction:
+    expected flux:
+      type: Dr16ExpectedFlux
+    data:
+      wave solution: lin
+
+  picca_delta_extaction_calib_1:
+
+  picca_delta_extraction_calib_2:
+
+  picca_cf:
+    nside: 16 # Use this nomenclature for terminal args
+  # no-project: # use empty string for action args like no-project
+  
+  picca_xcf:
+  
+  picca_dmat:
+
+  picca_xdmat:
+
+  picca_metal_dmat:
+
+  picca_export:
+
+  picca_fitter2:

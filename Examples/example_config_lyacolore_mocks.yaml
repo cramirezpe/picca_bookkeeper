@@ -1,0 +1,113 @@
+system:
+  #python environment to be used when running jobs
+  #something that would be activated as:
+  # source activate picca
+  python_environment: picca_new_cont
+  system: slurm_cori
+
+data:
+  # Define the ouput_dir where the results will be stored on.
+  # also define a default input_dir where all the input values
+  # will be read by default.
+  output_dir: /path/to/analysis
+  input_dir: 
+ 
+  # Provide custom healpix data folder /../../spectra-16
+  # by default it will be defined by release and survey
+  # fields below
+  healpix data: 
+  
+  # Fill release and survey to get the default healpix data 
+  # under /global/cfs/cdirs/desi/mocks/lya_forest/develop/london/qq_desi/v9.0/{release}/{survey}
+  release: v9.0.0
+  survey: desi-2.0-1000 # use raw for raw analyses
+  
+  # LyaCoLoRe to read catalog from healpix data directory
+  # custom catalog path for custom catalog
+  catalog: LyaCoLoRe
+  # catalog_tracer could be set up to use a different catalog for cross-correlations
+  # by default will use the previous one for all the analyses.
+  catalog_tracer:
+
+continuum fitting:
+  # The structure of folders and sub-folders is the following:
+  # .../early-3d/{relase}/{survey}/{qso_cat}/{prefix}_0.0.0_{suffix}
+  # where {prefix}_0.0.0_{suffix} defines de continuum fitting used:
+  #   - prefix (dMdB20, pca, etc): specifies the type of continuum fit
+  #        - dMdB20: used in eBOSS DR16, default in picca.
+  #        - true: use true continuum branch
+  #        - raw: use raw deltas
+  #   - suffix (0, any string): any string identifying anythin else particular
+  #           in the analysis (0 means nothing).
+  prefix: dMdB20
+  calib: 0 # Not implemented for mocks
+  dla: 0 # Not implemented for mocks
+  bal: 0 # Not implemented for mocks
+  suffix: 0
+
+  # In each of the steps, we could change the input or leave the default one (if blank)
+  # We usually want to read from the continuum fitting output (our results are
+  # being saved there)
+correlations:
+  input_dir:
+
+export:
+  input_dir:
+
+fitter:
+  input_dir:
+
+  fit_config_dir: /global/u2/c/cramirez/Work/Continuum_fitting/no_fudge/v9.0/fit_config
+
+
+# Slurm arguments to be used by the bookkeeper
+slurm args:
+  general:
+    mail-type: fail
+    mail-user: user@host.com
+    time: 00:05:00
+  picca_delta_extraction:
+    time: 00:30:00
+  picca_deltas:
+
+  picca_cf:
+
+  picca_xcf:
+
+  picca_dmat:
+
+  picca_xdmat:
+
+  picca_metal_dmat:
+
+  picca_export:
+
+  picca_fitter2:
+
+# Picca args to be used by the bookkeeper
+picca args:
+  picca_convert_transmission:
+
+  picca_delta_extraction:
+    # expected flux:
+    #   raw statistics file: /global/cfs/cdirs/desi/users/cramirez/Continuum_fitting/picca_runs/v9.0.0/raw/v9.0.0_cat_reduced/raw_0.0.0_0/deltas/lya/Delta-stats.fits.gz
+    data:
+      wave solution: lin
+
+  picca_deltas:
+
+  picca_cf:
+    nside: 16 # Use this nomenclature for terminal args
+  # no-project: # use empty string for action args like no-project
+
+  picca_xcf:
+
+  picca_dmat:
+
+  picca_xdmat:
+
+  picca_metal_dmat:
+
+  picca_export:
+
+  picca_fitter2:

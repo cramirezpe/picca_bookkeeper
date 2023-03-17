@@ -1,0 +1,113 @@
+system:
+  python_environment: picca
+  system: slurm_cori
+  
+data:
+  output_dir: /path/to/analysis
+  input_dir: # Empty if we are going to perform the full analysis.
+  
+  healpix data:
+  release: guadalupe
+  survey: main
+  catalog: afterburn_v0
+  catalog_tracer: 
+  
+continuum fitting:
+  prefix: dMdB20
+  calib: 1 #dr16 method of calibraiton
+  calib region: ciii
+  dla: 0
+  bal: 2 #bal masking
+  suffix: 0
+  
+correlations:
+  input_dir:
+  
+export:
+  input_dir:
+  
+fitter:
+  input_dir: 
+  fit_config_dir: /global/u2/c/cramirez/Codes/picca_bookkeeper/Examples/fit_config
+  
+  # Slurm arguments to be used by the bookkeeper
+slurm args:
+  general:
+    mail-type: fail
+    mail-user: xxxxx@yyyyyy.com
+  picca_delta_extraction:
+    time: 03:00:00
+    qos: regular
+  picca_deltas:
+  picca_cf:
+    time: 01:00:00
+    qos: regular
+  
+  picca_xcf:
+    time: 01:00:00
+    qos: regular
+    
+  picca_dmat:
+    time: 01:00:00
+    qos: regular
+  picca_xdmat:
+    time: 01:00:00
+    qos: regular
+  picca_metal_dmat:
+    time: 01:00:00
+    qos: regular
+  picca_metal_xdmat:
+    time: 01:00:00
+    qos: regular
+  picca_export:
+    time: 00:10:00
+    qos: debug
+  picca_fitter2:
+# Picca args to be used by the bookkeeper
+picca args:
+  picca_convert_transmission:
+    nspec: 30
+  
+  picca_delta_extraction:
+    expected flux:
+      type: Dr16ExpectedFlux
+    data:
+      wave solution: lin
+  
+  picca_cf:
+    no project:
+    nside: 32
+    nt: 40
+    np: 40
+    rp-min: 0
+    rp-max: 80
+    rt-max: 80
+    
+  picca_xcf:
+    nt: 40
+    np: 80
+    rp-min: -80
+    rp-max: 80
+    rt-max: 80
+
+  picca_dmat:
+    nt: 40
+    np: 40
+    rp-min: 0
+    rp-max: 80
+    rt-max: 80
+  picca_xdmat:
+    nt: 40
+    np: 80
+    rp-min: -80
+    rp-max: 80
+    rt-max: 80
+  picca_metal_dmat:
+    nt: 40
+    np: 40
+    rp-min: 0
+    rp-max: 80
+    rt-max: 80
+  picca_export:
+
+  picca_fitter2:

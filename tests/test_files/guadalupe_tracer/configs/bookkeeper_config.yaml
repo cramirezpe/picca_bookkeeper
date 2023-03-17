@@ -1,0 +1,29 @@
+system:
+  python_environment: picca
+  
+data:
+  output_dir: /picca_bookkeeper/tests/test_files/output
+  input_dir: /picca_bookkeeper/tests/test_files/output
+  
+  healpix data:
+  release: guadalupe
+  survey: main
+  catalog: /picca_bookkeeper/tests/test_files/dummy_catalog2.fits
+  catalog_tracer: /picca_bookkeeper/tests/test_files/dummy_tracer_catalog.fits
+  
+continuum fitting:
+  prefix: dMdB20
+  calib: 1
+  dla: 0
+  bal: 0
+  suffix: 0
+  
+correlations:
+  input_dir: 
+  
+export:
+  input_dir: 
+  
+fitter:
+  input_dir:
+  fit_config_dir: /picca_bookkeeper/Examples/fit_config

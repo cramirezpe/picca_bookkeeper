@@ -1,0 +1,40 @@
+system:
+  python_environment: picca
+  
+data:
+  output_dir: results_directory
+  input_dir: results_directory
+  
+  healpix data:
+  release: guadalupe
+  survey: main
+  catalog: afterburn_v0
+  catalog_tracer: 
+  
+continuum fitting:
+  prefix: dMdB20
+  calib: 1
+  dla: 1
+  bal: 2
+  suffix: 0
+  
+correlations:
+  input_dir: 
+  
+export:
+  input_dir: 
+  
+fitter:
+  input_dir:
+  fit_config_dir: fitter_directory
+
+# Picca args to be used by the bookkeeper
+picca args:
+  picca_convert_transmission:
+
+  picca_delta_extraction:
+    masks:
+      num masks: 1
+      type 0: BalMask
+
+  picca_deltas:
