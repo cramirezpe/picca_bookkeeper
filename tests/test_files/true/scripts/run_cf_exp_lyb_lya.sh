@@ -2,7 +2,7 @@
 
 #SBATCH --qos regular
 #SBATCH --nodes 1
-#SBATCH --time 00:02:00
+#SBATCH --time 00:10:00
 #SBATCH --constraint haswell
 #SBATCH --account desi
 #SBATCH --job-name cf_exp_lyb_lya

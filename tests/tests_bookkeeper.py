@@ -317,7 +317,7 @@ class TestBookkeeper(unittest.TestCase):
         with self.assertRaises(ValueError) as cm:
             deltas = bookkeeper.get_calibration_extraction_tasker()
         self.assertEqual(
-            "Invalid calib value in config file. (Valid values are 0 1 2)",
+            "Invalid calib value in config file. (Valid values are 0 1 2 3 4)",
             str(cm.exception),
         )
 
