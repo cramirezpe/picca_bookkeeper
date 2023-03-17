@@ -135,3 +135,4 @@ dmypy.json
 #macOS
 *.DS_Store
 tests/__pycache__
+tests/__pycache__/tests_bookkeeper.cpython-38.pyc
