@@ -49,7 +49,10 @@ def get_quasar_catalog(release, survey, catalog, bal=False):  # pragma: no cover
         catalog (str): redrock_v0, afterburn_v0, afterburn_v1, ...
         bal (bool): whether to search for catalogs with BALs included.
     """
-    basedir = Path("/global/cfs/cdirs/desi/science/lya/early-3d/catalogs/qso")
+    if release in ("everest", "fuji", "guadalupe", "fugu"):
+        basedir = Path("/global/cfs/cdirs/desi/science/lya/early-3d/catalogs/qso")
+    else:
+        basedir = Path("/global/cfs/cdirs/desi/users/cramirez/Continuum_fitting_Y1/catalogs/qso")
 
     if bal:
         catalog += "-bal"
@@ -72,7 +75,11 @@ def get_dla_catalog(release, survey, version=1):
         survey (str): sv1, sv3, sv13, main, all
         version (float): version of the catalog
     """
-    basedir = Path("/global/cfs/cdirs/desi/science/lya/early-3d/catalogs/dla")
+    if release in ("everest", "fuji", "guadalupe", "fugu"):
+        basedir = Path("/global/cfs/cdirs/desi/science/lya/early-3d/catalogs/dla")
+    else:
+        basedir = Path("/global/cfs/cdirs/desi/users/cramirez/Continuum_fitting_Y1/catalogs/dla")
+
     catalog = basedir / release / survey / f"dla_catalog_v{version}"
 
     for suffix in (".fits", ".fits.gz"):
@@ -2115,7 +2122,8 @@ class PathBuilder:
                 return Path("/global/cfs/cdirs/desi/science/lya/fugu_healpix/healpix")
             elif "himalayas" in self.config["data"]["release"]:
                 return Path("/global/cfs/cdirs/desi/spectro/redux/himalayas/healpix/")
-
+            elif "iron" in self.config["data"]["release"]:
+                return Path("/global/cfs/cdirs/desi/spectro/redux/iron/healpix/")
             elif "v9." in self.config["data"]["release"]:
                 version = self.config["data"]["release"].split(".")[1]
                 if self.config["data"]["survey"] == "raw":
