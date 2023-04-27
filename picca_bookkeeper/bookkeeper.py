@@ -174,6 +174,8 @@ class Bookkeeper:
         # Copying DLA/BAL catalogs if needed
         if self.config["continuum fitting"]["dla"] != "0":
             self.set_output_catalog("dla")
+        if self.config["continuum fitting"]["bal"] != "0":
+            self.set_output_catalog("bal")
 
     def set_output_catalog(self, field):
         """Method to incorporate catalog into the output bookkeeper"""
@@ -197,6 +199,8 @@ class Bookkeeper:
             self.output._catalog_tracer = output_catalog
         elif field == "dla":
             self.output._catalog_dla = output_catalog
+        elif field == "bal":
+            self.output._catalog_bal = output_catalog
 
     def _get_pathbuilder(self, section, input_output):
         """Method to get a PathBuilder object which can be used to define paths following the bookkeeper convention.
@@ -2208,21 +2212,26 @@ class PathBuilder:
         is given and raise a ValueError if the file does not exist.
 
         Args:
-            field (str): whether to use catalog, catalog tracer fields or dla fields. (Options: ["catalog", "catalog_tracer", "dla"])
+            field (str): whether to use catalog, catalog tracer fields, dla fields or bal fields. (Options: ["catalog", "catalog_tracer", "dla", "bal"])
 
         Returns:
             Path: catalog to be used.
         """
         if field == "dla":
-            field_value = self.config["continuum fitting"]["dla"]
-            if Path(field_value).is_file():
-                catalog = Path(field_value)
+            if Path(self.config["data"].get("dla catalog", "")).is_file():
+                catalog = Path(self.config["data"]["dla catalog"])
             else:
+                field_value = self.config["continuum fitting"]["dla"]
                 catalog = get_dla_catalog(
                     self.config["data"]["release"],
                     self.config["data"]["survey"],
                     version=field_value,
                 )
+        elif field == "bal":
+            if Path(self.config["data"].get("bal catalog", "")).is_file():
+                catalog = Path(self.config["data"]["bal catalog"])
+            else:
+                catalog = self.get_catalog_from_field("catalog")
         else:
             if Path(self.config["data"][field]).is_file():
                 catalog = Path(self.config["data"][field])

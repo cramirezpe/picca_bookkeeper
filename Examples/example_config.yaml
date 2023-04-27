@@ -38,6 +38,10 @@ data:
   catalog_tracer: 
   # mask to be applied in the continuum fitting process.
   mask file:
+  # force DLA catalog
+  dla catalog:
+  # force BAL catalog
+  bal catalog:
   
 continuum fitting:
   # The structure of folders and sub-folders is the following:
