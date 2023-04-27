@@ -173,6 +173,7 @@ class Plots:
                 y_center + np.sqrt(np.cov(y_stat, aweights=analysis.weights_arr[mask])),
             )
         y_delta = (y_max - y_min) / (n_bins + 1)
+
         y_edges = np.concatenate(
             (
                 np.flip(np.arange(y_center - y_delta / 2, y_min, -y_delta)),
@@ -248,6 +249,72 @@ class Plots:
             )
 
     @staticmethod
+    def flux(
+        analysis,
+        use_weights=False,
+        fig=None,
+        ax=None,
+        y_min=None,
+        y_max=None,
+        add_mean_line=False,
+        imshow_kwargs=dict(),
+        mean_line_kwargs=dict(),
+        mask=None,
+        output_prefix=None,
+        save_data=False,
+        save_plot=False,
+        save_dict=dict(),
+    ):
+        if output_prefix is not None:
+            output_prefix = Path(output_prefix).parent / (
+                Path(output_prefix).name + "-flux_var"
+            )
+
+        if mask is None:
+            if hasattr(analysis, "msk"):
+                mask = analysis.msk
+            else:
+                mask = np.full_like(analysis.deltas2_arr, True, dtype=bool)
+
+        if ax is None:
+            fig, ax = plt.subplots()
+        elif fig is None:
+            raise ValueError("ax and fig should be provided at the same time")
+
+        Plots.heatmap_stat(
+            analysis,
+            x_values=np.concatenate(
+                [
+                    analysis.lambda_grid[mask[i]]
+                    for i in range(len(analysis.deltas2_arr))
+                ]
+            ),
+            y_stat=np.log10(analysis.flux_arr[mask]),
+            use_weights=use_weights,
+            bins=(analysis.lambda_edges, 777),
+            fig=fig,
+            ax=ax,
+            y_min=y_min,
+            y_max=y_max,
+            add_mean_line=add_mean_line,
+            imshow_kwargs=imshow_kwargs,
+            mean_line_kwargs=mean_line_kwargs,
+            output_prefix=output_prefix,
+            save_data=save_data,
+            save_dict=save_dict,
+        )
+        ax.set_xlabel(r"$\lambda_{\rm obs}$")
+        ax.set_ylabel(r"Flux")
+        ax.set_title(r"Heatmap for values of flux")
+
+        if save_plot:
+            plt.tight_layout()
+            plt.savefig(
+                str(output_prefix) + ".png",
+                dpi=300,
+            )
+
+    @staticmethod
     def flux_var(
         analysis,
         use_weights=False,
@@ -288,7 +355,7 @@ class Plots:
                     for i in range(len(analysis.deltas2_arr))
                 ]
             ),
-            y_stat=np.log(1 / analysis.flux_ivar_arr[mask]),
+            y_stat=np.log10(1 / (analysis.flux_ivar_arr[mask])),
             use_weights=use_weights,
             bins=(analysis.lambda_edges, 777),
             fig=fig,
@@ -305,6 +372,75 @@ class Plots:
         ax.set_xlabel(r"$\lambda_{\rm obs}$")
         ax.set_ylabel(r"$\log(\sigma_{\rm pip})$")
         ax.set_title(r"Heatmap for values of $\sigma_{\rm pip}$")
+
+        if save_plot:
+            plt.tight_layout()
+            plt.savefig(
+                str(output_prefix) + ".png",
+                dpi=300,
+            )
+
+    @staticmethod
+    def flux_var_over_flux(
+        analysis,
+        use_weights=False,
+        fig=None,
+        ax=None,
+        y_min=None,
+        y_max=None,
+        add_mean_line=False,
+        imshow_kwargs=dict(),
+        mean_line_kwargs=dict(),
+        mask=None,
+        output_prefix=None,
+        save_data=False,
+        save_plot=False,
+        save_dict=dict(),
+    ):
+        if output_prefix is not None:
+            output_prefix = Path(output_prefix).parent / (
+                Path(output_prefix).name + "-flux_var"
+            )
+
+        if mask is None:
+            if hasattr(analysis, "msk"):
+                mask = analysis.msk
+            else:
+                mask = np.full_like(analysis.deltas2_arr, True, dtype=bool)
+
+        if ax is None:
+            fig, ax = plt.subplots()
+        elif fig is None:
+            raise ValueError("ax and fig should be provided at the same time")
+
+        
+        y_stat=np.log10(1/(analysis.flux_ivar_arr[mask]*analysis.flux_arr[mask]))
+        # y_stat=1/(analysis.flux_ivar_arr[mask]*analysis.flux_arr[mask])
+        Plots.heatmap_stat(
+            analysis,
+            x_values=np.concatenate(
+                [
+                    analysis.lambda_grid[mask[i]]
+                    for i in range(len(analysis.deltas2_arr))
+                ]
+            ),
+            y_stat=y_stat,#np.log10(1 / analysis.flux_ivar_arr[mask]),
+            use_weights=use_weights,
+            bins=(analysis.lambda_edges, 777),
+            fig=fig,
+            ax=ax,
+            y_min=y_min,
+            y_max=y_max,
+            add_mean_line=add_mean_line,
+            imshow_kwargs=imshow_kwargs,
+            mean_line_kwargs=mean_line_kwargs,
+            output_prefix=output_prefix,
+            save_data=save_data,
+            save_dict=save_dict,
+        )
+        ax.set_xlabel(r"$\lambda_{\rm obs}$")
+        ax.set_ylabel(r"$\log(\sigma_{\rm pip}/Flux)")
+        ax.set_title(r"Heatmap for values of $\sigma_{\rm pip}$/Flux")
 
         if save_plot:
             plt.tight_layout()
@@ -354,7 +490,7 @@ class Plots:
                     for i in range(len(analysis.deltas2_arr))
                 ]
             ),
-            y_stat=np.log(analysis.var_pipe_arr[mask]),
+            y_stat=np.log10(analysis.var_pipe_arr[mask]),
             use_weights=use_weights,
             bins=(analysis.lambda_edges, 777),
             fig=fig,
@@ -415,7 +551,7 @@ class Plots:
         Plots.heatmap_stat(
             analysis,
             x_values=analysis.lambda_rf_arr[mask],
-            y_stat=np.log(1 / analysis.flux_ivar_arr[mask]),
+            y_stat=np.log10(1 / analysis.flux_ivar_arr[mask]),
             use_weights=use_weights,
             bins=(200, 777),
             fig=fig,
