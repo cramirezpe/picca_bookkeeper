@@ -55,7 +55,17 @@ class CorrelationPlots:
             co = ffile["COR"]["CO"][:]
             nb = ffile["COR"]["NB"][:]
 
-        w = picca.wedgize.wedge(mumin=mumin, mumax=mumax)
+            cor_header = ffile["COR"].read_header()
+            w = picca.wedgize.wedge(
+                mumin=mumin, 
+                mumax=mumax,
+                rpmax=cor_header["RPMAX"],
+                rpmin=cor_header["RPMIN"],
+                nrp=cor_header["NP"],
+                rtmax=cor_header["RTMAX"],
+                rtmin=cor_header.get("RTMIN", 0),
+                nrt=cor_header["NT"],
+            )
         data_wedge = w.wedge(da, co)
 
         r_coef = data_wedge[0] ** r_factor
@@ -156,17 +166,18 @@ class CorrelationPlots:
             co = ffile["COR"]["CO"][:]
             nb = ffile["COR"]["NB"][:]
 
-        w = picca.wedgize.wedge(
-            mumin=mumin,
-            mumax=mumax,
-            rpmin=-200,
-            rpmax=200,
-            nrp=100,
-            rtmin=0,
-            rtmax=200,
-            nrt=50,
-            absoluteMu=True,
-        )
+            cor_header = ffile["COR"].read_header()
+            w = picca.wedgize.wedge(
+                mumin=mumin,
+                mumax=mumax,
+                rpmin=cor_header["RPMAX"],
+                rpmax=cor_header["RPMIN"],
+                nrp=cor_header["NP"],
+                rtmin=cor_header["RTMAX"],
+                rtmax=cor_header.get("RTMIN", 0),
+                nrt=cor_header["NT"],
+                absoluteMu=True,
+            )
         data_wedge = w.wedge(da, co)
 
         r_coef = data_wedge[0] ** r_factor
@@ -340,7 +351,17 @@ class CorrelationPlots:
             co = ffile["COR"]["CO"][:]
             nb = ffile["COR"]["NB"][:]
 
-        w = picca.wedgize.wedge(mumin=mumin, mumax=mumax)
+            cor_header = ffile["COR"].read_header()
+            w = picca.wedgize.wedge(
+                mumin=mumin, 
+                mumax=mumax,
+                rpmax=cor_header["RPMAX"],
+                rpmin=cor_header["RPMIN"],
+                nrp=cor_header["NP"],
+                rtmax=cor_header["RTMAX"],
+                rtmin=cor_header.get("RTMIN", 0),
+                nrt=cor_header["NT"],
+            )
         data_wedge = w.wedge(da, co)
 
         r_coef = data_wedge[0] ** r_factor
@@ -429,17 +450,18 @@ class CorrelationPlots:
             co = ffile["COR"]["CO"][:]
             nb = ffile["COR"]["NB"][:]
 
-        w = picca.wedgize.wedge(
-            mumin=mumin,
-            mumax=mumax,
-            rpmin=-200,
-            rpmax=200,
-            nrp=100,
-            rtmin=0,
-            rtmax=200,
-            nrt=50,
-            absoluteMu=True,
-        )
+            cor_header = ffile["COR"].read_header()
+            w = picca.wedgize.wedge(
+                mumin=mumin,
+                mumax=mumax,
+                rpmin=cor_header["RPMAX"],
+                rpmax=cor_header["RPMIN"],
+                nrp=cor_header["NP"],
+                rtmin=cor_header["RTMAX"],
+                rtmax=cor_header.get("RTMIN", 0),
+                nrt=cor_header["NT"],
+                absoluteMu=True,
+            )
         data_wedge = w.wedge(da, co)
 
         r_coef = data_wedge[0] ** r_factor
