@@ -134,10 +134,9 @@ class Bookkeeper:
         # this is to make sure that further steps beyond deltas are also reading
         # data from the output folder by default.
         if (
-            self.config["data"]["input_dir"] is None
-            or self.config["data"]["input_dir"] == ""
+            self.config["data"].get("input_dir", "") == ""
         ):
-            self.config["data"]["input_dir"] = self.config["data"]["output_dir"]
+            self.config["data"]["input_dir"] = self.config["data"].get("output_dir", "")
 
         self.default_input = self._get_pathbuilder("data", "input")
         self.output = self._get_pathbuilder("data", "output")
@@ -211,6 +210,10 @@ class Bookkeeper:
         Returns:
             PathBuilder: PathBuilder object for the corresponding early-dir path read from the config file.
         """
+        # If run path is defined, just use it.
+        if self.config["data"].get("run path", "") != "":
+            return PathBuilder(self.config)
+
         if input_output not in ("input", "output"):
             raise ValueError(f"input/output expected, got {input_output}")
         value = self.config[section][input_output + "_dir"]
@@ -452,14 +455,14 @@ class Bookkeeper:
         # If there is no calibration, we should not have calib_steps
         if self.config["continuum fitting"]["calib"] == "0" and calib_step is not None:
             raise ValueError("Trying to run calibration with calib = 0 in config file.")
-        if self.config["continuum fitting"]["calib"] != "4":
+        if self.config["continuum fitting"]["calib"] not in ("0", "10"):
             if (
                 "CalibrationCorrection"
                 in updated_picca_extra_args["corrections"].values()
                 or "IvarCorrection" in updated_picca_extra_args["corrections"].values()
             ):
                 raise ValueError(
-                    "Calibration corrections added by user with calib option != 3"
+                    "Calibration corrections added by user with calib option != 10"
                 )
 
         # Now we deal with dMdB20 option
@@ -643,6 +646,7 @@ class Bookkeeper:
             "dMdB20",
             "raw",
             "true",
+            "custom",
         ]:
             raise ValueError(
                 f"Unrecognized continuum fitting prefix: {self.config['continuum fitting']['prefix']}"
@@ -840,7 +844,7 @@ class Bookkeeper:
             "1",
             "2",
             "3",
-            "4",
+            "10",
         ]:
             raise ValueError(
                 "Invalid calib value in config file. (Valid values are 0 1 2 3 4)"
@@ -868,7 +872,7 @@ class Bookkeeper:
                     calib_step=2,
                 )
             )
-        elif self.config["continuum fitting"]["calib"] in ("2", "3"):
+        elif self.config["continuum fitting"]["calib"] in ("2", "3", "10"):
             steps = (
                 self.get_delta_extraction_tasker(
                     region=region,
@@ -1301,7 +1305,7 @@ class Bookkeeper:
             }
         else:
             qos = "regular"
-            time = "02:00:00"
+            time = "10:00:00"
 
         input = self._get_pathbuilder("correlations", "input")
 
@@ -1392,7 +1396,7 @@ class Bookkeeper:
             }
         else:
             qos = "regular"
-            time = "02:00:00"
+            time = "10:00:00"
 
         input = self._get_pathbuilder("correlations", "input")
 
@@ -2096,14 +2100,15 @@ class PathBuilder:
         healpix_data (Path): Location of healpix data.
     """
 
-    def __init__(self, config, early_dir):
+    def __init__(self, config, early_dir=None):
         """
         Args:
             config (configparser.ConfigParser): Configuration to be used.
             early_dir (Path or str)
         """
         self.config = config
-        self.early_dir = Path(early_dir)
+        if early_dir is not None:
+            self.early_dir = Path(early_dir)
 
     @property
     def healpix_data(self):
@@ -2278,7 +2283,11 @@ class PathBuilder:
     @property
     def run_path(self):
         """Path: full path to the picca run."""
-        return self.survey_path / self.catalog_name / self.continuum_tag
+        if self.config["data"].get("run path", "") == "":
+            return self.survey_path / self.catalog_name / self.continuum_tag
+        else:
+            return Path(self.config["data"]["run path"])
+
 
     @property
     def config_file(self):
@@ -2288,7 +2297,11 @@ class PathBuilder:
     @property
     def catalogs_dir(self):
         """Method to get directory where catalogs are stored."""
-        return self.survey_path / self.catalog_name / "catalogs"
+        if self.config["data"].get("catalogs path", "") == "":
+            return self.survey_path / self.catalog_name / "catalogs"
+        else:
+
+            return Path(self.config["data"].get("catalogs path"))
 
     def get_deltas_path(self, region=None, calib_step=None):
         """Method to obtain the path to deltas output.
