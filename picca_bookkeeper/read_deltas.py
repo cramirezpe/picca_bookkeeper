@@ -9,6 +9,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 from typing import *
 import os
+import warnings
 
 
 class ReadDeltas:
@@ -106,26 +107,31 @@ class ReadDeltas:
 
     def define_interp_quantities(self):
         with fitsio.FITS(self.attributes_file) as attrs_fits:
-            self.eta_interp = interp1d(
-                10 ** attrs_fits["VAR_FUNC"]["loglam"][:],
-                attrs_fits["VAR_FUNC"]["eta"][:],
-                fill_value="extrapolate",
-            )
+            if "eta" in attrs_fits["VAR_FUNC"].get_colnames():
+                self.eta_interp = interp1d(
+                    10 ** attrs_fits["VAR_FUNC"]["loglam"][:],
+                    attrs_fits["VAR_FUNC"]["eta"][:],
+                    fill_value="extrapolate",
+                )
+                self.eta = self.eta_interp(self.lambda_grid)
+            else:
+                self.eta = np.ones_like(self.lambda_grid)
 
-            self.fudge_interp = interp1d(
-                10 ** attrs_fits["VAR_FUNC"]["loglam"][:],
-                attrs_fits["VAR_FUNC"]["fudge"][:],
-                fill_value="extrapolate",
-            )
+            if "fudge" in attrs_fits["VAR_FUNC"].get_colnames():
+                self.fudge_interp = interp1d(
+                    10 ** attrs_fits["VAR_FUNC"]["loglam"][:],
+                    attrs_fits["VAR_FUNC"]["fudge"][:],
+                    fill_value="extrapolate",
+                )
+                self.fudge = self.fudge_interp(self.lambda_grid)
+            else:
+                self.fudge = 0*np.ones_like(self.lambda_grid)
 
             self.var_lss_interp = interp1d(
                 10 ** attrs_fits["VAR_FUNC"]["loglam"][:],
                 attrs_fits["VAR_FUNC"]["var_lss"][:],
                 fill_value="extrapolate",
-            )
-
-            self.eta = self.eta_interp(self.lambda_grid)
-            self.fudge = self.fudge_interp(self.lambda_grid)
+            )            
             self.var_lss = self.var_lss_interp(self.lambda_grid)
 
             self.mean_cont_interp = interp1d(
@@ -143,20 +149,21 @@ class ReadDeltas:
             self.mean_cont = self.mean_cont_interp(self.lambda_rf_grid)
             self.mean_cont_weight = self.mean_cont_weight_interp(self.lambda_rf_grid)
 
-            self.delta_stack_interp = interp1d(
-                10 ** attrs_fits["STACK_DELTAS"]["loglam"][:],
-                attrs_fits["STACK_DELTAS"]["stack"][:],
-                fill_value="extrapolate",
-            )
+            if "STACK_DELTAS" in attrs_fits:
+                self.delta_stack_interp = interp1d(
+                    10 ** attrs_fits["STACK_DELTAS"]["loglam"][:],
+                    attrs_fits["STACK_DELTAS"]["stack"][:],
+                    fill_value="extrapolate",
+                )
 
-            self.delta_stack_weight_interp = interp1d(
-                10 ** attrs_fits["STACK_DELTAS"]["loglam"][:],
-                attrs_fits["STACK_DELTAS"]["weight"][:],
-                fill_value="extrapolate",
-            )
+                self.delta_stack_weight_interp = interp1d(
+                    10 ** attrs_fits["STACK_DELTAS"]["loglam"][:],
+                    attrs_fits["STACK_DELTAS"]["weight"][:],
+                    fill_value="extrapolate",
+                )
 
-            self.delta_stack = self.delta_stack_interp(self.lambda_grid)
-            self.delta_stack_weight = self.delta_stack_weight_interp(self.lambda_grid)
+                self.delta_stack = self.delta_stack_interp(self.lambda_grid)
+                self.delta_stack_weight = self.delta_stack_weight_interp(self.lambda_grid)
 
     def get_statistics(self, downsampling=1, random_seed=0, read_flux=False):
         delta_files = list(self.deltas_path.glob("delta*fits*"))
@@ -190,13 +197,15 @@ class ReadDeltas:
     ):
         delta_field = "DELTA" if not self.blind else "DELTA_BLIND"
         with fitsio.FITS(deltas_filename) as delta_fits:
-            VAR = 1 / delta_fits["WEIGHT"].read()
-            var_pipe = (
-                VAR
-                - self.var_lss
-                + np.sqrt((self.var_lss - VAR) ** 2 - 4 * self.eta * self.fudge)
-            ) / (2 * self.eta)
-            # var_pipe = (VAR - self.var_lss) / self.eta
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                VAR = 1 / delta_fits["WEIGHT"].read()
+                var_pipe = (
+                    VAR
+                    - self.var_lss
+                    + np.sqrt((self.var_lss - VAR) ** 2 - 4 * self.eta * self.fudge)
+                ) / (2 * self.eta)
+                # var_pipe = (VAR - self.var_lss) / self.eta
 
             lambda_rf = np.asarray(
                 [self.lambda_grid / (1 + x) for x in delta_fits["METADATA"]["Z"][:]]
