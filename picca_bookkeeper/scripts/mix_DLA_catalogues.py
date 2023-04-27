@@ -20,15 +20,7 @@ def select_table(table: astropy.table.table.Table, selection: int = 2):
 
     logger.info("Start selecting on conf./SNR")
 
-    if selection == 1:
-        conf = table["CNN_DLA_CONFIDENCE"]
-
-        msk = table["ABSORBER_TYPE"] == "DLA"
-        msk &= ((conf > 0.3) % (table["S2N"] > 0)) | (
-            (conf > 0.2) & (table["S2N"] >= 3)
-        )
-
-    elif selection == 2:
+    if selection == 2:
         conf_min = np.minimum(
             table["CNN_DLA_CONFIDENCE"],
             table["GP_DLA_CONFIDENCE"],
@@ -46,7 +38,13 @@ def select_table(table: astropy.table.table.Table, selection: int = 2):
 
         msk = table["ABSORBER_TYPE"] == "DLA"
         msk &= msk_gp | msk_cnn
+    elif selection == 4:
+        conf = table["CNN_DLA_CONFIDENCE"]
 
+        msk = table["ABSORBER_TYPE"] == "DLA"
+        msk &= ((conf > 0.3) & (table["S2N"] > 0)) | (
+            (conf > 0.2) & (table["S2N"] >= 3)
+        )
     else:
         raise ValueError("Selection not valid.")
 
@@ -115,20 +113,26 @@ def getArgs():
         default=0,
         choices=[
             0,
-            1,
             2,
             3,
+            4,
         ],
         help=textwrap.dedent(
             """
 0: No cuts.
-1: First recommendation by DLA Team.
+1: Invalid (to reserve v1 for full catalog.)
+2: (IFAE suggestion). Built to generate approximately 1 DLA for each 3 QSOs.
+    Select DLA absorber type.
+    Select absorbers detected by both CNN and GP with confidence>0.5.
+3: DLA paper recommendation.
+    Select DLA absorber type
+    Select absorbers fulfilling any:
+        - For CNN: select absorbers with 'DLA_CONFIDENCE'>0.2 as valid detections for 'S2N'>3, 'DLA_CONFIDENCE'>0.3 for 'S2N'<3.
+        - For GP: select absorbers with ¡DLA_CONFIDENCE'>0.9.
+4: Original recommendation by DLA Team.
     Select DLA absorber type.
     Select absorbers with 'DLA_CONFIDENCE'>0.2 as valid detections for 'S2N'>3, 'DLA_CONFIDENCE'>0.3 for 'S2N'<3.
     Only use CNN.
-2: Second selection (IFAE suggestion). Built to generate approximately 1 DLA for each 3 QSOs.
-    Select DLA absorber type.
-    Select absorbers detected by both CNN and GP with confidence>0.5.
             """
         ),
     )
