@@ -7,7 +7,7 @@ from picca_bookkeeper.bookkeeper import Bookkeeper
 def main(args=None):
     if args is None:
         args = get_args()
-    bookkeeper = Bookkeeper(args.bookkeeper_config)
+    bookkeeper = Bookkeeper(args.bookkeeper_config, overwrite_config=args.overwrite_config)
 
     xcf = bookkeeper.get_xcf_tasker(
         region=args.region,
@@ -62,6 +62,12 @@ def get_args():
         choices=["lya", "lyb"],
         default="lya",
         help="Region to compute correlation in",
+    )
+
+    parser.add_argument(
+        "--overwrite-config",
+        action="store_true",
+        help="Force overwrite bookkeeper config."
     )
 
     parser.add_argument(

@@ -9,7 +9,7 @@ from picca_bookkeeper.tasker import get_Tasker
 def main(args=None):
     if args is None:
         args = get_args()
-    bookkeeper = Bookkeeper(args.bookkeeper_config)
+    bookkeeper = Bookkeeper(args.bookkeeper_config, overwrite_config=args.overwrite_config)
 
     command = "desi_bookkeeper_add_extra_deltas_data"
 
@@ -96,6 +96,13 @@ def get_args():
     parser.add_argument(
         "bookkeeper_config", type=Path, help="Path to bookkeeper file to use"
     )
+
+    parser.add_argument(
+        "--overwrite_config",
+        action="store_true",
+        help="Force overwrite bookkeeper config."
+    )
+
     parser.add_argument(
         "--region",
         type=str,

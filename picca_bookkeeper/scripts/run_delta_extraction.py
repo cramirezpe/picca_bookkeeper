@@ -8,7 +8,7 @@ from picca_bookkeeper.bookkeeper import Bookkeeper
 def main(args=None):
     if args is None:
         args = get_args()
-    bookkeeper = Bookkeeper(args.bookkeeper_config)
+    bookkeeper = Bookkeeper(args.bookkeeper_config, overwrite_config=args.overwrite_config)
 
     continuum_type = bookkeeper.config["continuum fitting"]["prefix"]
 
@@ -22,11 +22,15 @@ def main(args=None):
             wait_for=args.wait_for,
         )
         calibration.write_job()
-        calibration.send_job()
+        if not args.only_write: 
+            calibration.send_job()
 
         if args.only_calibration:
-            print(calibration.jobid)
-            return calibration.jobid
+            if args.only_write:
+                return
+            else:
+                print(calibration.jobid)
+                return calibration.jobid
 
         tasker = bookkeeper.get_delta_extraction_tasker
         wait_for = calibration
@@ -49,10 +53,12 @@ def main(args=None):
     )
 
     deltas.write_job()
-    deltas.send_job()
-
-    print(deltas.jobid)
-    return deltas.jobid
+    if args.only_write:
+        return
+    else:
+        deltas.send_job()
+        print(deltas.jobid)
+        return deltas.jobid
 
 
 def get_args():
@@ -69,6 +75,12 @@ def get_args():
     )
 
     parser.add_argument(
+        "--overwrite-config",
+        action="store_true",
+        help="Force overwrite bookkeeper config."
+    )
+
+    parser.add_argument(
         "--debug",
         action="store_true",
     )
@@ -77,6 +89,12 @@ def get_args():
         "--only-calibration",
         action="store_true",
         help="Only compute calibration steps.",
+    )
+
+    parser.add_argument(
+        "--only-write",
+        action="store_true",
+        help="Only write scripts, do not send them."
     )
 
     parser.add_argument("--wait-for", nargs="+", type=int, default=None, required=False)

@@ -9,7 +9,7 @@ from picca_bookkeeper.bookkeeper import Bookkeeper
 def main(args=None):
     if args is None:
         args = get_args()
-    bookkeeper = Bookkeeper(args.bookkeeper_config)
+    bookkeeper = Bookkeeper(args.bookkeeper_config, overwrite_config=args.overwrite_config)
 
     script_args = {
         "log-level": args.log_level,
@@ -37,6 +37,13 @@ def get_args():
     parser.add_argument(
         "bookkeeper_config", type=Path, help="Path to bookkeeper file to use"
     )
+
+    parser.add_argument(
+        "--overwrite-config",
+        action="store_true",
+        help="Force overwrite bookkeeper config."
+    )
+
     parser.add_argument(
         "--region",
         type=str,
