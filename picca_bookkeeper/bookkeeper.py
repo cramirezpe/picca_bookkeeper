@@ -632,7 +632,7 @@ class Bookkeeper:
                     ] = dict()
                     updated_picca_extra_args[f"mask arguments {prev_mask_number}"][
                         "filename"
-                    ] = self.output.catalog
+                    ] = self.output.catalog_bal
                     updated_picca_extra_args[f"mask arguments {prev_mask_number}"][
                         "los_id name"
                     ] = "TARGETID"
