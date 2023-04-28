@@ -283,6 +283,12 @@ class SlurmPerlmutterTasker(SlurmTasker):
         "account": "desi",
     }
 
+    default_srun_options = {
+        "nodes": 1,  # N
+        "ntasks": 1,  # n
+        "cpus-per-task": 128,  # c
+    }
+
 
 class BashTasker(Tasker):
     """Object to write and run jobs.
