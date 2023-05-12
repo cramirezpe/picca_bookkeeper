@@ -958,7 +958,7 @@ class Bookkeeper:
         args = {
             "in-dir": str(input.get_deltas_path(region)),
             "out": str(self.output.get_cf_fname(region, region2)),
-            "nproc": 32,
+            "nproc": 128,
             "rp-min": 0,
             "rp-max": 300,
             "rt-max": 200,
@@ -1051,7 +1051,7 @@ class Bookkeeper:
             "drq": str(drq),
             "out": str(self.output.get_xcf_fname(region)),
             "mode": "desi_healpix",
-            "nproc": 32,
+            "nproc": 128,
             "nside": 16,
             "rp-min": -300,
             "rp-max": 300,
@@ -1141,7 +1141,7 @@ class Bookkeeper:
         args = {
             "in-dir": str(input.get_deltas_path(region)),
             "out": str(self.output.get_dmat_fname(region, region2)),
-            "nproc": 32,
+            "nproc": 128,
             "rej": 0.99,
             "rp-min": 0,
             "rp-max": 300,
@@ -1236,7 +1236,7 @@ class Bookkeeper:
             "drq": str(drq),
             "out": str(self.output.get_xdmat_fname(region)),
             "mode": "desi_healpix",
-            "nproc": 32,
+            "nproc": 128,
             "rej": 0.99,
             "nside": 16,
             "rp-min": -300,
@@ -1326,7 +1326,7 @@ class Bookkeeper:
         args = {
             "in-dir": str(input.get_deltas_path(region)),
             "out": str(self.output.get_metal_fname(region, region2)),
-            "nproc": 32,
+            "nproc": 128,
             "rej": 0.995,
             "abs-igm": "SiII(1260) SiIII(1207) SiII(1193) SiII(1190)",
             "rp-min": 0,
@@ -1421,7 +1421,7 @@ class Bookkeeper:
             "drq": str(drq),
             "out": str(self.output.get_xmetal_fname(region)),
             "mode": "desi_healpix",
-            "nproc": 32,
+            "nproc": 128,
             "rej": 0.995,
             "abs-igm": "SiII(1260) SiIII(1207) SiII(1193) SiII(1190)",
             "rp-min": -300,
@@ -1574,7 +1574,7 @@ class Bookkeeper:
 
         slurm_header_args = {
             "qos": "regular",
-            "time": "00:05:00",
+            "time": "00:10:00",
             "job-name": job_name,
             "output": str(self.output.run_path / f"logs/{job_name}-%j.out"),
             "error": str(self.output.run_path / f"logs/{job_name}-%j.err"),
@@ -2199,6 +2199,11 @@ class PathBuilder:
     def catalog_dla(self):
         """Path: catalog to be used for DLA masking."""
         return self._catalog_dla
+    
+    @property
+    def catalog_bal(self):
+        """Path: catalog to be used for BAL masking."""
+        return self._catalog_bal
 
     @property
     def continuum_fitting_mask(self):
