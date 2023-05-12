@@ -448,7 +448,7 @@ class TestBookkeeper(unittest.TestCase):
         with self.assertRaises(ValueError) as cm:
             write_full_analysis(bookkeeper, calib=True, region="lyb", region2="lya")
         self.assertEqual(
-            "Calibration corrections added by user with calib option != 3",
+            "Calibration corrections added by user with calib option != 10",
             str(cm.exception),
         )
 
