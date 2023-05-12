@@ -967,6 +967,9 @@ class Bookkeeper:
             "fid-Or": 7.975e-5,
         }
 
+        if "v9." in self.config["data"]["release"]:
+            args["mode"] = "desi_mocks"
+
         if region2 != region:
             args["in-dir2"] = str(input.get_deltas_path(region2))
         args = {**args, **updated_picca_extra_args}
@@ -1061,6 +1064,9 @@ class Bookkeeper:
             "fid-Or": 7.975e-5,
         }
 
+        if "v9." in self.config["data"]["release"]:
+            args["mode"] = "desi_mocks"
+
         args = {**args, **updated_picca_extra_args}
 
         self.output.get_xcf_fname(region).parent.mkdir(exist_ok=True, parents=True)
@@ -1150,6 +1156,9 @@ class Bookkeeper:
             "nt": 50,
             "fid-Or": 7.975e-5,
         }
+
+        if "v9." in self.config["data"]["release"]:
+            args["mode"] = "desi_mocks"
 
         if region2 != region:
             args["in-dir2"] = str(input.get_deltas_path(region2))
@@ -1247,6 +1256,9 @@ class Bookkeeper:
             "fid-Or": 7.975e-5,
         }
 
+        if "v9." in self.config["data"]["release"]:
+            args["mode"] = "desi_mocks"
+
         args = {**args, **updated_picca_extra_args}
 
         self.output.get_xdmat_fname(region).parent.mkdir(exist_ok=True, parents=True)
@@ -1336,6 +1348,9 @@ class Bookkeeper:
             "nt": 50,
             "fid-Or": 7.975e-5,
         }
+
+        if "v9." in self.config["data"]["release"]:
+            args["mode"] = "desi_mocks"
 
         if region2 != region:
             args["in-dir2"] = str(input.get_deltas_path(region2))
@@ -1431,6 +1446,9 @@ class Bookkeeper:
             "nt": 50,
             "fid-Or": 7.975e-5,
         }
+
+        if "v9." in self.config["data"]["release"]:
+            args["mode"] = "desi_mocks"
 
         args = {**args, **updated_picca_extra_args}
 
@@ -2094,6 +2112,12 @@ class Bookkeeper:
             wait_for=wait_for,
         )
 
+    @property
+    def is_mock(self):
+        if "v9." in self.config["data"]["release"]:
+            return True
+        else:
+            return False
 
 class PathBuilder:
     """Class to define paths following the bookkeeper convention.
