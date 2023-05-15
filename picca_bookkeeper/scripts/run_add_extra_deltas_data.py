@@ -85,10 +85,12 @@ def main(args=None):
     )
 
     tasker.write_job()
-    tasker.send_job()
-
-    print(tasker.jobid)
-    return tasker.jobid
+    if not args.only_write:
+        tasker.send_job()
+        print(tasker.jobid)
+        return tasker.jobid
+    else:
+        return
 
 
 def get_args():
@@ -126,6 +128,12 @@ def get_args():
         "--add-flux",
         action="store_true",
         help="Add flux information",
+    )
+
+    parser.add_argument(
+        "--only-write",
+        action="store_true",
+        help="Only write scripts, not send them."
     )
 
     parser.add_argument("--wait-for", nargs="+", type=int, default=None, required=False)

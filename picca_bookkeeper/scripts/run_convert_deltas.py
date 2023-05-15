@@ -27,9 +27,12 @@ def main(args=None):
     )
 
     task.write_job()
-    task.send_job()
-    print(task.jobid)
-    return task.jobid
+    if not args.only_write:
+        task.send_job()
+        print(task.jobid)
+        return task.jobid
+    else:
+        return
 
 
 def get_args():
@@ -73,6 +76,12 @@ def get_args():
     parser.add_argument(
         "--debug",
         action="store_true",
+    )
+
+    parser.add_argument(
+        "--only-write",
+        action="store_true",
+        help="Only write scripts, not send them."
     )
 
     parser.add_argument("--wait-for", nargs="+", type=int, default=None, required=False)

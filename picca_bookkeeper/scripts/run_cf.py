@@ -8,6 +8,7 @@ from picca_bookkeeper.bookkeeper import Bookkeeper
 def main(args=None):
     if args is None:
         args = get_args()
+
     bookkeeper = Bookkeeper(args.bookkeeper_config, overwrite_config=args.overwrite_config)
 
     cf = bookkeeper.get_cf_tasker(
@@ -18,8 +19,9 @@ def main(args=None):
         wait_for=args.wait_for,
     )
     cf.write_job()
-    cf.send_job()
-    wait_for = cf
+    if not args.only_write:
+        cf.send_job()
+        wait_for = cf
 
     if not args.no_dmat:
         dmat = bookkeeper.get_dmat_tasker(
@@ -29,8 +31,9 @@ def main(args=None):
             debug=args.debug,
         )
         dmat.write_job()
-        dmat.send_job()
-        wait_for = [cf, dmat]
+        if not args.only_write:
+            dmat.send_job()
+            wait_for = [cf, dmat]
 
     if not args.no_metal:
         metal = bookkeeper.get_metal_tasker(
@@ -41,7 +44,8 @@ def main(args=None):
             wait_for=args.wait_for,
         )
         metal.write_job()
-        metal.send_job()
+        if not args.only_write:
+            metal.send_job()
 
     cf_exp = bookkeeper.get_cf_exp_tasker(
         region=args.region,
@@ -52,10 +56,12 @@ def main(args=None):
     )
 
     cf_exp.write_job()
-    cf_exp.send_job()
-
-    print(cf_exp.jobid)
-    return cf_exp.jobid
+    if not args.only_write:
+        cf_exp.send_job()
+        print(cf_exp.jobid)
+        return cf_exp.jobid
+    else:
+        return
 
 
 def get_args():
@@ -97,6 +103,12 @@ def get_args():
     parser.add_argument(
         "--debug",
         action="store_true",
+    )
+
+    parser.add_argument(
+        "--only-write",
+        action="store_true",
+        help="Only write scripts, not send them."
     )
 
     parser.add_argument("--wait-for", nargs="+", type=int, default=None, required=False)

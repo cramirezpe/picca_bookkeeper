@@ -15,8 +15,9 @@ def main(args=None):
         wait_for=args.wait_for,
     )
     xcf.write_job()
-    xcf.send_job()
-    wait_for = xcf
+    if not args.only_write:
+        xcf.send_job()
+        wait_for = xcf
 
     if not args.no_dmat:
         xdmat = bookkeeper.get_xdmat_tasker(
@@ -25,8 +26,9 @@ def main(args=None):
             wait_for=args.wait_for,
         )
         xdmat.write_job()
-        xdmat.send_job()
-        wait_for = [xcf, xdmat]
+        if not args.only_write:
+            xdmat.send_job()
+            wait_for = [xcf, xdmat]
 
     if not args.no_metal:
         metal = bookkeeper.get_xmetal_tasker(
@@ -36,7 +38,8 @@ def main(args=None):
             wait_for=args.wait_for,
         )
         metal.write_job()
-        metal.send_job()
+        if not args.only_write:
+            metal.send_job()
 
     xcf_exp = bookkeeper.get_xcf_exp_tasker(
         region=args.region,
@@ -45,10 +48,12 @@ def main(args=None):
     )
 
     xcf_exp.write_job()
-    xcf_exp.send_job()
-
-    print(xcf_exp.jobid)
-    return xcf_exp.jobid
+    if not args.only_write:
+        xcf_exp.send_job()
+        print(xcf_exp.jobid)
+        return xcf_exp.jobid
+    else:
+        return
 
 
 def get_args():
@@ -81,6 +86,12 @@ def get_args():
     parser.add_argument(
         "--debug",
         action="store_true",
+    )
+
+    parser.add_argument(
+        "--only-write",
+        action="store_true",
+        help="Only write scripts, not send them."
     )
 
     parser.add_argument("--wait-for", nargs="+", type=int, default=None, required=False)
