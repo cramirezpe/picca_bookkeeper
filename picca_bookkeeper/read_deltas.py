@@ -17,6 +17,7 @@ class ReadDeltas:
         self.region = region
         self.bookkeeper_path = Path(bookkeeper_path)
         self.blind = blind
+        self.set_var_lss_mod()
         self.define_lambda_arrays()
         self.define_interp_quantities()
         self.label = label
@@ -52,6 +53,11 @@ class ReadDeltas:
             / "Log"
             / "delta_attributes.fits.gz"
         )
+
+    def set_var_lss_mod(self):
+        config = ConfigParser()
+        config.read(self.config_file)
+        self.var_lss_mod = config["expected flux"].getfloat("var lss mod", 1)
 
     def define_lambda_arrays(self):
         config = ConfigParser()
@@ -107,7 +113,7 @@ class ReadDeltas:
 
     def define_interp_quantities(self):
         with fitsio.FITS(self.attributes_file) as attrs_fits:
-            if "eta" in attrs_fits["VAR_FUNC"].get_colnames():
+            if "ETA" in [name.upper() for name in attrs_fits["VAR_FUNC"].get_colnames()]:
                 self.eta_interp = interp1d(
                     10 ** attrs_fits["VAR_FUNC"]["loglam"][:],
                     attrs_fits["VAR_FUNC"]["eta"][:],
@@ -117,7 +123,7 @@ class ReadDeltas:
             else:
                 self.eta = np.ones_like(self.lambda_grid)
 
-            if "fudge" in attrs_fits["VAR_FUNC"].get_colnames():
+            if "FUDGE" in [name.upper() for name in attrs_fits["VAR_FUNC"].get_colnames()]:
                 self.fudge_interp = interp1d(
                     10 ** attrs_fits["VAR_FUNC"]["loglam"][:],
                     attrs_fits["VAR_FUNC"]["fudge"][:],
@@ -202,8 +208,8 @@ class ReadDeltas:
                 VAR = 1 / delta_fits["WEIGHT"].read()
                 var_pipe = (
                     VAR
-                    - self.var_lss
-                    + np.sqrt((self.var_lss - VAR) ** 2 - 4 * self.eta * self.fudge)
+                    - self.var_lss*self.var_lss_mod
+                    + np.sqrt((self.var_lss*self.var_lss_mod - VAR) ** 2 - 4 * self.eta * self.fudge)
                 ) / (2 * self.eta)
                 # var_pipe = (VAR - self.var_lss) / self.eta
 
