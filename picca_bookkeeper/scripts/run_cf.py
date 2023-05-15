@@ -22,6 +22,8 @@ def main(args=None):
     if not args.only_write:
         cf.send_job()
         wait_for = cf
+    else:
+        wait_for = None
 
     if not args.no_dmat:
         dmat = bookkeeper.get_dmat_tasker(

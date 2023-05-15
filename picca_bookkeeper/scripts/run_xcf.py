@@ -18,6 +18,8 @@ def main(args=None):
     if not args.only_write:
         xcf.send_job()
         wait_for = xcf
+    else:
+        wait_for = None
 
     if not args.no_dmat:
         xdmat = bookkeeper.get_xdmat_tasker(
