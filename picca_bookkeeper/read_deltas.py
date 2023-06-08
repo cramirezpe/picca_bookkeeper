@@ -313,14 +313,18 @@ class Plots:
         else:
             card = "WEIGHT"
 
+        wave = 10 ** hdul[card]["LOGLAM"].read()
+        eta = hdul[card]["ETA"].read()
         ax.plot(
-            10 ** hdul[card]["LOGLAM"].read(),
-            hdul[card]["ETA"].read(),
+            wave,
+            eta,
             **plot_kwargs,
         )
 
-        ax.set_xlabel(r"$\lambda_{\rm obs} \, [\AA]$")
+        ax.set_xlabel(r"$\lambda \, [\AA]$")
         ax.set_ylabel(r"$\eta$")
+
+        return wave, eta
 
     @staticmethod
     def var_lss(
@@ -336,14 +340,20 @@ class Plots:
         else:
             card = "WEIGHT"
 
+            
+        wave = 10 ** hdul[card]["LOGLAM"].read()
+        var_lss = hdul[card]["VAR_LSS"].read()
+
         ax.plot(
-            10 ** hdul[card]["LOGLAM"].read(),
-            hdul[card]["VAR_LSS"].read(),
+            wave, 
+            var_lss,
             **plot_kwargs,
         )
 
-        ax.set_xlabel(r"$\lambda_{\rm obs} \, [\AA]$")
+        ax.set_xlabel(r"$\lambda \, [\AA]$")
         ax.set_ylabel(r"$\sigma^2_{\rm LSS}$")
+
+        return wave, var_lss
 
     @staticmethod
     def fudge(
@@ -359,14 +369,19 @@ class Plots:
         else:
             card = "WEIGHT"
 
+        lambda_ = 10 ** hdul[card]["LOGLAM"].read()
+        fudge = hdul[card]["FUDGE"].read()
+        
         ax.plot(
-            10 ** hdul[card]["LOGLAM"].read(),
-            hdul[card]["FUDGE"].read(),
+            lambda_,
+            fudge,
             **plot_kwargs,
         )
 
-        ax.set_xlabel(r"$\lambda_{\rm obs} \, [\AA]$")
+        ax.set_xlabel(r"$\lambda \, [\AA]$")
         ax.set_ylabel(r"$\epsilon$")
+
+        return lambda_, fudge
 
     @staticmethod
     def stack(
@@ -408,8 +423,10 @@ class Plots:
             stack *= weights
 
         ax.plot(lambda_, stack + offset, **plot_kwargs)
-        ax.set_xlabel(r"$\lambda_{\rm obs} \, [\AA]$")
-        ax.set_ylabel(r"$\overline{1 + \delta}$")
+        ax.set_xlabel(r"$\lambda \, [\AA]$")
+        ax.set_ylabel(r"$\overline{1 + \delta_q(\lambda)}$")
+
+        return lambda_, stack
 
     @staticmethod
     def num_pixels(
@@ -420,14 +437,18 @@ class Plots:
         if ax is None:
             fig, ax = plt.subplots()
 
+        lambda_ = 10 ** hdul["VAR_FUNC"]["loglam"].read()
+        num_pixels = hdul["VAR_FUNC"]["num_pixels"].read()
         ax.plot(
-            10 ** hdul["VAR_FUNC"]["loglam"].read(),
-            hdul["VAR_FUNC"]["num_pixels"].read(),
+            lambda_,
+            num_pixels,
             **plot_kwargs,
         )
-        ax.set_xlabel(r"$\lambda_{\rm obs} \, [\AA]$")
+        ax.set_xlabel(r"$\lambda \, [\AA]$")
         ax.set_ylabel(r"# pixels")
 
+        return lambda_, num_pixels 
+    
     @staticmethod
     def valid_fit(
         hdul: fitsio.fitslib.FITS,
