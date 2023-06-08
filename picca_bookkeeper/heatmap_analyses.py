@@ -72,7 +72,7 @@ class Plots:
             },
         )
 
-        ax.set_xlabel(r"$\lambda_{\rm obs}$")
+        ax.set_xlabel(r"$\lambda$")
         ax.set_ylabel(r"$VAR-\eta \cdot \sigma_{\rm pip}^2$")
         ax.set_title(r"Heatmap for values of $VAR - \eta \cdot \sigma_{\rm pip}^2$")
 
@@ -155,7 +155,7 @@ class Plots:
         if ax is None:
             fig, ax = plt.subplots()
         elif fig is None:
-            raise ValueError("ax and fig should be provided at the same time")
+            raise ValueError("ax and fiug should be provided at the same time")
 
         n_forests = len(analysis.deltas2_arr)
         n_bins = bins[1]
@@ -267,7 +267,7 @@ class Plots:
     ):
         if output_prefix is not None:
             output_prefix = Path(output_prefix).parent / (
-                Path(output_prefix).name + "-flux_var"
+                Path(output_prefix).name + "-flux"
             )
 
         if mask is None:
@@ -299,11 +299,12 @@ class Plots:
             add_mean_line=add_mean_line,
             imshow_kwargs=imshow_kwargs,
             mean_line_kwargs=mean_line_kwargs,
+            mask=mask if mask is not None else None,
             output_prefix=output_prefix,
             save_data=save_data,
             save_dict=save_dict,
         )
-        ax.set_xlabel(r"$\lambda_{\rm obs}$")
+        ax.set_xlabel(r"$\lambda$")
         ax.set_ylabel(r"Flux")
         ax.set_title(r"Heatmap for values of flux")
 
@@ -369,7 +370,7 @@ class Plots:
             save_data=save_data,
             save_dict=save_dict,
         )
-        ax.set_xlabel(r"$\lambda_{\rm obs}$")
+        ax.set_xlabel(r"$\lambda$")
         ax.set_ylabel(r"$\log(\sigma_{\rm pip})$")
         ax.set_title(r"Heatmap for values of $\sigma_{\rm pip}$")
 
@@ -438,7 +439,7 @@ class Plots:
             save_data=save_data,
             save_dict=save_dict,
         )
-        ax.set_xlabel(r"$\lambda_{\rm obs}$")
+        ax.set_xlabel(r"$\lambda$")
         ax.set_ylabel(r"$\log(\sigma_{\rm pip}/Flux)")
         ax.set_title(r"Heatmap for values of $\sigma_{\rm pip}$/Flux")
 
@@ -504,7 +505,7 @@ class Plots:
             save_data=save_data,
             save_dict=save_dict,
         )
-        ax.set_xlabel(r"$\lambda_{\rm obs}$")
+        ax.set_xlabel(r"$\lambda$")
         ax.set_ylabel(r"$\log(\tilde{\sigma}_{\rm pip})$")
         ax.set_title(r"Heatmap for values of $\tilde{\sigma}_{\rm pip}$")
 
@@ -566,7 +567,7 @@ class Plots:
             save_dict=save_dict,
         )
 
-        ax.set_xlabel(r"$\lambda_{\rm obs}$")
+        ax.set_xlabel(r"$\lambda$")
         ax.set_ylabel(r"$\log(\sigma_{\rm pip})$")
         ax.set_title(r"Heatmap for values of $\sigma_{\rm pip}$")
 
@@ -633,7 +634,7 @@ class Plots:
             save_dict=save_dict,
         )
 
-        ax.set_xlabel(r"$\lambda_{\rm obs}$")
+        ax.set_xlabel(r"$\lambda$")
         ax.set_ylabel(r"$\lambda_{\rm RF}$")
 
         if save_plot:
