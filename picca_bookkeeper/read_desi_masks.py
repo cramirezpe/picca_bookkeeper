@@ -58,7 +58,7 @@ class Plots:
             ax.set_title(f"{color}-band")
 
         axs[0].set_ylabel(r"% of masked pixels")
-        fig.supxlabel(r"$\lambda_{\rm obs} \, [\AA]$")
+        fig.supxlabel(r"$\lambda \, [\AA]$")
         if downsampling < 1:
             plt.suptitle(
                 f"Percentage of masked pixels for a subsample of fugu data (subsample {round(downsampling*100, 2)}%)"
