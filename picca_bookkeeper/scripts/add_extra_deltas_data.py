@@ -13,7 +13,7 @@ import fitsio
 import numpy as np
 import picca
 from picca.delta_extraction.survey import Survey
-from picca.delta_extraction.masks.dla_mask import DlaMask, DlaProfile
+from picca.delta_extraction.masks.dla_mask import DlaMask, dla_profile
 from picca.delta_extraction.masks.bal_mask import BalMask
 from picca.delta_extraction.astronomical_objects.forest import Forest
 
@@ -356,7 +356,7 @@ def read_DLA_mask_single(forest: Forest, mask: DlaMask):
     if mask.los_ids.get(forest.los_id) is not None:
         dla_transmission = np.ones(len(lambda_))
         for (z_abs, nhi) in mask.los_ids.get(forest.los_id):
-            dla_transmission *= DlaProfile(lambda_, z_abs, nhi).transmission
+            dla_transmission *= dla_profile(lambda_, z_abs, nhi)
 
         # find out which pixels to mask
         w = dla_transmission > mask.dla_mask_limit
