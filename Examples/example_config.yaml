@@ -70,7 +70,7 @@ continuum fitting:
   #           in the analysis (0 means nothing).
   prefix: dMdB20
   calib: 0
-  calib region: mgii
+  calib region: mgii_r
   dla: 0
   bal: 0
   suffix: 0

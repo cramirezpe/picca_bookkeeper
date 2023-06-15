@@ -37,7 +37,7 @@ def mock_run(command, shell, capture_output):
 def write_full_analysis(bookkeeper, calib=False, region="lya", region2=None):
     if calib:
         calib = bookkeeper.get_calibration_extraction_tasker(
-            region="mgii",
+            region="mgii_r",
         )
         calib.write_job()
         calib.send_job()

@@ -5,6 +5,7 @@ system:
 data:
   output_dir: /path/to/analysis
   input_dir: /global/cfs/cdirs/desi/science/lya/early-3d/
+  calibration_dir: 
   
   healpix data:
   release: guadalupe
