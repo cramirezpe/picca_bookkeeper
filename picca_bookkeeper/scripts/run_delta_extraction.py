@@ -69,7 +69,6 @@ def get_args():
     parser.add_argument(
         "--region",
         type=str,
-        choices=["lya", "lyb"],
         default="lya",
         help="Region to compute deltas in",
     )
