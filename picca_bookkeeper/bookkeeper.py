@@ -17,7 +17,7 @@ forest_regions = {
         "lambda-rest-min": 920.0,
         "lambda-rest-max": 1020.0,
     },
-    "mgii": {
+    "mgii_r": {
         "lambda-rest-min": 2900.0,
         "lambda-rest-max": 3120.0,
     },
@@ -37,6 +37,10 @@ forest_regions = {
         "lambda-rest-min": 2600.0,
         "lambda-rest-max": 2760.0,
     },
+    "mgii_h": {
+        "lambda-rest-min": 2100.0,
+        "lambda-rest-max": 2760.0,
+    }
 }
 
 
@@ -231,10 +235,10 @@ class Bookkeeper:
     def validate_region(region, calibration_fields=False):
         """Method to check if a region string is valid. Also converts it into lowercase.
 
-        Will raise value error if the region is not in ['lya', 'lyb']. If calibration_fields is enabled, it will also accept ['civ', 'mgii'].
+        Will raise value error if the region is not in forest_regions.
 
         Args:
-            region (str): Region (should be in ['civ', 'mgii'] to pass the validation).
+            region (str): Region (should be in forest_regions to pass the validation).
             calibration_fields (bool, optional): Whether to include calibration regions. (Default: False).
         """
         if region.lower() not in ["lya", "lyb"]:
@@ -381,7 +385,7 @@ class Bookkeeper:
         """Method to get a Tasker object to run delta extraction with picca.
 
         Args:
-            region (str, optional): Region where to compute deltas. Options: ('lya', 'lyb', 'mgii', 'civ'). Default: 'lya'
+            region (str, optional): Region where to compute deltas. Options: forest_regions. Default: 'lya'
             system (str, optional): Shell to use for job. 'slurm_cori' to use slurm scripts on cori, 'slurm_perlmutter' to use slurm scripts on perlmutter, 'bash' to run it in login nodes or computer shell. Default: None, read from config file.
             debug (bool, optional): Whether to use debug options.
             wait_for (Tasker or int, optional): In NERSC, wait for a given job to finish before running the current one. Could be a  Tasker object or a slurm jobid (int). (Default: None, won't wait for anything).
@@ -825,7 +829,7 @@ class Bookkeeper:
         """Method to get a Tasker object to run calibration with picca delta extraction method.
 
         Args:
-            region (str, optional): Region where to compute deltas. Options: ('lya', 'lyb', 'mgii', 'ciii', 'civ'). Default: 'mgii'
+            region (str, optional): Region where to compute deltas. Options: forest_regons. Default: 'mgii'
             system (str, optional): Shell to use for job. 'slurm_cori' to use slurm scripts on cori, 'slurm_perlmutter' to use slurm scripts on perlmutter, 'bash' to run it in login nodes or computer shell. Default: None, read from config file.
             debug (bool, optional): Whether to use debug options.
             wait_for (Tasker or int, optional): In NERSC, wait for a given job to finish before running the current one. Could be a  Tasker object or a slurm jobid (int). (Default: None, won't wait for anything).
@@ -837,9 +841,9 @@ class Bookkeeper:
         """
         steps = []
         if region is None:
-            cfg_val = self.config["continuum fitting"].get("calib region", "mgii")
+            cfg_val = self.config["continuum fitting"].get("calib region", "mgii_r")
             if cfg_val is None or cfg_val == "":
-                region = "mgii"
+                region = "mgii_r"
             else:
                 region = cfg_val
 
