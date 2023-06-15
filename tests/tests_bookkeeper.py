@@ -108,8 +108,8 @@ def write_full_analysis(bookkeeper, calib=False, region="lya", region2=None):
         task.send_job()
 
 
-def copy_config_substitute(config):
-    out_path = THIS_DIR / "test_files" / "output"
+def copy_config_substitute(config, out_name="output"):
+    out_path = THIS_DIR / "test_files" / out_name
     fitter_path = THIS_DIR.parent / "Examples" / "fit_config"
     out_file = out_path / "tmp.yaml"
     print(out_path)
@@ -145,9 +145,12 @@ class TestBookkeeper(unittest.TestCase):
 
     def setUp(self):
         (self.files_path / "output").mkdir(exist_ok=True)
+        (self.files_path / "output2").mkdir(exist_ok=True)
+
 
     def tearDown(self):
         shutil.rmtree(self.files_path / "output")
+        shutil.rmtree(self.files_path / "output2")
 
     def compare_two_files(self, filename1, filename2):
         with open(filename1, "r") as file1, open(filename2, "r") as file2:
@@ -370,6 +373,39 @@ class TestBookkeeper(unittest.TestCase):
         if "UPDATE_TESTS" in os.environ and os.environ["UPDATE_TESTS"] == "True":
             self.update_test_output(test_files, bookkeeper.output.run_path)
         self.compare_bookkeeper_output(test_files, bookkeeper.output.run_path)
+
+    @patch("picca_bookkeeper.tasker.run", side_effect=mock_run)
+    @patch("picca_bookkeeper.bookkeeper.get_quasar_catalog", side_effect=mock_get_3d_catalog)
+    def test_example_calib_diff_path(self, mock_func_1, mock_func_2):
+        copy_config_substitute(self.files_path / "example_config_guadalupe.yaml")
+        test_files = THIS_DIR / "test_files" / "calib_diff_path"
+        bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
+
+        write_full_analysis(bookkeeper, calib=True, region="lyb", region2="lya")
+
+        self.replace_paths_bookkeeper_output(bookkeeper.output.run_path)
+
+        # Now main run:
+        copy_config_substitute(self.files_path / "example_config_guadalupe_calib_diff_path.yaml", out_name="output2")
+
+        with open(THIS_DIR / "test_files" / "output2" / "tmp.yaml", "r") as file:
+            filedata = file.read()
+        
+        filedata = filedata.replace("calibration_directory", str(THIS_DIR / "test_files" / "output"))
+
+        with open(THIS_DIR / "test_files" / "output2" / "tmp.yaml", "w") as file:
+            file.write(filedata)
+
+        bookkeeper2 = Bookkeeper(THIS_DIR / "test_files" / "output2" / "tmp.yaml")
+
+        write_full_analysis(bookkeeper2, calib=False, region="lyb", region2="lya")
+
+        self.replace_paths_bookkeeper_output(bookkeeper2.output.run_path)
+        if "UPDATE_TESTS" in os.environ and os.environ["UPDATE_TESTS"] == "True":
+            self.update_test_output(test_files, bookkeeper2.output.run_path)
+        self.compare_bookkeeper_output(test_files, bookkeeper2.output.run_path)
+
+
 
     @patch("picca_bookkeeper.tasker.run", side_effect=mock_run)
     @patch("picca_bookkeeper.bookkeeper.get_quasar_catalog", side_effect=mock_get_3d_catalog)

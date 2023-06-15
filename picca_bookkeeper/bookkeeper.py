@@ -142,10 +142,18 @@ class Bookkeeper:
         ):
             self.config["data"]["input_dir"] = self.config["data"].get("output_dir", "")
 
+        #  Defaulting calibration dir to output dir
+        if (
+            self.config["data"].get("calibration_dir", "") == ""
+        ):
+            self.config["data"]["calibration_dir"] = self.config["data"].get("output_dir", "")
+
         self.default_input = self._get_pathbuilder("data", "input")
         self.output = self._get_pathbuilder("data", "output")
+        self.calibration = self._get_pathbuilder("data", "calibration")
 
         self.output.check_directories()
+        self.calibration.check_directories()
 
         # Copy bookkeeper configuration into destination
         if not self.output.config_file.is_file():
@@ -222,7 +230,7 @@ class Bookkeeper:
         if self.config["data"].get("run path", "") != "":
             return PathBuilder(self.config)
 
-        if input_output not in ("input", "output"):
+        if input_output not in ("input", "output", "calibration"):
             raise ValueError(f"input/output expected, got {input_output}")
         value = self.config[section][input_output + "_dir"]
         if value is None or value == "":
@@ -495,11 +503,11 @@ class Bookkeeper:
                     updated_picca_extra_args[
                         f"correction arguments {prev_n_corrections}"
                     ]["filename"] = str(
-                        self.output.get_delta_attributes_file(None, calib_step=1)
+                        self.calibration.get_delta_attributes_file(None, calib_step=1)
                     )
             # actual run using with both corrections
             else:
-                if not self.output.get_deltas_path(calib_step=2).is_dir():
+                if not self.calibration.get_deltas_path(calib_step=2).is_dir():
                     raise FileNotFoundError(
                         "Calibration folder does not exist. run get_calibration_tasker before running deltas."
                     )
@@ -519,7 +527,7 @@ class Bookkeeper:
                 ] = dict()
                 updated_picca_extra_args[f"correction arguments {prev_n_corrections}"][
                     "filename"
-                ] = str(self.output.get_delta_attributes_file(None, calib_step=1))
+                ] = str(self.calibration.get_delta_attributes_file(None, calib_step=1))
 
                 updated_picca_extra_args["corrections"][
                     f"type {prev_n_corrections+1}"
@@ -530,7 +538,7 @@ class Bookkeeper:
                 updated_picca_extra_args[
                     f"correction arguments {prev_n_corrections+1}"
                 ]["filename"] = str(
-                    self.output.get_delta_attributes_file(None, calib_step=2)
+                    self.calibration.get_delta_attributes_file(None, calib_step=2)
                 )
         elif self.config["continuum fitting"]["calib"] == "2":
             if "expected flux" not in updated_picca_extra_args or isinstance(
@@ -566,7 +574,7 @@ class Bookkeeper:
                 ] = dict()
                 updated_picca_extra_args[f"correction arguments {prev_n_corrections}"][
                     "filename"
-                ] = str(self.output.get_delta_attributes_file(None, calib_step=1))
+                ] = str(self.calibration.get_delta_attributes_file(None, calib_step=1))
         elif self.config["continuum fitting"]["calib"] == "3":
             if "expected flux" not in updated_picca_extra_args or isinstance(
                 updated_picca_extra_args["expected flux"], str
@@ -598,7 +606,7 @@ class Bookkeeper:
                 ] = dict()
                 updated_picca_extra_args[f"correction arguments {prev_n_corrections}"][
                     "filename"
-                ] = str(self.output.get_delta_attributes_file(None, calib_step=1))
+                ] = str(self.calibration.get_delta_attributes_file(None, calib_step=1))
 
         # update masks sections if necessary
         if (
