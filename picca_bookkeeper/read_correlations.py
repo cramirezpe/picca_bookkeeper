@@ -1,6 +1,7 @@
 import fitsio
 import matplotlib
 import matplotlib.pyplot as plt
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 import picca.wedgize
 import scipy as sp
 from pathlib import Path
@@ -578,3 +579,206 @@ class CorrelationPlots:
                 output_prefix.parent / (output_prefix.name + "-multiple_cf.npz"),
                 **{**save_dict, **data_dict},
             )
+
+    @staticmethod
+    def plot_cf_map(
+        bookkeeper: Bookkeeper,
+        region: str='lya',
+        region2: str=None,
+        r_factor: int = 2,
+        vmin=-0.04,
+        vmax=0.04,
+        fig=None,
+        ax: matplotlib.axes.Axes = None,
+        imshow_kwargs: Dict = dict(),
+        plot_kwargs: Dict = dict(),
+        plot_bar_kwargs: Dict = dict(),
+        just_return_values: bool = False,
+        output_prefix: Union[Path, str] = None,
+        save_data: bool = False,
+        save_plot: bool = False,
+        save_dict: Dict = dict(),
+    ):
+        """
+        Plotting correlation heatmap.
+
+        Arguments:
+        ----------
+        bookkeeper: Bookkeeper object to use for collect data.
+        region: region to compute correlations from.
+        region2: region to compute correlations from if multiple regions have been used.
+        r_factor: exponential factor to apply to distance r.
+        ax: axis where to draw the plot, if None, it'll be created.
+        output_prefix: Save the plot under this file structure (Default: None, plot not saved)
+        save_data: Save the data into a npz file under the output_prefix file structure. (Default: False).
+        save_plot: Save the plot into a png file. (Default: False).
+        save_dict: Extra information to save in the npz file if save_data option is True. (Default: Empty dict)
+        """
+        if output_prefix is not None:
+            output_prefix = Path(output_prefix)
+
+        with fitsio.FITS(bookkeeper.output.get_exp_cf_fname(region, region2)) as ffile:
+            try:
+                da = ffile["COR"]["DA"][:]
+            except ValueError:
+                da = ffile["COR"]["DA_BLIND"][:]
+            co = ffile["COR"]["CO"][:]
+            nb = ffile["COR"]["NB"][:]
+            rp = ffile["COR"]["RP"][:]
+            rt = ffile["COR"]["RT"][:]
+
+            cor_header = ffile["COR"].read_header()
+        
+        extent = [cor_header.get('RTMIN', 0),cor_header['RTMAX'],cor_header['RPMIN'],cor_header['RPMAX']]
+        r = np.sqrt(rp**2 + rt**2)
+        nrp, nrt = cor_header['NP'], cor_header['NT']
+        r = r.reshape(nrp, nrt)
+        mat = da.reshape(nrp, nrt)*r**r_factor
+
+        if just_return_values:
+            return extent, mat
+        
+        if (save_data or save_plot) and output_prefix is None:
+            raise ValueError("Set output_prefix in order to save data.")
+        if save_data:
+            data_dict = dict(extent=extent, mat=mat)
+        if ax is None:
+            fig, ax = plt.subplots()
+        elif fig is None:
+            raise ValueError("ax and fiug should be provided at the same time")
+
+        divider = make_axes_locatable(ax)
+        cax = divider.append_axes("right", size="5%", pad=0.05)
+
+        im = ax.imshow(
+            mat, 
+            origin="lower", 
+            extent=extent,
+            interpolation="nearest",
+            cmap="seismic",
+            **{
+                **imshow_kwargs,
+                **dict(vmin=-0.04, vmax=0.04),
+            },
+        )
+
+        fig.colorbar(im, cax=cax, orientation="vertical")
+        ax.set_xlabel(r'$r_{\perp} \, [h^{-1} \, \rm{Mpc}]$')
+        ax.set_ylabel(r'$r_{\parallel} \, [h^{-1} \, \rm{Mpc}]$')
+        cax.yaxis.set_label_position("right")
+        cax.set_ylabel(r'$r\xi(r_{\parallel,r_{\perp}})$')
+        
+        if save_plot:
+            output_prefix = Path(output_prefix)
+            plt.tight_layout()
+            plt.savefig(
+                str(output_prefix) + ".png",
+                dpi=300,
+            )
+        
+        if save_data:
+            np.savez(
+                str(output_prefix) + ".npz",
+                **{**save_dict, **data_dict},
+            )
+        
+    @staticmethod
+    def plot_xcf_map(
+        bookkeeper: Bookkeeper,
+        region: str='lya',
+        r_factor: int = 2,
+        vmin=-0.04,
+        vmax=0.04,
+        fig=None,
+        ax: matplotlib.axes.Axes = None,
+        imshow_kwargs: Dict = dict(),
+        plot_kwargs: Dict = dict(),
+        plot_bar_kwargs: Dict = dict(),
+        just_return_values: bool = False,
+        output_prefix: Union[Path, str] = None,
+        save_data: bool = False,
+        save_plot: bool = False,
+        save_dict: Dict = dict(),
+    ):
+        """
+        Plotting correlation heatmap.
+
+        Arguments:
+        ----------
+        bookkeeper: Bookkeeper object to use for collect data.
+        region: region to compute correlations from.
+        r_factor: exponential factor to apply to distance r.
+        ax: axis where to draw the plot, if None, it'll be created.
+        output_prefix: Save the plot under this file structure (Default: None, plot not saved)
+        save_data: Save the data into a npz file under the output_prefix file structure. (Default: False).
+        save_plot: Save the plot into a png file. (Default: False).
+        save_dict: Extra information to save in the npz file if save_data option is True. (Default: Empty dict)
+        """
+        if output_prefix is not None:
+            output_prefix = Path(output_prefix)
+
+        with fitsio.FITS(bookkeeper.output.get_exp_xcf_fname(region)) as ffile:
+            try:
+                da = ffile["COR"]["DA"][:]
+            except ValueError:
+                da = ffile["COR"]["DA_BLIND"][:]
+            co = ffile["COR"]["CO"][:]
+            nb = ffile["COR"]["NB"][:]
+            rp = ffile["COR"]["RP"][:]
+            rt = ffile["COR"]["RT"][:]
+
+            cor_header = ffile["COR"].read_header()
+        
+        extent = [cor_header.get('RTMIN', 0),cor_header['RTMAX'],cor_header['RPMIN'],cor_header['RPMAX']]
+        r = np.sqrt(rp**2 + rt**2)
+        nrp, nrt = cor_header['NP'], cor_header['NT']
+        r = r.reshape(nrp, nrt)
+        mat = da.reshape(nrp, nrt)*r**r_factor
+
+        if just_return_values:
+            return extent, mat
+        
+        if (save_data or save_plot) and output_prefix is None:
+            raise ValueError("Set output_prefix in order to save data.")
+        if save_data:
+            data_dict = dict(extent=extent, mat=mat)
+        if ax is None:
+            fig, ax = plt.subplots()
+        elif fig is None:
+            raise ValueError("ax and fiug should be provided at the same time")
+
+        divider = make_axes_locatable(ax)
+        cax = divider.append_axes("right", size="5%", pad=0.05)
+
+        im = ax.imshow(
+            mat, 
+            origin="lower", 
+            extent=extent,
+            interpolation="nearest",
+            cmap="seismic",
+            **{
+                **imshow_kwargs,
+                **dict(vmin=-0.4, vmax=0.4),
+            },
+        )
+
+        fig.colorbar(im, cax=cax, orientation="vertical")
+        ax.set_xlabel(r'$r_{\perp} \, [h^{-1} \, \rm{Mpc}]$')
+        ax.set_ylabel(r'$r_{\parallel} \, [h^{-1} \, \rm{Mpc}]$')
+        cax.yaxis.set_label_position("right")
+        cax.set_ylabel(r'$r\xi(r_{\parallel,r_{\perp}})$')
+        
+        if save_plot:
+            output_prefix = Path(output_prefix)
+            plt.tight_layout()
+            plt.savefig(
+                str(output_prefix) + ".png",
+                dpi=300,
+            )
+        
+        if save_data:
+            np.savez(
+                str(output_prefix) + ".npz",
+                **{**save_dict, **data_dict},
+            )
+        
