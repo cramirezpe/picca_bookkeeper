@@ -11,6 +11,8 @@ from typing import *
 import os
 import warnings
 
+from picca_bookkeeper.utils import compute_cont, get_spectra_from_los_id
+from picca_bookkeeper.bookkeeper import Bookkeeper
 
 class ReadDeltas:
     def __init__(self, bookkeeper_path, region, blind=False, label=None):
@@ -259,7 +261,6 @@ class ReadDeltas:
                         delta_fits["METADATA"]["Z"][:][msk],
                         delta_fits["METADATA"]["MEANSNR"][:][msk],
                     )
-
 
 class ReadDeltasNoBookkeeper(ReadDeltas):
     def __init__(
@@ -528,3 +529,63 @@ class Plots:
                 label=label_to_use,
                 alpha=0.4,
             )
+
+    @staticmethod
+    def plot_flux(
+        bookkeeper: Bookkeeper,
+        los_id: int,
+        plot_kwargs: Dict = dict(),
+        ax: matplotlib.axes._axes.Axes = None,
+        z: float=None,
+    ):
+        if ax is None:
+            fig, ax = plt.subplots()
+
+        flux_data = get_spectra_from_los_id(
+            los_id, 
+            catalog=bookkeeper.output.catalog,
+            input_healpix=bookkeeper.output.healpix_data
+        )
+
+        if z is not None:
+            grid = flux_data[0]/(1+z)
+        else:
+            grid = flux_data[0]
+        
+        ax.plot(
+            grid,
+            flux_data[1],
+            **plot_kwargs,
+        )
+
+    @staticmethod
+    def plot_cont(
+        los_id: int,
+        attrs_file: Union[str, Path],
+        ax: matplotlib.axes._axes.Axes = None,
+        region: str = "lya",
+        z: float=None,
+        **kwargs,
+    ):
+        """Helper function to compute continuum
+
+        Arguments:
+        ----------
+        ax: matplotlib axis where to draw the pot.
+        los_id: Line of sight id of quasar.
+        attrs_file: Path to delta attributes file.
+        region: Region where to compute the continuum.
+        z: Redshfit to plot in observed wavelength.
+        """
+        if ax is None:
+            fig, ax = plt.subplots()
+
+        lambda_rest, cont = compute_cont(los_id, attrs_file, region)
+        
+        if z is None:
+            ax.plot(lambda_rest, cont, **kwargs)
+            return lambda_rest, cont
+        else:
+            ax.plot(lambda_rest*(1+z), cont, **kwargs)
+            return lambda_rest*(1+z), cont
+
