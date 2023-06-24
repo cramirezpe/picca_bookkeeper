@@ -1,0 +1,23 @@
+general:
+  conda environment: picca
+  system: slurm_perlmutter
+  
+data:
+  early dir: /picca_bookkeeper/tests/test_files/outputs
+  
+  healpix data:
+  release: guadalupe
+  survey: main
+  catalog: afterburn_v0
+  catalog_tracer: 
+  
+delta extraction:
+  prefix: dMdB20
+  calib: 1
+  calib region: mgii_r
+  dla: 0
+  bal: 0
+  suffix: 0
+
+correlations:
+  run name: default

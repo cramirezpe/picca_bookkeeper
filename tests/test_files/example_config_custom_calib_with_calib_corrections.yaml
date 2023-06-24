@@ -1,16 +1,14 @@
-system:
+general:
   #python environment to be used when running jobs
   #something that would be activated as:
   # source activate picca
-  python_environment: picca
+  conda environment: picca
   
 data:
   # Define the ouput_dir where the results will be stored on.
   # also define a default input_dir where all the input values 
   # will be read by default.
-  output_dir: results_directory
-  input_dir: results_directory
-  
+  early dir: results_directory  
   # Hardcode the healpix data location, by default it will be set
   # according to the release, e.g. for everest:
   # /global/cfs/cdirs/desi/spectro/redux/everest/healpix/
@@ -32,7 +30,7 @@ data:
   # by default will use the previous one for all the analyses.
   catalog_tracer: 
   
-continuum fitting:
+delta extraction:
   # The structure of folders and sub-folders is the following:
   # .../early-3d/{relase}/{survey}/{qso_cat}/{prefix}_{calib}.{dla}.{bal}_{suffix}
   # where {prefix}_{calib}.{dla}.{bal}_{suffix} defines de continuum fitting used:
@@ -48,6 +46,7 @@ continuum fitting:
   #           in the analysis (0 means nothing).
   prefix: dMdB20
   calib: 1
+  calib region: mgii_r
   dla: 0
   bal: 0
   suffix: 0
@@ -55,14 +54,34 @@ continuum fitting:
   # In each of the steps, we could change the input or leave the default one (if blank)
   # We usually want to read from the continuum fitting output (our results are
   # being saved there)
+
+  picca args:
+    picca_convert_transmission:
+      nspec: 30
+    
+    picca_delta_extraction:
+      expected flux:
+        type: Dr16ExpectedFlux
+      corrections: 
+        num corrections: 2
+        type 0: DustCorrection
+        type 1: "CalibrationCorrection"
+      correction arguments 0:
+        filename: /file/dust
+      correction arguments 1:
+        
+      data:
+        wave solution: lin
+
 correlations:
-  input_dir: 
+  run name: default
+  
   
 export:
-  input_dir:
+  
   
 fitter:
-  input_dir: 
+  
 
   fit_config_dir: fitter_directory
 

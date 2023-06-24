@@ -1,9 +1,10 @@
-system:
-  python_environment: picca
+general:
+  conda environment: picca
   
 data:
-  output_dir: results_directory
-  input_dir: results_directory
+  early dir: results_directory
+  
+  
   
   healpix data:
   release: guadalupe
@@ -11,30 +12,33 @@ data:
   catalog: afterburn_v0
   catalog_tracer: 
   
-continuum fitting:
+delta extraction:
   prefix: dMdB20
   calib: 1
+  calib region: mgii_r
   dla: 1
   bal: 2
   suffix: 0
-  
+
+  picca args:
+    picca_convert_transmission:
+
+    picca_delta_extraction:
+      masks:
+        num masks: 1
+        type 0: BalMask
+
+    picca_deltas:
+    
 correlations:
-  input_dir: 
+  run name: default
+  
   
 export:
-  input_dir: 
+  
   
 fitter:
-  input_dir:
+  
   fit_config_dir: fitter_directory
 
 # Picca args to be used by the bookkeeper
-picca args:
-  picca_convert_transmission:
-
-  picca_delta_extraction:
-    masks:
-      num masks: 1
-      type 0: BalMask
-
-  picca_deltas:

@@ -1,10 +1,8 @@
-system:
-  python_environment: picca
+general:
+  conda environment: picca
   
 data:
-  output_dir: results_directory
-  input_dir: results_directory
-  calibration_dir: calibration_directory
+  early dir: results_directory
   
   healpix data:
   release: guadalupe
@@ -12,19 +10,15 @@ data:
   catalog: afterburn_v0
   catalog_tracer: 
   
-continuum fitting:
+delta extraction:
   prefix: dMdB20
   calib: 1
+  calib region: mgii_r
   dla: 0
   bal: 0
-  suffix: 0
+  suffix: _reuse_calib
+
+  calibration data: dMdB20_1_mgii_r.0.0_0
   
 correlations:
-  input_dir: 
-  
-export:
-  input_dir: 
-  
-fitter:
-  input_dir:
-  fit_config_dir: fitter_directory
+  run name: default

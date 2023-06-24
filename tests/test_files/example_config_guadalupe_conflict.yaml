@@ -1,9 +1,8 @@
-system:
-  python_environment: different_environment
+general:
+  conda environment: different_environment
   
 data:
-  output_dir: results_directory
-  input_dir: results_directory
+  early dir: results_directory
   
   healpix data:
   release: guadalupe
@@ -11,19 +10,10 @@ data:
   catalog: afterburn_v0
   catalog_tracer: 
   
-continuum fitting:
+delta extraction:
   prefix: dMdB20
   calib: 1
+  calib region: mgii_r
   dla: 0
   bal: 0
   suffix: 0
-  
-correlations:
-  input_dir: 
-  
-export:
-  input_dir: 
-  
-fitter:
-  input_dir:
-  fit_config_dir: fitter_directory

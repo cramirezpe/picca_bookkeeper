@@ -26,12 +26,12 @@ def main(args=None):
         calib_step = None
         pattern = f"delta_extraction_{region}.ini"
 
-    deltas_path = bookkeeper.output.get_deltas_path(
+    deltas_path = bookkeeper.paths.deltas_path(
         region=args.region,
         calib_step=calib_step,
     )
 
-    picca_config = next((bookkeeper.output.run_path / "configs").glob(pattern))
+    picca_config = next((bookkeeper.paths.run_path / "configs").glob(pattern))
 
     output_dir_mask = deltas_path.parent / "Mask"
     output_dir_flux = deltas_path.parent / "Flux"
@@ -57,12 +57,12 @@ def main(args=None):
         "nodes": "1",
         "time": "01:00:00",
         "job-name": job_name,
-        "output": str(bookkeeper.output.run_path / f"logs/{job_name}-%j.out"),
-        "error": str(bookkeeper.output.run_path / f"logs/{job_name}-%j.err"),
+        "output": str(bookkeeper.paths.run_path / f"logs/{job_name}-%j.out"),
+        "error": str(bookkeeper.paths.run_path / f"logs/{job_name}-%j.err"),
     }
 
     updated_slurm_header_args = bookkeeper.generate_slurm_header_extra_args(
-        slurm_header_args, command
+        bookkeeper.config["delta extraction"], slurm_header_args, command
     )
 
     srun_options = {
@@ -79,8 +79,8 @@ def main(args=None):
         command_args=command_args,
         slurm_header_args=updated_slurm_header_args,
         srun_options=srun_options,
-        environment=bookkeeper.config["system"]["python_environment"],
-        run_file=bookkeeper.output.run_path / f"scripts/run_{job_name}.sh",
+        environment=bookkeeper.config["general"]["conda environment"],
+        run_file=bookkeeper.paths.run_path / f"scripts/run_{job_name}.sh",
         wait_for=args.wait_for,
     )
 

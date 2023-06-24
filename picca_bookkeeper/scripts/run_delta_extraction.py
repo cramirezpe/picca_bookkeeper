@@ -10,11 +10,11 @@ def main(args=None):
         args = get_args()
     bookkeeper = Bookkeeper(args.bookkeeper_config, overwrite_config=args.overwrite_config)
 
-    continuum_type = bookkeeper.config["continuum fitting"]["prefix"]
+    continuum_type = bookkeeper.config["delta extraction"]["prefix"]
 
     if args.only_calibration or (
         (continuum_type in ("dMdB20", "custom"))
-        and bookkeeper.config["continuum fitting"]["calib"] != "0"
+        and bookkeeper.config["delta extraction"]["calib"] != "0"
     ):
         calibration = bookkeeper.get_calibration_extraction_tasker(
             system=None,

@@ -1,9 +1,8 @@
-system:
-  python_environment: picca_add_tests
+general:
+  conda environment: picca_add_tests
 
 data:
-  output_dir: /picca_bookkeeper/tests/test_files/output
-  input_dir: /picca_bookkeeper/tests/test_files/output
+  early dir: /picca_bookkeeper/tests/test_files/output
 
   healpix data:
 
@@ -12,21 +11,34 @@ data:
   catalog: LyaCoLoRe
   catalog_tracer:
 
-continuum fitting:
+delta extraction:
   prefix: true
   calib: 0
   dla: 0
   bal: 0
   suffix: 0
 
+    # Picca args to be used by the bookkeeper
+  picca args:
+    picca_convert_transmission:
+
+    picca_delta_extraction:
+      expected flux:
+        raw statistics file: /global/cfs/cdirs/desi/users/mail/Continuum_fitting/picca_runs/v9.0.0/raw/v9.0.0_cat_reduced/raw_0.0.0_0/deltas/lya/Delta-stats.fits.gz
+
+    picca_deltas:
+
+
+
 correlations:
-  input_dir:
+  run name: default
+  
 
 export:
-  input_dir:
+  
 
 fitter:
-  input_dir:
+  
 
   fit_config_dir: /picca_bookkeeper/Examples/fit_config
 
@@ -53,29 +65,3 @@ slurm args:
 
   picca_fitter2:
 
-# Picca args to be used by the bookkeeper
-picca args:
-  picca_convert_transmission:
-
-  picca_delta_extraction:
-    expected flux:
-      raw statistics file: /global/cfs/cdirs/desi/users/mail/Continuum_fitting/picca_runs/v9.0.0/raw/v9.0.0_cat_reduced/raw_0.0.0_0/deltas/lya/Delta-stats.fits.gz
-
-  picca_deltas:
-
-  picca_cf:
-    nside: 16
-
-  picca_xcf:
-
-  picca_cf:
-
-  picca_dmat:
-
-  picca_xdmat:
-
-  picca_metal_dmat:
-
-  picca_export:
-
-  picca_fitter2:

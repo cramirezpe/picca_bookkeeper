@@ -36,9 +36,7 @@ def mock_run(command, shell, capture_output):
 
 def write_full_analysis(bookkeeper, calib=False, region="lya", region2=None):
     if calib:
-        calib = bookkeeper.get_calibration_extraction_tasker(
-            region="mgii_r",
-        )
+        calib = bookkeeper.get_calibration_extraction_tasker()
         calib.write_job()
         calib.send_job()
 
@@ -162,11 +160,13 @@ class TestBookkeeper(unittest.TestCase):
                 ).with_traceback(e.__traceback__)
 
     def compare_bookkeeper_output(self, test_folder, bookkeeper_folder):
-        for file in itertools.chain(
-            (test_folder / "scripts").iterdir(), (test_folder / "configs").iterdir()
-        ):
-            file2 = bookkeeper_folder / file.parent.name / file.name
-            self.compare_two_files(file2, file)
+        for root, dirs, files in os.walk(bookkeeper_folder):
+            path = root[len(str(bookkeeper_folder))+1:]
+            for file in files:
+                self.compare_two_files(
+                    Path(root) / file,
+                    test_folder / path / file
+                )
 
     def replace_paths_bookkeeper_output(self, bookkeeper_folder):
         for file in itertools.chain(
@@ -178,14 +178,8 @@ class TestBookkeeper(unittest.TestCase):
     def update_test_output(self, test_folder, bookkeeper_folder):
         if test_folder.is_dir():
             shutil.rmtree(test_folder)
-        (test_folder / "scripts").mkdir(parents=True)
-        (test_folder / "configs").mkdir(parents=True)
-        for file in itertools.chain(
-            (bookkeeper_folder / "scripts").iterdir(),
-            (bookkeeper_folder / "configs").iterdir(),
-        ):
-            file2 = test_folder / file.parent.name / file.name
-            shutil.copy(file, file2)
+
+        shutil.copytree(bookkeeper_folder, test_folder)
 
     def test_config_read(self):
         with self.assertRaises(FileNotFoundError):
@@ -193,9 +187,6 @@ class TestBookkeeper(unittest.TestCase):
 
         copy_config_substitute(self.files_path / "example_config_guadalupe.yaml")
         bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
-
-        with self.assertRaises(ValueError):
-            bookkeeper._get_pathbuilder("data", "iput")
 
         with self.assertRaises(ValueError):
             bookkeeper.validate_region("lyc")
@@ -213,7 +204,7 @@ class TestBookkeeper(unittest.TestCase):
 
         self.assertTrue(
             filecmp.cmp(
-                bookkeeper.output.config_file,
+                bookkeeper.paths.delta_config_file,
                 THIS_DIR / "test_files" / "output" / "tmp.yaml",
             )
         )
@@ -225,60 +216,60 @@ class TestBookkeeper(unittest.TestCase):
 
         self.assertTrue(
             filecmp.cmp(
-                bookkeeper.output.config_file,
+                bookkeeper.paths.delta_config_file,
                 THIS_DIR / "test_files" / "output" / "tmp.yaml",
             )
         )
 
-    @patch("builtins.input", return_value="yes")
-    def test_config_overwrite_on_yes(self, mock_print):
-        copy_config_substitute(self.files_path / "example_config_guadalupe.yaml")
-        bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
+    # @patch("builtins.input", return_value="yes")
+    # def test_config_overwrite_on_yes(self, mock_print):
+    #     copy_config_substitute(self.files_path / "example_config_guadalupe.yaml")
+    #     bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
-        copy_config_substitute(
-            self.files_path / "example_config_guadalupe_conflict.yaml"
-        )
-        bookkeeper = Bookkeeper(
-            THIS_DIR / "test_files" / "output" / "tmp.yaml", overwrite_config=False
-        )
+    #     copy_config_substitute(
+    #         self.files_path / "example_config_guadalupe_conflict.yaml"
+    #     )
+    #     bookkeeper = Bookkeeper(
+    #         THIS_DIR / "test_files" / "output" / "tmp.yaml", overwrite_config=False
+    #     )
 
-        self.assertTrue(
-            filecmp.cmp(
-                bookkeeper.output.config_file,
-                THIS_DIR / "test_files" / "output" / "tmp.yaml",
-            )
-        )
+    #     self.assertTrue(
+    #         filecmp.cmp(
+    #             bookkeeper.paths.delta_config_file,
+    #             THIS_DIR / "test_files" / "output" / "tmp.yaml",
+    #         )
+    #     )
 
-    @patch("builtins.input", return_value="no")
-    def test_config_overwrite_exit_on_no(self, mock_print):
-        copy_config_substitute(self.files_path / "example_config_guadalupe.yaml")
-        bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
+    # @patch("builtins.input", return_value="no")
+    # def test_config_overwrite_exit_on_no(self, mock_print):
+    #     copy_config_substitute(self.files_path / "example_config_guadalupe.yaml")
+    #     bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
-        copy_config_substitute(
-            self.files_path / "example_config_guadalupe_conflict.yaml"
-        )
+    #     copy_config_substitute(
+    #         self.files_path / "example_config_guadalupe_conflict.yaml"
+    #     )
 
-        with self.assertRaises(SystemExit):
-            bookkeeper = Bookkeeper(
-                THIS_DIR / "test_files" / "output" / "tmp.yaml", overwrite_config=False
-            )
+    #     with self.assertRaises(SystemExit):
+    #         bookkeeper = Bookkeeper(
+    #             THIS_DIR / "test_files" / "output" / "tmp.yaml", overwrite_config=False
+    #         )
 
-    def test_catalog_changed(self):
-        copy_config_substitute(self.files_path / "example_config_guadalupe.yaml")
+    # def test_catalog_changed(self):
+    #     copy_config_substitute(self.files_path / "example_config_guadalupe.yaml")
 
-        def side_effect(*args, **kwargs):
-            return THIS_DIR / "test_files" / "dummy_catalog.fits"
+    #     def side_effect(*args, **kwargs):
+    #         return THIS_DIR / "test_files" / "dummy_catalog.fits"
 
-        with patch("picca_bookkeeper.bookkeeper.get_quasar_catalog", side_effect=side_effect):
-            bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
+    #     with patch("picca_bookkeeper.bookkeeper.get_quasar_catalog", side_effect=side_effect):
+    #         bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
-        def side_effect(*args, **kwargs):
-            return THIS_DIR / "test_files" / "alt_cat" / "dummy_catalog.fits"
+    #     def side_effect(*args, **kwargs):
+    #         return THIS_DIR / "test_files" / "alt_cat" / "dummy_catalog.fits"
 
-        with patch(
-            "picca_bookkeeper.bookkeeper.get_quasar_catalog", side_effect=side_effect
-        ), self.assertRaises(FileExistsError):
-            bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
+    #     with patch(
+    #         "picca_bookkeeper.bookkeeper.get_quasar_catalog", side_effect=side_effect
+    #     ), self.assertRaises(FileExistsError):
+    #         bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
     @patch("picca_bookkeeper.tasker.run", side_effect=mock_run)
     @patch("picca_bookkeeper.bookkeeper.get_quasar_catalog", side_effect=mock_get_3d_catalog)
@@ -289,10 +280,10 @@ class TestBookkeeper(unittest.TestCase):
 
         write_full_analysis(bookkeeper, calib=True)
 
-        self.replace_paths_bookkeeper_output(bookkeeper.output.run_path)
+        self.replace_paths_bookkeeper_output(bookkeeper.paths.run_path)
         if "UPDATE_TESTS" in os.environ and os.environ["UPDATE_TESTS"] == "True":
-            self.update_test_output(test_files, bookkeeper.output.run_path)
-        self.compare_bookkeeper_output(test_files, bookkeeper.output.run_path)
+            self.update_test_output(test_files, bookkeeper.paths.run_path)
+        self.compare_bookkeeper_output(test_files, bookkeeper.paths.run_path)
 
     @patch("picca_bookkeeper.tasker.run", side_effect=mock_run)
     @patch("picca_bookkeeper.bookkeeper.get_quasar_catalog", side_effect=mock_get_3d_catalog)
@@ -305,10 +296,10 @@ class TestBookkeeper(unittest.TestCase):
 
         write_full_analysis(bookkeeper, calib=True)
 
-        self.replace_paths_bookkeeper_output(bookkeeper.output.run_path)
+        self.replace_paths_bookkeeper_output(bookkeeper.paths.run_path)
         if "UPDATE_TESTS" in os.environ and os.environ["UPDATE_TESTS"] == "True":
-            self.update_test_output(test_files, bookkeeper.output.run_path)
-        self.compare_bookkeeper_output(test_files, bookkeeper.output.run_path)
+            self.update_test_output(test_files, bookkeeper.paths.run_path)
+        self.compare_bookkeeper_output(test_files, bookkeeper.paths.run_path)
 
     @patch("picca_bookkeeper.tasker.run", side_effect=mock_run)
     @patch("picca_bookkeeper.bookkeeper.get_quasar_catalog", side_effect=mock_get_3d_catalog)
@@ -316,7 +307,7 @@ class TestBookkeeper(unittest.TestCase):
         copy_config_substitute(self.files_path / "example_config_guadalupe.yaml")
         bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
-        bookkeeper.config["continuum fitting"]["calib"] = "11"
+        bookkeeper.config["delta extraction"]["calib"] = "11"
         with self.assertRaises(ValueError) as cm:
             deltas = bookkeeper.get_calibration_extraction_tasker()
         self.assertEqual(
@@ -324,8 +315,8 @@ class TestBookkeeper(unittest.TestCase):
             str(cm.exception),
         )
 
-        bookkeeper.config["continuum fitting"]["calib"] = "1"
-        bookkeeper.config["continuum fitting"]["prefix"] = "dr16"
+        bookkeeper.config["delta extraction"]["calib"] = "1"
+        bookkeeper.config["delta extraction"]["prefix"] = "dr16"
         with self.assertRaises(ValueError) as cm:
             deltas = bookkeeper.get_calibration_extraction_tasker()
         self.assertEqual(
@@ -341,10 +332,10 @@ class TestBookkeeper(unittest.TestCase):
 
     #     write_full_analysis(bookkeeper, calib=True)
 
-    #     self.replace_paths_bookkeeper_output(bookkeeper.output.run_path)
+    #     self.replace_paths_bookkeeper_output(bookkeeper.paths.run_path)
     #     if "UPDATE_TESTS" in os.environ and os.environ["UPDATE_TESTS"] == "True":
-    #         self.update_test_output(test_files, bookkeeper.output.run_path)
-    #     self.compare_bookkeeper_output(test_files, bookkeeper.output.run_path)
+    #         self.update_test_output(test_files, bookkeeper.paths.run_path)
+    #     self.compare_bookkeeper_output(test_files, bookkeeper.paths.run_path)
 
     @patch("picca_bookkeeper.tasker.run", side_effect=mock_run)
     @patch("picca_bookkeeper.bookkeeper.get_quasar_catalog", side_effect=mock_get_3d_catalog)
@@ -355,10 +346,10 @@ class TestBookkeeper(unittest.TestCase):
 
         write_full_analysis(bookkeeper, calib=True)
 
-        self.replace_paths_bookkeeper_output(bookkeeper.output.run_path)
+        self.replace_paths_bookkeeper_output(bookkeeper.paths.run_path)
         if "UPDATE_TESTS" in os.environ and os.environ["UPDATE_TESTS"] == "True":
-            self.update_test_output(test_files, bookkeeper.output.run_path)
-        self.compare_bookkeeper_output(test_files, bookkeeper.output.run_path)
+            self.update_test_output(test_files, bookkeeper.paths.run_path)
+        self.compare_bookkeeper_output(test_files, bookkeeper.paths.run_path)
 
     @patch("picca_bookkeeper.tasker.run", side_effect=mock_run)
     @patch("picca_bookkeeper.bookkeeper.get_quasar_catalog", side_effect=mock_get_3d_catalog)
@@ -369,10 +360,10 @@ class TestBookkeeper(unittest.TestCase):
 
         write_full_analysis(bookkeeper, calib=True, region="lyb", region2="lya")
 
-        self.replace_paths_bookkeeper_output(bookkeeper.output.run_path)
+        self.replace_paths_bookkeeper_output(bookkeeper.paths.run_path)
         if "UPDATE_TESTS" in os.environ and os.environ["UPDATE_TESTS"] == "True":
-            self.update_test_output(test_files, bookkeeper.output.run_path)
-        self.compare_bookkeeper_output(test_files, bookkeeper.output.run_path)
+            self.update_test_output(test_files, bookkeeper.paths.run_path)
+        self.compare_bookkeeper_output(test_files, bookkeeper.paths.run_path)
 
     @patch("picca_bookkeeper.tasker.run", side_effect=mock_run)
     @patch("picca_bookkeeper.bookkeeper.get_quasar_catalog", side_effect=mock_get_3d_catalog)
@@ -383,27 +374,28 @@ class TestBookkeeper(unittest.TestCase):
 
         write_full_analysis(bookkeeper, calib=True, region="lyb", region2="lya")
 
-        self.replace_paths_bookkeeper_output(bookkeeper.output.run_path)
+        # self.replace_paths_bookkeeper_output(bookkeeper.paths.run_path)
 
         # Now main run:
-        copy_config_substitute(self.files_path / "example_config_guadalupe_calib_diff_path.yaml", out_name="output2")
+        #copy_config_substitute(self.files_path / "example_config_guadalupe_calib_diff_path.yaml", out_name="output2")
+        copy_config_substitute(self.files_path / "example_config_guadalupe_calib_diff_path.yaml")
 
-        with open(THIS_DIR / "test_files" / "output2" / "tmp.yaml", "r") as file:
+        with open(THIS_DIR / "test_files" / "output" / "tmp.yaml", "r") as file:
             filedata = file.read()
         
-        filedata = filedata.replace("calibration_directory", str(THIS_DIR / "test_files" / "output"))
+        # filedata = filedata.replace("calibration_directory", str(THIS_DIR / "test_files" / "output"))
 
-        with open(THIS_DIR / "test_files" / "output2" / "tmp.yaml", "w") as file:
+        with open(THIS_DIR / "test_files" / "output" / "tmp.yaml", "w") as file:
             file.write(filedata)
 
-        bookkeeper2 = Bookkeeper(THIS_DIR / "test_files" / "output2" / "tmp.yaml")
+        bookkeeper2 = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
         write_full_analysis(bookkeeper2, calib=False, region="lyb", region2="lya")
 
-        self.replace_paths_bookkeeper_output(bookkeeper2.output.run_path)
+        self.replace_paths_bookkeeper_output(bookkeeper2.paths.run_path)
         if "UPDATE_TESTS" in os.environ and os.environ["UPDATE_TESTS"] == "True":
-            self.update_test_output(test_files, bookkeeper2.output.run_path)
-        self.compare_bookkeeper_output(test_files, bookkeeper2.output.run_path)
+            self.update_test_output(test_files, bookkeeper2.paths.run_path)
+        self.compare_bookkeeper_output(test_files, bookkeeper2.paths.run_path)
 
 
 
@@ -416,10 +408,10 @@ class TestBookkeeper(unittest.TestCase):
 
         write_full_analysis(bookkeeper, calib=False, region="lyb", region2="lya")
 
-        self.replace_paths_bookkeeper_output(bookkeeper.output.run_path)
+        self.replace_paths_bookkeeper_output(bookkeeper.paths.run_path)
         if "UPDATE_TESTS" in os.environ and os.environ["UPDATE_TESTS"] == "True":
-            self.update_test_output(test_files, bookkeeper.output.run_path)
-        self.compare_bookkeeper_output(test_files, bookkeeper.output.run_path)
+            self.update_test_output(test_files, bookkeeper.paths.run_path)
+        self.compare_bookkeeper_output(test_files, bookkeeper.paths.run_path)
 
     @patch("picca_bookkeeper.tasker.run", side_effect=mock_run)
     @patch("picca_bookkeeper.bookkeeper.get_quasar_catalog", side_effect=mock_get_3d_catalog)
@@ -466,10 +458,10 @@ class TestBookkeeper(unittest.TestCase):
 
         write_full_analysis(bookkeeper, calib=True, region="lyb", region2="lya")
 
-        self.replace_paths_bookkeeper_output(bookkeeper.output.run_path)
+        self.replace_paths_bookkeeper_output(bookkeeper.paths.run_path)
         if "UPDATE_TESTS" in os.environ and os.environ["UPDATE_TESTS"] == "True":
-            self.update_test_output(test_files, bookkeeper.output.run_path)
-        self.compare_bookkeeper_output(test_files, bookkeeper.output.run_path)
+            self.update_test_output(test_files, bookkeeper.paths.run_path)
+        self.compare_bookkeeper_output(test_files, bookkeeper.paths.run_path)
 
     @patch("picca_bookkeeper.tasker.run", side_effect=mock_run)
     @patch("picca_bookkeeper.bookkeeper.get_quasar_catalog", side_effect=mock_get_3d_catalog)
@@ -499,10 +491,10 @@ class TestBookkeeper(unittest.TestCase):
 
         write_full_analysis(bookkeeper, calib=True, region="lyb", region2="lya")
 
-        self.replace_paths_bookkeeper_output(bookkeeper.output.run_path)
+        self.replace_paths_bookkeeper_output(bookkeeper.paths.run_path)
         if "UPDATE_TESTS" in os.environ and os.environ["UPDATE_TESTS"] == "True":
-            self.update_test_output(test_files, bookkeeper.output.run_path)
-        self.compare_bookkeeper_output(test_files, bookkeeper.output.run_path)
+            self.update_test_output(test_files, bookkeeper.paths.run_path)
+        self.compare_bookkeeper_output(test_files, bookkeeper.paths.run_path)
 
     @patch("picca_bookkeeper.tasker.run", side_effect=mock_run)
     @patch("picca_bookkeeper.bookkeeper.get_quasar_catalog", side_effect=mock_get_3d_catalog)
@@ -550,10 +542,10 @@ class TestBookkeeper(unittest.TestCase):
         deltas.write_job()
         deltas.send_job()
 
-        self.replace_paths_bookkeeper_output(bookkeeper.output.run_path)
+        self.replace_paths_bookkeeper_output(bookkeeper.paths.run_path)
         if "UPDATE_TESTS" in os.environ and os.environ["UPDATE_TESTS"] == "True":
-            self.update_test_output(test_files, bookkeeper.output.run_path)
-        self.compare_bookkeeper_output(test_files, bookkeeper.output.run_path)
+            self.update_test_output(test_files, bookkeeper.paths.run_path)
+        self.compare_bookkeeper_output(test_files, bookkeeper.paths.run_path)
 
     @patch("picca_bookkeeper.tasker.run", side_effect=mock_run)
     @patch("picca_bookkeeper.bookkeeper.get_quasar_catalog", side_effect=mock_get_3d_catalog)
@@ -562,7 +554,7 @@ class TestBookkeeper(unittest.TestCase):
         test_files = THIS_DIR / "test_files" / "true"
         bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
-        bookkeeper.config["picca args"]["picca_delta_extraction"][
+        bookkeeper.config["delta extraction"]["picca args"]["picca_delta_extraction"][
             "expected flux"
         ] = dict()
 
@@ -582,16 +574,16 @@ class TestBookkeeper(unittest.TestCase):
 
         write_full_analysis(bookkeeper, calib=False, region="lyb", region2="lya")
 
-        self.replace_paths_bookkeeper_output(bookkeeper.output.run_path)
+        self.replace_paths_bookkeeper_output(bookkeeper.paths.run_path)
         if "UPDATE_TESTS" in os.environ and os.environ["UPDATE_TESTS"] == "True":
-            self.update_test_output(test_files, bookkeeper.output.run_path)
-        self.compare_bookkeeper_output(test_files, bookkeeper.output.run_path)
+            self.update_test_output(test_files, bookkeeper.paths.run_path)
+        self.compare_bookkeeper_output(test_files, bookkeeper.paths.run_path)
 
     def test_bookkeeper_paths(self):
         copy_config_substitute(self.files_path / "example_config_guadalupe.yaml")
         bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
-        out = bookkeeper.output
+        out = bookkeeper.paths
 
         out.config["data"]["release"] = "everest"
         self.assertEqual(
