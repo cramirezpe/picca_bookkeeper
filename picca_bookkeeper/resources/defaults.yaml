@@ -1,0 +1,91 @@
+delta extraction:  
+  picca args:
+    picca_convert_transmission:
+      
+
+
+    picca_delta_extraction:
+      data:
+        lambda min: 3600
+        lambda max: 5500
+        wave solution: lin
+
+      expected flux:
+        type: Dr16ExpectedFlux
+
+
+    # To affect an specific region use 
+    # remember fo follow the region names in picca_bookkeeper.Bookkeeper.forest_regions
+    picca_delta_extraction_ciii:
+
+    # Scripts with terminal args are also compatible
+    picca_convert_transmission:
+    # linear-spacing: # use empty string for action args like no-project.
+
+
+correlations:
+  picca args:
+    picca_cf:
+      nproc: 128
+      rp-min: 0
+      rp-max: 300
+      rt-max: 200
+      np: 75
+      nt: 50
+      fid-Or: 7.975e-5
+
+    picca_dmat:
+      nproc: 128
+      rej: 0.99
+      rp-min: 0
+      rp-max: 300
+      rt-max: 200
+      np: 75
+      nt: 50
+      fid-Or: 7.975e-5
+
+    picca_metal:
+      nproc: 128
+      rej: 0.995
+      abs-igm: "SiII(1260) SiIII(1207) SiII(1193) SiII(1190)"
+      rp-min: 0
+      rp-max: 300
+      rt-max: 200
+      np: 75
+      nt: 50
+      fid-Or: 7.975e-5
+
+    picca_xcf:
+      mode: desi_healpix
+      nproc: 128
+      nside: 16
+      rp-min: -300
+      rp-max: 300
+      rt-max: 200
+      np: 150
+      nt: 50
+      fid-Or: 7.975e-5
+
+    picca_xdmat:
+      mode: "desi_healpix"
+      nproc: 128
+      rej: 0.99
+      nside: 16
+      rp-min: -300
+      rp-max: 300
+      rt-max: 200
+      np: 150
+      nt: 50
+      fid-Or: 7.975e-5
+
+    picca_xmetal:
+      mode: "desi_healpix"
+      nproc: 128
+      rej: 0.995
+      abs-igm: "SiII(1260) SiIII(1207) SiII(1193) SiII(1190)"
+      rp-min: -300
+      rp-max: 300
+      rt-max: 200
+      np: 150
+      nt: 50
+      fid-Or: 7.975e-5
