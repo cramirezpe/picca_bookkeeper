@@ -397,6 +397,49 @@ class TestBookkeeper(unittest.TestCase):
             self.update_test_output(test_files, bookkeeper2.paths.run_path)
         self.compare_bookkeeper_output(test_files, bookkeeper2.paths.run_path)
 
+    @patch("picca_bookkeeper.tasker.run", side_effect=mock_run)
+    @patch("picca_bookkeeper.bookkeeper.get_quasar_catalog", side_effect=mock_get_3d_catalog)
+    def test_run_only_correlation_on_another_bookkeeper(self, mock_func_1, mock_func_2):
+        copy_config_substitute(self.files_path / "example_config_guadalupe.yaml")
+        test_files = THIS_DIR / "test_files" / "second_correlation"
+        bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
+
+        write_full_analysis(bookkeeper, calib=True, region="lyb", region2="lya")
+
+        #Now failing run
+        copy_config_substitute(self.files_path / "example_config_guadalupe_only_corr_fail.yaml")
+
+        with open(THIS_DIR / "test_files" / "output" / "tmp.yaml", "r") as file:
+            filedata = file.read()
+
+        with self.assertRaises(ValueError) as cm:
+            bookkeeper2 = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
+        self.assertEqual(
+            "delta extraction section of config file should match delta extraction section from file already in the bookkeeper.", str(cm.exception)
+        )
+
+        # Now main run:
+        copy_config_substitute(self.files_path / "example_config_guadalupe_only_corr.yaml")
+
+        with open(THIS_DIR / "test_files" / "output" / "tmp.yaml", "r") as file:
+            filedata = file.read()
+    
+        bookkeeper2 = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
+
+        cf = bookkeeper2.get_cf_tasker(
+            region="lyb",
+            region2="lya",
+            wait_for=None,
+        )
+
+        cf.write_job()
+        cf.send_job()
+
+        self.replace_paths_bookkeeper_output(bookkeeper2.paths.run_path)
+        if "UPDATE_TESTS" in os.environ and os.environ["UPDATE_TESTS"] == "True":
+            self.update_test_output(test_files, bookkeeper2.paths.run_path)
+        self.compare_bookkeeper_output(test_files, bookkeeper2.paths.run_path)
+
 
 
     @patch("picca_bookkeeper.tasker.run", side_effect=mock_run)
