@@ -10,7 +10,7 @@ data:
   release: guadalupe
   survey: main
   catalog: afterburn_v0
-  catalog_tracer: 
+   
   
 delta extraction:
   prefix: dMdB20
@@ -21,12 +21,7 @@ delta extraction:
   suffix: 0
   
 correlations:
+  catalog tracer:
   run name: default
   
-  
-export:
-  
-  
-fitter:
-  
-  fit_config_dir: fitter_directory
+

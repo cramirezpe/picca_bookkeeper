@@ -1,0 +1,27 @@
+general:
+  conda environment: picca
+  
+data:
+  early dir: results_directory
+  
+  healpix data:
+  release: guadalupe
+  survey: main
+  catalog: afterburn_v0
+   
+  
+delta extraction:
+  prefix: dMdB20
+  calib: 1
+  calib region: mgii_r
+  dla: 0
+  bal: 0
+  suffix: 0
+  
+correlations:
+  catalog tracer:
+  run name: default
+
+  picca args:
+    picca_cf:
+      nside: 128

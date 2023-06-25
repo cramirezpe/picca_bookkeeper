@@ -9,7 +9,7 @@ data:
   release: v9.0.0
   survey: desi-2.0-1000
   catalog: LyaCoLoRe
-  catalog_tracer:
+  
 
 delta extraction:
   prefix: true
@@ -31,37 +31,6 @@ delta extraction:
 
 
 correlations:
+  catalog tracer:
   run name: default
   
-
-export:
-  
-
-fitter:
-  
-
-  fit_config_dir: /picca_bookkeeper/Examples/fit_config
-
-
-# Slurm arguments to be used by the bookkeeper
-slurm args:
-  picca_delta_extraction:
-  
-  picca_deltas:
-
-  picca_cf:
-
-  picca_xcf:
-
-  picca_cf:
-
-  picca_dmat:
-
-  picca_xdmat:
-
-  picca_metal_dmat:
-
-  picca_export:
-
-  picca_fitter2:
-

@@ -418,6 +418,18 @@ class TestBookkeeper(unittest.TestCase):
             "delta extraction section of config file should match delta extraction section from file already in the bookkeeper.", str(cm.exception)
         )
 
+        #Now failing run (2)
+        copy_config_substitute(self.files_path / "example_config_guadalupe_only_corr_fail_2.yaml")
+
+        with open(THIS_DIR / "test_files" / "output" / "tmp.yaml", "r") as file:
+            filedata = file.read()
+
+        with self.assertRaises(ValueError) as cm:
+            bookkeeper2 = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
+        self.assertEqual(
+            "correlations section of config file should match correlation section from file already in the bookkeeper.", str(cm.exception)
+        )
+
         # Now main run:
         copy_config_substitute(self.files_path / "example_config_guadalupe_only_corr.yaml")
 

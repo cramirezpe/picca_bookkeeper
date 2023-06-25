@@ -35,7 +35,7 @@ data:
   catalog: afterburn_v0
   # catalog_tracer could be set up to use a different catalog for cross-correlations
   # by default will use the previous one for all the analyses.
-  catalog_tracer: 
+   
   # mask to be applied in the continuum fitting process.
   mask file:
   # force DLA catalog
@@ -79,6 +79,7 @@ continuum fitting:
   # We usually want to read from the continuum fitting output (our results are
   # being saved there)
 correlations:
+  catalog tracer:
   input_dir: /path/to/analysis
   
 export:

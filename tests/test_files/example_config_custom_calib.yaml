@@ -31,7 +31,6 @@ data:
   catalog: afterburn_v0
   # catalog_tracer could be set up to use a different catalog for cross-correlations
   # by default will use the previous one for all the analyses.
-  catalog_tracer: 
   
 delta extraction:
   # The structure of folders and sub-folders is the following:
@@ -53,80 +52,140 @@ delta extraction:
   dla: 0
   bal: 0
   suffix: 0
+
+
+  # Slurm arguments to be used by the bookkeeper
+  slurm args:
+    general:
+      mail-type: fail
+      mail-user: user@host.com
+    picca_delta_extraction:
+      time: 00:16:00
+      qos: regular
+
+    picca_cf:
+    
+    picca_xcf:
+    
+    picca_cf:
+      time: 00:12:12
+
+    picca_dmat:
+
+    picca_xdmat:
+
+    picca_metal_dmat:
+
+    picca_export:
+
+    picca_fitter2:
+
+  # Picca args to be used by the bookkeeper
+  picca args:
+    picca_convert_transmission:
+      nspec: 30
+    
+    picca_delta_extraction:
+      expected flux:
+        type: Dr16ExpectedFlux
+      corrections: 
+        num corrections: 1
+        type 0: DustCorrection
+      correction arguments 0:
+        filename: /file/dust
+      data:
+        wave solution: lin
+    
+    picca_cf:
+      no project:
+      nside: 32
+    
+    picca_xcf:
+    
+    picca_cf:
+
+    picca_dmat:
+      np: 20
+      nt: 18
+
+    picca_xdmat:
+
+    picca_metal_dmat:
+
+    picca_export:
+
+    picca_fitter2:
   
   # In each of the steps, we could change the input or leave the default one (if blank)
   # We usually want to read from the continuum fitting output (our results are
   # being saved there)
 correlations:
+  catalog tracer:
   run name: default
   
   
-export:
   
   
-fitter:
-  
 
-  fit_config_dir: fitter_directory
 
-# Slurm arguments to be used by the bookkeeper
-slurm args:
-  general:
-    mail-type: fail
-    mail-user: user@host.com
-  picca_delta_extraction:
-    time: 00:16:00
-    qos: regular
+  # Slurm arguments to be used by the bookkeeper
+  slurm args:
+    general:
+      mail-type: fail
+      mail-user: user@host.com
+    picca_delta_extraction:
+      time: 00:16:00
+      qos: regular
 
-  picca_cf:
-  
-  picca_xcf:
-  
-  picca_cf:
-    time: 00:12:12
+    picca_cf:
+    
+    picca_xcf:
+    
+    picca_cf:
+      time: 00:12:12
 
-  picca_dmat:
+    picca_dmat:
 
-  picca_xdmat:
+    picca_xdmat:
 
-  picca_metal_dmat:
+    picca_metal_dmat:
 
-  picca_export:
+    picca_export:
 
-  picca_fitter2:
+    picca_fitter2:
 
-# Picca args to be used by the bookkeeper
-picca args:
-  picca_convert_transmission:
-    nspec: 30
-  
-  picca_delta_extraction:
-    expected flux:
-      type: Dr16ExpectedFlux
-    corrections: 
-      num corrections: 1
-      type 0: DustCorrection
-    correction arguments 0:
-      filename: /file/dust
-    data:
-      wave solution: lin
-  
-  picca_cf:
-    no project:
-    nside: 32
-  
-  picca_xcf:
-  
-  picca_cf:
+  # Picca args to be used by the bookkeeper
+  picca args:
+    picca_convert_transmission:
+      nspec: 30
+    
+    picca_delta_extraction:
+      expected flux:
+        type: Dr16ExpectedFlux
+      corrections: 
+        num corrections: 1
+        type 0: DustCorrection
+      correction arguments 0:
+        filename: /file/dust
+      data:
+        wave solution: lin
+    
+    picca_cf:
+      no project:
+      nside: 32
+    
+    picca_xcf:
+    
+    picca_cf:
 
-  picca_dmat:
-    np: 20
-    nt: 18
+    picca_dmat:
+      np: 20
+      nt: 18
 
-  picca_xdmat:
+    picca_xdmat:
 
-  picca_metal_dmat:
+    picca_metal_dmat:
 
-  picca_export:
+    picca_export:
 
-  picca_fitter2:
+    picca_fitter2:

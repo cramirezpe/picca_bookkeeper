@@ -1,0 +1,4 @@
+{correlations: {catalog tracer: '', run name: default}, data: {catalog: afterburn_v0,
+    early dir: /global/u2/c/cramirez/Codes/picca_bookkeeper_new/tests/test_files/output,
+    healpix data: '', release: guadalupe, survey: main}, general: {conda environment: picca,
+    system: slurm_cori}}

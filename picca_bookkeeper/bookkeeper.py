@@ -169,20 +169,23 @@ class Bookkeeper:
                 else:
                     raise ValueError("delta extraction section of config file should match delta extraction section from file already in the bookkeeper.")
         
-        if config_type == "correlations":
+        if self.correlations is not None:
+            config_corr = copy.deepcopy(self.config)
+            config_corr.pop("delta extraction")
+
             if not self.paths.correlation_config_file.is_file():
-                shutil.copyfile(config_path, self.paths.correlation_config_file)
+                self.write_bookkeeper(config_corr, self.paths.correlation_config_file)
             elif filecmp.cmp(self.paths.correlation_config_file, config_path):
                 # If files are the same we can continue
                 pass
             elif overwrite_config:
-                shutil.copyfile(config_path, self.paths.correlation_config_file)
+                self.write_bookkeeper(config_corr, self.paths.correlation_config_file)
             else:
-                if PathBuilder.compare_config_files(config_path, self.paths.correlation_config_file, 'correlations'):
-                    shutil.copyfile(config_path, self.paths.correlation_config_file)
+                if PathBuilder.compare_config_files(config_path, self.paths.correlation_config_file, "correlations"):
+                    self.write_bookkeeper(config_corr, self.paths.correlation_config_file)
                 else:
                     raise ValueError("correlations section of config file should match correlation section from file already in the bookkeeper.")
-
+                
         # Finally, if the calibration is taken from another place, we should 
         # also load this other bookkeeper
         if config_type == "deltas" and self.config["delta extraction"].get("calibration data", "") not in ("", None):
@@ -192,6 +195,28 @@ class Bookkeeper:
                 raise Exception("Error loading calibration bookkeeper").with_traceback(e.__traceback__)
         else:
             self.calibration = self
+
+    def write_bookkeeper(self, config: Dict, file: Union[Path, str]):
+        """Method to write bookkeeper yaml file to file
+        
+        Args:
+            config: Dict to store as yaml file.
+            file: path where to store the bookkeeper.
+        """
+        correct_order = {
+            "general" : ["conda environment", "system"],
+            "data" : ["early dir", "healpix data", "release", "survey", "catalog"],
+            "delta extraction" : ["prefix", "calib", "calib region", "dla", "bal", "suffix", "calibration data", "mask file", "dla catalog", "bal catalog", "picca args", "slurm args"],
+            "correlations": ["delta extraction", "run name", "catalog tracer", "picca args", "slurm args"],
+            "fits": ["delta extraction", "correlation run name"],
+        }
+        config = dict(sorted(config.items(), key=lambda s:list(correct_order).index(s[0])))
+
+        for key, value in config.items():
+            config[key] = dict(sorted(value.items(), key=lambda s:correct_order[key].index(s[0])))
+        
+        with open(file, 'w') as f:
+            yaml.dump(config, f, default_flow_style=True)
 
     @property
     def is_mock(self):

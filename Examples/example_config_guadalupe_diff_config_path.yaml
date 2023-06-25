@@ -11,7 +11,7 @@ data:
   release: guadalupe
   survey: main
   catalog: afterburn_v0
-  catalog_tracer: 
+   
   
 continuum fitting:
   prefix: dMdB20
@@ -22,6 +22,7 @@ continuum fitting:
   suffix: 0
   
 correlations:
+  catalog tracer:
   input_dir: /path/to/analysis
   
 export:

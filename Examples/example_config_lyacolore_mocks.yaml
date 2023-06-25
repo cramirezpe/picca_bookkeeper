@@ -27,7 +27,7 @@ data:
   catalog: LyaCoLoRe
   # catalog_tracer could be set up to use a different catalog for cross-correlations
   # by default will use the previous one for all the analyses.
-  catalog_tracer:
+  
 
 continuum fitting:
   # The structure of folders and sub-folders is the following:
@@ -49,6 +49,7 @@ continuum fitting:
   # We usually want to read from the continuum fitting output (our results are
   # being saved there)
 correlations:
+  catalog tracer:
   input_dir:
 
 export:

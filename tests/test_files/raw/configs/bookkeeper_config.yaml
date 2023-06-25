@@ -11,7 +11,7 @@ data:
   release: v9.0.0
   survey: raw
   catalog: LyaCoLoRe
-  catalog_tracer:
+  
 
 delta extraction:
   prefix: raw
@@ -20,72 +20,128 @@ delta extraction:
   bal: 0
   suffix: 0
 
+
+  # Slurm arguments to be used by the bookkeeper
+  slurm args:
+    general:
+      mail-type: fail
+      mail-user: mail@host.es
+
+    picca_convert_transmission:
+      time: 00:30:00
+
+    picca_delta_extraction:
+      time: 00:30:00
+    picca_deltas:
+
+    picca_cf:
+
+    picca_xcf:
+
+    picca_cf:
+
+    picca_dmat:
+
+    picca_xdmat:
+
+    picca_metal_dmat:
+
+    picca_export:
+
+    picca_fitter2:
+
+  # Picca args to be used by the bookkeeper
+  picca args:
+    picca_convert_transmission:
+      linear-spacing: True
+      lambda-min: 3600
+      lambda-max: 5500
+      delta-lambda: 0.8
+
+    picca_delta_extraction:
+
+    picca_deltas:
+
+    picca_cf:
+      nside: 16
+
+    picca_xcf:
+
+    picca_cf:
+
+    picca_dmat:
+
+    picca_xdmat:
+
+    picca_metal_dmat:
+
+    picca_export:
+
+    picca_fitter2:
+
 correlations:
+  catalog tracer:
   run name: default
   
 
-export:
   
 
-fitter:
-  
 
-  fit_config_dir: /picca_bookkeeper/Examples/fit_config
 
-# Slurm arguments to be used by the bookkeeper
-slurm args:
-  general:
-    mail-type: fail
-    mail-user: mail@host.es
+  # Slurm arguments to be used by the bookkeeper
+  slurm args:
+    general:
+      mail-type: fail
+      mail-user: mail@host.es
 
-  picca_convert_transmission:
-    time: 00:30:00
+    picca_convert_transmission:
+      time: 00:30:00
 
-  picca_delta_extraction:
-    time: 00:30:00
-  picca_deltas:
+    picca_delta_extraction:
+      time: 00:30:00
+    picca_deltas:
 
-  picca_cf:
+    picca_cf:
 
-  picca_xcf:
+    picca_xcf:
 
-  picca_cf:
+    picca_cf:
 
-  picca_dmat:
+    picca_dmat:
 
-  picca_xdmat:
+    picca_xdmat:
 
-  picca_metal_dmat:
+    picca_metal_dmat:
 
-  picca_export:
+    picca_export:
 
-  picca_fitter2:
+    picca_fitter2:
 
-# Picca args to be used by the bookkeeper
-picca args:
-  picca_convert_transmission:
-    linear-spacing: True
-    lambda-min: 3600
-    lambda-max: 5500
-    delta-lambda: 0.8
+  # Picca args to be used by the bookkeeper
+  picca args:
+    picca_convert_transmission:
+      linear-spacing: True
+      lambda-min: 3600
+      lambda-max: 5500
+      delta-lambda: 0.8
 
-  picca_delta_extraction:
+    picca_delta_extraction:
 
-  picca_deltas:
+    picca_deltas:
 
-  picca_cf:
-    nside: 16
+    picca_cf:
+      nside: 16
 
-  picca_xcf:
+    picca_xcf:
 
-  picca_cf:
+    picca_cf:
 
-  picca_dmat:
+    picca_dmat:
 
-  picca_xdmat:
+    picca_xdmat:
 
-  picca_metal_dmat:
+    picca_metal_dmat:
 
-  picca_export:
+    picca_export:
 
-  picca_fitter2:
+    picca_fitter2:

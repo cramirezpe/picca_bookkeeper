@@ -9,7 +9,6 @@ data:
   release: guadalupe
   survey: main
   catalog: afterburn_v0
-  catalog_tracer: /picca_bookkeeper/tests/test_files/dummy_tracer_catalog.fits
   
 delta extraction:
   prefix: dMdB20
@@ -20,4 +19,5 @@ delta extraction:
   suffix: 0
 
 correlations:
+  catalog tracer: /picca_bookkeeper/tests/test_files/dummy_tracer_catalog.fits
   run name: default
