@@ -1198,11 +1198,11 @@ class Bookkeeper:
         args = {
             "in-dir": str(self.paths.deltas_path(region)),
             "out": str(self.paths.cf_fname(region, region2, absorber, absorber2)),
-            "--lambda-abs": absorber_igm[absorber.lower()],
+            "lambda-abs": absorber_igm[absorber.lower()],
         }
 
         if absorber2 != absorber:
-            args["--lambda-abs2"]: absorber_igm[absorber2.lower()]
+            args["lambda-abs2"]: absorber_igm[absorber2.lower()]
 
         if "v9." in self.config["data"]["release"]:
             args["mode"] = "desi_mocks"
@@ -1323,11 +1323,11 @@ class Bookkeeper:
         args = {
             "in-dir": str(self.paths.deltas_path(region)),
             "out": str(self.paths.dmat_fname(region, region2, absorber, absorber2)),
-            "--lambda-abs": absorber_igm[absorber.lower()],
+            "lambda-abs": absorber_igm[absorber.lower()],
         }
 
         if absorber2 != absorber:
-            args["--lambda-abs2"]: absorber_igm[absorber2.lower()]
+            args["lambda-abs2"]: absorber_igm[absorber2.lower()]
 
         if "v9." in self.config["data"]["release"]:
             args["mode"] = "desi_mocks"
@@ -1566,11 +1566,11 @@ class Bookkeeper:
         args = {
             "in-dir": str(self.paths.deltas_path(region)),
             "out": str(self.paths.metal_fname(region, region2, absorber, absorber2)),
-            "--lambda-abs": absorber_igm[absorber.lower()],
+            "lambda-abs": absorber_igm[absorber.lower()],
         }
 
         if absorber2 != absorber:
-            args["--lambda-abs2"]: absorber_igm[absorber2.lower()]
+            args["lambda-abs2"]: absorber_igm[absorber2.lower()]
 
         if "v9." in self.config["data"]["release"]:
             args["mode"] = "desi_mocks"
@@ -1680,7 +1680,7 @@ class Bookkeeper:
             "in-dir": str(self.paths.deltas_path(region)),
             "drq": str(drq),
             "out": str(self.paths.xcf_fname(region, absorber)),
-            "--lambda-abs": absorber_igm[absorber.lower()],
+            "lambda-abs": absorber_igm[absorber.lower()],
         }
 
         if "v9." in self.config["data"]["release"]:
@@ -1788,7 +1788,7 @@ class Bookkeeper:
             "in-dir": str(self.paths.deltas_path(region)),
             "drq": str(drq),
             "out": str(self.paths.xdmat_fname(region, absorber)),
-            "--lambda-abs": absorber_igm[absorber.lower()],
+            "lambda-abs": absorber_igm[absorber.lower()],
         }
 
         if "v9." in self.config["data"]["release"]:
@@ -2104,7 +2104,7 @@ class Bookkeeper:
             "data": str(self.paths.xcf_fname(region, absorber)),
             "out": str(self.paths.exp_xcf_fname(region, absorber)),
             "blind-corr-type": "qsoxlya",
-            "--lambda-abs": absorber_igm[absorber.lower()],
+            "lambda-abs": absorber_igm[absorber.lower()],
         }
         if not no_dmat:
             args["dmat"] = str(self.paths.xdmat_fname(region, absorber))
@@ -2219,7 +2219,7 @@ class Bookkeeper:
             "in-dir": str(self.paths.deltas_path(region)),
             "drq": str(drq),
             "out": str(self.paths.xmetal_fname(region, absorber)),
-            "--lambda-abs": absorber_igm[absorber.lower()],
+            "lambda-abs": absorber_igm[absorber.lower()],
         }
 
         if "v9." in self.config["data"]["release"]:
