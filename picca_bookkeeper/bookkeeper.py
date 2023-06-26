@@ -44,12 +44,13 @@ forest_regions = {
     "mgii_h": {
         "lambda-rest-min": 2100.0,
         "lambda-rest-max": 2760.0,
-    }
+    },
 }
 
 config_file_sorting = ["general", "delta extraction", "correlations", "fits"]
 
-def get_quasar_catalog(release, survey, catalog, bal=False):  # pragma: no cover
+
+def get_quasar_catalog(release, survey, catalog, bal=False): # pragma: no cover
     """Function to obtain a quasar catalog given different options
 
     Attributes:
@@ -61,7 +62,9 @@ def get_quasar_catalog(release, survey, catalog, bal=False):  # pragma: no cover
     if release in ("everest", "fuji", "guadalupe", "fugu"):
         basedir = Path("/global/cfs/cdirs/desi/science/lya/early-3d/catalogs/qso")
     else:
-        basedir = Path("/global/cfs/cdirs/desi/users/cramirez/Continuum_fitting_Y1/catalogs/qso")
+        basedir = Path(
+            "/global/cfs/cdirs/desi/users/cramirez/Continuum_fitting_Y1/catalogs/qso"
+        )
 
     if bal:
         catalog += "-bal"
@@ -72,8 +75,10 @@ def get_quasar_catalog(release, survey, catalog, bal=False):  # pragma: no cover
             return catalog.with_name(catalog.name + suffix)
     else:
         raise FileNotFoundError(
-            f"Could not find a compatible catalog inside the bookkeeper. (Path: {catalog})"
+            f"Could not find a compatible catalog inside the bookkeeper. "
+            f"(Path: {catalog})"
         )
+
 
 def get_dla_catalog(release, survey, version=1):
     """Function to obtain a DLA catalog.
@@ -86,7 +91,9 @@ def get_dla_catalog(release, survey, version=1):
     if release in ("everest", "fuji", "guadalupe", "fugu"):
         basedir = Path("/global/cfs/cdirs/desi/science/lya/early-3d/catalogs/dla")
     else:
-        basedir = Path("/global/cfs/cdirs/desi/users/cramirez/Continuum_fitting_Y1/catalogs/dla")
+        basedir = Path(
+            "/global/cfs/cdirs/desi/users/cramirez/Continuum_fitting_Y1/catalogs/dla"
+        )
 
     catalog = basedir / release / survey / f"dla_catalog_v{version}"
 
@@ -98,6 +105,7 @@ def get_dla_catalog(release, survey, version=1):
             f"Could not find a compatible catalog in the bookkeeper. (Path: {catalog})"
         )
 
+
 def merge_dicts(dict1: Dict, dict2: Dict):
     """Merges two dictionaries recursively preserving values in dict2"""
     result = copy.deepcopy(dict1)
@@ -108,7 +116,8 @@ def merge_dicts(dict1: Dict, dict2: Dict):
         else:
             result[key] = copy.deepcopy(dict2[key])
 
-    return result    
+    return result
+
 
 class Bookkeeper:
     """Class to generate Tasker objects which can be used to run different picca jobs.
@@ -116,12 +125,14 @@ class Bookkeeper:
     Attributes:
         config (configparser.ConfigParser): Configuration file for the bookkeeper.
     """
-    
-    def __init__(self, config_path: Union[str, Path], overwrite_config: bool=False):
+
+    def __init__(self, config_path: Union[str, Path], overwrite_config: bool = False):
         """
         Args:
-            config_path (Path or str): Path to configuration file or to an already created run path.
-            overwrite_config (bool, optional): overwrite bookkeeper config without asking if it already exists inside bookkeeper.
+            config_path (Path or str): Path to configuration file or to an already 
+                created run path.
+            overwrite_config (bool, optional): overwrite bookkeeper config without 
+                asking if it already exists inside bookkeeper.
         """
         # Try to read the file of the folder
         config_path = Path(config_path)
@@ -130,7 +141,7 @@ class Bookkeeper:
                 config_path = config_path / "configs/bookkeeper_config.yaml"
             else:
                 raise FileNotFoundError("Config file couldn't be found", config_path)
-        
+
         with open(config_path) as file:
             self.config = yaml.load(file, Loader=yaml.BaseLoader)
 
@@ -151,24 +162,26 @@ class Bookkeeper:
 
         if self.config.get("delta extraction") is not None:
             self.delta_extraction = self.config.get("delta extraction")
-            config_type = "deltas" # This overwrites the previous one.
+            config_type = "deltas"  # This overwrites the previous one.
         elif self.correlations is not None:
             # In this case, delta extraction is not defined in the config file
             # and therefore, we should search for it.
-            delta_config_file = self.paths.run_path / "configs" / "bookkeeper_config.yaml"
-            with open(delta_config_file, 'r') as f:
-                delta_config =  yaml.load(delta_config_file, Loader=yaml.BaseLoader)
-            self.delta_extraction = delta_config['delta extraction']
+            delta_config_file = (
+                self.paths.run_path / "configs" / "bookkeeper_config.yaml"
+            )
+            with open(delta_config_file, "r") as f:
+                delta_config = yaml.load(delta_config_file, Loader=yaml.BaseLoader)
+            self.delta_extraction = delta_config["delta extraction"]
 
-            self.config['delta extraction'] = self.delta_extraction
+            self.config["delta extraction"] = self.delta_extraction
             config_type = "correlations"
         else:
             raise ValueError("Unable to identify delta extraction parameters.")
 
         self.paths = PathBuilder(self.config)
-        
+
         self.paths.check_delta_directories()
-        
+
         if self.correlations is not None:
             self.paths.check_correlation_directories()
 
@@ -185,11 +198,16 @@ class Bookkeeper:
                 # If we want to directly overwrite the config file in destination
                 shutil.copyfile(config_path, self.paths.delta_config_file)
             else:
-                if PathBuilder.compare_config_files(config_path, self.paths.delta_config_file, 'delta extraction'):
+                if PathBuilder.compare_config_files(
+                    config_path, self.paths.delta_config_file, "delta extraction"
+                ):
                     shutil.copyfile(config_path, self.paths.delta_config_file)
                 else:
-                    raise ValueError("delta extraction section of config file should match delta extraction section from file already in the bookkeeper.")
-        
+                    raise ValueError(
+                        "delta extraction section of config file should match delta "
+                        "extraction section from file already in the bookkeeper."
+                    )
+
         if self.correlations is not None:
             config_corr = copy.deepcopy(self.config)
             config_corr.pop("delta extraction")
@@ -202,41 +220,78 @@ class Bookkeeper:
             elif overwrite_config:
                 self.write_bookkeeper(config_corr, self.paths.correlation_config_file)
             else:
-                if PathBuilder.compare_config_files(config_path, self.paths.correlation_config_file, "correlations"):
-                    self.write_bookkeeper(config_corr, self.paths.correlation_config_file)
+                if PathBuilder.compare_config_files(
+                    config_path, self.paths.correlation_config_file, "correlations"
+                ):
+                    self.write_bookkeeper(
+                        config_corr, self.paths.correlation_config_file
+                    )
                 else:
-                    raise ValueError("correlations section of config file should match correlation section from file already in the bookkeeper.")
-                
-        # Finally, if the calibration is taken from another place, we should 
+                    raise ValueError(
+                        "correlations section of config file should match correlation section "
+                        "from file already in the bookkeeper."
+                    )
+
+        # Finally, if the calibration is taken from another place, we should
         # also load this other bookkeeper
-        if config_type == "deltas" and self.config["delta extraction"].get("calibration data", "") not in ("", None):
+        if config_type == "deltas" and self.config["delta extraction"].get(
+            "calibration data", ""
+        ) not in ("", None):
             try:
-                self.calibration = Bookkeeper(self.paths.run_path.parent / self.config["delta extraction"].get("calibration data"))
+                self.calibration = Bookkeeper(
+                    self.paths.run_path.parent
+                    / self.config["delta extraction"].get("calibration data")
+                )
             except Exception as e:
-                raise Exception("Error loading calibration bookkeeper").with_traceback(e.__traceback__)
+                raise Exception("Error loading calibration bookkeeper").with_traceback(
+                    e.__traceback__
+                )
         else:
             self.calibration = self
 
     def write_bookkeeper(self, config: Dict, file: Union[Path, str]):
         """Method to write bookkeeper yaml file to file
-        
+
         Args:
             config: Dict to store as yaml file.
             file: path where to store the bookkeeper.
         """
         correct_order = {
-            "general" : ["conda environment", "system"],
-            "data" : ["early dir", "healpix data", "release", "survey", "catalog"],
-            "delta extraction" : ["prefix", "calib", "calib region", "dla", "bal", "suffix", "calibration data", "mask file", "dla catalog", "bal catalog", "picca args", "slurm args"],
-            "correlations": ["delta extraction", "run name", "catalog tracer", "picca args", "slurm args"],
+            "general": ["conda environment", "system"],
+            "data": ["early dir", "healpix data", "release", "survey", "catalog"],
+            "delta extraction": [
+                "prefix",
+                "calib",
+                "calib region",
+                "dla",
+                "bal",
+                "suffix",
+                "calibration data",
+                "mask file",
+                "dla catalog",
+                "bal catalog",
+                "picca args",
+                "slurm args",
+            ],
+            "correlations": [
+                "delta extraction",
+                "run name",
+                "catalog tracer",
+                "picca args",
+                "slurm args",
+            ],
             "fits": ["delta extraction", "correlation run name"],
         }
-        config = dict(sorted(config.items(), key=lambda s:list(correct_order).index(s[0])))
+        config = dict(
+            sorted(config.items(), key=lambda s: list(correct_order).index(s[0]))
+        )
 
         for key, value in config.items():
-            config[key] = dict(sorted(value.items(), key=lambda s:correct_order[key].index(s[0])))
-        
-        with open(file, 'w') as f:
+            config[key] = dict(
+                sorted(value.items(), key=lambda s: correct_order[key].index(s[0]))
+            )
+
+        with open(file, "w") as f:
             yaml.dump(config, f, default_flow_style=True)
 
     @property
@@ -247,7 +302,7 @@ class Bookkeeper:
             return False
 
     @staticmethod
-    def validate_region(region:str):
+    def validate_region(region: str):
         """Method to check if a region string is valid. Also converts it into lowercase.
 
         Will raise value error if the region is not in forest_regions.
@@ -258,16 +313,24 @@ class Bookkeeper:
         if region.lower() not in forest_regions:
             raise ValueError("Invalid region", region)
 
-        return region.lower() 
+        return region.lower()
 
-    def generate_slurm_header_extra_args(self, config: Dict, default_config: Dict, slurm_args: Dict, command: str, region: str=None, region2: str=None):
+    def generate_slurm_header_extra_args(
+        self,
+        config: Dict,
+        default_config: Dict,
+        slurm_args: Dict,
+        command: str,
+        region: str = None,
+        region2: str = None,
+    ):
         """Add extra slurm header args to the run.
-        
+
         Args:
             config: Section of the bookkeeper config to look into.
             default_config: Section of the deafults config to look into.
-            slurm_args: Slurm args passed through the get_tasker method. They 
-                should be prioritized. 
+            slurm_args: Slurm args passed through the get_tasker method. They
+                should be prioritized.
             command: Picca command to be run.
             region: Specify region where the command will be run.
             region2: For scripts where two regions are needed.
@@ -288,28 +351,39 @@ class Bookkeeper:
         # overriding the previous set values if there is a coincidence
         if "slurm args" in defaults.keys() and isinstance(defaults["slurm args"], dict):
             for section in sections:
-                if section in defaults["slurm args"] and isinstance(defaults["slurm args"][section], dict):
+                if section in defaults["slurm args"] and isinstance(
+                    defaults["slurm args"][section], dict
+                ):
                     args = merge_dicts(args, defaults["slurm args"][section])
 
-                    
         # We iterate over the sections from low to high priority
         # overriding the previous set values if there is a coincidence
         # Now with the values set by user
         if "slurm args" in config.keys() and isinstance(config["slurm args"], dict):
             for section in sections:
-                if section in config["slurm args"] and isinstance(config["slurm args"][section], dict):
+                if section in config["slurm args"] and isinstance(
+                    config["slurm args"][section], dict
+                ):
                     args = merge_dicts(args, config["slurm args"][section])
 
         # Copied args is the highest priority
         return merge_dicts(args, copied_args)
 
-    def generate_picca_extra_args(self, config: Dict, default_config:Dict, picca_args: Dict, command: str, region: str=None, region2: str=None):
+    def generate_picca_extra_args(
+        self,
+        config: Dict,
+        default_config: Dict,
+        picca_args: Dict,
+        command: str,
+        region: str = None,
+        region2: str = None,
+    ):
         """Add extra picca args to the run.
-        
+
         Args:
             config: Section of the bookkeeper config to look into.
             default_config: Section of the deafults config to look into.
-            picca_args: picca args passed through the get_tasker method. They 
+            picca_args: picca args passed through the get_tasker method. They
                 should be prioritized.
             command: picca command to be run.
             region: specify region where the command will be run.
@@ -318,9 +392,9 @@ class Bookkeeper:
         copied_args = copy.deepcopy(picca_args)
         config = copy.deepcopy(config)
         defaults = copy.deepcopy(default_config)
-        
+
         sections = [command.split(".py")[0]]
-        
+
         if region is not None:
             sections.append(command.split(".py")[0] + f"_{region}")
         if region2 is not None and region is not None:
@@ -329,72 +403,78 @@ class Bookkeeper:
         args = dict()
         if "picca args" in defaults.keys() and isinstance(defaults["picca args"], dict):
             for section in sections:
-                if section in defaults["picca args"] and isinstance(defaults["picca args"][section], dict):
+                if section in defaults["picca args"] and isinstance(
+                    defaults["picca args"][section], dict
+                ):
                     args = merge_dicts(args, defaults["picca args"][section])
 
         if "picca args" in config.keys() and isinstance(config["picca args"], dict):
             for section in sections:
-                if section in config["picca args"] and isinstance(config["picca args"][section], dict):
+                if section in config["picca args"] and isinstance(
+                    config["picca args"][section], dict
+                ):
                     args = merge_dicts(args, config["picca args"][section])
 
         # Copied args is the highest priority
         return merge_dicts(args, copied_args)
-    
+
     def generate_system_arg(self, system):
         if system is None:
-            return copy.copy(self.config.get("general", dict()).get("system", "slurm_perlmutter"))
+            return copy.copy(
+                self.config.get("general", dict()).get("system", "slurm_perlmutter")
+            )
         else:
             return system
 
     def get_raw_deltas_tasker(
         self,
-        region: str="lya",
-        system: str=None,
-        debug: bool=False,
-        wait_for: Union[Tasker, ChainedTasker, int, List[int]]=None,
-        slurm_header_extra_args: Dict=dict(),
-        picca_extra_args: Dict=dict(),
+        region: str = "lya",
+        system: str = None,
+        debug: bool = False,
+        wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
+        slurm_header_extra_args: Dict = dict(),
+        picca_extra_args: Dict = dict(),
     ):
         """Method to get a Tasker object to run raw deltas with picca.
 
         Args:
-            region: Region where to compute deltas. Options: forest_regions. 
+            region: Region where to compute deltas. Options: forest_regions.
                 Default: 'lya'
-            system: Shell to use for job. 'slurm_perlmutter' to use slurm 
-                scripts on perlmutter, 'bash' to  run it in login nodes or 
+            system: Shell to use for job. 'slurm_perlmutter' to use slurm
+                scripts on perlmutter, 'bash' to  run it in login nodes or
                 computer shell. Default: None, read from config file.
             debug: Whether to use debug options.
-            wait_for: In NERSC, wait for a given job to finish before running 
-                the current one. Could be a  Tasker object or a slurm jobid 
+            wait_for: In NERSC, wait for a given job to finish before running
+                the current one. Could be a  Tasker object or a slurm jobid
                 (int). (Default: None, won't wait for anything).
-            slurm_header_extra_args (dict, optional): Change slurm header 
-                default options if needed (time, qos, etc...). Use a 
+            slurm_header_extra_args (dict, optional): Change slurm header
+                default options if needed (time, qos, etc...). Use a
                 dictionary with the format {'option_name': 'option_value'}.
-            picca_extra_args : Send extra arguments to 
-                picca_deltas.py script. Use a dictionary with the format 
-                {'argument_name', 'argument_value'}. Use {'argument_name': ''} 
+            picca_extra_args : Send extra arguments to
+                picca_deltas.py script. Use a dictionary with the format
+                {'argument_name', 'argument_value'}. Use {'argument_name': ''}
                 if a action-like option is used.
 
         Returns:
             Tasker: Tasker object to run delta extraction.
         """
         region = self.validate_region(region)
-        
+
         command = "picca_convert_transmission.py"
-    
+
         updated_picca_extra_args = self.generate_picca_extra_args(
-            config = self.config['delta extraction'], 
-            default_config = self.defaults['delta extraction'], 
-            picca_args = picca_extra_args,
-            command = command,
-            region = region,
+            config=self.config["delta extraction"],
+            default_config=self.defaults["delta extraction"],
+            picca_args=picca_extra_args,
+            command=command,
+            region=region,
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
-            config = self.config['delta extraction'], 
-            default_config = self.defaults['delta extraction'], 
-            slurm_args = slurm_header_extra_args, 
-            command = command,
-            region = region,
+            config=self.config["delta extraction"],
+            default_config=self.defaults["delta extraction"],
+            slurm_args=slurm_header_extra_args,
+            command=command,
+            region=region,
         )
         updated_system = self.generate_system_arg(system)
 
@@ -403,7 +483,9 @@ class Bookkeeper:
         if debug:  # pragma: no cover
             qos = "debug"
             time = "00:30:00"
-            updated_picca_extra_args = merge_dicts(dict(nspec=1000), updated_picca_extra_args)
+            updated_picca_extra_args = merge_dicts(
+                dict(nspec=1000), updated_picca_extra_args
+            )
         else:
             qos = "regular"
             time = "03:00:00"
@@ -416,7 +498,9 @@ class Bookkeeper:
             "error": str(self.paths.run_path / f"logs/{job_name}-%j.err"),
         }
 
-        slurm_header_args = merge_dicts(slurm_header_args, updated_slurm_header_extra_args)
+        slurm_header_args = merge_dicts(
+            slurm_header_args, updated_slurm_header_extra_args
+        )
 
         args = {
             "object-cat": str(self.paths.catalog),
@@ -449,33 +533,33 @@ class Bookkeeper:
 
     def get_delta_extraction_tasker(
         self,
-        region: str="lya", 
-        system: str=None,
-        debug: bool=False,
-        wait_for: Union[Tasker, ChainedTasker, int, List[int]]=None,
-        slurm_header_extra_args: Dict=dict(),
-        picca_extra_args: Dict=dict(),
-        calib_step: int=None,
+        region: str = "lya",
+        system: str = None,
+        debug: bool = False,
+        wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
+        slurm_header_extra_args: Dict = dict(),
+        picca_extra_args: Dict = dict(),
+        calib_step: int = None,
     ):
         """Method to get a Tasker object to run delta extraction with picca.
 
         Args:
-            region: Region where to compute deltas. Options: forest_regions. 
+            region: Region where to compute deltas. Options: forest_regions.
                 Default: 'lya'
-            system: Shell to use for job. 'slurm_cori' to use slurm scripts on 
-                cori, 'slurm_perlmutter' to use slurm scripts on perlmutter, 
-                'bash' to run it in login nodes or computer shell. 
+            system: Shell to use for job. 'slurm_cori' to use slurm scripts on
+                cori, 'slurm_perlmutter' to use slurm scripts on perlmutter,
+                'bash' to run it in login nodes or computer shell.
                 Default: None, read from config file.
             debug: Whether to use debug options.
-            wait_for: In NERSC, wait for a given job to finish before running 
-                the current one. Could be a  Tasker object or a slurm jobid 
+            wait_for: In NERSC, wait for a given job to finish before running
+                the current one. Could be a  Tasker object or a slurm jobid
                 (int). (Default: None, won't wait for anything).
-            slurm_header_extra_args: Change slurm header default options if 
-                needed (time, qos, etc...). Use a dictionary with the format 
+            slurm_header_extra_args: Change slurm header default options if
+                needed (time, qos, etc...). Use a dictionary with the format
                 {'option_name': 'option_value'}.
-            picca_extra_args: Set extra options for picca delta extraction. 
-                The format should be a dict of dicts: wanting to change 
-                "num masks" in "masks" section one should pass 
+            picca_extra_args: Set extra options for picca delta extraction.
+                The format should be a dict of dicts: wanting to change
+                "num masks" in "masks" section one should pass
                 {'num masks': {'masks': value}}.
             calib_step: Calibration step. Default: None, no calibration
 
@@ -485,20 +569,20 @@ class Bookkeeper:
         region = self.validate_region(region)
 
         command = "picca_delta_extraction.py"
-        
+
         updated_picca_extra_args = self.generate_picca_extra_args(
-            config = self.config['delta extraction'], 
-            default_config = self.defaults['delta extraction'], 
-            picca_args = picca_extra_args,
-            command = command,
-            region = region,
+            config=self.config["delta extraction"],
+            default_config=self.defaults["delta extraction"],
+            picca_args=picca_extra_args,
+            command=command,
+            region=region,
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
-            config = self.config['delta extraction'], 
-            default_config = self.defaults['delta extraction'], 
-            slurm_args = slurm_header_extra_args, 
-            command = command,
-            region = region,
+            config=self.config["delta extraction"],
+            default_config=self.defaults["delta extraction"],
+            slurm_args=slurm_header_extra_args,
+            command=command,
+            region=region,
         )
         updated_system = self.generate_system_arg(system)
 
@@ -511,8 +595,8 @@ class Bookkeeper:
         # add masks section if necessary
         updated_picca_extra_args = merge_dicts(
             dict(
-                masks = {
-                    "num masks" : 0,
+                masks={
+                    "num masks": 0,
                 },
             ),
             updated_picca_extra_args,
@@ -539,7 +623,7 @@ class Bookkeeper:
                         "different mask file already stored in the bookkeeper",
                         self.paths.continuum_fitting_mask,
                     )
-            
+
             prev_mask_number = int(updated_picca_extra_args["masks"]["num masks"])
             updated_picca_extra_args["masks"]["num masks"] = prev_mask_number + 1
             updated_picca_extra_args["masks"][f"type {prev_mask_number}"] = "LinesMask"
@@ -551,13 +635,13 @@ class Bookkeeper:
         # add corrections section if necessary
         updated_picca_extra_args = merge_dicts(
             dict(
-                corrections = {
-                    "num corrections" : 0,
+                corrections={
+                    "num corrections": 0,
                 }
             ),
             updated_picca_extra_args,
         )
-        
+
         # update corrections section
         # here we are dealing with calibration runs
         # If there is no calibration, we should not have calib_steps
@@ -595,13 +679,16 @@ class Bookkeeper:
                     updated_picca_extra_args[
                         f"correction arguments {prev_n_corrections}"
                     ]["filename"] = str(
-                        self.calibration.paths.delta_attributes_file(None, calib_step=1) # @TODO fix this
+                        self.calibration.paths.delta_attributes_file(
+                            None, calib_step=1
+                        )  # @TODO fix this
                     )
             # actual run using with both corrections
             else:
                 if not self.calibration.paths.deltas_path(calib_step=2).is_dir():
                     raise FileNotFoundError(
-                        "Calibration folder does not exist. run get_calibration_tasker before running deltas."
+                        "Calibration folder does not exist. run get_calibration_tasker "
+                        "before running deltas."
                     )
                 prev_n_corrections = int(
                     updated_picca_extra_args.get("corrections").get(
@@ -619,7 +706,9 @@ class Bookkeeper:
                 ] = dict()
                 updated_picca_extra_args[f"correction arguments {prev_n_corrections}"][
                     "filename"
-                ] = str(self.calibration.paths.delta_attributes_file(None, calib_step=1))
+                ] = str(
+                    self.calibration.paths.delta_attributes_file(None, calib_step=1)
+                )
 
                 updated_picca_extra_args["corrections"][
                     f"type {prev_n_corrections+1}"
@@ -637,9 +726,9 @@ class Bookkeeper:
             updated_picca_extra_args = merge_dicts(
                 updated_picca_extra_args,
                 {
-                    "expected flux" : {
-                        "type" : "Dr16FixedFudgeExpectedFlux",
-                        "fudge value" : 0,
+                    "expected flux": {
+                        "type": "Dr16FixedFudgeExpectedFlux",
+                        "fudge value": 0,
                     },
                 },
             )
@@ -649,7 +738,8 @@ class Bookkeeper:
             if calib_step is None:
                 if not self.paths.deltas_path(calib_step=1).is_dir():
                     raise FileNotFoundError(
-                        "Calibration folder does not exist. run get_calibration tasker before running deltas."
+                        "Calibration folder does not exist. run get_calibration tasker "
+                        "before running deltas."
                     )
                 prev_n_corrections = int(
                     updated_picca_extra_args.get("corrections").get(
@@ -667,14 +757,16 @@ class Bookkeeper:
                 ] = dict()
                 updated_picca_extra_args[f"correction arguments {prev_n_corrections}"][
                     "filename"
-                ] = str(self.calibration.paths.delta_attributes_file(None, calib_step=1))
+                ] = str(
+                    self.calibration.paths.delta_attributes_file(None, calib_step=1)
+                )
         elif self.config["delta extraction"]["calib"] == "3":
             # Set expected flux
             updated_picca_extra_args = merge_dicts(
                 updated_picca_extra_args,
                 {
-                    "expected flux" : {
-                        "type" : "Dr16ExpectedFlux",
+                    "expected flux": {
+                        "type": "Dr16ExpectedFlux",
                     },
                 },
             )
@@ -684,7 +776,8 @@ class Bookkeeper:
             if calib_step is None:
                 if not self.paths.deltas_path(calib_step=1).is_dir():
                     raise FileNotFoundError(
-                        "Calibration folder does not exist. run get_calibration tasker before running deltas."
+                        "Calibration folder does not exist. run get_calibration tasker "
+                        "before running deltas."
                     )
                 prev_n_corrections = int(
                     updated_picca_extra_args.get("corrections").get(
@@ -702,7 +795,9 @@ class Bookkeeper:
                 ] = dict()
                 updated_picca_extra_args[f"correction arguments {prev_n_corrections}"][
                     "filename"
-                ] = str(self.calibration.paths.delta_attributes_file(None, calib_step=1))
+                ] = str(
+                    self.calibration.paths.delta_attributes_file(None, calib_step=1)
+                )
 
         # update masks sections if necessary
         if (
@@ -761,11 +856,13 @@ class Bookkeeper:
             "custom",
         ]:
             raise ValueError(
-                f"Unrecognized continuum fitting prefix: {self.config['delta extraction']['prefix']}"
+                f"Unrecognized continuum fitting prefix: "
+                f"{self.config['delta extraction']['prefix']}"
             )
         elif self.config["delta extraction"]["prefix"] == "raw":
             raise ValueError(
-                f"raw continuum fitting provided in config file, use get_raw_deltas_tasker instead"
+                f"raw continuum fitting provided in config file, use "
+                "get_raw_deltas_tasker instead"
             )
         elif self.config["delta extraction"]["prefix"] == "true":
             if (
@@ -776,7 +873,8 @@ class Bookkeeper:
                 in ("", None)
             ):
                 raise ValueError(
-                    f"Should define expected flux and raw statistics file in picca args section in order to run TrueContinuum"
+                    f"Should define expected flux and raw statistics file in picca "
+                    "args section in order to run TrueContinuum"
                 )
             updated_picca_extra_args["expected flux"]["type"] = "TrueContinuum"
             if (
@@ -788,9 +886,7 @@ class Bookkeeper:
                 ] = self.paths.healpix_data
 
         # create config for delta_extraction options
-        self.paths.deltas_path(region, calib_step).mkdir(
-            parents=True, exist_ok=True
-        )
+        self.paths.deltas_path(region, calib_step).mkdir(parents=True, exist_ok=True)
         deltas_config_dict = {
             "general": {
                 "overwrite": True,
@@ -885,7 +981,9 @@ class Bookkeeper:
             "error": str(self.paths.run_path / f"logs/{job_name}-%j.err"),
         }
 
-        slurm_header_args = merge_dicts(slurm_header_args, updated_slurm_header_extra_args)
+        slurm_header_args = merge_dicts(
+            slurm_header_args, updated_slurm_header_extra_args
+        )
 
         return get_Tasker(
             updated_system,
@@ -897,33 +995,33 @@ class Bookkeeper:
             run_file=self.paths.run_path / f"scripts/run_{job_name}.sh",
             wait_for=wait_for,
         )
-    
+
     def get_calibration_extraction_tasker(
         self,
-        system: str=None,
-        debug: str=False,
-        wait_for: Union[Tasker, ChainedTasker, int, List[int]]=None,
-        slurm_header_extra_args: Dict=dict(),
-        picca_extra_args: Dict=dict(),
+        system: str = None,
+        debug: str = False,
+        wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
+        slurm_header_extra_args: Dict = dict(),
+        picca_extra_args: Dict = dict(),
     ):
-        """Method to get a Tasker object to run calibration with picca delta 
+        """Method to get a Tasker object to run calibration with picca delta
         extraction method.
 
         Args:
-            system (str, optional): Shell to use for job. 'slurm_cori' to use 
-                slurm scripts on cori, 'slurm_perlmutter' to use slurm scripts 
-                on perlmutter, 'bash' to run it in login nodes or computer 
+            system (str, optional): Shell to use for job. 'slurm_cori' to use
+                slurm scripts on cori, 'slurm_perlmutter' to use slurm scripts
+                on perlmutter, 'bash' to run it in login nodes or computer
                 shell. Default: None, read from config file.
             debug (bool, optional): Whether to use debug options.
-            wait_for (Tasker or int, optional): In NERSC, wait for a given job 
+            wait_for (Tasker or int, optional): In NERSC, wait for a given job
                 to finish before running the current one. Could be a  Tasker object
                 or a slurm jobid (int). (Default: None, won't wait for anything).
-            slurm_header_extra_args (dict, optional): Change slurm header 
+            slurm_header_extra_args (dict, optional): Change slurm header
                 default options if needed (time, qos, etc...). Use a dictionary
                 with the format {'option_name': 'option_value'}.
-            picca_extra_args : Send extra arguments to 
-                picca_deltas.py script. Use a dictionary with the format 
-                {'argument_name', 'argument_value'}. Use {'argument_name': ''} 
+            picca_extra_args : Send extra arguments to
+                picca_deltas.py script. Use a dictionary with the format
+                {'argument_name', 'argument_value'}. Use {'argument_name': ''}
                 if a action-like option is used.
 
         Returns:
@@ -935,7 +1033,7 @@ class Bookkeeper:
             raise ValueError("Calibration region not defined in config file.")
         else:
             region = self.validate_region(region)
-        
+
         if self.config["delta extraction"]["calib"] not in [
             "0",
             "1",
@@ -986,36 +1084,35 @@ class Bookkeeper:
 
         return ChainedTasker(taskers=steps)
 
-
     def get_cf_tasker(
         self,
-        region: str="lya",
-        region2: str=None,
-        system: str=None,
-        debug: bool=False,
-        wait_for: Union[Tasker, ChainedTasker, int, List[int]]=None,
-        slurm_header_extra_args: Dict=dict(),
-        picca_extra_args: Dict=dict(),
+        region: str = "lya",
+        region2: str = None,
+        system: str = None,
+        debug: bool = False,
+        wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
+        slurm_header_extra_args: Dict = dict(),
+        picca_extra_args: Dict = dict(),
     ):
         """Method to get a Tasker object to run forest-forest correlations with picca.
 
         Args:
             region: Region to use. Options: ('lya', 'lyb'). Default: 'lya'.
-            region2: Region to use for cross-correlations. 
+            region2: Region to use for cross-correlations.
                 Default: None, auto-correlation.
-            system: Shell to use for job. 'slurm_perlmutter' to use slurm 
-                scripts on perlmutter, 'bash' to  run it in login nodes or 
+            system: Shell to use for job. 'slurm_perlmutter' to use slurm
+                scripts on perlmutter, 'bash' to  run it in login nodes or
                 computer shell. Default: None, read from config file.
             debug: Whether to use debug options.
-            wait_for: In NERSC, wait for a given job to finish before running 
-                the current one. Could be a  Tasker object or a slurm jobid 
+            wait_for: In NERSC, wait for a given job to finish before running
+                the current one. Could be a  Tasker object or a slurm jobid
                 (int). (Default: None, won't wait for anything).
-            slurm_header_extra_args (dict, optional): Change slurm header 
-                default options if needed (time, qos, etc...). Use a 
+            slurm_header_extra_args (dict, optional): Change slurm header
+                default options if needed (time, qos, etc...). Use a
                 dictionary with the format {'option_name': 'option_value'}.
-            picca_extra_args : Send extra arguments to 
-                picca_deltas.py script. Use a dictionary with the format 
-                {'argument_name', 'argument_value'}. Use {'argument_name': ''} 
+            picca_extra_args : Send extra arguments to
+                picca_deltas.py script. Use a dictionary with the format
+                {'argument_name', 'argument_value'}. Use {'argument_name': ''}
                 if a action-like option is used.
 
         Returns:
@@ -1028,20 +1125,20 @@ class Bookkeeper:
         command = "picca_cf.py"
 
         updated_picca_extra_args = self.generate_picca_extra_args(
-            config = self.config['correlations'], 
-            default_config = self.defaults['correlations'], 
-            picca_args = picca_extra_args,
-            command = command,
-            region = region,
-            region2 = region2,
+            config=self.config["correlations"],
+            default_config=self.defaults["correlations"],
+            picca_args=picca_extra_args,
+            command=command,
+            region=region,
+            region2=region2,
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
-            config = self.config['correlations'], 
-            default_config = self.defaults['correlations'], 
-            slurm_args = slurm_header_extra_args, 
-            command = command,
-            region = region,
-            region2 = region2,
+            config=self.config["correlations"],
+            default_config=self.defaults["correlations"],
+            slurm_args=slurm_header_extra_args,
+            command=command,
+            region=region,
+            region2=region2,
         )
         updated_system = self.generate_system_arg(system)
 
@@ -1066,7 +1163,9 @@ class Bookkeeper:
             "error": str(self.paths.correlations_path / f"logs/{job_name}-%j.err"),
         }
 
-        slurm_header_args = merge_dicts(slurm_header_args, updated_slurm_header_extra_args)
+        slurm_header_args = merge_dicts(
+            slurm_header_args, updated_slurm_header_extra_args
+        )
 
         args = {
             "in-dir": str(self.paths.deltas_path(region)),
@@ -1081,9 +1180,7 @@ class Bookkeeper:
 
         args = merge_dicts(args, updated_picca_extra_args)
 
-        self.paths.cf_fname(region, region2).parent.mkdir(
-            exist_ok=True, parents=True
-        )
+        self.paths.cf_fname(region, region2).parent.mkdir(exist_ok=True, parents=True)
 
         return get_Tasker(
             updated_system,
@@ -1098,34 +1195,34 @@ class Bookkeeper:
 
     def get_dmat_tasker(
         self,
-        region: str="lya",
-        region2: str=None,
-        system: str=None,
-        debug: bool=False,
-        wait_for: Union[Tasker, ChainedTasker, int, List[int]]=None,
-        slurm_header_extra_args: Dict=dict(),
-        picca_extra_args: Dict=dict(),
+        region: str = "lya",
+        region2: str = None,
+        system: str = None,
+        debug: bool = False,
+        wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
+        slurm_header_extra_args: Dict = dict(),
+        picca_extra_args: Dict = dict(),
     ):
         """Method to get a Tasker object to run forest-forest distortion matrix
         measurements with picca.
 
         Args:
             region: Region to use. Options: ('lya', 'lyb'). Default: 'lya'.
-            region2: Region to use for cross-correlations. 
+            region2: Region to use for cross-correlations.
                 Default: None, auto-correlation.
-            system: Shell to use for job. 'slurm_perlmutter' to use slurm 
-                scripts on perlmutter, 'bash' to  run it in login nodes or 
+            system: Shell to use for job. 'slurm_perlmutter' to use slurm
+                scripts on perlmutter, 'bash' to  run it in login nodes or
                 computer shell. Default: None, read from config file.
             debug: Whether to use debug options.
-            wait_for: In NERSC, wait for a given job to finish before running 
-                the current one. Could be a  Tasker object or a slurm jobid 
+            wait_for: In NERSC, wait for a given job to finish before running
+                the current one. Could be a  Tasker object or a slurm jobid
                 (int). (Default: None, won't wait for anything).
-            slurm_header_extra_args (dict, optional): Change slurm header 
-                default options if needed (time, qos, etc...). Use a 
+            slurm_header_extra_args (dict, optional): Change slurm header
+                default options if needed (time, qos, etc...). Use a
                 dictionary with the format {'option_name': 'option_value'}.
-            picca_extra_args : Send extra arguments to 
-                picca_deltas.py script. Use a dictionary with the format 
-                {'argument_name', 'argument_value'}. Use {'argument_name': ''} 
+            picca_extra_args : Send extra arguments to
+                picca_deltas.py script. Use a dictionary with the format
+                {'argument_name', 'argument_value'}. Use {'argument_name': ''}
                 if a action-like option is used.
 
         Returns:
@@ -1138,20 +1235,20 @@ class Bookkeeper:
         command = "picca_dmat.py"
 
         updated_picca_extra_args = self.generate_picca_extra_args(
-            config = self.config['correlations'], 
-            default_config = self.defaults['correlations'], 
-            picca_args = picca_extra_args,
-            command = command,
-            region = region,
-            region2 = region2,
+            config=self.config["correlations"],
+            default_config=self.defaults["correlations"],
+            picca_args=picca_extra_args,
+            command=command,
+            region=region,
+            region2=region2,
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
-            config = self.config['correlations'], 
-            default_config = self.defaults['correlations'], 
-            slurm_args = slurm_header_extra_args, 
-            command = command,
-            region = region,
-            region2 = region2,
+            config=self.config["correlations"],
+            default_config=self.defaults["correlations"],
+            slurm_args=slurm_header_extra_args,
+            command=command,
+            region=region,
+            region2=region2,
         )
         updated_system = self.generate_system_arg(system)
 
@@ -1176,12 +1273,13 @@ class Bookkeeper:
             "error": str(self.paths.correlations_path / f"logs/{job_name}-%j.err"),
         }
 
-        slurm_header_args = merge_dicts(slurm_header_args, updated_slurm_header_extra_args)
+        slurm_header_args = merge_dicts(
+            slurm_header_args, updated_slurm_header_extra_args
+        )
 
         args = {
             "in-dir": str(self.paths.deltas_path(region)),
             "out": str(self.paths.dmat_fname(region, region2)),
-
         }
 
         if "v9." in self.config["data"]["release"]:
@@ -1193,7 +1291,8 @@ class Bookkeeper:
         args = merge_dicts(args, updated_picca_extra_args)
 
         self.paths.dmat_fname(region, region2).parent.mkdir(
-            exist_ok=True, parents=True
+            exist_ok=True, 
+            parents=True,
         )
 
         return get_Tasker(
@@ -1209,34 +1308,35 @@ class Bookkeeper:
 
     def get_cf_exp_tasker(
         self,
-        region: str="lya",
-        region2: str=None,
-        system: str=None,
-        debug: bool=False,
-        wait_for: Union[Tasker, ChainedTasker, int, List[int]]=None,
-        slurm_header_extra_args: Dict=dict(),
-        picca_extra_args: Dict=dict(),
-        no_dmat: bool=False,
+        region: str = "lya",
+        region2: str = None,
+        system: str = None,
+        debug: bool = False,
+        wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
+        slurm_header_extra_args: Dict = dict(),
+        picca_extra_args: Dict = dict(),
+        no_dmat: bool = False,
     ):
-        """Method to get a Tasker object to run forest-forest correlation export with picca.
+        """Method to get a Tasker object to run forest-forest correlation export with
+         picca.
 
         Args:
             region: Region to use. Options: ('lya', 'lyb'). Default: 'lya'.
-            region2: Region to use for cross-correlations. 
+            region2: Region to use for cross-correlations.
                 Default: None, auto-correlation.
-            system: Shell to use for job. 'slurm_perlmutter' to use slurm 
-                scripts on perlmutter, 'bash' to  run it in login nodes or 
+            system: Shell to use for job. 'slurm_perlmutter' to use slurm
+                scripts on perlmutter, 'bash' to  run it in login nodes or
                 computer shell. Default: None, read from config file.
             debug: Whether to use debug options.
-            wait_for: In NERSC, wait for a given job to finish before running 
-                the current one. Could be a  Tasker object or a slurm jobid 
+            wait_for: In NERSC, wait for a given job to finish before running
+                the current one. Could be a  Tasker object or a slurm jobid
                 (int). (Default: None, won't wait for anything).
-            slurm_header_extra_args (dict, optional): Change slurm header 
-                default options if needed (time, qos, etc...). Use a 
+            slurm_header_extra_args (dict, optional): Change slurm header
+                default options if needed (time, qos, etc...). Use a
                 dictionary with the format {'option_name': 'option_value'}.
-            picca_extra_args : Send extra arguments to 
-                picca_deltas.py script. Use a dictionary with the format 
-                {'argument_name', 'argument_value'}. Use {'argument_name': ''} 
+            picca_extra_args : Send extra arguments to
+                picca_deltas.py script. Use a dictionary with the format
+                {'argument_name', 'argument_value'}. Use {'argument_name': ''}
                 if a action-like option is used.
             no_dmat: Do not use distortion matrix.
 
@@ -1250,20 +1350,20 @@ class Bookkeeper:
         command = "picca_export.py"
 
         updated_picca_extra_args = self.generate_picca_extra_args(
-            config = self.config['correlations'], 
-            default_config = self.defaults['correlations'], 
-            picca_args = picca_extra_args,
-            command = command,
-            region = region,
-            region2 = region2,
+            config=self.config["correlations"],
+            default_config=self.defaults["correlations"],
+            picca_args=picca_extra_args,
+            command=command,
+            region=region,
+            region2=region2,
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
-            config = self.config['correlations'], 
-            default_config = self.defaults['correlations'], 
-            slurm_args = slurm_header_extra_args, 
-            command = command,
-            region = region,
-            region2 = region2,
+            config=self.config["correlations"],
+            default_config=self.defaults["correlations"],
+            slurm_args=slurm_header_extra_args,
+            command=command,
+            region=region,
+            region2=region2,
         )
         updated_system = self.generate_system_arg(system)
 
@@ -1277,7 +1377,9 @@ class Bookkeeper:
             "error": str(self.paths.correlations_path / f"logs/{job_name}-%j.err"),
         }
 
-        slurm_header_args = merge_dicts(slurm_header_args, updated_slurm_header_extra_args)
+        slurm_header_args = merge_dicts(
+            slurm_header_args, updated_slurm_header_extra_args
+        )
 
         args = {
             "data": str(self.paths.cf_fname(region, region2)),
@@ -1312,33 +1414,34 @@ class Bookkeeper:
 
     def get_metal_tasker(
         self,
-        region: str="lya",
-        region2: str=None,
-        system: str=None,
-        debug: bool=False,
-        wait_for: Union[Tasker, ChainedTasker, int, List[int]]=None,
-        slurm_header_extra_args: Dict=dict(),
-        picca_extra_args: Dict=dict(),
+        region: str = "lya",
+        region2: str = None,
+        system: str = None,
+        debug: bool = False,
+        wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
+        slurm_header_extra_args: Dict = dict(),
+        picca_extra_args: Dict = dict(),
     ):
-        """Method to get a Tasker object to run forest-forest metal distortion matrix measurements with picca.
+        """Method to get a Tasker object to run forest-forest metal distortion matrix
+        measurements with picca.
 
         Args:
             region: Region to use. Options: ('lya', 'lyb'). Default: 'lya'.
-            region2: Region to use for cross-correlations. 
+            region2: Region to use for cross-correlations.
                 Default: None, auto-correlation.
-            system: Shell to use for job. 'slurm_perlmutter' to use slurm 
-                scripts on perlmutter, 'bash' to  run it in login nodes or 
+            system: Shell to use for job. 'slurm_perlmutter' to use slurm
+                scripts on perlmutter, 'bash' to  run it in login nodes or
                 computer shell. Default: None, read from config file.
             debug: Whether to use debug options.
-            wait_for: In NERSC, wait for a given job to finish before running 
-                the current one. Could be a  Tasker object or a slurm jobid 
+            wait_for: In NERSC, wait for a given job to finish before running
+                the current one. Could be a  Tasker object or a slurm jobid
                 (int). (Default: None, won't wait for anything).
-            slurm_header_extra_args (dict, optional): Change slurm header 
-                default options if needed (time, qos, etc...). Use a 
+            slurm_header_extra_args (dict, optional): Change slurm header
+                default options if needed (time, qos, etc...). Use a
                 dictionary with the format {'option_name': 'option_value'}.
-            picca_extra_args : Send extra arguments to 
-                picca_deltas.py script. Use a dictionary with the format 
-                {'argument_name', 'argument_value'}. Use {'argument_name': ''} 
+            picca_extra_args : Send extra arguments to
+                picca_deltas.py script. Use a dictionary with the format
+                {'argument_name', 'argument_value'}. Use {'argument_name': ''}
                 if a action-like option is used.
 
         Returns:
@@ -1349,22 +1452,22 @@ class Bookkeeper:
         region = self.validate_region(region)
 
         command = "picca_metal_dmat.py"
-        
+
         updated_picca_extra_args = self.generate_picca_extra_args(
-            config = self.config['correlations'], 
-            default_config = self.defaults['correlations'], 
-            picca_args = picca_extra_args,
-            command = command,
-            region = region,
-            region2 = region2,
+            config=self.config["correlations"],
+            default_config=self.defaults["correlations"],
+            picca_args=picca_extra_args,
+            command=command,
+            region=region,
+            region2=region2,
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
-            config = self.config['correlations'], 
-            default_config = self.defaults['correlations'], 
-            slurm_args = slurm_header_extra_args, 
-            command = command,
-            region = region,
-            region2 = region2,
+            config=self.config["correlations"],
+            default_config=self.defaults["correlations"],
+            slurm_args=slurm_header_extra_args,
+            command=command,
+            region=region,
+            region2=region2,
         )
         updated_system = self.generate_system_arg(system)
 
@@ -1389,7 +1492,9 @@ class Bookkeeper:
             "error": str(self.paths.correlations_path / f"logs/{job_name}-%j.err"),
         }
 
-        slurm_header_args = merge_dicts(slurm_header_args, updated_slurm_header_extra_args)
+        slurm_header_args = merge_dicts(
+            slurm_header_args, updated_slurm_header_extra_args
+        )
 
         args = {
             "in-dir": str(self.paths.deltas_path(region)),
@@ -1419,33 +1524,32 @@ class Bookkeeper:
             wait_for=wait_for,
         )
 
-
     def get_xcf_tasker(
         self,
-        region: str="lya",
-        system: str=None,
-        debug: bool=False,
-        wait_for: Union[Tasker, ChainedTasker, int, List[int]]=None,
-        slurm_header_extra_args: Dict=dict(),
-        picca_extra_args: Dict=dict(),
+        region: str = "lya",
+        system: str = None,
+        debug: bool = False,
+        wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
+        slurm_header_extra_args: Dict = dict(),
+        picca_extra_args: Dict = dict(),
     ):
         """Method to get a Tasker object to run forest-quasar correlations with picca.
 
         Args:
             region: Region to use. Options: ('lya', 'lyb'). Default: 'lya'.
-            system: Shell to use for job. 'slurm_perlmutter' to use slurm 
-                scripts on perlmutter, 'bash' to  run it in login nodes or 
+            system: Shell to use for job. 'slurm_perlmutter' to use slurm
+                scripts on perlmutter, 'bash' to  run it in login nodes or
                 computer shell. Default: None, read from config file.
             debug: Whether to use debug options.
-            wait_for: In NERSC, wait for a given job to finish before running 
-                the current one. Could be a  Tasker object or a slurm jobid 
+            wait_for: In NERSC, wait for a given job to finish before running
+                the current one. Could be a  Tasker object or a slurm jobid
                 (int). (Default: None, won't wait for anything).
-            slurm_header_extra_args (dict, optional): Change slurm header 
-                default options if needed (time, qos, etc...). Use a 
+            slurm_header_extra_args (dict, optional): Change slurm header
+                default options if needed (time, qos, etc...). Use a
                 dictionary with the format {'option_name': 'option_value'}.
-            picca_extra_args : Send extra arguments to 
-                picca_deltas.py script. Use a dictionary with the format 
-                {'argument_name', 'argument_value'}. Use {'argument_name': ''} 
+            picca_extra_args : Send extra arguments to
+                picca_deltas.py script. Use a dictionary with the format
+                {'argument_name', 'argument_value'}. Use {'argument_name': ''}
                 if a action-like option is used.
 
         Returns:
@@ -1456,18 +1560,18 @@ class Bookkeeper:
         command = "picca_xcf.py"
 
         updated_picca_extra_args = self.generate_picca_extra_args(
-            config = self.config['correlations'], 
-            default_config = self.defaults['correlations'], 
-            picca_args = picca_extra_args,
-            command = command,
-            region = region,
+            config=self.config["correlations"],
+            default_config=self.defaults["correlations"],
+            picca_args=picca_extra_args,
+            command=command,
+            region=region,
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
-            config = self.config['correlations'], 
-            default_config = self.defaults['correlations'], 
-            slurm_args = slurm_header_extra_args, 
-            command = command,
-            region = region,
+            config=self.config["correlations"],
+            default_config=self.defaults["correlations"],
+            slurm_args=slurm_header_extra_args,
+            command=command,
+            region=region,
         )
         updated_system = self.generate_system_arg(system)
 
@@ -1492,7 +1596,9 @@ class Bookkeeper:
             "error": str(self.paths.correlations_path / f"logs/{job_name}-%j.err"),
         }
 
-        slurm_header_args = merge_dicts(slurm_header_args, updated_slurm_header_extra_args)
+        slurm_header_args = merge_dicts(
+            slurm_header_args, updated_slurm_header_extra_args
+        )
 
         drq = self.paths.catalog_tracer
 
@@ -1522,22 +1628,33 @@ class Bookkeeper:
 
     def get_xdmat_tasker(
         self,
-        region: str="lya",
-        system: str=None,
-        debug: bool=False,
-        wait_for: Union[Tasker, ChainedTasker, int, List[int]]=None,
-        slurm_header_extra_args: Dict=dict(),
-        picca_extra_args: Dict=dict(),
+        region: str = "lya",
+        system: str = None,
+        debug: bool = False,
+        wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
+        slurm_header_extra_args: Dict = dict(),
+        picca_extra_args: Dict = dict(),
     ):
-        """Method to get a Tasker object to run forest-quasar distortion matrix measurements with picca.
+        """Method to get a Tasker object to run forest-quasar distortion matrix
+        measurements with picca.
 
         Args:
-            region (str, optional): Region to use. Options: ('lya', 'lyb'). Default: 'lya'.
-            system (str, optional): Shell to use for job. 'slurm_cori' to use slurm scripts on cori, 'slurm_perlmutter' to use slurm scripts on perlmutter, 'bash' to run it in login nodes or computer shell. Default: None, read from config file.
+            region (str, optional): Region to use. Options: ('lya', 'lyb'). 
+                Default: 'lya'.
+            system (str, optional): Shell to use for job. 'slurm_cori' to use slurm 
+                scripts on cori, 'slurm_perlmutter' to use slurm scripts on perlmutter,
+                'bash' to run it in login nodes or computer shell. Default: None, read 
+                from config file.
             debug (bool, optional): Whether to use debug options.
-            wait_for (Tasker or int, optional): In NERSC, wait for a given job to finish before running the current one. Could be a  Tasker object or a slurm jobid (int). (Default: None, won't wait for anything).
-            slurm_header_extra_args (dict, optional): Change slurm header default options if needed (time, qos, etc...). Use a dictionary with the format {'option_name': 'option_value'}.
-            picca_extra_args : Send extra arguments to picca_deltas.py script. Use a dictionary with the format {'argument_name', 'argument_value'}. Use {'argument_name': ''} if a action-like option is used.
+            wait_for (Tasker or int, optional): In NERSC, wait for a given job to 
+                finish before running the current one. Could be a  Tasker object 
+                or a slurm jobid (int). (Default: None, won't wait for anything).
+            slurm_header_extra_args (dict, optional): Change slurm header default 
+                options if needed (time, qos, etc...). Use a dictionary with the 
+                format {'option_name': 'option_value'}.
+            picca_extra_args : Send extra arguments to picca_deltas.py script. 
+                Use a dictionary with the format {'argument_name', 'argument_value'}. 
+                Use {'argument_name': ''} if a action-like option is used.
 
         Returns:
             Tasker: Tasker object to run forest-quasar distortion matrix.
@@ -1547,18 +1664,18 @@ class Bookkeeper:
         command = "picca_xdmat.py"
 
         updated_picca_extra_args = self.generate_picca_extra_args(
-            config = self.config['correlations'], 
-            default_config = self.defaults['correlations'], 
-            picca_args = picca_extra_args,
-            command = command,
-            region = region,
+            config=self.config["correlations"],
+            default_config=self.defaults["correlations"],
+            picca_args=picca_extra_args,
+            command=command,
+            region=region,
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
-            config = self.config['correlations'], 
-            default_config = self.defaults['correlations'], 
-            slurm_args = slurm_header_extra_args, 
-            command = command,
-            region = region,
+            config=self.config["correlations"],
+            default_config=self.defaults["correlations"],
+            slurm_args=slurm_header_extra_args,
+            command=command,
+            region=region,
         )
         updated_system = self.generate_system_arg(system)
 
@@ -1583,7 +1700,9 @@ class Bookkeeper:
             "error": str(self.paths.correlations_path / f"logs/{job_name}-%j.err"),
         }
 
-        slurm_header_args = merge_dicts(slurm_header_args, updated_slurm_header_extra_args)
+        slurm_header_args = merge_dicts(
+            slurm_header_args, updated_slurm_header_extra_args
+        )
 
         drq = self.paths.catalog_tracer
 
@@ -1611,34 +1730,34 @@ class Bookkeeper:
             wait_for=wait_for,
         )
 
-
     def get_xcf_exp_tasker(
         self,
-        region: str="lya",
-        system: str=None,
-        debug: bool=False,
-        wait_for: Union[Tasker, ChainedTasker, int, List[int]]=None,
-        slurm_header_extra_args: Dict=dict(),
-        picca_extra_args: Dict=dict(),
-        no_dmat: bool=False,
+        region: str = "lya",
+        system: str = None,
+        debug: bool = False,
+        wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
+        slurm_header_extra_args: Dict = dict(),
+        picca_extra_args: Dict = dict(),
+        no_dmat: bool = False,
     ):
-        """Method to get a Tasker object to run forest-quasar correlation export with picca.
+        """Method to get a Tasker object to run forest-quasar correlation export 
+        with picca.
 
         Args:
             region: Region to use. Options: ('lya', 'lyb'). Default: 'lya'.
-            system: Shell to use for job. 'slurm_perlmutter' to use slurm 
-                scripts on perlmutter, 'bash' to  run it in login nodes or 
+            system: Shell to use for job. 'slurm_perlmutter' to use slurm
+                scripts on perlmutter, 'bash' to  run it in login nodes or
                 computer shell. Default: None, read from config file.
             debug: Whether to use debug options.
-            wait_for: In NERSC, wait for a given job to finish before running 
-                the current one. Could be a  Tasker object or a slurm jobid 
+            wait_for: In NERSC, wait for a given job to finish before running
+                the current one. Could be a  Tasker object or a slurm jobid
                 (int). (Default: None, won't wait for anything).
-            slurm_header_extra_args (dict, optional): Change slurm header 
-                default options if needed (time, qos, etc...). Use a 
+            slurm_header_extra_args (dict, optional): Change slurm header
+                default options if needed (time, qos, etc...). Use a
                 dictionary with the format {'option_name': 'option_value'}.
-            picca_extra_args : Send extra arguments to 
-                picca_deltas.py script. Use a dictionary with the format 
-                {'argument_name', 'argument_value'}. Use {'argument_name': ''} 
+            picca_extra_args : Send extra arguments to
+                picca_deltas.py script. Use a dictionary with the format
+                {'argument_name', 'argument_value'}. Use {'argument_name': ''}
                 if a action-like option is used.
             no_dmat: Do not use disortion matrix
 
@@ -1648,20 +1767,20 @@ class Bookkeeper:
         region = self.validate_region(region)
 
         command = "picca_export.py"
-        
+
         updated_picca_extra_args = self.generate_picca_extra_args(
-            config = self.config['correlations'], 
-            default_config = self.defaults['correlations'], 
-            picca_args = picca_extra_args,
-            command = command,
-            region = region,
+            config=self.config["correlations"],
+            default_config=self.defaults["correlations"],
+            picca_args=picca_extra_args,
+            command=command,
+            region=region,
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
-            config = self.config['correlations'], 
-            default_config = self.defaults['correlations'], 
-            slurm_args = slurm_header_extra_args, 
-            command = command,
-            region = region,
+            config=self.config["correlations"],
+            default_config=self.defaults["correlations"],
+            slurm_args=slurm_header_extra_args,
+            command=command,
+            region=region,
         )
         updated_system = self.generate_system_arg(system)
 
@@ -1675,7 +1794,9 @@ class Bookkeeper:
             "error": str(self.paths.correlations_path / f"logs/{job_name}-%j.err"),
         }
 
-        slurm_header_args = merge_dicts(slurm_header_args, updated_slurm_header_extra_args)
+        slurm_header_args = merge_dicts(
+            slurm_header_args, updated_slurm_header_extra_args
+        )
 
         args = {
             "data": str(self.paths.xcf_fname(region)),
@@ -1709,33 +1830,33 @@ class Bookkeeper:
             wait_for=wait_for,
         )
 
-
     def get_xmetal_tasker(
         self,
-        region: str="lya",
-        system: str=None,
-        debug: bool=False,
-        wait_for: Union[Tasker, ChainedTasker, int, List[int]]=None,
-        slurm_header_extra_args: Dict=dict(),
-        picca_extra_args: Dict=dict(),
+        region: str = "lya",
+        system: str = None,
+        debug: bool = False,
+        wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
+        slurm_header_extra_args: Dict = dict(),
+        picca_extra_args: Dict = dict(),
     ):
-        """Method to get a Tasker object to run forest-quasar metal distortion matrix measurements with picca.
+        """Method to get a Tasker object to run forest-quasar metal distortion matrix 
+        measurements with picca.
 
         Args:
             region: Region to use. Options: ('lya', 'lyb'). Default: 'lya'.
-            system: Shell to use for job. 'slurm_perlmutter' to use slurm 
-                scripts on perlmutter, 'bash' to  run it in login nodes or 
+            system: Shell to use for job. 'slurm_perlmutter' to use slurm
+                scripts on perlmutter, 'bash' to  run it in login nodes or
                 computer shell. Default: None, read from config file.
             debug: Whether to use debug options.
-            wait_for: In NERSC, wait for a given job to finish before running 
-                the current one. Could be a  Tasker object or a slurm jobid 
+            wait_for: In NERSC, wait for a given job to finish before running
+                the current one. Could be a  Tasker object or a slurm jobid
                 (int). (Default: None, won't wait for anything).
-            slurm_header_extra_args (dict, optional): Change slurm header 
-                default options if needed (time, qos, etc...). Use a 
+            slurm_header_extra_args (dict, optional): Change slurm header
+                default options if needed (time, qos, etc...). Use a
                 dictionary with the format {'option_name': 'option_value'}.
-            picca_extra_args : Send extra arguments to 
-                picca_deltas.py script. Use a dictionary with the format 
-                {'argument_name', 'argument_value'}. Use {'argument_name': ''} 
+            picca_extra_args : Send extra arguments to
+                picca_deltas.py script. Use a dictionary with the format
+                {'argument_name', 'argument_value'}. Use {'argument_name': ''}
                 if a action-like option is used.
 
         Returns:
@@ -1744,20 +1865,20 @@ class Bookkeeper:
         region = self.validate_region(region)
 
         command = "picca_xdmat.py"
-        
+
         updated_picca_extra_args = self.generate_picca_extra_args(
-            config = self.config['correlations'], 
-            default_config = self.defaults['correlations'], 
-            picca_args = picca_extra_args,
-            command = command,
-            region = region,
+            config=self.config["correlations"],
+            default_config=self.defaults["correlations"],
+            picca_args=picca_extra_args,
+            command=command,
+            region=region,
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
-            config = self.config['correlations'], 
-            default_config = self.defaults['correlations'], 
-            slurm_args = slurm_header_extra_args, 
-            command = command,
-            region = region,
+            config=self.config["correlations"],
+            default_config=self.defaults["correlations"],
+            slurm_args=slurm_header_extra_args,
+            command=command,
+            region=region,
         )
         updated_system = self.generate_system_arg(system)
 
@@ -1782,7 +1903,9 @@ class Bookkeeper:
             "error": str(self.paths.correlations_path / f"logs/{job_name}-%j.err"),
         }
 
-        slurm_header_args = merge_dicts(slurm_header_args, updated_slurm_header_extra_args)
+        slurm_header_args = merge_dicts(
+            slurm_header_args, updated_slurm_header_extra_args
+        )
 
         drq = self.paths.catalog_tracer
 
@@ -1820,34 +1943,34 @@ class Bookkeeper:
             wait_for=wait_for,
         )
 
-
     def get_xcf_exp_tasker(
         self,
-        region: str="lya",
-        system: str=None,
-        debug: bool=False,
-        wait_for: Union[Tasker, ChainedTasker, int, List[int]]=None,
-        slurm_header_extra_args: Dict=dict(),
-        picca_extra_args: Dict=dict(),
-        no_dmat: bool=False,
+        region: str = "lya",
+        system: str = None,
+        debug: bool = False,
+        wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
+        slurm_header_extra_args: Dict = dict(),
+        picca_extra_args: Dict = dict(),
+        no_dmat: bool = False,
     ):
-        """Method to get a Tasker object to run forest-quasar correlation export with picca.
+        """Method to get a Tasker object to run forest-quasar correlation export with 
+        picca.
 
         Args:
             region: Region to use. Options: ('lya', 'lyb'). Default: 'lya'.
-            system: Shell to use for job. 'slurm_perlmutter' to use slurm 
-                scripts on perlmutter, 'bash' to  run it in login nodes or 
+            system: Shell to use for job. 'slurm_perlmutter' to use slurm
+                scripts on perlmutter, 'bash' to  run it in login nodes or
                 computer shell. Default: None, read from config file.
             debug: Whether to use debug options.
-            wait_for: In NERSC, wait for a given job to finish before running 
-                the current one. Could be a  Tasker object or a slurm jobid 
+            wait_for: In NERSC, wait for a given job to finish before running
+                the current one. Could be a  Tasker object or a slurm jobid
                 (int). (Default: None, won't wait for anything).
-            slurm_header_extra_args (dict, optional): Change slurm header 
-                default options if needed (time, qos, etc...). Use a 
+            slurm_header_extra_args (dict, optional): Change slurm header
+                default options if needed (time, qos, etc...). Use a
                 dictionary with the format {'option_name': 'option_value'}.
-            picca_extra_args : Send extra arguments to 
-                picca_deltas.py script. Use a dictionary with the format 
-                {'argument_name', 'argument_value'}. Use {'argument_name': ''} 
+            picca_extra_args : Send extra arguments to
+                picca_deltas.py script. Use a dictionary with the format
+                {'argument_name', 'argument_value'}. Use {'argument_name': ''}
                 if a action-like option is used.
             no_dmat: Do not use disortion matrix
 
@@ -1857,20 +1980,20 @@ class Bookkeeper:
         region = self.validate_region(region)
 
         command = "picca_export.py"
-        
+
         updated_picca_extra_args = self.generate_picca_extra_args(
-            config = self.config['correlations'], 
-            default_config = self.defaults['correlations'], 
-            picca_args = picca_extra_args,
-            command = command,
-            region = region,
+            config=self.config["correlations"],
+            default_config=self.defaults["correlations"],
+            picca_args=picca_extra_args,
+            command=command,
+            region=region,
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
-            config = self.config['correlations'], 
-            default_config = self.defaults['correlations'], 
-            slurm_args = slurm_header_extra_args, 
-            command = command,
-            region = region,
+            config=self.config["correlations"],
+            default_config=self.defaults["correlations"],
+            slurm_args=slurm_header_extra_args,
+            command=command,
+            region=region,
         )
         updated_system = self.generate_system_arg(system)
 
@@ -1884,7 +2007,9 @@ class Bookkeeper:
             "error": str(self.paths.correlations_path / f"logs/{job_name}-%j.err"),
         }
 
-        slurm_header_args = merge_dicts(slurm_header_args, updated_slurm_header_extra_args)
+        slurm_header_args = merge_dicts(
+            slurm_header_args, updated_slurm_header_extra_args
+        )
 
         args = {
             "data": str(self.paths.xcf_fname(region)),
@@ -1918,33 +2043,33 @@ class Bookkeeper:
             wait_for=wait_for,
         )
 
-
     def get_xmetal_tasker(
         self,
-        region: str="lya",
-        system: str=None,
-        debug: bool=False,
-        wait_for: Union[Tasker, ChainedTasker, int, List[int]]=None,
-        slurm_header_extra_args: Dict=dict(),
-        picca_extra_args: Dict=dict(),
+        region: str = "lya",
+        system: str = None,
+        debug: bool = False,
+        wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
+        slurm_header_extra_args: Dict = dict(),
+        picca_extra_args: Dict = dict(),
     ):
-        """Method to get a Tasker object to run forest-quasar metal distortion matrix measurements with picca.
+        """Method to get a Tasker object to run forest-quasar metal distortion matrix 
+        measurements with picca.
 
         Args:
             region: Region to use. Options: ('lya', 'lyb'). Default: 'lya'.
-            system: Shell to use for job. 'slurm_perlmutter' to use slurm 
-                scripts on perlmutter, 'bash' to  run it in login nodes or 
+            system: Shell to use for job. 'slurm_perlmutter' to use slurm
+                scripts on perlmutter, 'bash' to  run it in login nodes or
                 computer shell. Default: None, read from config file.
             debug: Whether to use debug options.
-            wait_for: In NERSC, wait for a given job to finish before running 
-                the current one. Could be a  Tasker object or a slurm jobid 
+            wait_for: In NERSC, wait for a given job to finish before running
+                the current one. Could be a  Tasker object or a slurm jobid
                 (int). (Default: None, won't wait for anything).
-            slurm_header_extra_args (dict, optional): Change slurm header 
-                default options if needed (time, qos, etc...). Use a 
+            slurm_header_extra_args (dict, optional): Change slurm header
+                default options if needed (time, qos, etc...). Use a
                 dictionary with the format {'option_name': 'option_value'}.
-            picca_extra_args : Send extra arguments to 
-                picca_deltas.py script. Use a dictionary with the format 
-                {'argument_name', 'argument_value'}. Use {'argument_name': ''} 
+            picca_extra_args : Send extra arguments to
+                picca_deltas.py script. Use a dictionary with the format
+                {'argument_name', 'argument_value'}. Use {'argument_name': ''}
                 if a action-like option is used.
 
         Returns:
@@ -1953,20 +2078,20 @@ class Bookkeeper:
         region = self.validate_region(region)
 
         command = "picca_metal_xdmat.py"
-        
+
         updated_picca_extra_args = self.generate_picca_extra_args(
-            config = self.config['correlations'], 
-            default_config = self.defaults['correlations'], 
-            picca_args = picca_extra_args,
-            command = command,
-            region = region,
+            config=self.config["correlations"],
+            default_config=self.defaults["correlations"],
+            picca_args=picca_extra_args,
+            command=command,
+            region=region,
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
-            config = self.config['correlations'], 
-            default_config = self.defaults['correlations'], 
-            slurm_args = slurm_header_extra_args, 
-            command = command,
-            region = region,
+            config=self.config["correlations"],
+            default_config=self.defaults["correlations"],
+            slurm_args=slurm_header_extra_args,
+            command=command,
+            region=region,
         )
         updated_system = self.generate_system_arg(system)
 
@@ -1991,7 +2116,9 @@ class Bookkeeper:
             "error": str(self.paths.correlations_path / f"logs/{job_name}-%j.err"),
         }
 
-        slurm_header_args = merge_dicts(slurm_header_args, updated_slurm_header_extra_args)
+        slurm_header_args = merge_dicts(
+            slurm_header_args, updated_slurm_header_extra_args
+        )
 
         drq = self.paths.catalog_tracer
 
@@ -2027,10 +2154,10 @@ class Bookkeeper:
 
 class PathBuilder:
     """Class to define paths following the bookkeeper convention.
-    
+
     Attributes:
         config (configparser.ConfigParser): Configuration used to build paths.
-    
+
     """
 
     def __init__(self, config: Dict):
@@ -2069,7 +2196,8 @@ class PathBuilder:
                 else:
                     return (
                         Path(
-                            f"/global/cfs/cdirs/desi/mocks/lya_forest/develop/london/qq_desi/v9.{version}/"
+                            f"/global/cfs/cdirs/desi/mocks/lya_forest/develop/london/"
+                            f"qq_desi/v9.{version}/"
                         )
                         / self.config["data"]["release"]
                         / self.config["data"]["survey"]
@@ -2110,26 +2238,26 @@ class PathBuilder:
             / self.config["data"]["release"]
             / self.config["data"]["survey"]
         )
-    
+
     @property
     def run_path(self):
         """Give full path to the bookkeeper run.
-        
+
         Returns:
             Path
         """
         # Potentially could add fits things here
         # Start from the bottom (correlations)
-        if self.config.get("correlations", dict()).get('delta extraction', '') != '':
-            delta_name = self.config['correlations']['delta extraction']
+        if self.config.get("correlations", dict()).get("delta extraction", "") != "":
+            delta_name = self.config["correlations"]["delta extraction"]
         else:
             try:
                 delta_name = self.continuum_tag
             except ValueError:
                 raise ValueError("Error reading delta extraction section.")
-            
+
         return self.survey_path / self.catalog_name / delta_name
-    
+
     @property
     def continuum_fitting_mask(self):
         """Path: file with masking used in continuum fitting."""
@@ -2138,18 +2266,18 @@ class PathBuilder:
     @property
     def correlations_path(self):
         """Give full path to the correlation runs.
-        
+
         Returns:
             Path
         """
-        correlation_name = self.config['correlations']['run name']
+        correlation_name = self.config["correlations"]["run name"]
 
         return self.run_path / "correlations" / correlation_name
 
     @property
     def delta_config_file(self):
         """Default path to the deltas config file inside bookkeeper.
-        
+
         Returns
             Path
         """
@@ -2158,7 +2286,7 @@ class PathBuilder:
     @property
     def correlation_config_file(self):
         """Default path to the correlation config file inside bookkeeper.
-        
+
         Returns
             Path
         """
@@ -2171,7 +2299,8 @@ class PathBuilder:
         is given and raise a ValueError if the file does not exist.
 
         Args:
-            field (str): whether to use catalog, catalog tracer fields, dla fields or bal fields. (Options: ["catalog", "catalog_tracer", "dla", "bal"])
+            field (str): whether to use catalog, catalog tracer fields, dla fields or 
+                bal fields. (Options: ["catalog", "catalog_tracer", "dla", "bal"])
 
         Returns:
             Path: catalog to be used.
@@ -2212,9 +2341,10 @@ class PathBuilder:
                     self.config["data"]["release"],
                     self.config["data"]["survey"],
                     self.config["data"]["catalog"],
-                    bal=self.config.get("delta extraction", dict()).get("bal", "0") != "0",
+                    bal=self.config.get("delta extraction", dict()).get("bal", "0")
+                    != "0",
                 )
-        
+
         if catalog.is_file():
             return catalog
         else:
@@ -2235,12 +2365,10 @@ class PathBuilder:
         """catalog to be used for BAL masking."""
         return self.get_catalog_from_field("bal")
 
-
     @property
     def catalog_tracer(self):
         """catalog to be used for cross-correlations with quasars"""
         return self.get_catalog_from_field("catalog_tracer")
-
 
     @property
     def catalog_name(self):
@@ -2250,7 +2378,7 @@ class PathBuilder:
             return self.get_fits_file_name(Path(self.config["data"]["catalog"]))
         else:
             return name
-        
+
     @staticmethod
     def get_fits_file_name(file):
         name = Path(file).name
@@ -2265,8 +2393,10 @@ class PathBuilder:
     def continuum_tag(self):
         """str: tag defining the continuum fitting parameters used."""
         if self.config.get("delta extraction") is None:
-            raise ValueError("To get continuum tag delta extraction section should be defined.")
-        
+            raise ValueError(
+                "To get continuum tag delta extraction section should be defined."
+            )
+
         prefix = self.config["delta extraction"]["prefix"]
         calib = self.config["delta extraction"]["calib"]
         calib_region = self.config["delta extraction"].get("calib region", 0)
@@ -2281,36 +2411,38 @@ class PathBuilder:
         return "{}_{}_{}.{}.{}_{}".format(prefix, calib, calib_region, dla, bal, suffix)
 
     @staticmethod
-    def compare_config_files(file1: Union[str, Path], file2: Union[str, Path], section:str):
+    def compare_config_files(
+        file1: Union[str, Path], file2: Union[str, Path], section: str
+    ):
         """Compare two config files to determine if they are the same.
-        
+
         Args:
-            file1 
+            file1
             file2
             section: Section of the yaml file to compare.
         """
-        with open(file1, 'r') as f:
+        with open(file1, "r") as f:
             config1 = yaml.load(f, Loader=yaml.BaseLoader)
-        
-        with open(file2, 'r') as f:
+
+        with open(file2, "r") as f:
             config2 = yaml.load(f, Loader=yaml.BaseLoader)
 
         if config1[section] == config2[section]:
             return True
         else:
             return False
-    
+
     def check_delta_directories(self):
         """Method to create basic directories in run directory."""
         for folder in ("scripts", "correlations", "logs", "deltas", "configs"):
             (self.run_path / folder).mkdir(exist_ok=True, parents=True)
-        
+
     def check_correlation_directories(self):
         """Method to create basic directories in correlations directory."""
         for folder in ("scripts", "correlations", "fits", "logs", "configs"):
             (self.correlations_path / folder).mkdir(exist_ok=True, parents=True)
 
-    def deltas_path(self, region: str=None, calib_step: int=None):
+    def deltas_path(self, region: str = None, calib_step: int = None):
         """Method to obtain the path to deltas output.
 
         Args:
@@ -2326,7 +2458,7 @@ class PathBuilder:
             region = Bookkeeper.validate_region(region)
             return self.run_path / "deltas" / region / "Delta"
 
-    def deltas_log_path(self, region:str, calib_step:int=None):
+    def deltas_log_path(self, region: str, calib_step: int = None):
         """Method to get the path to deltas log.
 
         Args:
@@ -2339,8 +2471,7 @@ class PathBuilder:
         deltas_path = self.deltas_path(region, calib_step)
         return deltas_path.parent / "Log"
 
-
-    def delta_attributes_file(self, region:str, calib_step:int=None):
+    def delta_attributes_file(self, region: str, calib_step: int = None):
         """Method to get the path to deltas attributes file.
 
         Args:
@@ -2355,7 +2486,7 @@ class PathBuilder:
             / "delta_attributes.fits.gz"
         )
 
-    def cf_fname(self, region:str, region2:str=None):
+    def cf_fname(self, region: str, region2: str = None):
         """Method to get the path to a forest-forest correlation file.
 
         Args:
@@ -2367,11 +2498,15 @@ class PathBuilder:
         """
         region2 = region if region2 is None else region2
         return (
-            self.correlations_path / "correlations" / f"lya{region}_lya{region2}" / f"cf.fits.gz"
+            self.correlations_path
+            / "correlations"
+            / f"lya{region}_lya{region2}"
+            / f"cf.fits.gz"
         )
 
-    def dmat_fname(self, region:str, region2:str=None):
-        """Method to get the path to a distortion matrix file for forest-forest correlations.
+    def dmat_fname(self, region: str, region2: str = None):
+        """Method to get the path to a distortion matrix file for forest-forest 
+        correlations.
 
         Args:
             region: Region where the correlation is computed.
@@ -2381,13 +2516,11 @@ class PathBuilder:
             Path: Path to correlation file.
         """
         region2 = region if region2 is None else region2
-        return (
-            self.cf_fname(region, region2).parent
-            / f"dmat.fits.gz"
-        )
+        return self.cf_fname(region, region2).parent / f"dmat.fits.gz"
 
-    def metal_fname(self, region:str, region2:str=None):
-        """Method to get the path to a metal distortion matrix file for forest-forest correlations.
+    def metal_fname(self, region: str, region2: str = None):
+        """Method to get the path to a metal distortion matrix file for forest-forest 
+        correlations.
 
         Args:
             region: Region where the correlation is computed.
@@ -2397,12 +2530,9 @@ class PathBuilder:
             Path: Path to correlation file.
         """
         region2 = region if region2 is None else region2
-        return (
-            self.cf_fname(region, region2).parent
-            / f"metal.fits.gz"
-        )
+        return self.cf_fname(region, region2).parent / f"metal.fits.gz"
 
-    def exp_cf_fname(self, region:str, region2:str=None):
+    def exp_cf_fname(self, region: str, region2: str = None):
         """Method to get the path to a forest-forest correlation export file.
 
         Args:
@@ -2414,8 +2544,8 @@ class PathBuilder:
         """
         cor_file = self.cf_fname(region, region2)
         return cor_file.parent / f"cf_exp.fits.gz"
-    
-    def xcf_fname(self, region:str):
+
+    def xcf_fname(self, region: str):
         """Method to get the path to a forest-quasar correlation export file.
 
         Args:
@@ -2424,10 +2554,16 @@ class PathBuilder:
         Returns:
             Path: Path to correlation file.
         """
-        return self.correlations_path / "correlations" / f"lya{region}_qso" / f"xcf.fits.gz"
+        return (
+            self.correlations_path
+            / "correlations"
+            / f"lya{region}_qso"
+            / f"xcf.fits.gz"
+        )
 
-    def xdmat_fname(self, region:str):
-        """Method to get the path to a distortion matrix file for forest-quasar correlations.
+    def xdmat_fname(self, region: str):
+        """Method to get the path to a distortion matrix file for forest-quasar 
+        correlations.
 
         Args:
             region: Region of the forest used.
@@ -2437,8 +2573,9 @@ class PathBuilder:
         """
         return self.xcf_fname(region).parent / f"xdmat.fits.gz"
 
-    def xmetal_fname(self, region:str):
-        """Method to get the path to a metal distortion matrix file for forest-quasar correlations.
+    def xmetal_fname(self, region: str):
+        """Method to get the path to a metal distortion matrix file for forest-quasar 
+        correlations.
 
         Args:
             region (str): Region of the forest used.
@@ -2448,7 +2585,7 @@ class PathBuilder:
         """
         return self.xcf_fname(region).parent / f"xmetal.fits.gz"
 
-    def exp_xcf_fname(self, region:str):
+    def exp_xcf_fname(self, region: str):
         """Method to get the path to a forest-quasar correlation export file.
 
         Args:
