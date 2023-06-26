@@ -134,10 +134,11 @@ correlations:
     # To affect an specific region use 
     # remember fo follow the region names in picca_bookkeeper.Bookkeeper.forest_regions
     # The values set here will overlap the ones defined in picca_cf
-    # for the lya_lya region only. (auto, could use lya_lyb for cross lya lyb)
-    picca_cf_lya_lya:
+    # for the lyalya_lyalya region only. (auto, could use lyalya_lyalyb for cross lya lyb)
+    picca_cf_lyalya_lyalya:
 
-    picca_cf_lya_lyb:
+    # lyalyb: Lyman alpha in the lyman beta forest.
+    picca_cf_lyalya_lyalyb:
 
     picca_xcf:
 

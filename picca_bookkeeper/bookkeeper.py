@@ -341,7 +341,9 @@ class Bookkeeper:
         slurm_args: Dict,
         command: str,
         region: str = None,
+        absorber: str = None,
         region2: str = None,
+        absorber2: str = None,
     ):
         """Add extra slurm header args to the run.
 
@@ -352,18 +354,25 @@ class Bookkeeper:
                 should be prioritized.
             command: Picca command to be run.
             region: Specify region where the command will be run.
+            absorber: First absorber to use for correlations.
             region2: For scripts where two regions are needed.
+            absorber2: Second absorber to use for correlations.
         """
         copied_args = copy.deepcopy(slurm_args)
         config = copy.deepcopy(config)
         defaults = copy.deepcopy(default_config)
 
         sections = ["general", command.split(".py")[0]]
-        if region is not None:
-            sections.append(command.split(".py")[0] + f"_{region}")
 
-        if region2 is not None and region is not None:
-            sections[-1] = sections[-1] + f"_{region2}"
+        if absorber is not None:
+            sections.append(command.split(".py")[0] + f"_{absorber}")
+            if region is not None:
+                sections[-1] = sections[-1] + region
+
+        if absorber2 is not None:
+            sections[-1] = sections[-1] + f"_{absorber2}"
+            if region2 is not None:
+                sections[-1] = sections[-1] + region2
 
         args = dict()
         # We iterate over the sections from low to high priority
@@ -395,7 +404,9 @@ class Bookkeeper:
         picca_args: Dict,
         command: str,
         region: str = None,
+        absorber: str = None,
         region2: str = None,
+        absorber2: str = None,
     ):
         """Add extra picca args to the run.
 
@@ -406,7 +417,9 @@ class Bookkeeper:
                 should be prioritized.
             command: picca command to be run.
             region: specify region where the command will be run.
+            absorber: First absorber to use for correlations.
             region2: For scripts where two regions are needed.
+            absorber2: Second absorber to use for correlations.
         """
         copied_args = copy.deepcopy(picca_args)
         config = copy.deepcopy(config)
@@ -414,10 +427,15 @@ class Bookkeeper:
 
         sections = [command.split(".py")[0]]
 
-        if region is not None:
-            sections.append(command.split(".py")[0] + f"_{region}")
-        if region2 is not None and region is not None:
-            sections[-1] = sections[-1] + f"_{region2}"
+        if absorber is not None:
+            sections.append(command.split(".py")[0] + f"_{absorber}")
+            if region is not None:
+                sections[-1] = sections[-1] + region
+
+        if absorber2 is not None:
+            sections[-1] = sections[-1] + f"_{absorber2}"
+            if region2 is not None:
+                sections[-1] = sections[-1] + region2
 
         args = dict()
         if "picca args" in defaults.keys() and isinstance(defaults["picca args"], dict):
@@ -1158,7 +1176,9 @@ class Bookkeeper:
             picca_args=picca_extra_args,
             command=command,
             region=region,
+            absorber=absorber,
             region2=region2,
+            absorber2=absorber2,
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
             config=self.config["correlations"],
@@ -1166,7 +1186,9 @@ class Bookkeeper:
             slurm_args=slurm_header_extra_args,
             command=command,
             region=region,
+            absorber=absorber,
             region2=region2,
+            absorber2=absorber2,
         )
         updated_system = self.generate_system_arg(system)
 
@@ -1283,7 +1305,9 @@ class Bookkeeper:
             picca_args=picca_extra_args,
             command=command,
             region=region,
+            absorber=absorber,
             region2=region2,
+            absorber2=absorber2,
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
             config=self.config["correlations"],
@@ -1291,7 +1315,9 @@ class Bookkeeper:
             slurm_args=slurm_header_extra_args,
             command=command,
             region=region,
+            absorber=absorber,
             region2=region2,
+            absorber2=absorber2,
         )
         updated_system = self.generate_system_arg(system)
 
@@ -1411,7 +1437,9 @@ class Bookkeeper:
             picca_args=picca_extra_args,
             command=command,
             region=region,
+            absorber=absorber,
             region2=region2,
+            absorber2=absorber2,
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
             config=self.config["correlations"],
@@ -1419,7 +1447,9 @@ class Bookkeeper:
             slurm_args=slurm_header_extra_args,
             command=command,
             region=region,
+            absorber=absorber,
             region2=region2,
+            absorber2=absorber2,
         )
         updated_system = self.generate_system_arg(system)
 
@@ -1526,7 +1556,9 @@ class Bookkeeper:
             picca_args=picca_extra_args,
             command=command,
             region=region,
+            absorber=absorber,
             region2=region2,
+            absorber2=absorber2,
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
             config=self.config["correlations"],
@@ -1534,7 +1566,9 @@ class Bookkeeper:
             slurm_args=slurm_header_extra_args,
             command=command,
             region=region,
+            absorber=absorber,
             region2=region2,
+            absorber2=absorber2,
         )
         updated_system = self.generate_system_arg(system)
 
@@ -1639,6 +1673,7 @@ class Bookkeeper:
             picca_args=picca_extra_args,
             command=command,
             region=region,
+            absorber=absorber,
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
             config=self.config["correlations"],
@@ -1646,6 +1681,7 @@ class Bookkeeper:
             slurm_args=slurm_header_extra_args,
             command=command,
             region=region,
+            absorber=absorber,
         )
         updated_system = self.generate_system_arg(system)
 
@@ -1747,6 +1783,7 @@ class Bookkeeper:
             picca_args=picca_extra_args,
             command=command,
             region=region,
+            absorber=absorber,
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
             config=self.config["correlations"],
@@ -1754,6 +1791,7 @@ class Bookkeeper:
             slurm_args=slurm_header_extra_args,
             command=command,
             region=region,
+            absorber=absorber,
         )
         updated_system = self.generate_system_arg(system)
 
@@ -1856,6 +1894,7 @@ class Bookkeeper:
             picca_args=picca_extra_args,
             command=command,
             region=region,
+            absorber=absorber,
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
             config=self.config["correlations"],
@@ -1863,6 +1902,7 @@ class Bookkeeper:
             slurm_args=slurm_header_extra_args,
             command=command,
             region=region,
+            absorber=absorber,
         )
         updated_system = self.generate_system_arg(system)
 
@@ -1956,6 +1996,7 @@ class Bookkeeper:
             picca_args=picca_extra_args,
             command=command,
             region=region,
+            absorber=absorber,
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
             config=self.config["correlations"],
@@ -1963,6 +2004,7 @@ class Bookkeeper:
             slurm_args=slurm_header_extra_args,
             command=command,
             region=region,
+            absorber=absorber,
         )
         updated_system = self.generate_system_arg(system)
 
@@ -2076,6 +2118,7 @@ class Bookkeeper:
             picca_args=picca_extra_args,
             command=command,
             region=region,
+            absorber=absorber,
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
             config=self.config["correlations"],
@@ -2083,6 +2126,7 @@ class Bookkeeper:
             slurm_args=slurm_header_extra_args,
             command=command,
             region=region,
+            absorber=absorber,
         )
         updated_system = self.generate_system_arg(system)
 
@@ -2178,6 +2222,7 @@ class Bookkeeper:
             picca_args=picca_extra_args,
             command=command,
             region=region,
+            absorber=absorber,
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
             config=self.config["correlations"],
@@ -2185,6 +2230,7 @@ class Bookkeeper:
             slurm_args=slurm_header_extra_args,
             command=command,
             region=region,
+            absorber=absorber,
         )
         updated_system = self.generate_system_arg(system)
 
