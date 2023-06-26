@@ -1,5 +1,5 @@
-system:
-  picca environment: picca
+general:
+  conda environment: picca
   system: slurm_perlmutter
   
 data:
@@ -22,8 +22,6 @@ delta extraction:
     general:
       mail-type: fail
       mail-user: user@host.com
-    picca_delta_extraction:
-      time: 03:00:00
   
 correlations:
   run name: default

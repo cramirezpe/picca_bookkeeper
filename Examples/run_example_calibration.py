@@ -2,7 +2,7 @@ from numpy import nonzero
 from picca_bookkeeper.bookkeeper import Bookkeeper
 
 # Create bookkeeper instance
-bookkeeper = Bookkeeper("example_simple_guadalupe.yaml")
+bookkeeper = Bookkeeper("example_config_early_3d.yaml")
 
 # Run calibration
 calib = bookkeeper.get_calibration_extraction_tasker(

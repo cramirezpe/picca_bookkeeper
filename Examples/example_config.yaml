@@ -2,13 +2,13 @@ general:
   #python environment to be used when running jobs
   #something that would be activated as:
   # source activate picca
-  python environment: picca
+  conda environment: picca
   
   # default system to run bookkeeper on
   # slurm_cori: slurm for cori
   # slurm_perlmutter: slurm for perlmutter
   # bash: run on terminal (login nodes at NERSC)
-  system: slurm_cori
+  system: slurm_perlmutter
 
 data:
   # Parent path of the bookkeeper.
@@ -30,7 +30,6 @@ data:
   # Catalog could be a name (and therefore will be used the bookkeeper one)
   # or could be a full path to a catalog
   catalog: afterburn_v0
-
 
 
 delta extraction:  
@@ -82,9 +81,7 @@ delta extraction:
   bal catalog:
 
   # Picca args to be used by the bookkeeper
-  # match the section name with the name of t
-  he scripts under
-  # picca.bin
+  # match the section name with the name of the scripts under picca.bin
   picca args:
     picca_delta_extraction:
       expected flux:

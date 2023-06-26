@@ -1,4 +1,4 @@
-system:
+general:
   conda environment: picca_new_cont
   system: slurm_perlmutter
 

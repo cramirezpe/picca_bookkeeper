@@ -6,7 +6,7 @@ bookkeeper = Bookkeeper("example_config.yaml")
 # Run deltas
 deltas = bookkeeper.get_delta_extraction_tasker(
     region="lya",  # Provide the region to use here
-    debug=True,  # Use less specs and run in debug queue,
+    debug=False,  # Use less specs and run in debug queue,
     wait_for=None,  # Wait for previous steps
 )
 

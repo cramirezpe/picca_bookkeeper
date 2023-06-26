@@ -1,4 +1,4 @@
-system:
+general:
   conda environment: picca
   system: slurm_perlmutter
   
@@ -22,35 +22,6 @@ delta extraction:
     general:
       mail-type: fail
       mail-user: xxxxx@yyyyyy.com
-    picca_delta_extraction:
-      time: 03:00:00
-      qos: regular
 
 correlations:
   run name: default
-    
-  slurm args:
-    picca_cf:
-      time: 01:00:00
-      qos: regular
-    
-    picca_xcf:
-      time: 01:00:00
-      qos: regular
-      
-    picca_dmat:
-      time: 01:00:00
-      qos: regular
-    picca_xdmat:
-      time: 01:00:00
-      qos: regular
-    picca_metal_dmat:
-      time: 01:00:00
-      qos: regular
-    picca_metal_xdmat:
-      time: 01:00:00
-      qos: regular
-    picca_export:
-      time: 00:10:00
-      qos: debug
-
