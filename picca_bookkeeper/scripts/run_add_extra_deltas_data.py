@@ -62,9 +62,12 @@ def main(args=None):
     }
 
     updated_slurm_header_args = bookkeeper.generate_slurm_header_extra_args(
-        bookkeeper.config["delta extraction"], slurm_header_args, command
+        config = bookkeeper.config['delta extraction'], 
+        default_config = bookkeeper.defaults['delta extraction'], 
+        slurm_args = slurm_header_args, 
+        command = command,
+        region = region,
     )
-
     srun_options = {
         "nodes": 1,
         "ntasks": 1,

@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import *
 import configparser
 import copy
+import collections
 import filecmp
 import shutil
 import os
@@ -96,6 +97,18 @@ def get_dla_catalog(release, survey, version=1):
         raise FileNotFoundError(
             f"Could not find a compatible catalog in the bookkeeper. (Path: {catalog})"
         )
+
+def merge_dicts(dict1: Dict, dict2: Dict):
+    """Merges two dictionaries recursively preserving values in dict2"""
+    result = copy.deepcopy(dict1)
+
+    for key, value in dict2.items():
+        if isinstance(value, collections.abc.Mapping):
+            result[key] = merge_dicts(result.get(key, {}), value)
+        else:
+            result[key] = copy.deepcopy(dict2[key])
+
+    return result    
 
 class Bookkeeper:
     """Class to generate Tasker objects which can be used to run different picca jobs.
@@ -247,7 +260,7 @@ class Bookkeeper:
 
         return region.lower() 
 
-    def generate_slurm_header_extra_args(self, config: Dict, default_config: Dict, slurm_args: Dict, command: str, region: str=None):
+    def generate_slurm_header_extra_args(self, config: Dict, default_config: Dict, slurm_args: Dict, command: str, region: str=None, region2: str=None):
         """Add extra slurm header args to the run.
         
         Args:
@@ -257,6 +270,7 @@ class Bookkeeper:
                 should be prioritized. 
             command: Picca command to be run.
             region: Specify region where the command will be run.
+            region2: For scripts where two regions are needed.
         """
         copied_args = copy.deepcopy(slurm_args)
         config = copy.deepcopy(config)
@@ -266,13 +280,16 @@ class Bookkeeper:
         if region is not None:
             sections.append(command.split(".py")[0] + f"_{region}")
 
+        if region2 is not None and region is not None:
+            sections[-1] = sections[-1] + f"_{region2}"
+
         args = dict()
         # We iterate over the sections from low to high priority
         # overriding the previous set values if there is a coincidence
         if "slurm args" in defaults.keys() and isinstance(defaults["slurm args"], dict):
             for section in sections:
                 if section in defaults["slurm args"] and isinstance(defaults["slurm args"][section], dict):
-                    args = {**args, **defaults["slurm args"][section]}
+                    args = merge_dicts(args, defaults["slurm args"][section])
 
                     
         # We iterate over the sections from low to high priority
@@ -281,12 +298,12 @@ class Bookkeeper:
         if "slurm args" in config.keys() and isinstance(config["slurm args"], dict):
             for section in sections:
                 if section in config["slurm args"] and isinstance(config["slurm args"][section], dict):
-                    args = {**args, **config["slurm args"][section]}
+                    args = merge_dicts(args, config["slurm args"][section])
 
         # Copied args is the highest priority
-        return {**args, **copied_args}
+        return merge_dicts(args, copied_args)
 
-    def generate_picca_extra_args(self, config: Dict, default_config:Dict, picca_args: Dict, command: str, region: str=None):
+    def generate_picca_extra_args(self, config: Dict, default_config:Dict, picca_args: Dict, command: str, region: str=None, region2: str=None):
         """Add extra picca args to the run.
         
         Args:
@@ -296,28 +313,32 @@ class Bookkeeper:
                 should be prioritized.
             command: picca command to be run.
             region: specify region where the command will be run.
+            region2: For scripts where two regions are needed.
         """
         copied_args = copy.deepcopy(picca_args)
         config = copy.deepcopy(config)
         defaults = copy.deepcopy(default_config)
         
         sections = [command.split(".py")[0]]
+        
         if region is not None:
             sections.append(command.split(".py")[0] + f"_{region}")
+        if region2 is not None and region is not None:
+            sections[-1] = sections[-1] + f"_{region2}"
 
         args = dict()
         if "picca args" in defaults.keys() and isinstance(defaults["picca args"], dict):
             for section in sections:
                 if section in defaults["picca args"] and isinstance(defaults["picca args"][section], dict):
-                    args = {**args, **defaults["picca args"][section]}
+                    args = merge_dicts(args, defaults["picca args"][section])
 
         if "picca args" in config.keys() and isinstance(config["picca args"], dict):
             for section in sections:
                 if section in config["picca args"] and isinstance(config["picca args"][section], dict):
-                    args = {**args, **config["picca args"][section]}
+                    args = merge_dicts(args, config["picca args"][section])
 
         # Copied args is the highest priority
-        return {**args, **copied_args}
+        return merge_dicts(args, copied_args)
     
     def generate_system_arg(self, system):
         if system is None:
@@ -357,23 +378,32 @@ class Bookkeeper:
         Returns:
             Tasker: Tasker object to run delta extraction.
         """
+        region = self.validate_region(region)
+        
         command = "picca_convert_transmission.py"
+    
         updated_picca_extra_args = self.generate_picca_extra_args(
-            self.config['delta extraction'], self.defaults['delta extraction'], picca_extra_args, command
+            config = self.config['delta extraction'], 
+            default_config = self.defaults['delta extraction'], 
+            picca_args = picca_extra_args,
+            command = command,
+            region = region,
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
-            self.config['delta extraction'], self.defaults['delta extraction'], slurm_header_extra_args, command
+            config = self.config['delta extraction'], 
+            default_config = self.defaults['delta extraction'], 
+            slurm_args = slurm_header_extra_args, 
+            command = command,
+            region = region,
         )
         updated_system = self.generate_system_arg(system)
-
-        region = self.validate_region(region)
 
         job_name = f"raw_deltas_{region}"
 
         if debug:  # pragma: no cover
             qos = "debug"
             time = "00:30:00"
-            updated_picca_extra_args = {**dict(nspec=1000), **updated_picca_extra_args}
+            updated_picca_extra_args = merge_dicts(dict(nspec=1000), updated_picca_extra_args)
         else:
             qos = "regular"
             time = "03:00:00"
@@ -386,7 +416,7 @@ class Bookkeeper:
             "error": str(self.paths.run_path / f"logs/{job_name}-%j.err"),
         }
 
-        slurm_header_args = {**slurm_header_args, **updated_slurm_header_extra_args}
+        slurm_header_args = merge_dicts(slurm_header_args, updated_slurm_header_extra_args)
 
         args = {
             "object-cat": str(self.paths.catalog),
@@ -404,7 +434,7 @@ class Bookkeeper:
             },
         }
 
-        args = {**args, **updated_picca_extra_args}
+        args = merge_dicts(args, updated_picca_extra_args)
 
         return get_Tasker(
             updated_system,
@@ -452,16 +482,25 @@ class Bookkeeper:
         Returns:
             Tasker: Tasker object to run delta extraction.
         """
+        region = self.validate_region(region)
+
         command = "picca_delta_extraction.py"
+        
         updated_picca_extra_args = self.generate_picca_extra_args(
-            self.config["delta extraction"], self.defaults["delta extraction"], picca_extra_args, command, calib_step
+            config = self.config['delta extraction'], 
+            default_config = self.defaults['delta extraction'], 
+            picca_args = picca_extra_args,
+            command = command,
+            region = region,
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
-            self.config["delta extraction"], self.defaults["delta extraction"], slurm_header_extra_args, command, calib_step
+            config = self.config['delta extraction'], 
+            default_config = self.defaults['delta extraction'], 
+            slurm_args = slurm_header_extra_args, 
+            command = command,
+            region = region,
         )
         updated_system = self.generate_system_arg(system)
-
-        region = self.validate_region(region)
 
         job_name = f"delta_extraction_{region}"
         if calib_step is not None:
@@ -824,7 +863,7 @@ class Bookkeeper:
         #             f"mask arguments {i}": mask_section
         #         })
 
-        deltas_config_dict = {**deltas_config_dict, **updated_picca_extra_args}
+        deltas_config_dict = merge_dicts(deltas_config_dict, updated_picca_extra_args)
 
         # parse config
         deltas_config = configparser.ConfigParser()
@@ -841,7 +880,7 @@ class Bookkeeper:
             "error": str(self.paths.run_path / f"logs/{job_name}-%j.err"),
         }
 
-        slurm_header_args = {**slurm_header_args, **updated_slurm_header_extra_args}
+        slurm_header_args = merge_dicts(slurm_header_args, updated_slurm_header_extra_args)
 
         return get_Tasker(
             updated_system,
@@ -977,18 +1016,29 @@ class Bookkeeper:
         Returns:
             Tasker: Tasker object to run forest-forest correlation.
         """
-        command = "picca_cf.py"
-        updated_picca_extra_args = self.generate_picca_extra_args(
-            self.config["correlations"], self.defaults["correlations"], picca_extra_args, command
-        )
-        updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
-            self.config["correlations"], self.defaults["correlations"], slurm_header_extra_args, command
-        )
-        updated_system = self.generate_system_arg(system)
-
         region2 = region if region2 is None else region2
         region2 = self.validate_region(region2)
         region = self.validate_region(region)
+
+        command = "picca_cf.py"
+
+        updated_picca_extra_args = self.generate_picca_extra_args(
+            config = self.config['correlations'], 
+            default_config = self.defaults['correlations'], 
+            picca_args = picca_extra_args,
+            command = command,
+            region = region,
+            region2 = region2,
+        )
+        updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
+            config = self.config['correlations'], 
+            default_config = self.defaults['correlations'], 
+            slurm_args = slurm_header_extra_args, 
+            command = command,
+            region = region,
+            region2 = region2,
+        )
+        updated_system = self.generate_system_arg(system)
 
         job_name = f"cf_{region}_{region2}"
 
@@ -1011,7 +1061,7 @@ class Bookkeeper:
             "error": str(self.paths.correlations_path / f"logs/{job_name}-%j.err"),
         }
 
-        slurm_header_args = {**slurm_header_args, **updated_slurm_header_extra_args}
+        slurm_header_args = merge_dicts(slurm_header_args, updated_slurm_header_extra_args)
 
         args = {
             "in-dir": str(self.paths.deltas_path(region)),
@@ -1024,7 +1074,7 @@ class Bookkeeper:
         if region2 != region:
             args["in-dir2"] = str(self.paths.deltas_path(region2))
 
-        args = {**args, **updated_picca_extra_args}
+        args = merge_dicts(args, updated_picca_extra_args)
 
         self.paths.cf_fname(region, region2).parent.mkdir(
             exist_ok=True, parents=True
@@ -1076,18 +1126,29 @@ class Bookkeeper:
         Returns:
             Tasker: Tasker object to run forest-forest correlation.
         """
-        command = "picca_dmat.py"
-        updated_picca_extra_args = self.generate_picca_extra_args(
-            self.config["correlations"], self.defaults["correlations"], picca_extra_args, command
-        )
-        updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
-            self.config["correlations"], self.defaults["correlations"], slurm_header_extra_args, command
-        )
-        updated_system = self.generate_system_arg(system)
-
         region2 = region if region2 is None else region2
         region2 = self.validate_region(region2)
         region = self.validate_region(region)
+
+        command = "picca_dmat.py"
+
+        updated_picca_extra_args = self.generate_picca_extra_args(
+            config = self.config['correlations'], 
+            default_config = self.defaults['correlations'], 
+            picca_args = picca_extra_args,
+            command = command,
+            region = region,
+            region2 = region2,
+        )
+        updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
+            config = self.config['correlations'], 
+            default_config = self.defaults['correlations'], 
+            slurm_args = slurm_header_extra_args, 
+            command = command,
+            region = region,
+            region2 = region2,
+        )
+        updated_system = self.generate_system_arg(system)
 
         job_name = f"dmat_{region}_{region2}"
 
@@ -1110,7 +1171,7 @@ class Bookkeeper:
             "error": str(self.paths.correlations_path / f"logs/{job_name}-%j.err"),
         }
 
-        slurm_header_args = {**slurm_header_args, **updated_slurm_header_extra_args}
+        slurm_header_args = merge_dicts(slurm_header_args, updated_slurm_header_extra_args)
 
         args = {
             "in-dir": str(self.paths.deltas_path(region)),
@@ -1124,7 +1185,7 @@ class Bookkeeper:
         if region2 != region:
             args["in-dir2"] = str(self.paths.deltas_path(region2))
 
-        args = {**args, **updated_picca_extra_args}
+        args = merge_dicts(args, updated_picca_extra_args)
 
         self.paths.dmat_fname(region, region2).parent.mkdir(
             exist_ok=True, parents=True
@@ -1177,21 +1238,31 @@ class Bookkeeper:
         Returns:
             Tasker: Tasker object to run forest-forest correlation.
         """
-        command = "picca_export.py"
-        updated_picca_extra_args = self.generate_picca_extra_args(
-            self.config["correlations"], self.defaults["correlations"], picca_extra_args, command
-        )
-        updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
-            self.config["correlations"], self.defaults["correlations"], slurm_header_extra_args, command
-        )
-        updated_system = self.generate_system_arg(system)
-
         region2 = region if region2 is None else region2
         region2 = self.validate_region(region2)
         region = self.validate_region(region)
 
-        job_name = f"cf_exp_{region}_{region2}"
+        command = "picca_export.py"
 
+        updated_picca_extra_args = self.generate_picca_extra_args(
+            config = self.config['correlations'], 
+            default_config = self.defaults['correlations'], 
+            picca_args = picca_extra_args,
+            command = command,
+            region = region,
+            region2 = region2,
+        )
+        updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
+            config = self.config['correlations'], 
+            default_config = self.defaults['correlations'], 
+            slurm_args = slurm_header_extra_args, 
+            command = command,
+            region = region,
+            region2 = region2,
+        )
+        updated_system = self.generate_system_arg(system)
+
+        job_name = f"cf_exp_{region}_{region2}"
 
         slurm_header_args = {
             "qos": "regular",
@@ -1201,7 +1272,7 @@ class Bookkeeper:
             "error": str(self.paths.correlations_path / f"logs/{job_name}-%j.err"),
         }
 
-        slurm_header_args = {**slurm_header_args, **updated_slurm_header_extra_args}
+        slurm_header_args = merge_dicts(slurm_header_args, updated_slurm_header_extra_args)
 
         args = {
             "data": str(self.paths.cf_fname(region, region2)),
@@ -1210,7 +1281,7 @@ class Bookkeeper:
         if not no_dmat:
             args["dmat"] = str(self.paths.dmat_fname(region, region2))
 
-        args = {**args, **updated_picca_extra_args}
+        args = merge_dicts(args, updated_picca_extra_args)
 
         if (
             self.paths.config["data"]["survey"] == "main"
@@ -1268,18 +1339,30 @@ class Bookkeeper:
         Returns:
             Tasker: Tasker object to run forest-forest correlation.
         """
-        command = "picca_metal_dmat.py"
-        updated_picca_extra_args = self.generate_picca_extra_args(
-            self.config["correlations"], self.defaults["correlations"], picca_extra_args, command
-        )
-        updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
-            self.config["correlations"], self.defaults["correlations"], slurm_header_extra_args, command
-        )
-        updated_system = self.generate_system_arg(system)
-
         region2 = region if region2 is None else region2
         region2 = self.validate_region(region2)
         region = self.validate_region(region)
+
+        command = "picca_metal_dmat.py"
+        
+        updated_picca_extra_args = self.generate_picca_extra_args(
+            config = self.config['correlations'], 
+            default_config = self.defaults['correlations'], 
+            picca_args = picca_extra_args,
+            command = command,
+            region = region,
+            region2 = region2,
+        )
+        updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
+            config = self.config['correlations'], 
+            default_config = self.defaults['correlations'], 
+            slurm_args = slurm_header_extra_args, 
+            command = command,
+            region = region,
+            region2 = region2,
+        )
+        updated_system = self.generate_system_arg(system)
+
         job_name = f"metal_{region}_{region2}"
 
         if debug:  # pragma: no cover
@@ -1301,7 +1384,7 @@ class Bookkeeper:
             "error": str(self.paths.correlations_path / f"logs/{job_name}-%j.err"),
         }
 
-        slurm_header_args = {**slurm_header_args, **updated_slurm_header_extra_args}
+        slurm_header_args = merge_dicts(slurm_header_args, updated_slurm_header_extra_args)
 
         args = {
             "in-dir": str(self.paths.deltas_path(region)),
@@ -1314,7 +1397,7 @@ class Bookkeeper:
         if region2 != region:
             args["in-dir2"] = str(self.paths.deltas_path(region2))
 
-        args = {**args, **updated_picca_extra_args}
+        args = merge_dicts(args, updated_picca_extra_args)
 
         self.paths.metal_fname(region, region2).parent.mkdir(
             exist_ok=True, parents=True
@@ -1363,16 +1446,25 @@ class Bookkeeper:
         Returns:
             Tasker: Tasker object to run forest-forest correlation.
         """
+        region = self.validate_region(region)
+
         command = "picca_xcf.py"
+
         updated_picca_extra_args = self.generate_picca_extra_args(
-            self.config["correlations"], self.defaults["correlations"], picca_extra_args, command
+            config = self.config['correlations'], 
+            default_config = self.defaults['correlations'], 
+            picca_args = picca_extra_args,
+            command = command,
+            region = region,
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
-            self.config["correlations"], self.defaults["correlations"], slurm_header_extra_args, command
+            config = self.config['correlations'], 
+            default_config = self.defaults['correlations'], 
+            slurm_args = slurm_header_extra_args, 
+            command = command,
+            region = region,
         )
         updated_system = self.generate_system_arg(system)
-
-        region = self.validate_region(region)
 
         job_name = f"xcf_{region}"
 
@@ -1395,7 +1487,7 @@ class Bookkeeper:
             "error": str(self.paths.correlations_path / f"logs/{job_name}-%j.err"),
         }
 
-        slurm_header_args = {**slurm_header_args, **updated_slurm_header_extra_args}
+        slurm_header_args = merge_dicts(slurm_header_args, updated_slurm_header_extra_args)
 
         drq = self.paths.catalog_tracer
 
@@ -1408,7 +1500,7 @@ class Bookkeeper:
         if "v9." in self.config["data"]["release"]:
             args["mode"] = "desi_mocks"
 
-        args = {**args, **updated_picca_extra_args}
+        args = merge_dicts(args, updated_picca_extra_args)
 
         self.paths.xcf_fname(region).parent.mkdir(exist_ok=True, parents=True)
 
@@ -1445,16 +1537,25 @@ class Bookkeeper:
         Returns:
             Tasker: Tasker object to run forest-quasar distortion matrix.
         """
+        region = self.validate_region(region)
+
         command = "picca_xdmat.py"
+
         updated_picca_extra_args = self.generate_picca_extra_args(
-            self.config["correlations"], self.defaults["correlations"], picca_extra_args, command
+            config = self.config['correlations'], 
+            default_config = self.defaults['correlations'], 
+            picca_args = picca_extra_args,
+            command = command,
+            region = region,
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
-            self.config["correlations"], self.defaults["correlations"], slurm_header_extra_args, command
+            config = self.config['correlations'], 
+            default_config = self.defaults['correlations'], 
+            slurm_args = slurm_header_extra_args, 
+            command = command,
+            region = region,
         )
         updated_system = self.generate_system_arg(system)
-
-        region = self.validate_region(region)
 
         job_name = f"xdmat_{region}"
 
@@ -1477,7 +1578,7 @@ class Bookkeeper:
             "error": str(self.paths.correlations_path / f"logs/{job_name}-%j.err"),
         }
 
-        slurm_header_args = {**slurm_header_args, **updated_slurm_header_extra_args}
+        slurm_header_args = merge_dicts(slurm_header_args, updated_slurm_header_extra_args)
 
         drq = self.paths.catalog_tracer
 
@@ -1490,7 +1591,7 @@ class Bookkeeper:
         if "v9." in self.config["data"]["release"]:
             args["mode"] = "desi_mocks"
 
-        args = {**args, **updated_picca_extra_args}
+        args = merge_dicts(args, updated_picca_extra_args)
 
         self.paths.xdmat_fname(region).parent.mkdir(exist_ok=True, parents=True)
 
@@ -1539,15 +1640,25 @@ class Bookkeeper:
         Returns:
             Tasker: Tasker object to run forest-forest correlation.
         """
+        region = self.validate_region(region)
+
         command = "picca_export.py"
+        
         updated_picca_extra_args = self.generate_picca_extra_args(
-            self.config["correlations"], self.defaults["correlations"], picca_extra_args, command
+            config = self.config['correlations'], 
+            default_config = self.defaults['correlations'], 
+            picca_args = picca_extra_args,
+            command = command,
+            region = region,
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
-            self.config["correlations"], self.defaults["correlations"], slurm_header_extra_args, command
+            config = self.config['correlations'], 
+            default_config = self.defaults['correlations'], 
+            slurm_args = slurm_header_extra_args, 
+            command = command,
+            region = region,
         )
         updated_system = self.generate_system_arg(system)
-        region = self.validate_region(region)
 
         job_name = f"xcf_exp_{region}"
 
@@ -1559,7 +1670,7 @@ class Bookkeeper:
             "error": str(self.paths.correlations_path / f"logs/{job_name}-%j.err"),
         }
 
-        slurm_header_args = {**slurm_header_args, **updated_slurm_header_extra_args}
+        slurm_header_args = merge_dicts(slurm_header_args, updated_slurm_header_extra_args)
 
         args = {
             "data": str(self.paths.xcf_fname(region)),
@@ -1569,7 +1680,7 @@ class Bookkeeper:
         if not no_dmat:
             args["dmat"] = str(self.paths.xdmat_fname(region))
 
-        args = {**args, **updated_picca_extra_args}
+        args = merge_dicts(args, updated_picca_extra_args)
 
         if (
             self.paths.config["data"]["survey"] == "main"
@@ -1625,17 +1736,25 @@ class Bookkeeper:
         Returns:
             Tasker: Tasker object to run forest-forest correlation.
         """
+        region = self.validate_region(region)
 
         command = "picca_xdmat.py"
+        
         updated_picca_extra_args = self.generate_picca_extra_args(
-            self.config["correlations"], self.defaults["correlations"], picca_extra_args, command
+            config = self.config['correlations'], 
+            default_config = self.defaults['correlations'], 
+            picca_args = picca_extra_args,
+            command = command,
+            region = region,
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
-            self.config["correlations"], self.defaults["correlations"], slurm_header_extra_args, command
+            config = self.config['correlations'], 
+            default_config = self.defaults['correlations'], 
+            slurm_args = slurm_header_extra_args, 
+            command = command,
+            region = region,
         )
         updated_system = self.generate_system_arg(system)
-
-        region = self.validate_region(region)
 
         job_name = f"xdmat_{region}"
 
@@ -1658,7 +1777,7 @@ class Bookkeeper:
             "error": str(self.paths.correlations_path / f"logs/{job_name}-%j.err"),
         }
 
-        slurm_header_args = {**slurm_header_args, **updated_slurm_header_extra_args}
+        slurm_header_args = merge_dicts(slurm_header_args, updated_slurm_header_extra_args)
 
         drq = self.paths.catalog_tracer
 
@@ -1681,7 +1800,7 @@ class Bookkeeper:
         if "v9." in self.config["data"]["release"]:
             args["mode"] = "desi_mocks"
 
-        args = {**args, **updated_picca_extra_args}
+        args = merge_dicts(args, updated_picca_extra_args)
 
         self.paths.xdmat_fname(region).parent.mkdir(exist_ok=True, parents=True)
 
@@ -1730,15 +1849,25 @@ class Bookkeeper:
         Returns:
             Tasker: Tasker object to run forest-forest correlation.
         """
+        region = self.validate_region(region)
+
         command = "picca_export.py"
+        
         updated_picca_extra_args = self.generate_picca_extra_args(
-            self.config["correlations"], self.defaults["correlations"], picca_extra_args, command
+            config = self.config['correlations'], 
+            default_config = self.defaults['correlations'], 
+            picca_args = picca_extra_args,
+            command = command,
+            region = region,
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
-            self.config["correlations"], self.defaults["correlations"], slurm_header_extra_args, command
+            config = self.config['correlations'], 
+            default_config = self.defaults['correlations'], 
+            slurm_args = slurm_header_extra_args, 
+            command = command,
+            region = region,
         )
         updated_system = self.generate_system_arg(system)
-        region = self.validate_region(region)
 
         job_name = f"xcf_exp_{region}"
 
@@ -1750,7 +1879,7 @@ class Bookkeeper:
             "error": str(self.paths.correlations_path / f"logs/{job_name}-%j.err"),
         }
 
-        slurm_header_args = {**slurm_header_args, **updated_slurm_header_extra_args}
+        slurm_header_args = merge_dicts(slurm_header_args, updated_slurm_header_extra_args)
 
         args = {
             "data": str(self.paths.xcf_fname(region)),
@@ -1760,7 +1889,7 @@ class Bookkeeper:
         if not no_dmat:
             args["dmat"] = str(self.paths.xdmat_fname(region))
 
-        args = {**args, **updated_picca_extra_args}
+        args = merge_dicts(args, updated_picca_extra_args)
 
         if (
             self.paths.config["data"]["survey"] == "main"
@@ -1816,15 +1945,25 @@ class Bookkeeper:
         Returns:
             Tasker: Tasker object to run forest-forest correlation.
         """
+        region = self.validate_region(region)
+
         command = "picca_metal_xdmat.py"
+        
         updated_picca_extra_args = self.generate_picca_extra_args(
-            self.config["correlations"], self.defaults["correlations"], picca_extra_args, command
+            config = self.config['correlations'], 
+            default_config = self.defaults['correlations'], 
+            picca_args = picca_extra_args,
+            command = command,
+            region = region,
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
-            self.config["correlations"], self.defaults["correlations"], slurm_header_extra_args, command
+            config = self.config['correlations'], 
+            default_config = self.defaults['correlations'], 
+            slurm_args = slurm_header_extra_args, 
+            command = command,
+            region = region,
         )
         updated_system = self.generate_system_arg(system)
-        region = self.validate_region(region)
 
         job_name = f"xmetal_{region}"
 
@@ -1847,7 +1986,7 @@ class Bookkeeper:
             "error": str(self.paths.correlations_path / f"logs/{job_name}-%j.err"),
         }
 
-        slurm_header_args = {**slurm_header_args, **updated_slurm_header_extra_args}
+        slurm_header_args = merge_dicts(slurm_header_args, updated_slurm_header_extra_args)
 
         drq = self.paths.catalog_tracer
 
@@ -1860,7 +1999,7 @@ class Bookkeeper:
         if "v9." in self.config["data"]["release"]:
             args["mode"] = "desi_mocks"
 
-        args = {**args, **updated_picca_extra_args}
+        args = merge_dicts(args, updated_picca_extra_args)
 
         environmental_variables = {
             "HDF5_USE_FILE_LOCKING": "FALSE",
@@ -1899,7 +2038,7 @@ class PathBuilder:
     @property
     def healpix_data(self):
         """Path: Location of healpix data."""
-        if self.config["data"]["healpix data"] in (None, ""):
+        if self.config["data"].get("healpix data", "") in (None, ""):
             if "everest" in self.config["data"]["release"]:
                 return Path("/global/cfs/cdirs/desi/spectro/redux/everest/healpix/")
             elif "fuji" in self.config["data"]["release"]:

@@ -131,6 +131,14 @@ correlations:
       nside: 16
     # no-project: # use empty string for action args like no-project.
 
+    # To affect an specific region use 
+    # remember fo follow the region names in picca_bookkeeper.Bookkeeper.forest_regions
+    # The values set here will overlap the ones defined in picca_cf
+    # for the lya_lya region only. (auto, could use lya_lyb for cross lya lyb)
+    picca_cf_lya_lya:
+
+    picca_cf_lya_lyb:
+
     picca_xcf:
 
     picca_dmat:
