@@ -9,6 +9,8 @@ import os
 import yaml
 from importlib import resources
 
+from picca.constants import ABSORBER_IGM
+
 from picca_bookkeeper.tasker import get_Tasker, ChainedTasker, Tasker
 from picca_bookkeeper import resources as bkp_resources
 
@@ -47,10 +49,13 @@ forest_regions = {
     },
 }
 
+# Get absorbers in lowercase.
+absorber_igm = dict((absorber.lower(), absorber) for absorber in ABSORBER_IGM)
+
 config_file_sorting = ["general", "delta extraction", "correlations", "fits"]
 
 
-def get_quasar_catalog(release, survey, catalog, bal=False): # pragma: no cover
+def get_quasar_catalog(release, survey, catalog, bal=False):  # pragma: no cover
     """Function to obtain a quasar catalog given different options
 
     Attributes:
@@ -129,9 +134,9 @@ class Bookkeeper:
     def __init__(self, config_path: Union[str, Path], overwrite_config: bool = False):
         """
         Args:
-            config_path (Path or str): Path to configuration file or to an already 
+            config_path (Path or str): Path to configuration file or to an already
                 created run path.
-            overwrite_config (bool, optional): overwrite bookkeeper config without 
+            overwrite_config (bool, optional): overwrite bookkeeper config without
                 asking if it already exists inside bookkeeper.
         """
         # Try to read the file of the folder
@@ -314,6 +319,20 @@ class Bookkeeper:
             raise ValueError("Invalid region", region)
 
         return region.lower()
+
+    @staticmethod
+    def validate_absorber(absorber: str):
+        """Method to check if a absorber is valid.
+
+        Will raise value error if the absorber not in picca.absorbers.ABSORBER_IGM
+
+        Args:
+            absorber: Absorber to be used
+        """
+        if absorber.lower() not in absorber_igm:
+            raise ValueError("Invalid absorber", absorber)
+
+        return absorber.lower()
 
     def generate_slurm_header_extra_args(
         self,
@@ -1088,6 +1107,8 @@ class Bookkeeper:
         self,
         region: str = "lya",
         region2: str = None,
+        absorber: str = "lya",
+        absorber2: str = None,
         system: str = None,
         debug: bool = False,
         wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
@@ -1100,6 +1121,9 @@ class Bookkeeper:
             region: Region to use. Options: ('lya', 'lyb'). Default: 'lya'.
             region2: Region to use for cross-correlations.
                 Default: None, auto-correlation.
+            absorber: First absorber to use for correlations.
+            absorber2: Second absorber to use for correlations.
+                Default: Same as absorber.
             system: Shell to use for job. 'slurm_perlmutter' to use slurm
                 scripts on perlmutter, 'bash' to  run it in login nodes or
                 computer shell. Default: None, read from config file.
@@ -1121,6 +1145,10 @@ class Bookkeeper:
         region2 = region if region2 is None else region2
         region2 = self.validate_region(region2)
         region = self.validate_region(region)
+
+        absorber2 = absorber if absorber2 is None else absorber2
+        absorber2 = self.validate_absorber(absorber2)
+        absorber = self.validate_absorber(absorber)
 
         command = "picca_cf.py"
 
@@ -1142,7 +1170,7 @@ class Bookkeeper:
         )
         updated_system = self.generate_system_arg(system)
 
-        job_name = f"cf_{region}_{region2}"
+        job_name = f"cf_{absorber}{region}_{absorber2}{region2}"
 
         if debug:  # pragma: no cover
             qos = "debug"
@@ -1169,8 +1197,12 @@ class Bookkeeper:
 
         args = {
             "in-dir": str(self.paths.deltas_path(region)),
-            "out": str(self.paths.cf_fname(region, region2)),
+            "out": str(self.paths.cf_fname(region, region2, absorber, absorber2)),
+            "--lambda-abs": absorber_igm[absorber.lower()],
         }
+
+        if absorber2 != absorber:
+            args["--lambda-abs2"]: absorber_igm[absorber2.lower()]
 
         if "v9." in self.config["data"]["release"]:
             args["mode"] = "desi_mocks"
@@ -1180,7 +1212,9 @@ class Bookkeeper:
 
         args = merge_dicts(args, updated_picca_extra_args)
 
-        self.paths.cf_fname(region, region2).parent.mkdir(exist_ok=True, parents=True)
+        self.paths.cf_fname(region, region2, absorber, absorber2).parent.mkdir(
+            exist_ok=True, parents=True
+        )
 
         return get_Tasker(
             updated_system,
@@ -1197,6 +1231,8 @@ class Bookkeeper:
         self,
         region: str = "lya",
         region2: str = None,
+        absorber: str = "LYA",
+        absorber2: str = None,
         system: str = None,
         debug: bool = False,
         wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
@@ -1210,6 +1246,9 @@ class Bookkeeper:
             region: Region to use. Options: ('lya', 'lyb'). Default: 'lya'.
             region2: Region to use for cross-correlations.
                 Default: None, auto-correlation.
+            absorber: First absorber to use for correlations.
+            absorber2: Second absorber to use for correlations.
+                Default: Same as absorber.
             system: Shell to use for job. 'slurm_perlmutter' to use slurm
                 scripts on perlmutter, 'bash' to  run it in login nodes or
                 computer shell. Default: None, read from config file.
@@ -1232,6 +1271,10 @@ class Bookkeeper:
         region2 = self.validate_region(region2)
         region = self.validate_region(region)
 
+        absorber2 = absorber if absorber2 is None else absorber2
+        absorber2 = self.validate_absorber(absorber2)
+        absorber = self.validate_absorber(absorber)
+
         command = "picca_dmat.py"
 
         updated_picca_extra_args = self.generate_picca_extra_args(
@@ -1252,7 +1295,7 @@ class Bookkeeper:
         )
         updated_system = self.generate_system_arg(system)
 
-        job_name = f"dmat_{region}_{region2}"
+        job_name = f"dmat_{absorber}{region}_{absorber2}{region2}"
 
         if debug:  # pragma: no cover
             qos = "debug"
@@ -1279,8 +1322,12 @@ class Bookkeeper:
 
         args = {
             "in-dir": str(self.paths.deltas_path(region)),
-            "out": str(self.paths.dmat_fname(region, region2)),
+            "out": str(self.paths.dmat_fname(region, region2, absorber, absorber2)),
+            "--lambda-abs": absorber_igm[absorber.lower()],
         }
+
+        if absorber2 != absorber:
+            args["--lambda-abs2"]: absorber_igm[absorber2.lower()]
 
         if "v9." in self.config["data"]["release"]:
             args["mode"] = "desi_mocks"
@@ -1290,8 +1337,8 @@ class Bookkeeper:
 
         args = merge_dicts(args, updated_picca_extra_args)
 
-        self.paths.dmat_fname(region, region2).parent.mkdir(
-            exist_ok=True, 
+        self.paths.dmat_fname(region, region2, absorber, absorber2).parent.mkdir(
+            exist_ok=True,
             parents=True,
         )
 
@@ -1310,6 +1357,8 @@ class Bookkeeper:
         self,
         region: str = "lya",
         region2: str = None,
+        absorber: str = "LYA",
+        absorber2: str = None,
         system: str = None,
         debug: bool = False,
         wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
@@ -1324,6 +1373,9 @@ class Bookkeeper:
             region: Region to use. Options: ('lya', 'lyb'). Default: 'lya'.
             region2: Region to use for cross-correlations.
                 Default: None, auto-correlation.
+            absorber: First absorber to use for correlations.
+            absorber2: Second absorber to use for correlations.
+                Default: Same as absorber.
             system: Shell to use for job. 'slurm_perlmutter' to use slurm
                 scripts on perlmutter, 'bash' to  run it in login nodes or
                 computer shell. Default: None, read from config file.
@@ -1347,6 +1399,10 @@ class Bookkeeper:
         region2 = self.validate_region(region2)
         region = self.validate_region(region)
 
+        absorber2 = absorber if absorber2 is None else absorber2
+        absorber2 = self.validate_absorber(absorber2)
+        absorber = self.validate_absorber(absorber)
+
         command = "picca_export.py"
 
         updated_picca_extra_args = self.generate_picca_extra_args(
@@ -1367,7 +1423,7 @@ class Bookkeeper:
         )
         updated_system = self.generate_system_arg(system)
 
-        job_name = f"cf_exp_{region}_{region2}"
+        job_name = f"cf_exp_{absorber}{region}_{absorber2}{region2}"
 
         slurm_header_args = {
             "qos": "regular",
@@ -1382,11 +1438,13 @@ class Bookkeeper:
         )
 
         args = {
-            "data": str(self.paths.cf_fname(region, region2)),
-            "out": str(self.paths.exp_cf_fname(region, region2)),
+            "data": str(self.paths.cf_fname(region, region2, absorber, absorber2)),
+            "out": str(self.paths.exp_cf_fname(region, region2, absorber, absorber2)),
         }
         if not no_dmat:
-            args["dmat"] = str(self.paths.dmat_fname(region, region2))
+            args["dmat"] = str(
+                self.paths.dmat_fname(region, region2, absorber, absorber2)
+            )
 
         args = merge_dicts(args, updated_picca_extra_args)
 
@@ -1416,6 +1474,8 @@ class Bookkeeper:
         self,
         region: str = "lya",
         region2: str = None,
+        absorber: str = "LYA",
+        absorber2: str = None,
         system: str = None,
         debug: bool = False,
         wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
@@ -1429,6 +1489,9 @@ class Bookkeeper:
             region: Region to use. Options: ('lya', 'lyb'). Default: 'lya'.
             region2: Region to use for cross-correlations.
                 Default: None, auto-correlation.
+            absorber: First absorber to use for correlations.
+            absorber2: Second absorber to use for correlations.
+                Default: Same as absorber.
             system: Shell to use for job. 'slurm_perlmutter' to use slurm
                 scripts on perlmutter, 'bash' to  run it in login nodes or
                 computer shell. Default: None, read from config file.
@@ -1450,6 +1513,10 @@ class Bookkeeper:
         region2 = region if region2 is None else region2
         region2 = self.validate_region(region2)
         region = self.validate_region(region)
+
+        absorber2 = absorber if absorber2 is None else absorber2
+        absorber2 = self.validate_absorber(absorber2)
+        absorber = self.validate_absorber(absorber)
 
         command = "picca_metal_dmat.py"
 
@@ -1498,8 +1565,12 @@ class Bookkeeper:
 
         args = {
             "in-dir": str(self.paths.deltas_path(region)),
-            "out": str(self.paths.metal_fname(region, region2)),
+            "out": str(self.paths.metal_fname(region, region2, absorber, absorber2)),
+            "--lambda-abs": absorber_igm[absorber.lower()],
         }
+
+        if absorber2 != absorber:
+            args["--lambda-abs2"]: absorber_igm[absorber2.lower()]
 
         if "v9." in self.config["data"]["release"]:
             args["mode"] = "desi_mocks"
@@ -1509,7 +1580,7 @@ class Bookkeeper:
 
         args = merge_dicts(args, updated_picca_extra_args)
 
-        self.paths.metal_fname(region, region2).parent.mkdir(
+        self.paths.metal_fname(region, region2, absorber, absorber2).parent.mkdir(
             exist_ok=True, parents=True
         )
 
@@ -1527,6 +1598,7 @@ class Bookkeeper:
     def get_xcf_tasker(
         self,
         region: str = "lya",
+        absorber: str = "lya",
         system: str = None,
         debug: bool = False,
         wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
@@ -1537,6 +1609,7 @@ class Bookkeeper:
 
         Args:
             region: Region to use. Options: ('lya', 'lyb'). Default: 'lya'.
+            absorber: First absorber to use for correlations.
             system: Shell to use for job. 'slurm_perlmutter' to use slurm
                 scripts on perlmutter, 'bash' to  run it in login nodes or
                 computer shell. Default: None, read from config file.
@@ -1556,6 +1629,7 @@ class Bookkeeper:
             Tasker: Tasker object to run forest-forest correlation.
         """
         region = self.validate_region(region)
+        absorber = self.validate_absorber(absorber)
 
         command = "picca_xcf.py"
 
@@ -1575,7 +1649,7 @@ class Bookkeeper:
         )
         updated_system = self.generate_system_arg(system)
 
-        job_name = f"xcf_{region}"
+        job_name = f"xcf_{absorber}{region}"
 
         if debug:  # pragma: no cover
             qos = "debug"
@@ -1605,7 +1679,8 @@ class Bookkeeper:
         args = {
             "in-dir": str(self.paths.deltas_path(region)),
             "drq": str(drq),
-            "out": str(self.paths.xcf_fname(region)),
+            "out": str(self.paths.xcf_fname(region, absorber)),
+            "--lambda-abs": absorber_igm[absorber.lower()],
         }
 
         if "v9." in self.config["data"]["release"]:
@@ -1613,7 +1688,7 @@ class Bookkeeper:
 
         args = merge_dicts(args, updated_picca_extra_args)
 
-        self.paths.xcf_fname(region).parent.mkdir(exist_ok=True, parents=True)
+        self.paths.xcf_fname(region, absorber).parent.mkdir(exist_ok=True, parents=True)
 
         return get_Tasker(
             updated_system,
@@ -1629,6 +1704,7 @@ class Bookkeeper:
     def get_xdmat_tasker(
         self,
         region: str = "lya",
+        absorber: str = "lya",
         system: str = None,
         debug: bool = False,
         wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
@@ -1639,27 +1715,29 @@ class Bookkeeper:
         measurements with picca.
 
         Args:
-            region (str, optional): Region to use. Options: ('lya', 'lyb'). 
+            region (str, optional): Region to use. Options: ('lya', 'lyb').
                 Default: 'lya'.
-            system (str, optional): Shell to use for job. 'slurm_cori' to use slurm 
+            absorber: First absorber to use for correlations.
+            system (str, optional): Shell to use for job. 'slurm_cori' to use slurm
                 scripts on cori, 'slurm_perlmutter' to use slurm scripts on perlmutter,
-                'bash' to run it in login nodes or computer shell. Default: None, read 
+                'bash' to run it in login nodes or computer shell. Default: None, read
                 from config file.
             debug (bool, optional): Whether to use debug options.
-            wait_for (Tasker or int, optional): In NERSC, wait for a given job to 
-                finish before running the current one. Could be a  Tasker object 
+            wait_for (Tasker or int, optional): In NERSC, wait for a given job to
+                finish before running the current one. Could be a  Tasker object
                 or a slurm jobid (int). (Default: None, won't wait for anything).
-            slurm_header_extra_args (dict, optional): Change slurm header default 
-                options if needed (time, qos, etc...). Use a dictionary with the 
+            slurm_header_extra_args (dict, optional): Change slurm header default
+                options if needed (time, qos, etc...). Use a dictionary with the
                 format {'option_name': 'option_value'}.
-            picca_extra_args : Send extra arguments to picca_deltas.py script. 
-                Use a dictionary with the format {'argument_name', 'argument_value'}. 
+            picca_extra_args : Send extra arguments to picca_deltas.py script.
+                Use a dictionary with the format {'argument_name', 'argument_value'}.
                 Use {'argument_name': ''} if a action-like option is used.
 
         Returns:
             Tasker: Tasker object to run forest-quasar distortion matrix.
         """
         region = self.validate_region(region)
+        absorber = self.validate_absorber(absorber)
 
         command = "picca_xdmat.py"
 
@@ -1679,7 +1757,7 @@ class Bookkeeper:
         )
         updated_system = self.generate_system_arg(system)
 
-        job_name = f"xdmat_{region}"
+        job_name = f"xdmat_{absorber}{region}"
 
         if debug:  # pragma: no cover
             qos = "debug"
@@ -1709,7 +1787,8 @@ class Bookkeeper:
         args = {
             "in-dir": str(self.paths.deltas_path(region)),
             "drq": str(drq),
-            "out": str(self.paths.xdmat_fname(region)),
+            "out": str(self.paths.xdmat_fname(region, absorber)),
+            "--lambda-abs": absorber_igm[absorber.lower()],
         }
 
         if "v9." in self.config["data"]["release"]:
@@ -1717,7 +1796,9 @@ class Bookkeeper:
 
         args = merge_dicts(args, updated_picca_extra_args)
 
-        self.paths.xdmat_fname(region).parent.mkdir(exist_ok=True, parents=True)
+        self.paths.xdmat_fname(region, absorber).parent.mkdir(
+            exist_ok=True, parents=True
+        )
 
         return get_Tasker(
             updated_system,
@@ -1740,7 +1821,7 @@ class Bookkeeper:
         picca_extra_args: Dict = dict(),
         no_dmat: bool = False,
     ):
-        """Method to get a Tasker object to run forest-quasar correlation export 
+        """Method to get a Tasker object to run forest-quasar correlation export
         with picca.
 
         Args:
@@ -1765,6 +1846,7 @@ class Bookkeeper:
             Tasker: Tasker object to run forest-forest correlation.
         """
         region = self.validate_region(region)
+        absorber = self.validate_absorber(absorber)
 
         command = "picca_export.py"
 
@@ -1784,7 +1866,7 @@ class Bookkeeper:
         )
         updated_system = self.generate_system_arg(system)
 
-        job_name = f"xcf_exp_{region}"
+        job_name = f"xcf_exp_{absorber}{region}"
 
         slurm_header_args = {
             "qos": "regular",
@@ -1799,12 +1881,12 @@ class Bookkeeper:
         )
 
         args = {
-            "data": str(self.paths.xcf_fname(region)),
-            "out": str(self.paths.exp_xcf_fname(region)),
+            "data": str(self.paths.xcf_fname(region, absorber)),
+            "out": str(self.paths.exp_xcf_fname(region, absorber)),
             "blind-corr-type": "qsoxlya",
         }
         if not no_dmat:
-            args["dmat"] = str(self.paths.xdmat_fname(region))
+            args["dmat"] = str(self.paths.xdmat_fname(region, absorber))
 
         args = merge_dicts(args, updated_picca_extra_args)
 
@@ -1833,13 +1915,14 @@ class Bookkeeper:
     def get_xmetal_tasker(
         self,
         region: str = "lya",
+        absorber: str = "lya",
         system: str = None,
         debug: bool = False,
         wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
         slurm_header_extra_args: Dict = dict(),
         picca_extra_args: Dict = dict(),
     ):
-        """Method to get a Tasker object to run forest-quasar metal distortion matrix 
+        """Method to get a Tasker object to run forest-quasar metal distortion matrix
         measurements with picca.
 
         Args:
@@ -1863,6 +1946,7 @@ class Bookkeeper:
             Tasker: Tasker object to run forest-forest correlation.
         """
         region = self.validate_region(region)
+        absorber = self.validate_absorber(absorber)
 
         command = "picca_xdmat.py"
 
@@ -1882,7 +1966,7 @@ class Bookkeeper:
         )
         updated_system = self.generate_system_arg(system)
 
-        job_name = f"xdmat_{region}"
+        job_name = f"xdmat_{absorber}{region}"
 
         if debug:  # pragma: no cover
             qos = "debug"
@@ -1912,7 +1996,7 @@ class Bookkeeper:
         args = {
             "in-dir": str(self.paths.deltas_path(region)),
             "drq": str(drq),
-            "out": str(self.paths.xdmat_fname(region)),
+            "out": str(self.paths.xdmat_fname(region, absorber)),
             "mode": "desi_healpix",
             "nproc": 128,
             "rej": 0.99,
@@ -1930,7 +2014,9 @@ class Bookkeeper:
 
         args = merge_dicts(args, updated_picca_extra_args)
 
-        self.paths.xdmat_fname(region).parent.mkdir(exist_ok=True, parents=True)
+        self.paths.xdmat_fname(region, absorber).parent.mkdir(
+            exist_ok=True, parents=True
+        )
 
         return get_Tasker(
             updated_system,
@@ -1946,6 +2032,7 @@ class Bookkeeper:
     def get_xcf_exp_tasker(
         self,
         region: str = "lya",
+        absorber: str = "lya",
         system: str = None,
         debug: bool = False,
         wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
@@ -1953,11 +2040,12 @@ class Bookkeeper:
         picca_extra_args: Dict = dict(),
         no_dmat: bool = False,
     ):
-        """Method to get a Tasker object to run forest-quasar correlation export with 
+        """Method to get a Tasker object to run forest-quasar correlation export with
         picca.
 
         Args:
             region: Region to use. Options: ('lya', 'lyb'). Default: 'lya'.
+            absorber: First absorber to use for correlations.
             system: Shell to use for job. 'slurm_perlmutter' to use slurm
                 scripts on perlmutter, 'bash' to  run it in login nodes or
                 computer shell. Default: None, read from config file.
@@ -1978,6 +2066,7 @@ class Bookkeeper:
             Tasker: Tasker object to run forest-forest correlation.
         """
         region = self.validate_region(region)
+        absorber = self.validate_absorber(absorber)
 
         command = "picca_export.py"
 
@@ -1997,7 +2086,7 @@ class Bookkeeper:
         )
         updated_system = self.generate_system_arg(system)
 
-        job_name = f"xcf_exp_{region}"
+        job_name = f"xcf_exp_{absorber}{region}"
 
         slurm_header_args = {
             "qos": "regular",
@@ -2012,12 +2101,13 @@ class Bookkeeper:
         )
 
         args = {
-            "data": str(self.paths.xcf_fname(region)),
-            "out": str(self.paths.exp_xcf_fname(region)),
+            "data": str(self.paths.xcf_fname(region, absorber)),
+            "out": str(self.paths.exp_xcf_fname(region, absorber)),
             "blind-corr-type": "qsoxlya",
+            "--lambda-abs": absorber_igm[absorber.lower()],
         }
         if not no_dmat:
-            args["dmat"] = str(self.paths.xdmat_fname(region))
+            args["dmat"] = str(self.paths.xdmat_fname(region, absorber))
 
         args = merge_dicts(args, updated_picca_extra_args)
 
@@ -2046,17 +2136,19 @@ class Bookkeeper:
     def get_xmetal_tasker(
         self,
         region: str = "lya",
+        absorber: str = "lya",
         system: str = None,
         debug: bool = False,
         wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
         slurm_header_extra_args: Dict = dict(),
         picca_extra_args: Dict = dict(),
     ):
-        """Method to get a Tasker object to run forest-quasar metal distortion matrix 
+        """Method to get a Tasker object to run forest-quasar metal distortion matrix
         measurements with picca.
 
         Args:
             region: Region to use. Options: ('lya', 'lyb'). Default: 'lya'.
+            absorber: First absorber to use for correlations.
             system: Shell to use for job. 'slurm_perlmutter' to use slurm
                 scripts on perlmutter, 'bash' to  run it in login nodes or
                 computer shell. Default: None, read from config file.
@@ -2076,6 +2168,7 @@ class Bookkeeper:
             Tasker: Tasker object to run forest-forest correlation.
         """
         region = self.validate_region(region)
+        absorber = self.validate_absorber(absorber)
 
         command = "picca_metal_xdmat.py"
 
@@ -2095,7 +2188,7 @@ class Bookkeeper:
         )
         updated_system = self.generate_system_arg(system)
 
-        job_name = f"xmetal_{region}"
+        job_name = f"xmetal_{absorber}{region}"
 
         if debug:  # pragma: no cover
             qos = "debug"
@@ -2125,7 +2218,8 @@ class Bookkeeper:
         args = {
             "in-dir": str(self.paths.deltas_path(region)),
             "drq": str(drq),
-            "out": str(self.paths.xmetal_fname(region)),
+            "out": str(self.paths.xmetal_fname(region, absorber)),
+            "--lambda-abs": absorber_igm[absorber.lower()],
         }
 
         if "v9." in self.config["data"]["release"]:
@@ -2137,7 +2231,9 @@ class Bookkeeper:
             "HDF5_USE_FILE_LOCKING": "FALSE",
         }
 
-        self.paths.xmetal_fname(region).parent.mkdir(exist_ok=True, parents=True)
+        self.paths.xmetal_fname(region, absorber).parent.mkdir(
+            exist_ok=True, parents=True
+        )
 
         return get_Tasker(
             updated_system,
@@ -2299,7 +2395,7 @@ class PathBuilder:
         is given and raise a ValueError if the file does not exist.
 
         Args:
-            field (str): whether to use catalog, catalog tracer fields, dla fields or 
+            field (str): whether to use catalog, catalog tracer fields, dla fields or
                 bal fields. (Options: ["catalog", "catalog_tracer", "dla", "bal"])
 
         Returns:
@@ -2486,12 +2582,20 @@ class PathBuilder:
             / "delta_attributes.fits.gz"
         )
 
-    def cf_fname(self, region: str, region2: str = None):
+    def cf_fname(
+        self,
+        region: str,
+        region2: str = None,
+        absorber: str = "lya",
+        absorber2: str = None,
+    ):
         """Method to get the path to a forest-forest correlation file.
 
         Args:
             region: Region where the correlation is computed.
             region2: Second region used (if cross-correlation).
+            absorber: First absorber
+            absorber2: Second absorber
 
         Returns:
             Path: Path to correlation file.
@@ -2500,56 +2604,86 @@ class PathBuilder:
         return (
             self.correlations_path
             / "correlations"
-            / f"lya{region}_lya{region2}"
+            / f"{absorber}{region}_{absorber2}{region2}"
             / f"cf.fits.gz"
         )
 
-    def dmat_fname(self, region: str, region2: str = None):
-        """Method to get the path to a distortion matrix file for forest-forest 
+    def dmat_fname(
+        self,
+        region: str,
+        region2: str = None,
+        absorber: str = "lya",
+        absorber2: str = None,
+    ):
+        """Method to get the path to a distortion matrix file for forest-forest
         correlations.
 
         Args:
             region: Region where the correlation is computed.
             region2: Second region used (if cross-correlation).
+            absorber: First absorber
+            absorber2: Second absorber
 
         Returns:
             Path: Path to correlation file.
         """
         region2 = region if region2 is None else region2
-        return self.cf_fname(region, region2).parent / f"dmat.fits.gz"
+        return (
+            self.cf_fname(region, region2, absorber, absorber2).parent / f"dmat.fits.gz"
+        )
 
-    def metal_fname(self, region: str, region2: str = None):
-        """Method to get the path to a metal distortion matrix file for forest-forest 
+    def metal_fname(
+        self,
+        region: str,
+        region2: str = None,
+        absorber: str = "lya",
+        absorber2: str = None,
+    ):
+        """Method to get the path to a metal distortion matrix file for forest-forest
         correlations.
 
         Args:
             region: Region where the correlation is computed.
             region2: Second region used (if cross-correlation).
+            absorber: First absorber
+            absorber2: Second absorber
 
         Returns:
             Path: Path to correlation file.
         """
         region2 = region if region2 is None else region2
-        return self.cf_fname(region, region2).parent / f"metal.fits.gz"
+        return (
+            self.cf_fname(region, region2, absorber, absorber2).parent
+            / f"metal.fits.gz"
+        )
 
-    def exp_cf_fname(self, region: str, region2: str = None):
+    def exp_cf_fname(
+        self,
+        region: str,
+        region2: str = None,
+        absorber: str = "lya",
+        absorber2: str = None,
+    ):
         """Method to get the path to a forest-forest correlation export file.
 
         Args:
             region: Region where the correlation is computed.
             region2: Second region used (if cross-correlation).
+            absorber: First absorber
+            absorber2: Second absorber
 
         Returns:
             Path: Path to export correlation file.
         """
-        cor_file = self.cf_fname(region, region2)
+        cor_file = self.cf_fname(region, region2, absorber, absorber2)
         return cor_file.parent / f"cf_exp.fits.gz"
 
-    def xcf_fname(self, region: str):
+    def xcf_fname(self, region: str, absorber: str):
         """Method to get the path to a forest-quasar correlation export file.
 
         Args:
             region: Region of the forest used.
+            absorber: Absorber to use (lya)
 
         Returns:
             Path: Path to correlation file.
@@ -2557,42 +2691,45 @@ class PathBuilder:
         return (
             self.correlations_path
             / "correlations"
-            / f"lya{region}_qso"
+            / f"lya{absorber}{region}_qso"
             / f"xcf.fits.gz"
         )
 
-    def xdmat_fname(self, region: str):
-        """Method to get the path to a distortion matrix file for forest-quasar 
+    def xdmat_fname(self, region: str, absorber: str):
+        """Method to get the path to a distortion matrix file for forest-quasar
         correlations.
 
         Args:
             region: Region of the forest used.
+            absorber: Absorber to use (lya)
 
         Returns:
             Path: Path to export correlation file.
         """
-        return self.xcf_fname(region).parent / f"xdmat.fits.gz"
+        return self.xcf_fname(region, absorber).parent / f"xdmat.fits.gz"
 
-    def xmetal_fname(self, region: str):
-        """Method to get the path to a metal distortion matrix file for forest-quasar 
+    def xmetal_fname(self, region: str, absorber: str):
+        """Method to get the path to a metal distortion matrix file for forest-quasar
         correlations.
 
         Args:
             region (str): Region of the forest used.
+            absorber: Absorber to use (lya)
 
         Returns:
             Path: Path to export correlation file.
         """
-        return self.xcf_fname(region).parent / f"xmetal.fits.gz"
+        return self.xcf_fname(region, absorber).parent / f"xmetal.fits.gz"
 
-    def exp_xcf_fname(self, region: str):
+    def exp_xcf_fname(self, region: str, absorber: str):
         """Method to get the path to a forest-quasar correlation export file.
 
         Args:
             region: Region of the forest used.
+            absorber: Absorber to use (lya)
 
         Returns:
             Path: Path to export correlation file.
         """
-        cor_file = self.xcf_fname(region)
+        cor_file = self.xcf_fname(region, absorber)
         return cor_file.parent / f"xcf_exp.fits.gz"
