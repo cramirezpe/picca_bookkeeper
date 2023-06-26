@@ -507,26 +507,30 @@ class Bookkeeper:
             job_name += "_calib_step_" + str(calib_step)
         config_file = self.paths.run_path / f"configs/{job_name}.ini"
 
+        # MASKS
         # add masks section if necessary
-        # only apply it in not calibration runs
-        if "masks" not in updated_picca_extra_args or not isinstance(
-            updated_picca_extra_args["masks"], dict
-        ):
-            updated_picca_extra_args["masks"] = dict()
-        if updated_picca_extra_args.get("masks").get("num masks", 0) == 0:
-            updated_picca_extra_args["masks"]["num masks"] = 0
-        if (
-            "mask file" in self.config["delta extraction"]
-            and self.config["delta extraction"]["mask file"] not in ("", None)
-        ):
+        updated_picca_extra_args = merge_dicts(
+            dict(
+                masks = {
+                    "num masks" : 0,
+                },
+            ),
+            updated_picca_extra_args,
+        )
+        if self.config["delta extraction"].get("mask file", "") not in ("", None):
+            # If a mask file is given in the config file
             if not Path(self.config["delta extraction"]["mask file"]).is_file():
+                # If the file does not exist
                 raise FileNotFoundError("Provided mask file does not exist.")
             else:
+                # If the file does exist
                 if not self.paths.continuum_fitting_mask.is_file():
+                    # If no file in output bookkeeper
                     shutil.copy(
                         self.config["delta extraction"]["mask file"],
                         self.paths.continuum_fitting_mask,
                     )
+                # If file in output bookkeeper
                 elif not filecmp.cmp(
                     self.paths.continuum_fitting_mask,
                     self.config["delta extraction"]["mask file"],
@@ -535,7 +539,7 @@ class Bookkeeper:
                         "different mask file already stored in the bookkeeper",
                         self.paths.continuum_fitting_mask,
                     )
-
+            
             prev_mask_number = int(updated_picca_extra_args["masks"]["num masks"])
             updated_picca_extra_args["masks"]["num masks"] = prev_mask_number + 1
             updated_picca_extra_args["masks"][f"type {prev_mask_number}"] = "LinesMask"
@@ -543,14 +547,17 @@ class Bookkeeper:
                 filename=self.paths.continuum_fitting_mask,
             )
 
+        # CORRECTIONS
         # add corrections section if necessary
-        if "corrections" not in updated_picca_extra_args or not isinstance(
-            updated_picca_extra_args["corrections"], dict
-        ):
-            updated_picca_extra_args["corrections"] = dict()
-        if updated_picca_extra_args.get("corrections").get("num corrections", 0) == 0:
-            updated_picca_extra_args["corrections"]["num corrections"] = 0
-
+        updated_picca_extra_args = merge_dicts(
+            dict(
+                corrections = {
+                    "num corrections" : 0,
+                }
+            ),
+            updated_picca_extra_args,
+        )
+        
         # update corrections section
         # here we are dealing with calibration runs
         # If there is no calibration, we should not have calib_steps
@@ -566,7 +573,7 @@ class Bookkeeper:
                     "Calibration corrections added by user with calib option != 10"
                 )
 
-        # Now we deal with dMdB20 option
+        # Now we deal with dMdB20 option (calib = 1)
         if self.config["delta extraction"]["calib"] == "1":
             # only for calibrating runs
             if calib_step is not None:
@@ -626,15 +633,16 @@ class Bookkeeper:
                     self.calibration.paths.delta_attributes_file(None, calib_step=2)
                 )
         elif self.config["delta extraction"]["calib"] == "2":
-            if "expected flux" not in updated_picca_extra_args or isinstance(
-                updated_picca_extra_args["expected flux"], str
-            ):
-                updated_picca_extra_args["expected flux"] = dict()
-
-            updated_picca_extra_args["expected flux"][
-                "type"
-            ] = "Dr16FixedFudgeExpectedFlux"
-            updated_picca_extra_args["expected flux"]["fudge value"] = 0
+            # Set expected flux
+            updated_picca_extra_args = merge_dicts(
+                updated_picca_extra_args,
+                {
+                    "expected flux" : {
+                        "type" : "Dr16FixedFudgeExpectedFlux",
+                        "fudge value" : 0,
+                    },
+                },
+            )
 
             # No special action for calibration steps,
             # only add extra actions for main run
@@ -661,12 +669,15 @@ class Bookkeeper:
                     "filename"
                 ] = str(self.calibration.paths.delta_attributes_file(None, calib_step=1))
         elif self.config["delta extraction"]["calib"] == "3":
-            if "expected flux" not in updated_picca_extra_args or isinstance(
-                updated_picca_extra_args["expected flux"], str
-            ):
-                updated_picca_extra_args["expected flux"] = dict()
-
-            updated_picca_extra_args["expected flux"]["type"] = "Dr16ExpectedFlux"
+            # Set expected flux
+            updated_picca_extra_args = merge_dicts(
+                updated_picca_extra_args,
+                {
+                    "expected flux" : {
+                        "type" : "Dr16ExpectedFlux",
+                    },
+                },
+            )
 
             # No special action for calibration steps,
             # only add extra actions for main run
@@ -775,12 +786,6 @@ class Bookkeeper:
                 updated_picca_extra_args["expected flux"][
                     "input directory"
                 ] = self.paths.healpix_data
-
-        # add linear scheme by default
-        if "data" not in updated_picca_extra_args or isinstance(
-            updated_picca_extra_args["data"], str
-        ):
-            updated_picca_extra_args["data"] = dict()
 
         # create config for delta_extraction options
         self.paths.deltas_path(region, calib_step).mkdir(
