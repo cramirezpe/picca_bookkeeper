@@ -1,21 +1,18 @@
-system:
+general:
   #python environment to be used when running jobs
   #something that would be activated as:
   # source activate picca
-  python_environment: picca
+  python environment: picca
+  
   # default system to run bookkeeper on
   # slurm_cori: slurm for cori
   # slurm_perlmutter: slurm for perlmutter
   # bash: run on terminal (login nodes at NERSC)
   system: slurm_cori
-  
+
 data:
-  # Define the ouput_dir where the results will be stored on.
-  # also define a default input_dir where all the input values 
-  # will be read by default.
-  output_dir: /path/to/analysis
-  input_dir: /global/cfs/cdirs/desi/science/lya/early-3d/
-  
+  # Parent path of the bookkeeper.
+  early dir: /blabla
   # Hardcode the healpix data location, by default it will be set
   # according to the release, e.g. for everest:
   # /global/cfs/cdirs/desi/spectro/redux/everest/healpix/
@@ -33,20 +30,13 @@ data:
   # Catalog could be a name (and therefore will be used the bookkeeper one)
   # or could be a full path to a catalog
   catalog: afterburn_v0
-  # catalog_tracer could be set up to use a different catalog for cross-correlations
-  # by default will use the previous one for all the analyses.
-   
-  # mask to be applied in the continuum fitting process.
-  mask file:
-  # force DLA catalog
-  dla catalog:
-  # force BAL catalog
-  bal catalog:
-  
-continuum fitting:
+
+
+
+delta extraction:  
   # The structure of folders and sub-folders is the following:
-  # .../early-3d/{relase}/{survey}/{qso_cat}/{prefix}_{calib}.{dla}.{bal}_{suffix}
-  # where {prefix}_{calib}.{dla}.{bal}_{suffix} defines de continuum fitting used:
+  # .../early-3d/{relase}/{survey}/{qso_cat}/{prefix}_{calib}_{calib_region}.{dla}.{bal}_{suffix}
+  # where {prefix}_{calib}_{calib_region}.{dla}.{bal}_{suffix} defines de continuum fitting used:
   #   - prefix (dMdB20, pca, etc): specifies the type of continuum fit (dMdB20 is the 
   #           one used in eBOSS DR16, default in Picca).
   #   - calib (0, 1, 2, etc): integer identifying the version of pre-calibration 
@@ -59,6 +49,8 @@ continuum fitting:
   #       - 3: dMdB20 1 step calibration: One step calibration (flux).
   #                                weighting scheme uses eta, var_lss, fudge
   #       - 4: Accept custom options for calibration in yaml file.
+  #   - calib region (any of the ones defined in picca_bookkeeper.Bookkeeper.forest_regions)
+  #         0 if no calibration is used.
   #   - dla (0, 1, 2, etc): integer identifying the version of DLA masking used
   #       - 0: no DLA masking.
   #       - 1: First version of DLA catalog.
@@ -67,86 +59,102 @@ continuum fitting:
   #       - 1: Drop BAL objects (not implemented).
   #       - 2: Mask BAL objects.
   #   - suffix (0, any string): any string identifying anything else particular
-  #           in the analysis (0 means nothing).
+  #           in the analysis (0 means nothing). This is free for the user to select
+  #           whatever they consider appropiately if it does not overlap with other 
+  #           runs
   prefix: dMdB20
   calib: 0
   calib region: mgii_r
   dla: 0
   bal: 0
   suffix: 0
-  
-  # In each of the steps, we could change the input or leave the default one (if blank)
-  # We usually want to read from the continuum fitting output (our results are
-  # being saved there)
+
+  # Insert here the name of the analysis using the format
+  # {prefix}_{calib}_{calib_region}.{dla}.{bal}_{suffix}, e.g: dMdB20_2_ciii.0.0_0
+  # in order to use calibration files from there.
+  # Leave empty to compute calibration deltas.
+  calibration data:
+  # mask to be applied in the continuum fitting process.
+  mask file:
+  # force DLA catalog (if not the one correspondent to the catalog above will be used)
+  dla catalog:
+  # force BAL catalog (if not the one corresponent to the catalog above will be used)
+  bal catalog:
+
+  # Picca args to be used by the bookkeeper
+  # match the section name with the name of t
+  he scripts under
+  # picca.bin
+  picca args:
+    picca_delta_extraction:
+      expected flux:
+        type: Dr16ExpectedFlux
+      data:
+        wave solution: lin # This is an example, wave solution is set to lin by default in the bookkeeper.
+
+    # To affect an specific region use 
+    # remember fo follow the region names in picca_bookkeeper.Bookkeeper.forest_regions
+    # The values set here will overlap the ones defined in picca_delta_extraction
+    # for the ciii region only.
+    picca_delta_extraction_ciii:
+
+    # Scripts with terminal args are also compatible
+    picca_convert_transmission:
+      nspec: 30
+    # use-splines: # use empty string for action args like no-project.
+
+    
+  # Slurm arguments to be used by the bookkeeper
+  slurm args:
+    general:
+      mail-type: fail
+      mail-user: user@host.com
+    
+    picca_delta_extraction:
+      time: 00:16:00
+      qos: debug
+
 correlations:
-  catalog tracer:
-  input_dir: /path/to/analysis
-  
-export:
-  input_dir: /path/to/analysis
-  
-fitter:
-  input_dir: /path/to/analysis
-  
-  fit_config_dir: /global/u2/c/cramirez/Codes/picca_bookkeeper/Examples/fit_config
+  # If a delta extraction is defined in the same config file (as the current one), 
+  # this can be left empty. Otherwise, the user should provide the name of the analysis
+  # using the format # {prefix}_{calib}_{calib_region}.{dla}.{bal}_{suffix}, 
+  # e.g: dMdB20_2_ciii.0.0_0
+  delta extraction: ''
 
-# Slurm arguments to be used by the bookkeeper
-slurm args:
-  general:
-    mail-type: fail
-    mail-user: user@host.com
+  # This is the user-friendly name for the correlation run+
+  run name: default
 
-  picca_delta_extraction:
-    time: 00:16:00
-    qos: debug
+  # catalog_tracer could be set up to use a different catalog for cross-correlations
+  # by default will use the previous one for all the analyses.
+  catalog tracer: 
 
-  picca_delta_extaction_calib_1:
 
-  picca_delta_extraction_calib_2:
-  
-  picca_deltas:
+  picca args:
+    picca_cf:
+      nside: 16
+    # no-project: # use empty string for action args like no-project.
 
-  picca_cf:
-  
-  picca_xcf:
-  
-  picca_dmat:
+    picca_xcf:
 
-  picca_xdmat:
+    picca_dmat:
 
-  picca_metal_dmat:
+    picca_xdmat:
 
-  picca_export:
+    picca_metal:
 
-  picca_fitter2:
+    picca_export:
 
-# Picca args to be used by the bookkeeper
-picca args:
-  picca_convert_transmission:
-    nspec: 30
-  
-  picca_delta_extraction:
-    expected flux:
-      type: Dr16ExpectedFlux
-    data:
-      wave solution: lin
+  slurm args:
+    general: 
+      mail-type: fail
+      mail-user: user@host.com
 
-  picca_delta_extaction_calib_1:
+fits:
+  # If a delta extraction is defined in the same config file (as the current one), 
+  # this can be left empty. Otherwise, the user should provide the name of the analysis
+  # using the format # {prefix}_{calib}_{calib_region}.{dla}.{bal}_{suffix}, 
+  # e.g: dMdB20_2_ciii.0.0_0
+  delta extraction: 
 
-  picca_delta_extraction_calib_2:
-
-  picca_cf:
-    nside: 16 # Use this nomenclature for terminal args
-  # no-project: # use empty string for action args like no-project
-  
-  picca_xcf:
-  
-  picca_dmat:
-
-  picca_xdmat:
-
-  picca_metal_dmat:
-
-  picca_export:
-
-  picca_fitter2:
+  # Similarly as before, define a correlation run name if it was not defined above.
+  correlation run name:

@@ -1,82 +1,35 @@
 system:
-  python_environment: picca
-  system: slurm_cori
+  conda environment: picca
+  system: slurm_perlmutter
   
 data:
-  output_dir: /path/to/analysis
-  input_dir: /global/cfs/cdirs/desi/science/lya/early-3d/
-  calibration_dir: 
+  early dir: /global/cfs/cdirs/desi/science/lya/early-3d/
   
   healpix data:
   release: guadalupe
   survey: main
   catalog: afterburn_v0
-   
-  
-continuum fitting:
+
+delta extraction:
   prefix: dMdB20
   calib: 1
   calib region: mgii_r
   dla: 0
   bal: 0
   suffix: 0
+
+  slurm args:
+    general:
+      mail-type: fail
+      mail-user: user@host.com
+    picca_delta_extraction:
+      time: 03:00:00
   
 correlations:
-  catalog tracer:
-  input_dir: /path/to/analysis
-  
-export:
-  input_dir: /path/to/analysis
-  
-fitter:
-  input_dir: /path/to/analysis
-  fit_config_dir: /global/u2/c/cramirez/Codes/picca_bookkeeper/Examples/fit_config
+  run name: default
 
-# Slurm arguments to be used by the bookkeeper
-slurm args:
-  general:
-    mail-type: fail
-    mail-user: user@host.com
-  picca_delta_extraction:
-    time: 03:00:00
-  picca_deltas:
-
-  picca_cf:
-    nside: 16 # Use this nomenclature for terminal args
-  # no-project: # use empty string for action args like no-project
-
-  picca_xcf:
-
-  picca_dmat:
-
-  picca_xdmat:
-
-  picca_metal_dmat:
-
-  picca_export:
-
-  picca_fitter2:
-
-# Picca args to be used by the bookkeeper
-picca args:
-  picca_convert_transmission:
-
-  picca_delta_extraction:
-    data:
-      wave solution: lin
-
-  picca_deltas:
-
-  picca_cf:
-
-  picca_xcf:
-
-  picca_dmat:
-
-  picca_xdmat:
-
-  picca_metal_dmat:
-
-  picca_export:
-
-  picca_fitter2:
+  # Slurm arguments to be used by the bookkeeper
+  slurm args:
+    general:
+      mail-type: fail
+      mail-user: user@host.com
