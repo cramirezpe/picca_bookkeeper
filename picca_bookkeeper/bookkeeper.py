@@ -163,10 +163,7 @@ class Bookkeeper:
         if config_type == "fits":
             # In this case, correlations is not defined in the config file
             # and therefore, we should search for it.
-            correlation_config_file = (
-                self.paths.correlations_path / "configs" / "bookkeeper_config.yaml"
-            )
-            with open(correlation_config_file, "r") as f:
+            with open(self.paths.correlation_config_file, "r") as f:
                 correlation_config = yaml.load(f, Loader=yaml.BaseLoader)
             self.correlations = correlation_config["correlations"]
             self.config["correlations"] = self.correlations
@@ -174,10 +171,7 @@ class Bookkeeper:
         if config_type in ("fits", "correlations"):
             # In this case, delta extraction is not defined in the config file
             # and therefore, we should search for it.
-            delta_config_file = (
-                self.paths.run_path / "configs" / "bookkeeper_config.yaml"
-            )
-            with open(delta_config_file, "r") as f:
+            with open(self.paths.delta_config_file, "r") as f:
                 delta_config = yaml.load(f, Loader=yaml.BaseLoader)
             self.delta_extraction = delta_config["delta extraction"]
             self.config["delta extraction"] = self.delta_extraction
@@ -2645,7 +2639,7 @@ class PathBuilder:
         Returns
             Path
         """
-        return self.correlations_path / "configs" / "bookkeeper_config.yaml"
+        return self.correlations_path / "configs" / "bookkeeper_correlation_config.yaml"
 
     @property
     def fit_config_file(self):
@@ -2654,7 +2648,7 @@ class PathBuilder:
         Returns
             Path
         """
-        return self.fits_path / "configs" / "bookkeeper_config.yaml"
+        return self.fits_path / "configs" / "bookkeeper_fit_config.yaml"
 
     def get_catalog_from_field(self, field):
         """Method to obtain catalogs given a catalog name in config file.
