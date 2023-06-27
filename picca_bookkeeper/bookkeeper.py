@@ -2,16 +2,15 @@ from pathlib import Path
 from typing import *
 import configparser
 import copy
-import collections
 import filecmp
 import shutil
-import os
 import yaml
 from importlib_resources import files
 
 from picca.constants import ABSORBER_IGM
 
 from picca_bookkeeper.tasker import get_Tasker, ChainedTasker, Tasker
+from picca_bookkeeper.dict_utils import DictUtils
 from picca_bookkeeper import resources
 
 forest_regions = {
@@ -111,32 +110,6 @@ def get_dla_catalog(release, survey, version=1):
         )
 
 
-def merge_dicts(dict1: Dict, dict2: Dict):
-    """Merges two dictionaries recursively preserving values in dict2"""
-    result = copy.deepcopy(dict1)
-
-    for key, value in dict2.items():
-        if isinstance(value, collections.abc.Mapping):
-            result[key] = merge_dicts(result.get(key, {}), value)
-        else:
-            result[key] = copy.deepcopy(dict2[key])
-
-    return result
-
-
-def remove_matching(dict1: Dict, dict2: Dict):
-    """Removes occurrences happening in two dictionaries."""
-    result = copy.deepcopy(dict1)
-
-    for key, value in dict2.items():
-        if isinstance(value, collections.abc.Mapping):
-            result[key] = remove_matching(result.get(key, {}), value)
-        elif key in result:
-            result.pop(key)
-
-    return result
-
-
 class Bookkeeper:
     """Class to generate Tasker objects which can be used to run different picca jobs.
 
@@ -232,14 +205,18 @@ class Bookkeeper:
                 # If we want to directly overwrite the config file in destination
                 shutil.copyfile(config_path, self.paths.delta_config_file)
             else:
-                if PathBuilder.compare_config_files(
+                comparison = PathBuilder.compare_config_files(
                     config_path, self.paths.delta_config_file, "delta extraction"
-                ):
+                )
+                if comparison == dict():
+                    # They are the same
                     shutil.copyfile(config_path, self.paths.delta_config_file)
                 else:
                     raise ValueError(
                         "delta extraction section of config file should match delta "
-                        "extraction section from file already in the bookkeeper."
+                        "extraction section from file already in the bookkeeper. "
+                        "Unmatching items: ",
+                        comparison 
                     )
 
         if self.correlations is not None and config_type != "fits":
@@ -257,19 +234,22 @@ class Bookkeeper:
             elif overwrite_config:
                 self.write_bookkeeper(config_corr, self.paths.correlation_config_file)
             else:
-                if PathBuilder.compare_config_files(
+                comparison = PathBuilder.compare_config_files(
                     config_path,
                     self.paths.correlation_config_file,
                     "correlations",
                     ["delta extraction"],
-                ):
+                )
+                if comparison == dict(): 
+                    # They are the same
                     self.write_bookkeeper(
                         config_corr, self.paths.correlation_config_file
                     )
                 else:
                     raise ValueError(
                         "correlations section of config file should match correlation section "
-                        "from file already in the bookkeeper."
+                        "from file already in the bookkeeper. Unmatching items: ",
+                        comparison
                     )
 
         if self.fits is not None:
@@ -291,17 +271,19 @@ class Bookkeeper:
             elif overwrite_config:
                 self.write_bookkeeper(config_fit, self.paths.fit_config_file)
             else:
-                if PathBuilder.compare_config_files(
+                comparison = PathBuilder.compare_config_files(
                     config_path,
                     self.paths.fit_config_file,
                     "fits",
                     ["delta extraction", "correlation run name"],
-                ):
+                )
+                if comparison == dict():
                     self.write_bookkeeper(config_fit, self.paths.fit_config_file)
                 else:
                     raise ValueError(
                         "fits section of config file should match fits section "
-                        "from file already in the bookkeeper."
+                        "from file already in the bookkeeper. Unmatching items: ",
+                        comparison
                     )
 
         # Finally, if the calibration is taken from another place, we should
@@ -462,7 +444,7 @@ class Bookkeeper:
                 if section in defaults["slurm args"] and isinstance(
                     defaults["slurm args"][section], dict
                 ):
-                    args = merge_dicts(args, defaults["slurm args"][section])
+                    args = DictUtils.merge_dicts(args, defaults["slurm args"][section])
 
         # We iterate over the sections from low to high priority
         # overriding the previous set values if there is a coincidence
@@ -472,10 +454,10 @@ class Bookkeeper:
                 if section in config["slurm args"] and isinstance(
                     config["slurm args"][section], dict
                 ):
-                    args = merge_dicts(args, config["slurm args"][section])
+                    args = DictUtils.merge_dicts(args, config["slurm args"][section])
 
         # Copied args is the highest priority
-        return merge_dicts(args, copied_args)
+        return DictUtils.merge_dicts(args, copied_args)
 
     def generate_picca_extra_args(
         self,
@@ -523,26 +505,26 @@ class Bookkeeper:
                 if section in defaults["picca args"] and isinstance(
                     defaults["picca args"][section], dict
                 ):
-                    args = merge_dicts(args, defaults["picca args"][section])
+                    args = DictUtils.merge_dicts(args, defaults["picca args"][section])
 
         if "picca args" in config.keys() and isinstance(config["picca args"], dict):
             for section in sections:
                 if section in config["picca args"] and isinstance(
                     config["picca args"][section], dict
                 ):
-                    args = merge_dicts(args, config["picca args"][section])
+                    args = DictUtils.merge_dicts(args, config["picca args"][section])
 
             # remove args marked as remove_
             for section in sections:
                 if "remove_" + section in config["picca args"] and isinstance(
                     config["picca args"]["remove_" + section], dict
                 ):
-                    args = remove_matching(
+                    args = DictUtils.remove_matching(
                         args, config["picca args"]["remove_" + section]
                     )
 
         # Copied args is the highest priority
-        return merge_dicts(args, copied_args)
+        return DictUtils.merge_dicts(args, copied_args)
 
     def generate_system_arg(self, system):
         if system is None:
@@ -612,7 +594,7 @@ class Bookkeeper:
             "error": str(self.paths.run_path / f"logs/{job_name}-%j.err"),
         }
 
-        slurm_header_args = merge_dicts(
+        slurm_header_args = DictUtils.merge_dicts(
             slurm_header_args, updated_slurm_header_extra_args
         )
 
@@ -623,14 +605,14 @@ class Bookkeeper:
             "lambda-rest-min": forest_regions[region]["lambda-rest-min"],
             "lambda-rest-max": forest_regions[region]["lambda-rest-max"],
         }
-        args = merge_dicts(args, updated_picca_extra_args)
+        args = DictUtils.merge_dicts(args, updated_picca_extra_args)
 
         if debug:  # pragma: no cover
-            slurm_header_args = merge_dicts(
+            slurm_header_args = DictUtils.merge_dicts(
                 slurm_header_args,
                 dict(qos="debug", time="00:30:00"),
             )
-            args = merge_dicts(args, dict(nspec=1000))
+            args = DictUtils.merge_dicts(args, dict(nspec=1000))
 
         self.paths.deltas_path(region).mkdir(exist_ok=True, parents=True)
 
@@ -707,7 +689,7 @@ class Bookkeeper:
 
         # MASKS
         # add masks section if necessary
-        updated_picca_extra_args = merge_dicts(
+        updated_picca_extra_args = DictUtils.merge_dicts(
             dict(
                 masks={
                     "num masks": 0,
@@ -747,7 +729,7 @@ class Bookkeeper:
 
         # CORRECTIONS
         # add corrections section if necessary
-        updated_picca_extra_args = merge_dicts(
+        updated_picca_extra_args = DictUtils.merge_dicts(
             dict(
                 corrections={
                     "num corrections": 0,
@@ -837,7 +819,7 @@ class Bookkeeper:
                 )
         elif self.config["delta extraction"]["calib"] == "2":
             # Set expected flux
-            updated_picca_extra_args = merge_dicts(
+            updated_picca_extra_args = DictUtils.merge_dicts(
                 updated_picca_extra_args,
                 {
                     "expected flux": {
@@ -876,7 +858,7 @@ class Bookkeeper:
                 )
         elif self.config["delta extraction"]["calib"] == "3":
             # Set expected flux
-            updated_picca_extra_args = merge_dicts(
+            updated_picca_extra_args = DictUtils.merge_dicts(
                 updated_picca_extra_args,
                 {
                     "expected flux": {
@@ -1070,10 +1052,10 @@ class Bookkeeper:
         #             f"mask arguments {i}": mask_section
         #         })
 
-        deltas_config_dict = merge_dicts(deltas_config_dict, updated_picca_extra_args)
+        deltas_config_dict = DictUtils.merge_dicts(deltas_config_dict, updated_picca_extra_args)
 
         if debug:  # pragma: no cover
-            slurm_header_args = merge_dicts(
+            slurm_header_args = DictUtils.merge_dicts(
                 slurm_header_args, dict(qos="debug", time="00:30:00")
             )
             deltas_config_dict.get("data").update({"max num spec": 1000})
@@ -1091,7 +1073,7 @@ class Bookkeeper:
             "error": str(self.paths.run_path / f"logs/{job_name}-%j.err"),
         }
 
-        slurm_header_args = merge_dicts(
+        slurm_header_args = DictUtils.merge_dicts(
             slurm_header_args, updated_slurm_header_extra_args
         )
 
@@ -1273,7 +1255,7 @@ class Bookkeeper:
             "error": str(self.paths.correlations_path / f"logs/{job_name}-%j.err"),
         }
 
-        slurm_header_args = merge_dicts(
+        slurm_header_args = DictUtils.merge_dicts(
             slurm_header_args, updated_slurm_header_extra_args
         )
 
@@ -1292,13 +1274,13 @@ class Bookkeeper:
         if region2 != region:
             args["in-dir2"] = str(self.paths.deltas_path(region2))
 
-        args = merge_dicts(args, updated_picca_extra_args)
+        args = DictUtils.merge_dicts(args, updated_picca_extra_args)
 
         if debug:  # pragma: no cover
-            slurm_header_args = merge_dicts(
+            slurm_header_args = DictUtils.merge_dicts(
                 slurm_header_args, dict(qos="debug", time="00:30:00")
             )
-            args = merge_dicts(
+            args = DictUtils.merge_dicts(
                 args,
                 dict(nspec=1000),
             )
@@ -1398,7 +1380,7 @@ class Bookkeeper:
             "error": str(self.paths.correlations_path / f"logs/{job_name}-%j.err"),
         }
 
-        slurm_header_args = merge_dicts(
+        slurm_header_args = DictUtils.merge_dicts(
             slurm_header_args, updated_slurm_header_extra_args
         )
 
@@ -1417,14 +1399,14 @@ class Bookkeeper:
         if region2 != region:
             args["in-dir2"] = str(self.paths.deltas_path(region2))
 
-        args = merge_dicts(args, updated_picca_extra_args)
+        args = DictUtils.merge_dicts(args, updated_picca_extra_args)
 
         if debug:  # pragma: no cover
-            slurm_header_args = merge_dicts(
+            slurm_header_args = DictUtils.merge_dicts(
                 slurm_header_args,
                 dict(qos="debug", time="00:30:00"),
             )
-            args = merge_dicts(args, dict(nspec=1000))
+            args = DictUtils.merge_dicts(args, dict(nspec=1000))
 
         self.paths.dmat_fname(region, region2, absorber, absorber2).parent.mkdir(
             exist_ok=True,
@@ -1522,7 +1504,7 @@ class Bookkeeper:
             "error": str(self.paths.correlations_path / f"logs/{job_name}-%j.err"),
         }
 
-        slurm_header_args = merge_dicts(
+        slurm_header_args = DictUtils.merge_dicts(
             slurm_header_args, updated_slurm_header_extra_args
         )
 
@@ -1535,7 +1517,7 @@ class Bookkeeper:
                 self.paths.dmat_fname(region, region2, absorber, absorber2)
             )
 
-        args = merge_dicts(args, updated_picca_extra_args)
+        args = DictUtils.merge_dicts(args, updated_picca_extra_args)
 
         if (
             self.paths.config["data"]["survey"] == "main"
@@ -1639,7 +1621,7 @@ class Bookkeeper:
             "error": str(self.paths.correlations_path / f"logs/{job_name}-%j.err"),
         }
 
-        slurm_header_args = merge_dicts(
+        slurm_header_args = DictUtils.merge_dicts(
             slurm_header_args, updated_slurm_header_extra_args
         )
 
@@ -1658,14 +1640,14 @@ class Bookkeeper:
         if region2 != region:
             args["in-dir2"] = str(self.paths.deltas_path(region2))
 
-        args = merge_dicts(args, updated_picca_extra_args)
+        args = DictUtils.merge_dicts(args, updated_picca_extra_args)
 
         if debug:  # pragma: no cover
-            slurm_header_args = merge_dicts(
+            slurm_header_args = DictUtils.merge_dicts(
                 slurm_header_args,
                 dict(qos="debug", time="00:30:00"),
             )
-            args = merge_dicts(args, dict(nspec=1000))
+            args = DictUtils.merge_dicts(args, dict(nspec=1000))
 
         self.paths.metal_fname(region, region2, absorber, absorber2).parent.mkdir(
             exist_ok=True, parents=True
@@ -1746,7 +1728,7 @@ class Bookkeeper:
             "error": str(self.paths.correlations_path / f"logs/{job_name}-%j.err"),
         }
 
-        slurm_header_args = merge_dicts(
+        slurm_header_args = DictUtils.merge_dicts(
             slurm_header_args, updated_slurm_header_extra_args
         )
 
@@ -1762,13 +1744,13 @@ class Bookkeeper:
         if "v9." in self.config["data"]["release"]:
             args["mode"] = "desi_mocks"
 
-        args = merge_dicts(args, updated_picca_extra_args)
+        args = DictUtils.merge_dicts(args, updated_picca_extra_args)
 
         if debug:  # pragma: no cover
-            slurm_header_args = merge_dicts(
+            slurm_header_args = DictUtils.merge_dicts(
                 slurm_header_args, dict(qos="debug", time="00:30:00")
             )
-            args = merge_dicts(
+            args = DictUtils.merge_dicts(
                 args,
                 dict(nspec=1000),
             )
@@ -1852,7 +1834,7 @@ class Bookkeeper:
             "error": str(self.paths.correlations_path / f"logs/{job_name}-%j.err"),
         }
 
-        slurm_header_args = merge_dicts(
+        slurm_header_args = DictUtils.merge_dicts(
             slurm_header_args, updated_slurm_header_extra_args
         )
 
@@ -1868,13 +1850,13 @@ class Bookkeeper:
         if "v9." in self.config["data"]["release"]:
             args["mode"] = "desi_mocks"
 
-        args = merge_dicts(args, updated_picca_extra_args)
+        args = DictUtils.merge_dicts(args, updated_picca_extra_args)
 
         if debug:  # pragma: no cover
-            slurm_header_args = merge_dicts(
+            slurm_header_args = DictUtils.merge_dicts(
                 slurm_header_args, dict(qos="debug", time="00:30:00")
             )
-            args = merge_dicts(
+            args = DictUtils.merge_dicts(
                 args,
                 dict(nspec=1000),
             )
@@ -1958,7 +1940,7 @@ class Bookkeeper:
             "error": str(self.paths.correlations_path / f"logs/{job_name}-%j.err"),
         }
 
-        slurm_header_args = merge_dicts(
+        slurm_header_args = DictUtils.merge_dicts(
             slurm_header_args, updated_slurm_header_extra_args
         )
 
@@ -1970,7 +1952,7 @@ class Bookkeeper:
         if not no_dmat:
             args["dmat"] = str(self.paths.xdmat_fname(region, absorber))
 
-        args = merge_dicts(args, updated_picca_extra_args)
+        args = DictUtils.merge_dicts(args, updated_picca_extra_args)
 
         if (
             self.paths.config["data"]["survey"] == "main"
@@ -2058,7 +2040,7 @@ class Bookkeeper:
             "error": str(self.paths.correlations_path / f"logs/{job_name}-%j.err"),
         }
 
-        slurm_header_args = merge_dicts(
+        slurm_header_args = DictUtils.merge_dicts(
             slurm_header_args, updated_slurm_header_extra_args
         )
 
@@ -2083,13 +2065,13 @@ class Bookkeeper:
         if "v9." in self.config["data"]["release"]:
             args["mode"] = "desi_mocks"
 
-        args = merge_dicts(args, updated_picca_extra_args)
+        args = DictUtils.merge_dicts(args, updated_picca_extra_args)
 
         if debug:  # pragma: no cover
-            slurm_header_args = merge_dicts(
+            slurm_header_args = DictUtils.merge_dicts(
                 slurm_header_args, dict(qos="debug", time="00:30:00")
             )
-            args = merge_dicts(
+            args = DictUtils.merge_dicts(
                 args,
                 dict(nspec=1000),
             )
@@ -2176,7 +2158,7 @@ class Bookkeeper:
             "error": str(self.paths.correlations_path / f"logs/{job_name}-%j.err"),
         }
 
-        slurm_header_args = merge_dicts(
+        slurm_header_args = DictUtils.merge_dicts(
             slurm_header_args, updated_slurm_header_extra_args
         )
 
@@ -2189,7 +2171,7 @@ class Bookkeeper:
         if not no_dmat:
             args["dmat"] = str(self.paths.xdmat_fname(region, absorber))
 
-        args = merge_dicts(args, updated_picca_extra_args)
+        args = DictUtils.merge_dicts(args, updated_picca_extra_args)
 
         if (
             self.paths.config["data"]["survey"] == "main"
@@ -2278,7 +2260,7 @@ class Bookkeeper:
             "error": str(self.paths.correlations_path / f"logs/{job_name}-%j.err"),
         }
 
-        slurm_header_args = merge_dicts(
+        slurm_header_args = DictUtils.merge_dicts(
             slurm_header_args, updated_slurm_header_extra_args
         )
 
@@ -2294,17 +2276,17 @@ class Bookkeeper:
         if "v9." in self.config["data"]["release"]:
             args["mode"] = "desi_mocks"
 
-        args = merge_dicts(args, updated_picca_extra_args)
+        args = DictUtils.merge_dicts(args, updated_picca_extra_args)
 
         environmental_variables = {
             "HDF5_USE_FILE_LOCKING": "FALSE",
         }
 
         if debug:  # pragma: no cover
-            slurm_header_args = merge_dicts(
+            slurm_header_args = DictUtils.merge_dicts(
                 slurm_header_args, dict(qos="debug", time="00:30:00")
             )
-            args = merge_dicts(
+            args = DictUtils.merge_dicts(
                 args,
                 dict(nspec=1000),
             )
@@ -2397,7 +2379,7 @@ class Bookkeeper:
                 },
             }
 
-            args = merge_dicts(args, vega_args)
+            args = DictUtils.merge_dicts(args, vega_args)
 
             # parse config
             fit_config = configparser.ConfigParser()
@@ -2432,7 +2414,7 @@ class Bookkeeper:
                 },
             }
 
-            args = merge_dicts(args, vega_args)
+            args = DictUtils.merge_dicts(args, vega_args)
 
             # parse config
             fit_config = configparser.ConfigParser()
@@ -2463,7 +2445,7 @@ class Bookkeeper:
                 files(resources).joinpath("fit_models/PlanckDR16.fits"),
                 self.paths.fit_main_fname().parent / "PlanckDR16.fits"
             )
-            args = merge_dicts(
+            args = DictUtils.merge_dicts(
                 args,
                 {
                     "fiducial": {
@@ -2474,7 +2456,7 @@ class Bookkeeper:
                 }
             )
 
-        args = merge_dicts(args, vega_args)
+        args = DictUtils.merge_dicts(args, vega_args)
 
         # parse config
         fit_config = configparser.ConfigParser()
@@ -2813,14 +2795,15 @@ class PathBuilder:
             config2 = yaml.load(f, Loader=yaml.BaseLoader)
 
         for field in ignore_fields:
-            for config in config1[section], config2[section]:
-                if config.get(field, "") != "":
-                    config.pop(field)
+            if field in config1[section]:
+                config1[section].pop(field)
+            if field in config2[section]:
+                config2[section].pop(field)
 
-        if config1.get(section, dict()) == config2.get(section, dict()):
-            return True
-        else:
-            return False
+        return DictUtils.remove_empty(DictUtils.diff_dicts(
+            config1[section],
+            config2[section],
+        ))
 
     def check_delta_directories(self):
         """Method to create basic directories in run directory."""

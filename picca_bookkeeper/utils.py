@@ -5,7 +5,6 @@ from typing import *
 import fitsio
 from pathlib import Path
 import healpy as hp
-import matplotlib
 
 from picca_bookkeeper.bookkeeper import forest_regions
 

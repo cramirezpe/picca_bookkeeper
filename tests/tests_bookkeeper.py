@@ -445,7 +445,9 @@ class TestBookkeeper(unittest.TestCase):
         with self.assertRaises(ValueError) as cm:
             bookkeeper2 = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
         self.assertEqual(
-            "delta extraction section of config file should match delta extraction section from file already in the bookkeeper.",
+            "('delta extraction section of config file should match delta extraction section "
+            "from file already in the bookkeeper. Unmatching items: ', {'picca args': "
+            "[{'picca_delta_extraction': {'data': {'wave solution': 'log'}}}, None]})",
             str(cm.exception),
         )
 
@@ -460,7 +462,9 @@ class TestBookkeeper(unittest.TestCase):
         with self.assertRaises(ValueError) as cm:
             bookkeeper2 = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
         self.assertEqual(
-            "correlations section of config file should match correlation section from file already in the bookkeeper.",
+            "('correlations section of config file should match correlation section from file "
+            "already in the bookkeeper. Unmatching items: ', {'picca args': "
+            "[{'picca_cf': {'nside': '128'}}, None]})",
             str(cm.exception),
         )
 
@@ -511,7 +515,9 @@ class TestBookkeeper(unittest.TestCase):
         with self.assertRaises(ValueError) as cm:
             bookkeeper2 = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
         self.assertEqual(
-            "correlations section of config file should match correlation section from file already in the bookkeeper.",
+            "('correlations section of config file should match correlation section from file "
+            "already in the bookkeeper. Unmatching items: ', {'picca args': "
+            "[{'picca_cf': {'nside': '128'}}, None]})",
             str(cm.exception),
         )
 
@@ -526,7 +532,9 @@ class TestBookkeeper(unittest.TestCase):
         with self.assertRaises(ValueError) as cm:
             bookkeeper2 = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
         self.assertEqual(
-            "fits section of config file should match fits section from file already in the bookkeeper.",
+            "('fits section of config file should match fits section from file already in the "
+            "bookkeeper. Unmatching items: ', {'picca args': [{'vega_cross': "
+            "{'data': {'tracer': 'QSA'}}}, None]})",
             str(cm.exception),
         )
 

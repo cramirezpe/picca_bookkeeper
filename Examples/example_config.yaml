@@ -174,7 +174,7 @@ fits:
   run name: default
 
   # To use same functions we call this picca_args although vega is used.
-  picca_args:
+  picca args:
     vega_auto:
       data:
         tracer1-type: continuous
