@@ -360,14 +360,21 @@ class Bookkeeper:
                 "slurm args",
             ],
         }
-        config = dict(
-            sorted(config.items(), key=lambda s: list(correct_order).index(s[0]))
-        )
 
-        for key, value in config.items():
-            config[key] = dict(
-                sorted(value.items(), key=lambda s: correct_order[key].index(s[0]))
+        try:
+            config = dict(
+                sorted(config.items(), key=lambda s: list(correct_order).index(s[0]))
             )
+
+            for key, value in config.items():
+                config[key] = dict(
+                    sorted(value.items(), key=lambda s: correct_order[key].index(s[0]))
+                )
+        except ValueError as e:
+            raise ValueError(
+                f"Invalid item in config file"
+            ).with_traceback(e.__traceback__)
+
 
         with open(file, "w") as f:
             yaml.dump(config, f, sort_keys=False)

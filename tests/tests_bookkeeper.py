@@ -488,14 +488,70 @@ class TestBookkeeper(unittest.TestCase):
             self.update_test_output(test_files, bookkeeper2.paths.run_path)
         self.compare_bookkeeper_output(test_files, bookkeeper2.paths.run_path)
     
-    # @patch("picca_bookkeeper.tasker.run", side_effect=mock_run)
-    # @patch(
-    #     "picca_bookkeeper.bookkeeper.get_quasar_catalog",
-    #     side_effect=mock_get_3d_catalog,
-    # )
-    # def test_run_only_fit_on_another_bookkeeper(self, mock_func_1, mock_func_2):
-    #     copy_config_substitute(self.files_path / "example_config_guadalupe.yaml")
+    @patch("picca_bookkeeper.tasker.run", side_effect=mock_run)
+    @patch(
+        "picca_bookkeeper.bookkeeper.get_quasar_catalog",
+        side_effect=mock_get_3d_catalog,
+    )
+    def test_run_only_fit_on_another_bookkeeper(self, mock_func_1, mock_func_2):
+        copy_config_substitute(self.files_path / "example_config_guadalupe.yaml")
+        test_files = THIS_DIR / "test_files" / "second_fit"
+        bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
+        write_full_analysis(bookkeeper, calib=True, region="lyb", region2="lya")
+
+        # Now failing run
+        copy_config_substitute(
+            self.files_path / "example_config_guadalupe_only_fit_fail.yaml"
+        )
+
+        with open(THIS_DIR / "test_files" / "output" / "tmp.yaml", "r") as file:
+            filedata = file.read()
+
+        with self.assertRaises(ValueError) as cm:
+            bookkeeper2 = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
+        self.assertEqual(
+            "correlations section of config file should match correlation section from file already in the bookkeeper.",
+            str(cm.exception),
+        )
+
+        # Now failing run (2)
+        copy_config_substitute(
+            self.files_path / "example_config_guadalupe_only_fit_fail_2.yaml"
+        )
+
+        with open(THIS_DIR / "test_files" / "output" / "tmp.yaml", "r") as file:
+            filedata = file.read()
+
+        with self.assertRaises(ValueError) as cm:
+            bookkeeper2 = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
+        self.assertEqual(
+            "fits section of config file should match fits section from file already in the bookkeeper.",
+            str(cm.exception),
+        )
+
+        # Now main run:
+        copy_config_substitute(
+            self.files_path / "example_config_guadalupe_only_fit.yaml"
+        )
+
+        with open(THIS_DIR / "test_files" / "output" / "tmp.yaml", "r") as file:
+            filedata = file.read()
+
+        bookkeeper2 = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
+
+        fit = bookkeeper2.get_fit_tasker(
+            auto_correlations=["lya-lya_lya-lya"],
+            cross_correlations=["lya-lya"],
+        )
+        
+        fit.write_job()
+        fit.send_job()
+
+        self.replace_paths_bookkeeper_output(bookkeeper2.paths.run_path)
+        if "UPDATE_TESTS" in os.environ and os.environ["UPDATE_TESTS"] == "True":
+            self.update_test_output(test_files, bookkeeper2.paths.run_path)
+        self.compare_bookkeeper_output(test_files, bookkeeper2.paths.run_path)
 
     @patch("picca_bookkeeper.tasker.run", side_effect=mock_run)
     @patch(
