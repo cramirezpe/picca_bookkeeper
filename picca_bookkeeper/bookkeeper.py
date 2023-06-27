@@ -1054,12 +1054,6 @@ class Bookkeeper:
 
         deltas_config_dict = DictUtils.merge_dicts(deltas_config_dict, updated_picca_extra_args)
 
-        if debug:  # pragma: no cover
-            slurm_header_args = DictUtils.merge_dicts(
-                slurm_header_args, dict(qos="debug", time="00:30:00")
-            )
-            deltas_config_dict.get("data").update({"max num spec": 1000})
-
         # parse config
         deltas_config = configparser.ConfigParser()
         deltas_config.read_dict(deltas_config_dict)
@@ -1076,6 +1070,12 @@ class Bookkeeper:
         slurm_header_args = DictUtils.merge_dicts(
             slurm_header_args, updated_slurm_header_extra_args
         )
+
+        if debug:  # pragma: no cover
+            slurm_header_args = DictUtils.merge_dicts(
+                slurm_header_args, dict(qos="debug", time="00:30:00")
+            )
+            deltas_config_dict.get("data").update({"max num spec": 1000})
 
         return get_Tasker(
             updated_system,
