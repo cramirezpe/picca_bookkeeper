@@ -1,0 +1,12 @@
+general:
+  conda environment: picca_add_tests
+data:
+  early dir: /global/u2/c/cramirez/Codes/picca_bookkeeper_new/tests/test_files/output
+  healpix data: ''
+  release: v9.0.0
+  survey: desi-2.0-1000
+  catalog: LyaCoLoRe
+fits:
+  delta extraction: true_0_0.0.0_0
+  correlation run name: default
+  run name: default

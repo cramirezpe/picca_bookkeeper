@@ -1,0 +1,49 @@
+general:
+  conda environment: picca
+data:
+  early dir: /global/u2/c/cramirez/Codes/picca_bookkeeper_new/tests/test_files/output
+  healpix data: ''
+  release: guadalupe
+  survey: main
+  catalog: afterburn_v0
+fits:
+  delta extraction: dMdB20_1_mgii_r.0.0_0
+  correlation run name: default
+  run name: default
+  picca args:
+    picca_convert_transmission:
+      nspec: '30'
+    picca_delta_extraction:
+      expected flux:
+        type: Dr16ExpectedFlux
+      corrections:
+        num corrections: '1'
+        type 0: DustCorrection
+      correction arguments 0:
+        filename: /file/dust
+      data:
+        wave solution: lin
+    picca_cf: ''
+    picca_xcf: ''
+    picca_dmat:
+      np: '20'
+      nt: '18'
+    picca_xdmat: ''
+    picca_metal_dmat: ''
+    picca_export: ''
+    picca_fitter2: ''
+  slurm args:
+    general:
+      mail-type: fail
+      mail-user: user@host.com
+    picca_delta_extraction:
+      time: 00:16:00
+      qos: regular
+    picca_cf:
+      time: 00:12:12
+    picca_xcf: ''
+    picca_dmat: ''
+    picca_xdmat: ''
+    picca_metal_dmat: ''
+    picca_export: ''
+    picca_fitter2: ''

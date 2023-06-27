@@ -8,8 +8,6 @@
 #SBATCH --job-name xcf_exp_lyalyb
 #SBATCH --output /global/u2/c/cramirez/Codes/picca_bookkeeper_new/tests/test_files/output/guadalupe/main/afterburn_v0/dMdB20_0_mgii_r.0.0_0/correlations/default/logs/xcf_exp_lyalyb-%j.out
 #SBATCH --error /global/u2/c/cramirez/Codes/picca_bookkeeper_new/tests/test_files/output/guadalupe/main/afterburn_v0/dMdB20_0_mgii_r.0.0_0/correlations/default/logs/xcf_exp_lyalyb-%j.err
-#SBATCH --mail-type fail
-#SBATCH --mail-user user@host.com
 
 module load python
 source activate picca

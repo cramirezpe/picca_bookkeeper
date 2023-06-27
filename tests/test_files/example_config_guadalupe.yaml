@@ -22,3 +22,6 @@ delta extraction:
 correlations:
   catalog tracer:
   run name: default
+
+fits:
+  run name: default

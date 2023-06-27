@@ -11,3 +11,5 @@ correlations:
   delta extraction: dMdB20_1_mgii_r.0.0_0
   run name: default
   catalog tracer: ''
+fits:
+  run name: default

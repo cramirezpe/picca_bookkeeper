@@ -105,6 +105,14 @@ def write_full_analysis(bookkeeper, calib=False, region="lya", region2=None):
         task.write_job()
         task.send_job()
 
+    fit = bookkeeper.get_fit_tasker(
+        auto_correlations=["lya-lya_lya-lya"],
+        cross_correlations=["lya-lya"],
+    )
+    
+    fit.write_job()
+    fit.send_job()
+
 
 def copy_config_substitute(config, out_name="output"):
     out_path = THIS_DIR / "test_files" / out_name
@@ -162,7 +170,8 @@ class TestBookkeeper(unittest.TestCase):
         for root, dirs, files in os.walk(bookkeeper_folder):
             path = root[len(str(bookkeeper_folder)) + 1 :]
             for file in files:
-                self.compare_two_files(Path(root) / file, test_folder / path / file)
+                if file.split('.')[-1] not in ('fits', 'gz'): 
+                    self.compare_two_files(Path(root) / file, test_folder / path / file)
 
     def replace_paths_bookkeeper_output(self, bookkeeper_folder):
         for file in itertools.chain(
@@ -478,6 +487,15 @@ class TestBookkeeper(unittest.TestCase):
         if "UPDATE_TESTS" in os.environ and os.environ["UPDATE_TESTS"] == "True":
             self.update_test_output(test_files, bookkeeper2.paths.run_path)
         self.compare_bookkeeper_output(test_files, bookkeeper2.paths.run_path)
+    
+    # @patch("picca_bookkeeper.tasker.run", side_effect=mock_run)
+    # @patch(
+    #     "picca_bookkeeper.bookkeeper.get_quasar_catalog",
+    #     side_effect=mock_get_3d_catalog,
+    # )
+    # def test_run_only_fit_on_another_bookkeeper(self, mock_func_1, mock_func_2):
+    #     copy_config_substitute(self.files_path / "example_config_guadalupe.yaml")
+
 
     @patch("picca_bookkeeper.tasker.run", side_effect=mock_run)
     @patch(

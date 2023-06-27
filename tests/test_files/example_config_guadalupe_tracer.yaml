@@ -21,3 +21,5 @@ delta extraction:
 correlations:
   catalog tracer: test_files/dummy_tracer_catalog.fits
   run name: default
+fits:
+  run name: default
