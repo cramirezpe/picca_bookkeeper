@@ -1,3 +1,12 @@
-{correlations: {catalog tracer: '', run name: default}, data: {catalog: afterburn_v0,
-    early dir: /global/u2/c/cramirez/Codes/picca_bookkeeper_new/tests/test_files/output,
-    healpix data: '', release: guadalupe, survey: main}, general: {conda environment: picca}}
+general:
+  conda environment: picca
+data:
+  early dir: /global/u2/c/cramirez/Codes/picca_bookkeeper_new/tests/test_files/output
+  healpix data: ''
+  release: guadalupe
+  survey: main
+  catalog: afterburn_v0
+correlations:
+  delta extraction: dMdB20_1_mgii_r.0.0__reuse_calib
+  run name: default
+  catalog tracer: ''

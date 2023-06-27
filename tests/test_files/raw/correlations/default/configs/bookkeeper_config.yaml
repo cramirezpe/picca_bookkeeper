@@ -1,9 +1,43 @@
-{correlations: {catalog tracer: '', picca args: {picca_cf: '', picca_convert_transmission: {
-        delta-lambda: '0.8', lambda-max: '5500', lambda-min: '3600', linear-spacing: 'True'},
-      picca_delta_extraction: '', picca_deltas: '', picca_dmat: '', picca_export: '',
-      picca_fitter2: '', picca_metal_dmat: '', picca_xcf: '', picca_xdmat: ''}, run name: default,
-    slurm args: {general: {mail-type: fail, mail-user: mail@host.es}, picca_cf: '',
-      picca_convert_transmission: {time: '00:30:00'}, picca_delta_extraction: {time: '00:30:00'},
-      picca_deltas: '', picca_dmat: '', picca_export: '', picca_fitter2: '', picca_metal_dmat: '',
-      picca_xcf: '', picca_xdmat: ''}}, data: {catalog: LyaCoLoRe, early dir: /global/u2/c/cramirez/Codes/picca_bookkeeper_new/tests/test_files/output,
-    healpix data: '', release: v9.0.0, survey: raw}, general: {conda environment: picca}}
+general:
+  conda environment: picca
+data:
+  early dir: /global/u2/c/cramirez/Codes/picca_bookkeeper_new/tests/test_files/output
+  healpix data: ''
+  release: v9.0.0
+  survey: raw
+  catalog: LyaCoLoRe
+correlations:
+  delta extraction: raw_0_0.0.0_0
+  run name: default
+  catalog tracer: ''
+  picca args:
+    picca_convert_transmission:
+      linear-spacing: 'True'
+      lambda-min: '3600'
+      lambda-max: '5500'
+      delta-lambda: '0.8'
+    picca_delta_extraction: ''
+    picca_deltas: ''
+    picca_cf: ''
+    picca_xcf: ''
+    picca_dmat: ''
+    picca_xdmat: ''
+    picca_metal_dmat: ''
+    picca_export: ''
+    picca_fitter2: ''
+  slurm args:
+    general:
+      mail-type: fail
+      mail-user: mail@host.es
+    picca_convert_transmission:
+      time: 00:30:00
+    picca_delta_extraction:
+      time: 00:30:00
+    picca_deltas: ''
+    picca_cf: ''
+    picca_xcf: ''
+    picca_dmat: ''
+    picca_xdmat: ''
+    picca_metal_dmat: ''
+    picca_export: ''
+    picca_fitter2: ''

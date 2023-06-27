@@ -160,28 +160,41 @@ class Bookkeeper:
 
         # Potentially could add fits things here
         # Defining dicts containing all information.
+        self.fits = None
+        self.correlations = None
+        self.delta_extraction = None
+
+        if self.config.get("fits") is not None:
+            self.fits = self.config.get("fits")
+            config_type = "fits"
         if self.config.get("correlations") is not None:
             self.correlations = self.config.get("correlations")
-        else:
-            self.correlations = None
-
+            config_type = "correlations"
         if self.config.get("delta extraction") is not None:
             self.delta_extraction = self.config.get("delta extraction")
-            config_type = "deltas"  # This overwrites the previous one.
-        elif self.correlations is not None:
+            config_type = "deltas"
+
+        if config_type == "fits":
+            # In this case, correlations is not defined in the config file
+            # and therefore, we should search for it.
+            correlation_config_file = (
+                self.paths.correlations_path / "configs" / "bookkeeper_config.yaml"
+            )
+            with open(correlation_config_file, "r") as f:
+                correlation_config = yaml.load(f, Loader=yaml.BaseLoader)
+            self.correlations = correlation_config["correlations"]
+            self.config["correlations"] = self.correlations
+
+        if config_type in ("fits", "correlations"):
             # In this case, delta extraction is not defined in the config file
             # and therefore, we should search for it.
             delta_config_file = (
                 self.paths.run_path / "configs" / "bookkeeper_config.yaml"
             )
             with open(delta_config_file, "r") as f:
-                delta_config = yaml.load(delta_config_file, Loader=yaml.BaseLoader)
+                delta_config = yaml.load(f, Loader=yaml.BaseLoader)
             self.delta_extraction = delta_config["delta extraction"]
-
             self.config["delta extraction"] = self.delta_extraction
-            config_type = "correlations"
-        else:
-            raise ValueError("Unable to identify delta extraction parameters.")
 
         self.paths = PathBuilder(self.config)
 
@@ -189,6 +202,9 @@ class Bookkeeper:
 
         if self.correlations is not None:
             self.paths.check_correlation_directories()
+
+        if self.fits is not None:
+            self.paths.check_fit_directories()
 
         # Potentially could add fits things here.
         # Copy bookkeeper configuration into destination
@@ -213,8 +229,11 @@ class Bookkeeper:
                         "extraction section from file already in the bookkeeper."
                     )
 
-        if self.correlations is not None:
+        if self.correlations is not None and config_type != "fits":
             config_corr = copy.deepcopy(self.config)
+
+            config_corr["correlations"]["delta extraction"] = self.paths.continuum_tag
+
             config_corr.pop("delta extraction")
 
             if not self.paths.correlation_config_file.is_file():
@@ -226,7 +245,10 @@ class Bookkeeper:
                 self.write_bookkeeper(config_corr, self.paths.correlation_config_file)
             else:
                 if PathBuilder.compare_config_files(
-                    config_path, self.paths.correlation_config_file, "correlations"
+                    config_path,
+                    self.paths.correlation_config_file,
+                    "correlations",
+                    ["delta extraction"],
                 ):
                     self.write_bookkeeper(
                         config_corr, self.paths.correlation_config_file
@@ -234,6 +256,38 @@ class Bookkeeper:
                 else:
                     raise ValueError(
                         "correlations section of config file should match correlation section "
+                        "from file already in the bookkeeper."
+                    )
+
+        if self.fits is not None:
+            config_fit = copy.deepcopy(self.config)
+
+            config_fit["fits"]["delta extraction"] = self.paths.continuum_tag
+            config_fit["fits"]["correlation run name"] = self.config["correlations"][
+                "run name"
+            ]
+
+            config_fit.pop("delta extraction")
+            config_fit.pop("correlations")
+
+            if not self.paths.fit_config_file.is_file():
+                self.write_bookkeeper(config_fit, self.paths.fit_config_file)
+            elif filecmp.cmp(self.paths.fit_config_file, config_path):
+                # If files are the same we can continue
+                pass
+            elif overwrite_config:
+                self.write_bookkeeper(config_fit, self.paths.fit_config_file)
+            else:
+                if PathBuilder.compare_config_files(
+                    config_path,
+                    self.paths.fit_config_file,
+                    "fits",
+                    ["delta extraction", "correlation run name"],
+                ):
+                    self.write_bookkeeper(config_fit, self.paths.fit_config_file)
+                else:
+                    raise ValueError(
+                        "fits section of config file should match fits section "
                         "from file already in the bookkeeper."
                     )
 
@@ -285,7 +339,13 @@ class Bookkeeper:
                 "picca args",
                 "slurm args",
             ],
-            "fits": ["delta extraction", "correlation run name"],
+            "fits": [
+                "delta extraction",
+                "correlation run name",
+                "run name",
+                "picca args",
+                "slurm args",
+            ],
         }
         config = dict(
             sorted(config.items(), key=lambda s: list(correct_order).index(s[0]))
@@ -297,7 +357,7 @@ class Bookkeeper:
             )
 
         with open(file, "w") as f:
-            yaml.dump(config, f, default_flow_style=True)
+            yaml.dump(config, f, sort_keys=False)
 
     @property
     def is_mock(self):
@@ -2293,6 +2353,174 @@ class Bookkeeper:
             wait_for=wait_for,
         )
 
+    def get_fit_tasker(
+        self,
+        auto_correlations: List[str] = [],
+        cross_correlations: List[str] = [],
+        system: str = None,
+        wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
+        vega_extra_args: Dict = dict(),
+        slurm_header_extra_args: Dict = dict(),
+    ):
+        """Method to get a Tasker object to run vega with correlation data.
+
+        Args:
+            auto_correlations: List of auto-correlations to include in the vega
+                fits. The format of the strings should be 'lya-lya_lya-lya'.
+                This is to allow splitting.
+            cross_correlations: List of cross-correlations to include in the vega
+                fits. The format of the strings should be 'lya-lya'.
+            system: Shell to use for job. 'slurm_cori' to use slurm scripts on
+                cori, 'slurm_perlmutter' to use slurm scripts on perlmutter,
+                'bash' to run it in login nodes or computer shell.
+                Default: None, read from config file.
+            wait_for: In NERSC, wait for a given job to finish before running
+                the current one. Could be a  Tasker object or a slurm jobid
+                (int). (Default: None, won't wait for anything).
+            # vega_extra_args : Set extra options for each vega config file
+            #     The format should be a dict of dicts: wanting to change
+            #     "num masks" in "masks" section one should pass
+            #     {'num masks': {'masks': value}}.
+            slurm_header_extra_args: Change slurm header default options if
+                needed (time, qos, etc...). Use a dictionary with the format
+                {'option_name': 'option_value'}.
+
+        Returns:
+            Tasker: Tasker object to run vega.
+        """
+        updated_system = self.generate_system_arg(system)
+
+        ini_files = []
+
+        for auto_correlation in auto_correlations:
+            absorber, region, absorber2, region2 = auto_correlation.replace(
+                "_", "-"
+            ).split("-")
+            region = self.validate_region(region)
+            absorber = self.validate_absorber(absorber)
+            region2 = self.validate_region(region2)
+            absorber2 = self.validate_absorber(absorber2)
+
+            vega_args = self.generate_picca_extra_args(
+                config=self.config["fits"],
+                default_config=self.defaults["fits"],
+                picca_args=dict(),
+                command="vega_auto.py",  # The use of .py only for using same function
+                region=region,
+                absorber=absorber,
+                region2=region2,
+                absorber2=absorber2,
+            )
+
+            args = {
+                "data": {
+                    "filename": self.paths.exp_cf_fname(
+                        region, region2, absorber, absorber2
+                    ),
+                },
+                "metals": {
+                    "filename": self.paths.metal_fname(
+                        region, region2, absorber, absorber2
+                    ),
+                },
+            }
+
+            args = merge_dicts(args, vega_args)
+
+            # parse config
+            fit_config = configparser.ConfigParser()
+            fit_config.read_dict(args)
+
+            filename = self.paths.fit_auto_fname(region, region2, absorber, absorber2)
+            with open(filename, "w") as file:
+                fit_config.write(file)
+
+            ini_files.append(str(filename))
+
+        for cross_correlation in cross_correlations:
+            absorber, region = cross_correlation.split("-")
+            region = self.validate_region(region)
+            absorber = self.validate_absorber(absorber)
+
+            vega_args = self.generate_picca_extra_args(
+                config=self.config["fits"],
+                default_config=self.defaults["fits"],
+                picca_args=dict(),
+                command="vega_cross.py",  # The use of .py only for using same function
+                region=region,
+                absorber=absorber,
+            )
+
+            args = {
+                "data": {
+                    "filename": self.paths.exp_xcf_fname(region, absorber),
+                },
+                "metals": {
+                    "filename": self.paths.xmetal_fname(region, absorber),
+                },
+            }
+
+            args = merge_dicts(args, vega_args)
+
+            # parse config
+            fit_config = configparser.ConfigParser()
+            fit_config.read_dict(args)
+
+            filename = self.paths.fit_cross_fname(region, absorber)
+            with open(filename, "w") as file:
+                fit_config.write(file)
+
+            ini_files.append(str(filename))
+
+        # Now the main file
+        vega_args = self.generate_picca_extra_args(
+            config=self.config["fits"],
+            picca_args=dict(),
+            default_config=self.defaults["fits"],
+            command="vega_main.py",  # The .py needed to make use of same function
+        )
+
+        args = {  # TODO: Figure out this.
+            "fiducial": {
+                "filename": "/global/homes/c/cgordon9/desi/vega/"
+                "vega/models/PlanckDR16/PlanckDR16.fits"
+            },
+            "output": {
+                "filename": self.paths.fit_out_fname(),
+            },
+        }
+
+        # parse config
+        fit_config = configparser.ConfigParser()
+        fit_config.read_dict(args)
+
+        filename = self.paths.fit_main_fname()
+        with open(filename, "w") as file:
+            fit_config.write(file)
+
+        ini_files.append(str(filename))
+
+        # Now slurm args
+        command = "run_vega.py"
+        updated_slurm_header_args = self.generate_slurm_header_extra_args(
+            config=self.config["fits"],
+            default_config=self.defaults["fits"],
+            slurm_args=slurm_header_extra_args,
+            command=command,
+        )
+        job_name = "vega_fit"
+
+        return get_Tasker(
+            updated_system,
+            command=command,
+            command_args={"": str(self.paths.fit_main_fname().resolve())},
+            slurm_header_args=updated_slurm_header_args,
+            srun_options=dict(),
+            environment=self.config["general"]["conda environment"],
+            run_file=self.paths.fits_path / f"scripts/run_{job_name}.sh",
+            wait_for=wait_for,
+        )
+
 
 class PathBuilder:
     """Class to define paths following the bookkeeper convention.
@@ -2392,6 +2620,8 @@ class PathBuilder:
         # Start from the bottom (correlations)
         if self.config.get("correlations", dict()).get("delta extraction", "") != "":
             delta_name = self.config["correlations"]["delta extraction"]
+        elif self.config.get("fits", dict()).get("delta extraction", "") != "":
+            delta_name = self.config["fits"]["delta extraction"]
         else:
             try:
                 delta_name = self.continuum_tag
@@ -2412,9 +2642,23 @@ class PathBuilder:
         Returns:
             Path
         """
-        correlation_name = self.config["correlations"]["run name"]
+        if self.config.get("fits", dict()).get("correlation run name", "") != "":
+            correlation_name = self.config["fits"]["correlation run name"]
+        else:
+            correlation_name = self.config["correlations"]["run name"]
 
         return self.run_path / "correlations" / correlation_name
+
+    @property
+    def fits_path(self):
+        """Give full path to the fits runs.
+
+        Returns:
+            Path
+        """
+        fit_name = self.config["fits"]["run name"]
+
+        return self.correlations_path / "fits" / fit_name
 
     @property
     def delta_config_file(self):
@@ -2433,6 +2677,15 @@ class PathBuilder:
             Path
         """
         return self.correlations_path / "configs" / "bookkeeper_config.yaml"
+
+    @property
+    def fit_config_file(self):
+        """Default path to the fit config file inside bookkeeper
+
+        Returns
+            Path
+        """
+        return self.fits_path / "configs" / "bookkeeper_config.yaml"
 
     def get_catalog_from_field(self, field):
         """Method to obtain catalogs given a catalog name in config file.
@@ -2554,7 +2807,10 @@ class PathBuilder:
 
     @staticmethod
     def compare_config_files(
-        file1: Union[str, Path], file2: Union[str, Path], section: str
+        file1: Union[str, Path],
+        file2: Union[str, Path],
+        section: str,
+        ignore_fields: List[str] = [],
     ):
         """Compare two config files to determine if they are the same.
 
@@ -2562,6 +2818,7 @@ class PathBuilder:
             file1
             file2
             section: Section of the yaml file to compare.
+            ignore_fields: Fields to ignore in the comparison
         """
         with open(file1, "r") as f:
             config1 = yaml.load(f, Loader=yaml.BaseLoader)
@@ -2569,7 +2826,12 @@ class PathBuilder:
         with open(file2, "r") as f:
             config2 = yaml.load(f, Loader=yaml.BaseLoader)
 
-        if config1[section] == config2[section]:
+        for field in ignore_fields:
+            for config in config1[section], config2[section]:
+                if config.get(field, "") != "":
+                    config.pop(field)
+
+        if config1.get(section, dict()) == config2.get(section, dict()):
             return True
         else:
             return False
@@ -2583,6 +2845,11 @@ class PathBuilder:
         """Method to create basic directories in correlations directory."""
         for folder in ("scripts", "correlations", "fits", "logs", "configs"):
             (self.correlations_path / folder).mkdir(exist_ok=True, parents=True)
+
+    def check_fit_directories(self):
+        """Method to create basic directories in fits directory."""
+        for folder in ("scripts", "results", "logs", "configs"):
+            (self.fits_path / folder).mkdir(exist_ok=True, parents=True)
 
     def deltas_path(self, region: str = None, calib_step: int = None):
         """Method to obtain the path to deltas output.
@@ -2779,3 +3046,45 @@ class PathBuilder:
         """
         cor_file = self.xcf_fname(region, absorber)
         return cor_file.parent / f"xcf_exp.fits.gz"
+
+    def fit_auto_fname(self, region: str, absorber: str, region2: str, absorber2: str):
+        """Method to get te path to a given fit auto config file.
+
+        Args:
+            region: Region where the correlation is computed.
+            region2: Second region used (if cross-correlation).
+            absorber: First absorber
+            absorber2: Second absorber
+
+        Returns:
+            Path: Path to fit config file.
+        """
+        return self.fits_path / "configs" / f"{absorber}{region}x{absorber}{region}.ini"
+
+    def fit_cross_fname(self, region: str, absorber: str):
+        """Method to get te path to a given fit cross config file.
+
+        Args:
+            region: Region where the correlation is computed.
+            absorber: First absorber
+
+        Returns:
+            Path: Path to fit config file.
+        """
+        return self.fits_path / "configs" / f"qsox{absorber}{region}.ini"
+
+    def fit_main_fname(self):
+        """Method to get the path to the main fit config file.
+
+        Returns:
+            Path: Path to main fit config file.
+        """
+        return self.fits_path / "configs" / "main.ini"
+
+    def fit_out_fname(self):
+        """Method to get the path to the fit output file.
+
+        Returns:
+            Path: Path to fit output file.
+        """
+        return self.fits_path / "results" / "fit_output.fits"

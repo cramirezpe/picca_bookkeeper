@@ -1,3 +1,12 @@
-{correlations: {catalog tracer: '', run name: default}, data: {catalog: LyaCoLoRe,
-    early dir: /global/u2/c/cramirez/Codes/picca_bookkeeper_new/tests/test_files/output,
-    healpix data: '', release: v9.0.0, survey: desi-2.0-1000}, general: {conda environment: picca_add_tests}}
+general:
+  conda environment: picca_add_tests
+data:
+  early dir: /global/u2/c/cramirez/Codes/picca_bookkeeper_new/tests/test_files/output
+  healpix data: ''
+  release: v9.0.0
+  survey: desi-2.0-1000
+  catalog: LyaCoLoRe
+correlations:
+  delta extraction: true_0_0.0.0_0
+  run name: default
+  catalog tracer: ''

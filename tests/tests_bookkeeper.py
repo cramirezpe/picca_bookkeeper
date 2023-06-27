@@ -145,7 +145,6 @@ class TestBookkeeper(unittest.TestCase):
         (self.files_path / "output").mkdir(exist_ok=True)
         (self.files_path / "output2").mkdir(exist_ok=True)
 
-
     def tearDown(self):
         shutil.rmtree(self.files_path / "output")
         shutil.rmtree(self.files_path / "output2")
@@ -161,12 +160,9 @@ class TestBookkeeper(unittest.TestCase):
 
     def compare_bookkeeper_output(self, test_folder, bookkeeper_folder):
         for root, dirs, files in os.walk(bookkeeper_folder):
-            path = root[len(str(bookkeeper_folder))+1:]
+            path = root[len(str(bookkeeper_folder)) + 1 :]
             for file in files:
-                self.compare_two_files(
-                    Path(root) / file,
-                    test_folder / path / file
-                )
+                self.compare_two_files(Path(root) / file, test_folder / path / file)
 
     def replace_paths_bookkeeper_output(self, bookkeeper_folder):
         for file in itertools.chain(
@@ -272,7 +268,10 @@ class TestBookkeeper(unittest.TestCase):
     #         bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
     @patch("picca_bookkeeper.tasker.run", side_effect=mock_run)
-    @patch("picca_bookkeeper.bookkeeper.get_quasar_catalog", side_effect=mock_get_3d_catalog)
+    @patch(
+        "picca_bookkeeper.bookkeeper.get_quasar_catalog",
+        side_effect=mock_get_3d_catalog,
+    )
     def test_example_guadalupe(self, mock_func_1, mock_func_2):
         copy_config_substitute(self.files_path / "example_config_guadalupe.yaml")
         test_files = THIS_DIR / "test_files" / "guadalupe"
@@ -286,7 +285,10 @@ class TestBookkeeper(unittest.TestCase):
         self.compare_bookkeeper_output(test_files, bookkeeper.paths.run_path)
 
     @patch("picca_bookkeeper.tasker.run", side_effect=mock_run)
-    @patch("picca_bookkeeper.bookkeeper.get_quasar_catalog", side_effect=mock_get_3d_catalog)
+    @patch(
+        "picca_bookkeeper.bookkeeper.get_quasar_catalog",
+        side_effect=mock_get_3d_catalog,
+    )
     def test_example_guadalupe_perlmutter(self, mock_func_1, mock_func_2):
         copy_config_substitute(
             self.files_path / "example_config_guadalupe_perlmutter.yaml"
@@ -302,7 +304,10 @@ class TestBookkeeper(unittest.TestCase):
         self.compare_bookkeeper_output(test_files, bookkeeper.paths.run_path)
 
     @patch("picca_bookkeeper.tasker.run", side_effect=mock_run)
-    @patch("picca_bookkeeper.bookkeeper.get_quasar_catalog", side_effect=mock_get_3d_catalog)
+    @patch(
+        "picca_bookkeeper.bookkeeper.get_quasar_catalog",
+        side_effect=mock_get_3d_catalog,
+    )
     def test_invalid_calib(self, mock_func_1, mock_func_2):
         copy_config_substitute(self.files_path / "example_config_guadalupe.yaml")
         bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
@@ -338,7 +343,10 @@ class TestBookkeeper(unittest.TestCase):
     #     self.compare_bookkeeper_output(test_files, bookkeeper.paths.run_path)
 
     @patch("picca_bookkeeper.tasker.run", side_effect=mock_run)
-    @patch("picca_bookkeeper.bookkeeper.get_quasar_catalog", side_effect=mock_get_3d_catalog)
+    @patch(
+        "picca_bookkeeper.bookkeeper.get_quasar_catalog",
+        side_effect=mock_get_3d_catalog,
+    )
     def test_example_guadalupe_custom_tracer_cat(self, mock_func_1, mock_func_2):
         copy_config_substitute(self.files_path / "example_config_guadalupe_tracer.yaml")
         test_files = THIS_DIR / "test_files" / "guadalupe_tracer"
@@ -352,7 +360,10 @@ class TestBookkeeper(unittest.TestCase):
         self.compare_bookkeeper_output(test_files, bookkeeper.paths.run_path)
 
     @patch("picca_bookkeeper.tasker.run", side_effect=mock_run)
-    @patch("picca_bookkeeper.bookkeeper.get_quasar_catalog", side_effect=mock_get_3d_catalog)
+    @patch(
+        "picca_bookkeeper.bookkeeper.get_quasar_catalog",
+        side_effect=mock_get_3d_catalog,
+    )
     def test_example_calib(self, mock_func_1, mock_func_2):
         copy_config_substitute(self.files_path / "example_config_guadalupe.yaml")
         test_files = THIS_DIR / "test_files" / "calib"
@@ -366,7 +377,10 @@ class TestBookkeeper(unittest.TestCase):
         self.compare_bookkeeper_output(test_files, bookkeeper.paths.run_path)
 
     @patch("picca_bookkeeper.tasker.run", side_effect=mock_run)
-    @patch("picca_bookkeeper.bookkeeper.get_quasar_catalog", side_effect=mock_get_3d_catalog)
+    @patch(
+        "picca_bookkeeper.bookkeeper.get_quasar_catalog",
+        side_effect=mock_get_3d_catalog,
+    )
     def test_example_calib_diff_path(self, mock_func_1, mock_func_2):
         copy_config_substitute(self.files_path / "example_config_guadalupe.yaml")
         test_files = THIS_DIR / "test_files" / "calib_diff_path"
@@ -377,12 +391,14 @@ class TestBookkeeper(unittest.TestCase):
         # self.replace_paths_bookkeeper_output(bookkeeper.paths.run_path)
 
         # Now main run:
-        #copy_config_substitute(self.files_path / "example_config_guadalupe_calib_diff_path.yaml", out_name="output2")
-        copy_config_substitute(self.files_path / "example_config_guadalupe_calib_diff_path.yaml")
+        # copy_config_substitute(self.files_path / "example_config_guadalupe_calib_diff_path.yaml", out_name="output2")
+        copy_config_substitute(
+            self.files_path / "example_config_guadalupe_calib_diff_path.yaml"
+        )
 
         with open(THIS_DIR / "test_files" / "output" / "tmp.yaml", "r") as file:
             filedata = file.read()
-        
+
         # filedata = filedata.replace("calibration_directory", str(THIS_DIR / "test_files" / "output"))
 
         with open(THIS_DIR / "test_files" / "output" / "tmp.yaml", "w") as file:
@@ -398,7 +414,10 @@ class TestBookkeeper(unittest.TestCase):
         self.compare_bookkeeper_output(test_files, bookkeeper2.paths.run_path)
 
     @patch("picca_bookkeeper.tasker.run", side_effect=mock_run)
-    @patch("picca_bookkeeper.bookkeeper.get_quasar_catalog", side_effect=mock_get_3d_catalog)
+    @patch(
+        "picca_bookkeeper.bookkeeper.get_quasar_catalog",
+        side_effect=mock_get_3d_catalog,
+    )
     def test_run_only_correlation_on_another_bookkeeper(self, mock_func_1, mock_func_2):
         copy_config_substitute(self.files_path / "example_config_guadalupe.yaml")
         test_files = THIS_DIR / "test_files" / "second_correlation"
@@ -406,20 +425,25 @@ class TestBookkeeper(unittest.TestCase):
 
         write_full_analysis(bookkeeper, calib=True, region="lyb", region2="lya")
 
-        #Now failing run
-        copy_config_substitute(self.files_path / "example_config_guadalupe_only_corr_fail.yaml")
-
-        with open(THIS_DIR / "test_files" / "output" / "tmp.yaml", "r") as file:
-            filedata = file.read()
-
-        with self.assertRaises(ValueError) as cm:
-            bookkeeper2 = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
-        self.assertEqual(
-            "delta extraction section of config file should match delta extraction section from file already in the bookkeeper.", str(cm.exception)
+        # Now failing run
+        copy_config_substitute(
+            self.files_path / "example_config_guadalupe_only_corr_fail.yaml"
         )
 
-        #Now failing run (2)
-        copy_config_substitute(self.files_path / "example_config_guadalupe_only_corr_fail_2.yaml")
+        with open(THIS_DIR / "test_files" / "output" / "tmp.yaml", "r") as file:
+            filedata = file.read()
+
+        with self.assertRaises(ValueError) as cm:
+            bookkeeper2 = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
+        self.assertEqual(
+            "delta extraction section of config file should match delta extraction section from file already in the bookkeeper.",
+            str(cm.exception),
+        )
+
+        # Now failing run (2)
+        copy_config_substitute(
+            self.files_path / "example_config_guadalupe_only_corr_fail_2.yaml"
+        )
 
         with open(THIS_DIR / "test_files" / "output" / "tmp.yaml", "r") as file:
             filedata = file.read()
@@ -427,15 +451,18 @@ class TestBookkeeper(unittest.TestCase):
         with self.assertRaises(ValueError) as cm:
             bookkeeper2 = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
         self.assertEqual(
-            "correlations section of config file should match correlation section from file already in the bookkeeper.", str(cm.exception)
+            "correlations section of config file should match correlation section from file already in the bookkeeper.",
+            str(cm.exception),
         )
 
         # Now main run:
-        copy_config_substitute(self.files_path / "example_config_guadalupe_only_corr.yaml")
+        copy_config_substitute(
+            self.files_path / "example_config_guadalupe_only_corr.yaml"
+        )
 
         with open(THIS_DIR / "test_files" / "output" / "tmp.yaml", "r") as file:
             filedata = file.read()
-    
+
         bookkeeper2 = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
         cf = bookkeeper2.get_cf_tasker(
@@ -452,10 +479,11 @@ class TestBookkeeper(unittest.TestCase):
             self.update_test_output(test_files, bookkeeper2.paths.run_path)
         self.compare_bookkeeper_output(test_files, bookkeeper2.paths.run_path)
 
-
-
     @patch("picca_bookkeeper.tasker.run", side_effect=mock_run)
-    @patch("picca_bookkeeper.bookkeeper.get_quasar_catalog", side_effect=mock_get_3d_catalog)
+    @patch(
+        "picca_bookkeeper.bookkeeper.get_quasar_catalog",
+        side_effect=mock_get_3d_catalog,
+    )
     def test_example_custom(self, mock_func_1, mock_func_2):
         copy_config_substitute(self.files_path / "example_config_custom.yaml")
         test_files = THIS_DIR / "test_files" / "customconfig"
@@ -469,7 +497,10 @@ class TestBookkeeper(unittest.TestCase):
         self.compare_bookkeeper_output(test_files, bookkeeper.paths.run_path)
 
     @patch("picca_bookkeeper.tasker.run", side_effect=mock_run)
-    @patch("picca_bookkeeper.bookkeeper.get_quasar_catalog", side_effect=mock_get_3d_catalog)
+    @patch(
+        "picca_bookkeeper.bookkeeper.get_quasar_catalog",
+        side_effect=mock_get_3d_catalog,
+    )
     def test_example_custom_raise_if_calib(self, mock_func_1, mock_func_2):
         copy_config_substitute(self.files_path / "example_config_custom.yaml")
         test_files = THIS_DIR / "test_files" / "customconfig"
@@ -494,7 +525,10 @@ class TestBookkeeper(unittest.TestCase):
         )
 
     @patch("picca_bookkeeper.tasker.run", side_effect=mock_run)
-    @patch("picca_bookkeeper.bookkeeper.get_quasar_catalog", side_effect=mock_get_3d_catalog)
+    @patch(
+        "picca_bookkeeper.bookkeeper.get_quasar_catalog",
+        side_effect=mock_get_3d_catalog,
+    )
     def test_example_custom_calib(self, mock_func_1, mock_func_2):
         copy_config_substitute(self.files_path / "example_config_custom_calib.yaml")
         test_files = THIS_DIR / "test_files" / "customconfigcalib"
@@ -519,7 +553,10 @@ class TestBookkeeper(unittest.TestCase):
         self.compare_bookkeeper_output(test_files, bookkeeper.paths.run_path)
 
     @patch("picca_bookkeeper.tasker.run", side_effect=mock_run)
-    @patch("picca_bookkeeper.bookkeeper.get_quasar_catalog", side_effect=mock_get_3d_catalog)
+    @patch(
+        "picca_bookkeeper.bookkeeper.get_quasar_catalog",
+        side_effect=mock_get_3d_catalog,
+    )
     def test_example_custom_calib_raise_if_corrections_added(
         self, mock_func_1, mock_func_2
     ):
@@ -536,7 +573,10 @@ class TestBookkeeper(unittest.TestCase):
         )
 
     @patch("picca_bookkeeper.tasker.run", side_effect=mock_run)
-    @patch("picca_bookkeeper.bookkeeper.get_quasar_catalog", side_effect=mock_get_3d_catalog)
+    @patch(
+        "picca_bookkeeper.bookkeeper.get_quasar_catalog",
+        side_effect=mock_get_3d_catalog,
+    )
     def test_example_guadalupe_dla_bal(self, mock_func_1, mock_func_2):
         copy_config_substitute(
             self.files_path / "example_config_guadalupe_dla_bal.yaml"
@@ -552,7 +592,10 @@ class TestBookkeeper(unittest.TestCase):
         self.compare_bookkeeper_output(test_files, bookkeeper.paths.run_path)
 
     @patch("picca_bookkeeper.tasker.run", side_effect=mock_run)
-    @patch("picca_bookkeeper.bookkeeper.get_quasar_catalog", side_effect=mock_get_3d_catalog)
+    @patch(
+        "picca_bookkeeper.bookkeeper.get_quasar_catalog",
+        side_effect=mock_get_3d_catalog,
+    )
     def test_example_guadalupe_dla_fail(self, mock_func_1, mock_func_2):
         copy_config_substitute(
             self.files_path / "example_config_guadalupe_dla_bal_dla_fail.yaml"
@@ -564,7 +607,10 @@ class TestBookkeeper(unittest.TestCase):
         self.assertEqual("DlaMask set by user with dla option != 0", str(cm.exception))
 
     @patch("picca_bookkeeper.tasker.run", side_effect=mock_run)
-    @patch("picca_bookkeeper.bookkeeper.get_quasar_catalog", side_effect=mock_get_3d_catalog)
+    @patch(
+        "picca_bookkeeper.bookkeeper.get_quasar_catalog",
+        side_effect=mock_get_3d_catalog,
+    )
     def test_example_guadalupe_bal_fail(self, mock_func_1, mock_func_2):
         copy_config_substitute(
             self.files_path / "example_config_guadalupe_dla_bal_bal_fail.yaml"
@@ -576,7 +622,10 @@ class TestBookkeeper(unittest.TestCase):
         self.assertEqual("BalMask set by user with bal option !=0", str(cm.exception))
 
     @patch("picca_bookkeeper.tasker.run", side_effect=mock_run)
-    @patch("picca_bookkeeper.bookkeeper.get_quasar_catalog", side_effect=mock_get_3d_catalog)
+    @patch(
+        "picca_bookkeeper.bookkeeper.get_quasar_catalog",
+        side_effect=mock_get_3d_catalog,
+    )
     def test_raw(self, mock_func_1, mock_func_2):
         copy_config_substitute(self.files_path / "example_config_raw.yaml")
         test_files = THIS_DIR / "test_files" / "raw"
@@ -603,7 +652,10 @@ class TestBookkeeper(unittest.TestCase):
         self.compare_bookkeeper_output(test_files, bookkeeper.paths.run_path)
 
     @patch("picca_bookkeeper.tasker.run", side_effect=mock_run)
-    @patch("picca_bookkeeper.bookkeeper.get_quasar_catalog", side_effect=mock_get_3d_catalog)
+    @patch(
+        "picca_bookkeeper.bookkeeper.get_quasar_catalog",
+        side_effect=mock_get_3d_catalog,
+    )
     def test_true_failing(self, mock_func_1, mock_func_2):
         copy_config_substitute(self.files_path / "example_config_true.yaml")
         test_files = THIS_DIR / "test_files" / "true"
@@ -621,7 +673,10 @@ class TestBookkeeper(unittest.TestCase):
         )
 
     @patch("picca_bookkeeper.tasker.run", side_effect=mock_run)
-    @patch("picca_bookkeeper.bookkeeper.get_quasar_catalog", side_effect=mock_get_3d_catalog)
+    @patch(
+        "picca_bookkeeper.bookkeeper.get_quasar_catalog",
+        side_effect=mock_get_3d_catalog,
+    )
     def test_true(self, mock_func_1, mock_func_2):
         copy_config_substitute(self.files_path / "example_config_true.yaml")
         test_files = THIS_DIR / "test_files" / "true"

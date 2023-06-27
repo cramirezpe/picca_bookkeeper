@@ -142,6 +142,9 @@ correlations:
 
     picca_xcf:
 
+    # lyalya
+    picca_xcf_lyalya:
+
     picca_dmat:
 
     picca_xdmat:
@@ -164,3 +167,26 @@ fits:
 
   # Similarly as before, define a correlation run name if it was not defined above.
   correlation run name:
+
+  # This is the user-friendly name for the fit run
+  run name: default
+
+  # To use same functions we call this picca_args although vega is used.
+  picca_args:
+    vega_auto:
+      data:
+        tracer1-type: continuous
+
+    vega_auto_lyalya_lyalya:
+
+    vega_cross:
+
+    vega_cross_lyalya:
+
+    vega_main:
+
+  # There is only one script (run_vega.py)
+  slurm args:
+    run_vega:
+      mail-type: fail
+      mail-user: user@host.com
