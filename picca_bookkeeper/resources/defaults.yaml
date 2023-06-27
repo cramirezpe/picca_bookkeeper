@@ -65,10 +65,10 @@ correlations:
       fid-Or: 7.975e-5
 
     picca_metal_dmat_lyalyb_lyalya:
-      abs-igm: "SiII(1260) SiIII(1207) SiII(1193) SiII(1190) CiV(eff)"
+      abs-igm: "SiII(1260) SiIII(1207) SiII(1193) SiII(1190) CIV(eff)"
     
     picca_metal_dmat_lyalya_lyalyb:
-      abs-igm: "SiII(1260) SiIII(1207) SiII(1193) SiII(1190) CiV(eff)"
+      abs-igm: "SiII(1260) SiIII(1207) SiII(1193) SiII(1190) CIV(eff)"
 
     picca_xcf:
       mode: desi_healpix
