@@ -185,6 +185,12 @@ fits:
 
     vega_main:
 
+    # Use this to remove certain configuration from the fit
+    # This will remove rp-min
+    # remove_vega_auto:
+    #   cuts:
+    #     rp-min:
+
   # There is only one script (run_vega.py)
   slurm args:
     run_vega:

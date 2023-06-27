@@ -124,6 +124,19 @@ def merge_dicts(dict1: Dict, dict2: Dict):
     return result
 
 
+def remove_matching(dict1: Dict, dict2: Dict):
+    """Removes occurrences happening in two dictionaries."""
+    result = copy.deepcopy(dict1)
+
+    for key, value in dict2.items():
+        if isinstance(value, collections.abc.Mapping):
+            result[key] = remove_matching(result.get(key, {}), value)
+        elif key in result:
+            result.pop(key)
+
+    return result
+
+
 class Bookkeeper:
     """Class to generate Tasker objects which can be used to run different picca jobs.
 
@@ -511,6 +524,15 @@ class Bookkeeper:
                     config["picca args"][section], dict
                 ):
                     args = merge_dicts(args, config["picca args"][section])
+
+            # remove args marked as remove_
+            for section in sections:
+                if "remove_" + section in config["picca args"] and isinstance(
+                    config["picca args"]["remove_" + section], dict
+                ):
+                    args = remove_matching(
+                        args, config["picca args"]["remove_" + section]
+                    )
 
         # Copied args is the highest priority
         return merge_dicts(args, copied_args)
@@ -2489,6 +2511,8 @@ class Bookkeeper:
                 "filename": self.paths.fit_out_fname(),
             },
         }
+
+        args = merge_dicts(args, vega_args)
 
         # parse config
         fit_config = configparser.ConfigParser()
