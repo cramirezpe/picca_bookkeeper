@@ -30,6 +30,7 @@ setuptools.setup(
             "desi_bookkeeper_add_last_night_column = picca_bookkeeper.scripts.add_last_night_column:main",
             "desi_bookkeeper_run_add_extra_deltas_data = picca_bookkeeper.scripts.run_add_extra_deltas_data:main",
             "desi_bookkeeper_add_extra_deltas_data = picca_bookkeeper.scripts.add_extra_deltas_data:main",
+            "desi_bookkeeper_run_fit = picca_bookkeeper.scripts.run_fit:main",
         ]
     },
     classifiers=[
