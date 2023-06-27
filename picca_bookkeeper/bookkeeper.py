@@ -7,12 +7,12 @@ import filecmp
 import shutil
 import os
 import yaml
-from importlib import resources
+from importlib_resources import files
 
 from picca.constants import ABSORBER_IGM
 
 from picca_bookkeeper.tasker import get_Tasker, ChainedTasker, Tasker
-from picca_bookkeeper import resources as bkp_resources
+from picca_bookkeeper import resources
 
 forest_regions = {
     "lya": {
@@ -167,7 +167,7 @@ class Bookkeeper:
 
         # Read defaults
         self.defaults = yaml.load(
-            resources.read_text(bkp_resources, "defaults.yaml"),
+            files(resources).joinpath("defaults.yaml").read_text(),
             Loader=yaml.BaseLoader,
         )
 
@@ -2445,15 +2445,27 @@ class Bookkeeper:
             command="vega_main.py",  # The .py needed to make use of same function
         )
 
-        args = {  # TODO: Figure out this.
-            "fiducial": {
-                "filename": "/global/homes/c/cgordon9/desi/vega/"
-                "vega/models/PlanckDR16/PlanckDR16.fits"
-            },
+        args = {
             "output": {
-                "filename": self.paths.fit_out_fname(),
-            },
+                "filename": self.paths.fit_out_fname()
+            }
         }
+
+        if "fiducial" not in args:
+            shutil.copy(
+                files(resources).joinpath("fit_models/PlanckDR16.fits"),
+                self.paths.fit_main_fname().parent / "PlanckDR16.fits"
+            )
+            args = merge_dicts(
+                args,
+                {
+                    "fiducial": {
+                        "filename": (
+                            self.paths.fit_main_fname().parent / "PlanckDR16.fits"
+                        )
+                    }
+                }
+            )
 
         args = merge_dicts(args, vega_args)
 
