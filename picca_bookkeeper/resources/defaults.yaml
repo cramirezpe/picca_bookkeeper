@@ -53,7 +53,7 @@ correlations:
       nt: 50
       fid-Or: 7.975e-5
 
-    picca_metal:
+    picca_metal_dmat:
       nproc: 128
       rej: 0.995
       abs-igm: "SiII(1260) SiIII(1207) SiII(1193) SiII(1190)"
@@ -87,7 +87,7 @@ correlations:
       nt: 50
       fid-Or: 7.975e-5
 
-    picca_xmetal:
+    picca_metal_xdmat:
       mode: "desi_healpix"
       nproc: 128
       rej: 0.995
