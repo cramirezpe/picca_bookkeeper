@@ -16,7 +16,7 @@ def main(args=None):
         wait_for = args.wait_for,
     )
 
-    fit.write_Job()
+    fit.write_job()
     if not args.only_write:
         fit.send_job()
         print(fit.jobid)
