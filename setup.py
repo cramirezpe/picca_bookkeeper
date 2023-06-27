@@ -13,7 +13,12 @@ setuptools.setup(
     long_description_content="text/markdown",
     url="",
     packages=setuptools.find_packages(),
-    package_data={'picca_bookkeeper': ['picca_bookkeeper/resources/*']},
+    package_data={'picca_bookkeeper': [
+        'resources/*',
+        'resources/*/*',
+        ]
+    },
+    # include_package_data=True,
     entry_points={
         "console_scripts": [
             "desi_bookkeeper_run_delta_extraction = picca_bookkeeper.scripts.run_delta_extraction:main",

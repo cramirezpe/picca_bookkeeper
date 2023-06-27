@@ -21,6 +21,15 @@ delta extraction:
     # Scripts with terminal args are also compatible
     picca_convert_transmission:
     # linear-spacing: # use empty string for action args like no-project.
+  
+  slurm args:
+    picca_convert_transmission:
+      time: 02:00:00
+      qos: regular
+    
+    picca_delta_extraction:
+      time: 02:00:00
+      qos: regular
 
 
 correlations:
@@ -89,6 +98,36 @@ correlations:
       np: 150
       nt: 50
       fid-Or: 7.975e-5
+
+  slurm args:
+    picca_cf:
+      qos: regular
+      time: 02:00:00
+
+    picca_dmat:
+      qos: regular
+      time: 02:00:00
+
+    picca_export:
+      qos: regular
+      time: 00:10:00
+
+    picca_metal_dmat:
+      qos: regular
+      time: 10:00:00
+
+    picca_xcf:
+      qos: regular
+      time: 02:00:00
+
+    picca_xdmat:
+      qos: regular
+      time: 02:00:00
+
+    picca_metal_xdmat:
+      qos: regular
+      time: 10:00:00
+
 
 fits:
   picca args:
