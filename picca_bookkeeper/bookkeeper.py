@@ -303,7 +303,8 @@ class Bookkeeper:
         else:
             self.calibration = self
 
-    def write_bookkeeper(self, config: Dict, file: Union[Path, str]):
+    @staticmethod
+    def write_bookkeeper(config: Dict, file: Union[Path, str]):
         """Method to write bookkeeper yaml file to file
 
         Args:

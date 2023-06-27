@@ -11,6 +11,8 @@ class DictUtils:
 
         for key, value in dict2.items():
             if isinstance(value, collections.abc.Mapping):
+                if not isinstance(result.get(key, {}), collections.abc.Mapping):
+                    result[key] = dict()
                 result[key] = DictUtils.merge_dicts(result.get(key, {}), value)
             else:
                 result[key] = copy.deepcopy(dict2[key])
