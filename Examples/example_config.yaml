@@ -149,7 +149,9 @@ correlations:
 
     picca_xdmat:
 
-    picca_metal:
+    picca_metal_dmat:
+
+    picca_metal_xdmat:
 
     picca_export:
 

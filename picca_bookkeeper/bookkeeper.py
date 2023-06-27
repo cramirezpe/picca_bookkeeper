@@ -599,19 +599,7 @@ class Bookkeeper:
 
         job_name = f"raw_deltas_{region}"
 
-        if debug:  # pragma: no cover
-            qos = "debug"
-            time = "00:30:00"
-            updated_picca_extra_args = merge_dicts(
-                dict(nspec=1000), updated_picca_extra_args
-            )
-        else:
-            qos = "regular"
-            time = "03:00:00"
-
         slurm_header_args = {
-            "time": time,
-            "qos": qos,
             "job-name": job_name,
             "output": str(self.paths.run_path / f"logs/{job_name}-%j.out"),
             "error": str(self.paths.run_path / f"logs/{job_name}-%j.err"),
@@ -625,19 +613,19 @@ class Bookkeeper:
             "object-cat": str(self.paths.catalog),
             "in-dir": str(self.paths.transmission_data),
             "out-dir": str(self.paths.deltas_path(region)),
+            "lambda-rest-min": forest_regions[region]["lambda-rest-min"],
+            "lambda-rest-max": forest_regions[region]["lambda-rest-max"],
         }
+        args = merge_dicts(args, updated_picca_extra_args)
+
+        if debug:  # pragma: no cover
+            slurm_header_args = merge_dicts(
+                slurm_header_args,
+                dict(qos="debug", time="00:30:00"),
+            )
+            args = merge_dicts(args, dict(nspec=1000))
 
         self.paths.deltas_path(region).mkdir(exist_ok=True, parents=True)
-
-        args = {
-            **args,
-            **{
-                "lambda-rest-min": forest_regions[region]["lambda-rest-min"],
-                "lambda-rest-max": forest_regions[region]["lambda-rest-max"],
-            },
-        }
-
-        args = merge_dicts(args, updated_picca_extra_args)
 
         return get_Tasker(
             updated_system,
@@ -1030,14 +1018,6 @@ class Bookkeeper:
             "expected flux": updated_picca_extra_args.get("expected flux", {}),
         }
 
-        if debug:  # pragma: no cover
-            qos = "debug"
-            time = "00:30:00"
-            deltas_config_dict.get("data").update({"max num spec": 1000})
-        else:
-            qos = "regular"
-            time = "03:00:00"
-
         # update data section with extra options
         # but leave them if provided by user
         deltas_config_dict["data"]["type"] = deltas_config_dict["data"].get(
@@ -1085,6 +1065,12 @@ class Bookkeeper:
 
         deltas_config_dict = merge_dicts(deltas_config_dict, updated_picca_extra_args)
 
+        if debug:  # pragma: no cover
+            slurm_header_args = merge_dicts(
+                slurm_header_args, dict(qos="debug", time="00:30:00")
+            )
+            deltas_config_dict.get("data").update({"max num spec": 1000})
+
         # parse config
         deltas_config = configparser.ConfigParser()
         deltas_config.read_dict(deltas_config_dict)
@@ -1093,8 +1079,6 @@ class Bookkeeper:
             deltas_config.write(file)
 
         slurm_header_args = {
-            "time": time,
-            "qos": qos,
             "job-name": job_name,
             "output": str(self.paths.run_path / f"logs/{job_name}-%j.out"),
             "error": str(self.paths.run_path / f"logs/{job_name}-%j.err"),
@@ -1276,20 +1260,7 @@ class Bookkeeper:
 
         job_name = f"cf_{absorber}{region}_{absorber2}{region2}"
 
-        if debug:  # pragma: no cover
-            qos = "debug"
-            time = "00:30:00"
-            updated_picca_extra_args = {
-                **dict(nspec=200000),
-                **updated_picca_extra_args,
-            }
-        else:
-            qos = "regular"
-            time = "02:00:00"
-
         slurm_header_args = {
-            "time": time,
-            "qos": qos,
             "job-name": job_name,
             "output": str(self.paths.correlations_path / f"logs/{job_name}-%j.out"),
             "error": str(self.paths.correlations_path / f"logs/{job_name}-%j.err"),
@@ -1315,6 +1286,15 @@ class Bookkeeper:
             args["in-dir2"] = str(self.paths.deltas_path(region2))
 
         args = merge_dicts(args, updated_picca_extra_args)
+
+        if debug:  # pragma: no cover
+            slurm_header_args = merge_dicts(
+                slurm_header_args, dict(qos="debug", time="00:30:00")
+            )
+            args = merge_dicts(
+                args,
+                dict(nspec=1000),
+            )
 
         self.paths.cf_fname(region, region2, absorber, absorber2).parent.mkdir(
             exist_ok=True, parents=True
@@ -1405,20 +1385,7 @@ class Bookkeeper:
 
         job_name = f"dmat_{absorber}{region}_{absorber2}{region2}"
 
-        if debug:  # pragma: no cover
-            qos = "debug"
-            time = "00:30:00"
-            updated_picca_extra_args = {
-                **dict(nspec=200000),
-                **updated_picca_extra_args,
-            }
-        else:
-            qos = "regular"
-            time = "02:00:00"
-
         slurm_header_args = {
-            "time": time,
-            "qos": qos,
             "job-name": job_name,
             "output": str(self.paths.correlations_path / f"logs/{job_name}-%j.out"),
             "error": str(self.paths.correlations_path / f"logs/{job_name}-%j.err"),
@@ -1445,6 +1412,13 @@ class Bookkeeper:
 
         args = merge_dicts(args, updated_picca_extra_args)
 
+        if debug:  # pragma: no cover
+            slurm_header_args = merge_dicts(
+                slurm_header_args,
+                dict(qos="debug", time="00:30:00"),
+            )
+            args = merge_dicts(args, dict(nspec=1000))
+
         self.paths.dmat_fname(region, region2, absorber, absorber2).parent.mkdir(
             exist_ok=True,
             parents=True,
@@ -1468,7 +1442,6 @@ class Bookkeeper:
         absorber: str = "LYA",
         absorber2: str = None,
         system: str = None,
-        debug: bool = False,
         wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
         slurm_header_extra_args: Dict = dict(),
         picca_extra_args: Dict = dict(),
@@ -1487,7 +1460,6 @@ class Bookkeeper:
             system: Shell to use for job. 'slurm_perlmutter' to use slurm
                 scripts on perlmutter, 'bash' to  run it in login nodes or
                 computer shell. Default: None, read from config file.
-            debug: Whether to use debug options.
             wait_for: In NERSC, wait for a given job to finish before running
                 the current one. Could be a  Tasker object or a slurm jobid
                 (int). (Default: None, won't wait for anything).
@@ -1538,8 +1510,6 @@ class Bookkeeper:
         job_name = f"cf_exp_{absorber}{region}_{absorber2}{region2}"
 
         slurm_header_args = {
-            "qos": "regular",
-            "time": "00:10:00",
             "job-name": job_name,
             "output": str(self.paths.correlations_path / f"logs/{job_name}-%j.out"),
             "error": str(self.paths.correlations_path / f"logs/{job_name}-%j.err"),
@@ -1656,20 +1626,7 @@ class Bookkeeper:
 
         job_name = f"metal_{region}_{region2}"
 
-        if debug:  # pragma: no cover
-            qos = "debug"
-            time = "00:30:00"
-            updated_picca_extra_args = {
-                **dict(nspec=200000),
-                **updated_picca_extra_args,
-            }
-        else:
-            qos = "regular"
-            time = "10:00:00"
-
         slurm_header_args = {
-            "time": time,
-            "qos": qos,
             "job-name": job_name,
             "output": str(self.paths.correlations_path / f"logs/{job_name}-%j.out"),
             "error": str(self.paths.correlations_path / f"logs/{job_name}-%j.err"),
@@ -1695,6 +1652,13 @@ class Bookkeeper:
             args["in-dir2"] = str(self.paths.deltas_path(region2))
 
         args = merge_dicts(args, updated_picca_extra_args)
+
+        if debug:  # pragma: no cover
+            slurm_header_args = merge_dicts(
+                slurm_header_args,
+                dict(qos="debug", time="00:30:00"),
+            )
+            args = merge_dicts(args, dict(nspec=1000))
 
         self.paths.metal_fname(region, region2, absorber, absorber2).parent.mkdir(
             exist_ok=True, parents=True
@@ -1769,20 +1733,7 @@ class Bookkeeper:
 
         job_name = f"xcf_{absorber}{region}"
 
-        if debug:  # pragma: no cover
-            qos = "debug"
-            time = "00:30:00"
-            updated_picca_extra_args = {
-                **dict(nspec=200000),
-                **updated_picca_extra_args,
-            }
-        else:
-            qos = "regular"
-            time = "02:00:00"
-
         slurm_header_args = {
-            "time": time,
-            "qos": qos,
             "job-name": job_name,
             "output": str(self.paths.correlations_path / f"logs/{job_name}-%j.out"),
             "error": str(self.paths.correlations_path / f"logs/{job_name}-%j.err"),
@@ -1805,6 +1756,15 @@ class Bookkeeper:
             args["mode"] = "desi_mocks"
 
         args = merge_dicts(args, updated_picca_extra_args)
+
+        if debug:  # pragma: no cover
+            slurm_header_args = merge_dicts(
+                slurm_header_args, dict(qos="debug", time="00:30:00")
+            )
+            args = merge_dicts(
+                args,
+                dict(nspec=1000),
+            )
 
         self.paths.xcf_fname(region, absorber).parent.mkdir(exist_ok=True, parents=True)
 
@@ -1879,20 +1839,7 @@ class Bookkeeper:
 
         job_name = f"xdmat_{absorber}{region}"
 
-        if debug:  # pragma: no cover
-            qos = "debug"
-            time = "00:30:00"
-            updated_picca_extra_args = {
-                **dict(nspec=200000),
-                **updated_picca_extra_args,
-            }
-        else:
-            qos = "regular"
-            time = "02:00:00"
-
         slurm_header_args = {
-            "time": time,
-            "qos": qos,
             "job-name": job_name,
             "output": str(self.paths.correlations_path / f"logs/{job_name}-%j.out"),
             "error": str(self.paths.correlations_path / f"logs/{job_name}-%j.err"),
@@ -1916,6 +1863,14 @@ class Bookkeeper:
 
         args = merge_dicts(args, updated_picca_extra_args)
 
+        if debug:  # pragma: no cover
+            slurm_header_args = merge_dicts(
+                slurm_header_args, dict(qos="debug", time="00:30:00")
+            )
+            args = merge_dicts(
+                args,
+                dict(nspec=1000),
+            )
         self.paths.xdmat_fname(region, absorber).parent.mkdir(
             exist_ok=True, parents=True
         )
@@ -1991,8 +1946,6 @@ class Bookkeeper:
         job_name = f"xcf_exp_{absorber}{region}"
 
         slurm_header_args = {
-            "qos": "regular",
-            "time": "00:10:00",
             "job-name": job_name,
             "output": str(self.paths.correlations_path / f"logs/{job_name}-%j.out"),
             "error": str(self.paths.correlations_path / f"logs/{job_name}-%j.err"),
@@ -2092,20 +2045,7 @@ class Bookkeeper:
 
         job_name = f"xdmat_{absorber}{region}"
 
-        if debug:  # pragma: no cover
-            qos = "debug"
-            time = "00:30:00"
-            updated_picca_extra_args = {
-                **dict(nspec=200000),
-                **updated_picca_extra_args,
-            }
-        else:
-            qos = "regular"
-            time = "02:00:00"
-
         slurm_header_args = {
-            "time": time,
-            "qos": qos,
             "job-name": job_name,
             "output": str(self.paths.correlations_path / f"logs/{job_name}-%j.out"),
             "error": str(self.paths.correlations_path / f"logs/{job_name}-%j.err"),
@@ -2137,6 +2077,15 @@ class Bookkeeper:
             args["mode"] = "desi_mocks"
 
         args = merge_dicts(args, updated_picca_extra_args)
+
+        if debug:  # pragma: no cover
+            slurm_header_args = merge_dicts(
+                slurm_header_args, dict(qos="debug", time="00:30:00")
+            )
+            args = merge_dicts(
+                args,
+                dict(nspec=1000),
+            )
 
         self.paths.xdmat_fname(region, absorber).parent.mkdir(
             exist_ok=True, parents=True
@@ -2215,8 +2164,6 @@ class Bookkeeper:
         job_name = f"xcf_exp_{absorber}{region}"
 
         slurm_header_args = {
-            "qos": "regular",
-            "time": "00:10:00",
             "job-name": job_name,
             "output": str(self.paths.correlations_path / f"logs/{job_name}-%j.out"),
             "error": str(self.paths.correlations_path / f"logs/{job_name}-%j.err"),
@@ -2318,20 +2265,7 @@ class Bookkeeper:
 
         job_name = f"xmetal_{absorber}{region}"
 
-        if debug:  # pragma: no cover
-            qos = "debug"
-            time = "00:30:00"
-            updated_picca_extra_args = {
-                **dict(nspec=200000),
-                **updated_picca_extra_args,
-            }
-        else:
-            qos = "regular"
-            time = "10:00:00"
-
         slurm_header_args = {
-            "time": time,
-            "qos": qos,
             "job-name": job_name,
             "output": str(self.paths.correlations_path / f"logs/{job_name}-%j.out"),
             "error": str(self.paths.correlations_path / f"logs/{job_name}-%j.err"),
@@ -2359,6 +2293,15 @@ class Bookkeeper:
             "HDF5_USE_FILE_LOCKING": "FALSE",
         }
 
+        if debug:  # pragma: no cover
+            slurm_header_args = merge_dicts(
+                slurm_header_args, dict(qos="debug", time="00:30:00")
+            )
+            args = merge_dicts(
+                args,
+                dict(nspec=1000),
+            )
+
         self.paths.xmetal_fname(region, absorber).parent.mkdir(
             exist_ok=True, parents=True
         )
@@ -2381,7 +2324,7 @@ class Bookkeeper:
         cross_correlations: List[str] = [],
         system: str = None,
         wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
-        vega_extra_args: Dict = dict(),
+        # vega_extra_args: Dict = dict(),
         slurm_header_extra_args: Dict = dict(),
     ):
         """Method to get a Tasker object to run vega with correlation data.
