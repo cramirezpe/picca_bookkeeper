@@ -109,7 +109,7 @@ def write_full_analysis(bookkeeper, calib=False, region="lya", region2=None):
         auto_correlations=["lya-lya_lya-lya"],
         cross_correlations=["lya-lya"],
     )
-    
+
     fit.write_job()
     fit.send_job()
 
@@ -170,15 +170,17 @@ class TestBookkeeper(unittest.TestCase):
         for root, dirs, files in os.walk(bookkeeper_folder):
             path = root[len(str(bookkeeper_folder)) + 1 :]
             for file in files:
-                if file.split('.')[-1] not in ('fits', 'gz'): 
+                if file.split(".")[-1] not in ("fits", "gz"):
                     self.compare_two_files(Path(root) / file, test_folder / path / file)
 
-    def replace_paths_bookkeeper_output(self, bookkeeper_folder):
-        for file in itertools.chain(
-            (bookkeeper_folder / "scripts").iterdir(),
-            (bookkeeper_folder / "configs").iterdir(),
-        ):
-            rename_path(file)
+    def replace_paths_bookkeeper_output(self, paths):
+        for folder in (paths.run_path, paths.correlations_path, paths.fits_path):
+            for file in itertools.chain(
+                (folder / "scripts").iterdir(),
+                (folder / "configs").iterdir(),
+            ):
+                if str(file.name).split(".")[-1] not in ("fits", "gz"):
+                    rename_path(file)
 
     def update_test_output(self, test_folder, bookkeeper_folder):
         if test_folder.is_dir():
@@ -288,7 +290,7 @@ class TestBookkeeper(unittest.TestCase):
 
         write_full_analysis(bookkeeper, calib=True)
 
-        self.replace_paths_bookkeeper_output(bookkeeper.paths.run_path)
+        self.replace_paths_bookkeeper_output(bookkeeper.paths)
         if "UPDATE_TESTS" in os.environ and os.environ["UPDATE_TESTS"] == "True":
             self.update_test_output(test_files, bookkeeper.paths.run_path)
         self.compare_bookkeeper_output(test_files, bookkeeper.paths.run_path)
@@ -307,7 +309,7 @@ class TestBookkeeper(unittest.TestCase):
 
         write_full_analysis(bookkeeper, calib=True)
 
-        self.replace_paths_bookkeeper_output(bookkeeper.paths.run_path)
+        self.replace_paths_bookkeeper_output(bookkeeper.paths)
         if "UPDATE_TESTS" in os.environ and os.environ["UPDATE_TESTS"] == "True":
             self.update_test_output(test_files, bookkeeper.paths.run_path)
         self.compare_bookkeeper_output(test_files, bookkeeper.paths.run_path)
@@ -346,7 +348,7 @@ class TestBookkeeper(unittest.TestCase):
 
     #     write_full_analysis(bookkeeper, calib=True)
 
-    #     self.replace_paths_bookkeeper_output(bookkeeper.paths.run_path)
+    #     self.replace_paths_bookkeeper_output(bookkeeper.paths)
     #     if "UPDATE_TESTS" in os.environ and os.environ["UPDATE_TESTS"] == "True":
     #         self.update_test_output(test_files, bookkeeper.paths.run_path)
     #     self.compare_bookkeeper_output(test_files, bookkeeper.paths.run_path)
@@ -363,7 +365,7 @@ class TestBookkeeper(unittest.TestCase):
 
         write_full_analysis(bookkeeper, calib=True)
 
-        self.replace_paths_bookkeeper_output(bookkeeper.paths.run_path)
+        self.replace_paths_bookkeeper_output(bookkeeper.paths)
         if "UPDATE_TESTS" in os.environ and os.environ["UPDATE_TESTS"] == "True":
             self.update_test_output(test_files, bookkeeper.paths.run_path)
         self.compare_bookkeeper_output(test_files, bookkeeper.paths.run_path)
@@ -380,7 +382,7 @@ class TestBookkeeper(unittest.TestCase):
 
         write_full_analysis(bookkeeper, calib=True, region="lyb", region2="lya")
 
-        self.replace_paths_bookkeeper_output(bookkeeper.paths.run_path)
+        self.replace_paths_bookkeeper_output(bookkeeper.paths)
         if "UPDATE_TESTS" in os.environ and os.environ["UPDATE_TESTS"] == "True":
             self.update_test_output(test_files, bookkeeper.paths.run_path)
         self.compare_bookkeeper_output(test_files, bookkeeper.paths.run_path)
@@ -397,7 +399,7 @@ class TestBookkeeper(unittest.TestCase):
 
         write_full_analysis(bookkeeper, calib=True, region="lyb", region2="lya")
 
-        # self.replace_paths_bookkeeper_output(bookkeeper.paths.run_path)
+        # self.replace_paths_bookkeeper_output(bookkeeper.paths)
 
         # Now main run:
         # copy_config_substitute(self.files_path / "example_config_guadalupe_calib_diff_path.yaml", out_name="output2")
@@ -417,7 +419,7 @@ class TestBookkeeper(unittest.TestCase):
 
         write_full_analysis(bookkeeper2, calib=False, region="lyb", region2="lya")
 
-        self.replace_paths_bookkeeper_output(bookkeeper2.paths.run_path)
+        self.replace_paths_bookkeeper_output(bookkeeper2.paths)
         if "UPDATE_TESTS" in os.environ and os.environ["UPDATE_TESTS"] == "True":
             self.update_test_output(test_files, bookkeeper2.paths.run_path)
         self.compare_bookkeeper_output(test_files, bookkeeper2.paths.run_path)
@@ -487,11 +489,11 @@ class TestBookkeeper(unittest.TestCase):
         cf.write_job()
         cf.send_job()
 
-        self.replace_paths_bookkeeper_output(bookkeeper2.paths.run_path)
+        self.replace_paths_bookkeeper_output(bookkeeper2.paths)
         if "UPDATE_TESTS" in os.environ and os.environ["UPDATE_TESTS"] == "True":
             self.update_test_output(test_files, bookkeeper2.paths.run_path)
         self.compare_bookkeeper_output(test_files, bookkeeper2.paths.run_path)
-    
+
     @patch("picca_bookkeeper.tasker.run", side_effect=mock_run)
     @patch(
         "picca_bookkeeper.bookkeeper.get_quasar_catalog",
@@ -552,11 +554,11 @@ class TestBookkeeper(unittest.TestCase):
             auto_correlations=["lya-lya_lya-lya"],
             cross_correlations=["lya-lya"],
         )
-        
+
         fit.write_job()
         fit.send_job()
 
-        self.replace_paths_bookkeeper_output(bookkeeper2.paths.run_path)
+        self.replace_paths_bookkeeper_output(bookkeeper2.paths)
         if "UPDATE_TESTS" in os.environ and os.environ["UPDATE_TESTS"] == "True":
             self.update_test_output(test_files, bookkeeper2.paths.run_path)
         self.compare_bookkeeper_output(test_files, bookkeeper2.paths.run_path)
@@ -573,7 +575,7 @@ class TestBookkeeper(unittest.TestCase):
 
         write_full_analysis(bookkeeper, calib=False, region="lyb", region2="lya")
 
-        self.replace_paths_bookkeeper_output(bookkeeper.paths.run_path)
+        self.replace_paths_bookkeeper_output(bookkeeper.paths)
         if "UPDATE_TESTS" in os.environ and os.environ["UPDATE_TESTS"] == "True":
             self.update_test_output(test_files, bookkeeper.paths.run_path)
         self.compare_bookkeeper_output(test_files, bookkeeper.paths.run_path)
@@ -629,7 +631,7 @@ class TestBookkeeper(unittest.TestCase):
 
         write_full_analysis(bookkeeper, calib=True, region="lyb", region2="lya")
 
-        self.replace_paths_bookkeeper_output(bookkeeper.paths.run_path)
+        self.replace_paths_bookkeeper_output(bookkeeper.paths)
         if "UPDATE_TESTS" in os.environ and os.environ["UPDATE_TESTS"] == "True":
             self.update_test_output(test_files, bookkeeper.paths.run_path)
         self.compare_bookkeeper_output(test_files, bookkeeper.paths.run_path)
@@ -668,7 +670,7 @@ class TestBookkeeper(unittest.TestCase):
 
         write_full_analysis(bookkeeper, calib=True, region="lyb", region2="lya")
 
-        self.replace_paths_bookkeeper_output(bookkeeper.paths.run_path)
+        self.replace_paths_bookkeeper_output(bookkeeper.paths)
         if "UPDATE_TESTS" in os.environ and os.environ["UPDATE_TESTS"] == "True":
             self.update_test_output(test_files, bookkeeper.paths.run_path)
         self.compare_bookkeeper_output(test_files, bookkeeper.paths.run_path)
@@ -728,7 +730,7 @@ class TestBookkeeper(unittest.TestCase):
         deltas.write_job()
         deltas.send_job()
 
-        self.replace_paths_bookkeeper_output(bookkeeper.paths.run_path)
+        self.replace_paths_bookkeeper_output(bookkeeper.paths)
         if "UPDATE_TESTS" in os.environ and os.environ["UPDATE_TESTS"] == "True":
             self.update_test_output(test_files, bookkeeper.paths.run_path)
         self.compare_bookkeeper_output(test_files, bookkeeper.paths.run_path)
@@ -766,7 +768,7 @@ class TestBookkeeper(unittest.TestCase):
 
         write_full_analysis(bookkeeper, calib=False, region="lyb", region2="lya")
 
-        self.replace_paths_bookkeeper_output(bookkeeper.paths.run_path)
+        self.replace_paths_bookkeeper_output(bookkeeper.paths)
         if "UPDATE_TESTS" in os.environ and os.environ["UPDATE_TESTS"] == "True":
             self.update_test_output(test_files, bookkeeper.paths.run_path)
         self.compare_bookkeeper_output(test_files, bookkeeper.paths.run_path)

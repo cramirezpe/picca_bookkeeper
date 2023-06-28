@@ -2,7 +2,7 @@ general:
   conda environment: picca
   system: slurm_cori
 data:
-  early dir: /global/u2/c/cramirez/Codes/picca_bookkeeper_new/tests/test_files/output
+  early dir: /picca_bookkeeper/tests/test_files/output
   healpix data: ''
   release: guadalupe
   survey: main
@@ -10,6 +10,6 @@ data:
 correlations:
   delta extraction: dMdB20_1_mgii_r.0.0_0
   run name: default
-  catalog tracer: /global/u2/c/cramirez/Codes/picca_bookkeeper_new/tests/test_files/dummy_tracer_catalog.fits
+  catalog tracer: /picca_bookkeeper/tests/test_files/dummy_tracer_catalog.fits
 fits:
   run name: default

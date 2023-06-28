@@ -1,7 +1,7 @@
 general:
   conda environment: picca
 data:
-  early dir: /global/u2/c/cramirez/Codes/picca_bookkeeper_new/tests/test_files/output
+  early dir: /picca_bookkeeper/tests/test_files/output
   healpix data: ''
   release: v9.0.0
   survey: raw
