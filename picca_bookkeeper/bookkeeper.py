@@ -1657,7 +1657,7 @@ class Bookkeeper:
         )
         updated_system = self.generate_system_arg(system)
 
-        job_name = f"metal_{region}_{region2}"
+        job_name = f"metal_{absorber}{region}_{absorber2}{region2}"
 
         slurm_header_args = {
             "job-name": job_name,
