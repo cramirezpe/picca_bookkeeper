@@ -14,7 +14,7 @@ def get_bookkeeper_differences(
     analysis_type: str = "delta",
     remove_identical=True,
     transpose=False,
-):
+) -> None:
     assert analysis_type in ("delta", "correlation", "fit")
     if analysis_type == "delta":
         Config = DeltaConfigReader
@@ -55,7 +55,7 @@ def show_diffs(
     transpose: bool = False,
     depth: int = 1,
     title: str = "",
-):
+) -> None:
     keys = []
     dict_keys = []
     remove_keys = []
@@ -164,7 +164,7 @@ class ConfigReader:
         self.data = None
 
     @property
-    def name(self):
+    def name(self) -> str:
         return self.path.parent.parent.name
 
     def read_defaults(self):
@@ -210,7 +210,7 @@ class DeltaConfigReader(ConfigReader):
         self.first_els_values = np.array([run_name])
 
     @property
-    def defaults_file(self):
+    def defaults_file(self) -> Path:
         return self.path.parent / "defaults.yaml"
 
 
@@ -232,7 +232,7 @@ class CorrelationConfigReader(ConfigReader):
         self.first_els_values = np.array([delta_extraction, run_name])
 
     @property
-    def defaults_file(self):
+    def defaults_file(self) -> Path:
         return self.path.parent.parent.parent / "configs" / "defaults.yaml"
 
 
@@ -263,7 +263,7 @@ class FitConfigReader(ConfigReader):
         self.first_els_values = np.array([delta_extraction, correlation_run, run_name])
 
     @property
-    def defaults_file(self):
+    def defaults_file(self) -> Path:
         return (
             self.path.parent.parent.parent.parent.parent / "configs" / "defaults.yaml"
         )

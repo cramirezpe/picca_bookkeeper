@@ -54,7 +54,7 @@ absorber_igm = dict((absorber.lower(), absorber) for absorber in ABSORBER_IGM)
 config_file_sorting = ["general", "delta extraction", "correlations", "fits"]
 
 
-def get_quasar_catalog(release, survey, catalog, bal=False):  # pragma: no cover
+def get_quasar_catalog(release, survey, catalog, bal=False) -> Path:  # pragma: no cover
     """Function to obtain a quasar catalog given different options
 
     Attributes:
@@ -84,7 +84,7 @@ def get_quasar_catalog(release, survey, catalog, bal=False):  # pragma: no cover
         )
 
 
-def get_dla_catalog(release, survey, version=1):
+def get_dla_catalog(release, survey, version=1) -> Path:
     """Function to obtain a DLA catalog.
 
     Arguments:
@@ -323,7 +323,7 @@ class Bookkeeper:
             )
 
     @staticmethod
-    def write_bookkeeper(config: Dict, file: Union[Path, str]):
+    def write_bookkeeper(config: Dict, file: Union[Path, str]) -> None:
         """Method to write bookkeeper yaml file to file
 
         Args:
@@ -381,14 +381,14 @@ class Bookkeeper:
             yaml.dump(config, f, sort_keys=False)
 
     @property
-    def is_mock(self):
+    def is_mock(self) -> bool:
         if "v9." in self.config["data"]["release"]:
             return True
         else:
             return False
 
     @staticmethod
-    def validate_region(region: str):
+    def validate_region(region: str) -> str:
         """Method to check if a region string is valid. Also converts it into lowercase.
 
         Will raise value error if the region is not in forest_regions.
@@ -402,7 +402,7 @@ class Bookkeeper:
         return region.lower()
 
     @staticmethod
-    def validate_absorber(absorber: str):
+    def validate_absorber(absorber: str) -> str:
         """Method to check if a absorber is valid.
 
         Will raise value error if the absorber not in picca.absorbers.ABSORBER_IGM
@@ -425,7 +425,7 @@ class Bookkeeper:
         absorber: str = None,
         region2: str = None,
         absorber2: str = None,
-    ):
+    ) -> Dict:
         """Add extra slurm header args to the run.
 
         Args:
@@ -488,7 +488,7 @@ class Bookkeeper:
         absorber: str = None,
         region2: str = None,
         absorber2: str = None,
-    ):
+    ) -> Dict:
         """Add extra picca args to the run.
 
         Args:
@@ -545,7 +545,7 @@ class Bookkeeper:
         # Copied args is the highest priority
         return DictUtils.merge_dicts(args, copied_args)
 
-    def generate_system_arg(self, system):
+    def generate_system_arg(self, system) -> str:
         if system is None:
             return copy.copy(
                 self.config.get("general", dict()).get("system", "slurm_perlmutter")
@@ -561,7 +561,7 @@ class Bookkeeper:
         wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
         slurm_header_extra_args: Dict = dict(),
         picca_extra_args: Dict = dict(),
-    ):
+    ) -> Tasker:
         """Method to get a Tasker object to run raw deltas with picca.
 
         Args:
@@ -664,7 +664,7 @@ class Bookkeeper:
         slurm_header_extra_args: Dict = dict(),
         picca_extra_args: Dict = dict(),
         calib_step: int = None,
-    ):
+    ) -> Tasker:
         """Method to get a Tasker object to run delta extraction with picca.
 
         Args:
@@ -1134,7 +1134,7 @@ class Bookkeeper:
         wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
         slurm_header_extra_args: Dict = dict(),
         picca_extra_args: Dict = dict(),
-    ):
+    ) -> Tasker:
         """Method to get a Tasker object to run calibration with picca delta
         extraction method.
 
@@ -1226,7 +1226,7 @@ class Bookkeeper:
         wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
         slurm_header_extra_args: Dict = dict(),
         picca_extra_args: Dict = dict(),
-    ):
+    ) -> Tasker:
         """Method to get a Tasker object to run forest-forest correlations with picca.
 
         Args:
@@ -1359,7 +1359,7 @@ class Bookkeeper:
         wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
         slurm_header_extra_args: Dict = dict(),
         picca_extra_args: Dict = dict(),
-    ):
+    ) -> Tasker:
         """Method to get a Tasker object to run forest-forest distortion matrix
         measurements with picca.
 
@@ -1492,7 +1492,7 @@ class Bookkeeper:
         slurm_header_extra_args: Dict = dict(),
         picca_extra_args: Dict = dict(),
         no_dmat: bool = False,
-    ):
+    ) -> Tasker:
         """Method to get a Tasker object to run forest-forest correlation export with
          picca.
 
@@ -1618,7 +1618,7 @@ class Bookkeeper:
         wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
         slurm_header_extra_args: Dict = dict(),
         picca_extra_args: Dict = dict(),
-    ):
+    ) -> Tasker:
         """Method to get a Tasker object to run forest-forest metal distortion matrix
         measurements with picca.
 
@@ -1748,7 +1748,7 @@ class Bookkeeper:
         wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
         slurm_header_extra_args: Dict = dict(),
         picca_extra_args: Dict = dict(),
-    ):
+    ) -> Tasker:
         """Method to get a Tasker object to run forest-quasar correlations with picca.
 
         Args:
@@ -1861,7 +1861,7 @@ class Bookkeeper:
         wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
         slurm_header_extra_args: Dict = dict(),
         picca_extra_args: Dict = dict(),
-    ):
+    ) -> Tasker:
         """Method to get a Tasker object to run forest-quasar distortion matrix
         measurements with picca.
 
@@ -2196,7 +2196,7 @@ class Bookkeeper:
         slurm_header_extra_args: Dict = dict(),
         picca_extra_args: Dict = dict(),
         no_dmat: bool = False,
-    ):
+    ) -> Tasker:
         """Method to get a Tasker object to run forest-quasar correlation export with
         picca.
 
@@ -2308,7 +2308,7 @@ class Bookkeeper:
         wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
         slurm_header_extra_args: Dict = dict(),
         picca_extra_args: Dict = dict(),
-    ):
+    ) -> Tasker:
         """Method to get a Tasker object to run forest-quasar metal distortion matrix
         measurements with picca.
 
@@ -2428,7 +2428,7 @@ class Bookkeeper:
         wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
         # vega_extra_args: Dict = dict(),
         slurm_header_extra_args: Dict = dict(),
-    ):
+    ) -> Tasker:
         """Method to get a Tasker object to run vega with correlation data.
 
         Args:
@@ -2624,7 +2624,7 @@ class PathBuilder:
         self.config = config
 
     @property
-    def healpix_data(self):
+    def healpix_data(self) -> Path:
         """Path: Location of healpix data."""
         if self.config["data"].get("healpix data", "") in (None, ""):
             if "everest" in self.config["data"]["release"]:
@@ -2671,7 +2671,7 @@ class PathBuilder:
             return _path
 
     @property
-    def transmission_data(self):
+    def transmission_data(self) -> Path:
         """Path: Location of transmission LyaCoLoRe mock data."""
         if (
             self.config["data"]["healpix data"] != ""
@@ -2687,7 +2687,7 @@ class PathBuilder:
         )
 
     @property
-    def survey_path(self):
+    def survey_path(self) -> Path:
         """Path: Survey path following bookkeeper convention."""
         return (
             Path(self.config["data"]["early dir"])
@@ -2696,7 +2696,7 @@ class PathBuilder:
         )
 
     @property
-    def run_path(self):
+    def run_path(self) -> Path:
         """Give full path to the bookkeeper run.
 
         Returns:
@@ -2717,12 +2717,12 @@ class PathBuilder:
         return self.survey_path / self.catalog_name / delta_name
 
     @property
-    def continuum_fitting_mask(self):
+    def continuum_fitting_mask(self) -> Path:
         """Path: file with masking used in continuum fitting."""
         return self.run_path / "configs" / "continuum_fitting_mask.txt"
 
     @property
-    def correlations_path(self):
+    def correlations_path(self) -> Path:
         """Give full path to the correlation runs.
 
         Returns:
@@ -2736,7 +2736,7 @@ class PathBuilder:
         return self.run_path / "correlations" / correlation_name
 
     @property
-    def fits_path(self):
+    def fits_path(self) -> Path:
         """Give full path to the fits runs.
 
         Returns:
@@ -2747,7 +2747,7 @@ class PathBuilder:
         return self.correlations_path / "fits" / fit_name
 
     @property
-    def delta_config_file(self):
+    def delta_config_file(self) -> Path:
         """Default path to the deltas config file inside bookkeeper.
 
         Returns
@@ -2756,7 +2756,7 @@ class PathBuilder:
         return self.run_path / "configs" / "bookkeeper_config.yaml"
 
     @property
-    def defaults_file(self):
+    def defaults_file(self) -> Path:
         """Location of the defaults file inside the bookkeeper.
 
         Returns
@@ -2765,7 +2765,7 @@ class PathBuilder:
         return self.delta_config_file.parent / "defaults.yaml"
 
     @property
-    def correlation_config_file(self):
+    def correlation_config_file(self) -> Path:
         """Default path to the correlation config file inside bookkeeper.
 
         Returns
@@ -2774,7 +2774,7 @@ class PathBuilder:
         return self.correlations_path / "configs" / "bookkeeper_correlation_config.yaml"
 
     @property
-    def fit_config_file(self):
+    def fit_config_file(self) -> Path:
         """Default path to the fit config file inside bookkeeper
 
         Returns
@@ -2782,7 +2782,7 @@ class PathBuilder:
         """
         return self.fits_path / "configs" / "bookkeeper_fit_config.yaml"
 
-    def get_catalog_from_field(self, field):
+    def get_catalog_from_field(self, field) -> Path:
         """Method to obtain catalogs given a catalog name in config file.
 
         It will check if the file exists, expand the full path if only the filename
@@ -2841,27 +2841,27 @@ class PathBuilder:
             raise FileNotFoundError("catalog not found in path: ", str(catalog))
 
     @property
-    def catalog(self):
+    def catalog(self) -> Path:
         """catalog to be used for deltas."""
         return self.get_catalog_from_field("catalog")
 
     @property
-    def catalog_dla(self):
+    def catalog_dla(self) -> Path:
         """DLA catalog to be used."""
         return self.get_catalog_from_field("dla")
 
     @property
-    def catalog_bal(self):
+    def catalog_bal(self) -> Path:
         """catalog to be used for BAL masking."""
         return self.get_catalog_from_field("bal")
 
     @property
-    def catalog_tracer(self):
+    def catalog_tracer(self) -> Path:
         """catalog to be used for cross-correlations with quasars"""
         return self.get_catalog_from_field("catalog_tracer")
 
     @property
-    def catalog_name(self):
+    def catalog_name(self) -> str:
         """Returns catalog standardize name."""
         name = Path(self.config["data"]["catalog"]).name
         if Path(self.config["data"]["catalog"]).is_file():
@@ -2870,7 +2870,7 @@ class PathBuilder:
             return name
 
     @staticmethod
-    def get_fits_file_name(file):
+    def get_fits_file_name(file) -> str:
         name = Path(file).name
         if name[-8:] == ".fits.gz":
             return name[:-8]
@@ -2880,7 +2880,7 @@ class PathBuilder:
             raise ValueError("Unrecognized fits catalog filename", name)
 
     @property
-    def continuum_tag(self):
+    def continuum_tag(self) -> str:
         """str: tag defining the continuum fitting parameters used."""
         if self.config.get("delta extraction") is None:
             raise ValueError(
@@ -2906,7 +2906,7 @@ class PathBuilder:
         file2: Union[str, Path],
         section: str = None,
         ignore_fields: List[str] = [],
-    ):
+    ) -> Dict:
         """Compare two config files to determine if they are the same.
 
         Args:
@@ -2938,22 +2938,22 @@ class PathBuilder:
             )
         )
 
-    def check_delta_directories(self):
+    def check_delta_directories(self) -> None:
         """Method to create basic directories in run directory."""
         for folder in ("scripts", "correlations", "logs", "deltas", "configs"):
             (self.run_path / folder).mkdir(exist_ok=True, parents=True)
 
-    def check_correlation_directories(self):
+    def check_correlation_directories(self) -> None:
         """Method to create basic directories in correlations directory."""
         for folder in ("scripts", "correlations", "fits", "logs", "configs"):
             (self.correlations_path / folder).mkdir(exist_ok=True, parents=True)
 
-    def check_fit_directories(self):
+    def check_fit_directories(self) -> None:
         """Method to create basic directories in fits directory."""
         for folder in ("scripts", "results", "logs", "configs"):
             (self.fits_path / folder).mkdir(exist_ok=True, parents=True)
 
-    def deltas_path(self, region: str = None, calib_step: int = None):
+    def deltas_path(self, region: str = None, calib_step: int = None) -> Path:
         """Method to obtain the path to deltas output.
 
         Args:
@@ -2969,7 +2969,7 @@ class PathBuilder:
             region = Bookkeeper.validate_region(region)
             return self.run_path / "deltas" / region / "Delta"
 
-    def deltas_log_path(self, region: str, calib_step: int = None):
+    def deltas_log_path(self, region: str, calib_step: int = None) -> Path:
         """Method to get the path to deltas log.
 
         Args:
@@ -2982,7 +2982,7 @@ class PathBuilder:
         deltas_path = self.deltas_path(region, calib_step)
         return deltas_path.parent / "Log"
 
-    def delta_attributes_file(self, region: str, calib_step: int = None):
+    def delta_attributes_file(self, region: str, calib_step: int = None) -> Path:
         """Method to get the path to deltas attributes file.
 
         Args:
@@ -3003,7 +3003,7 @@ class PathBuilder:
         region: str,
         absorber2: str = None,
         region2: str = None,
-    ):
+    ) -> Path:
         """Method to get the path to a forest-forest correlation file.
 
         Args:
@@ -3030,7 +3030,7 @@ class PathBuilder:
         region: str,
         absorber2: str = None,
         region2: str = None,
-    ):
+    ) -> Path:
         """Method to get the path to a distortion matrix file for forest-forest
         correlations.
 
@@ -3053,7 +3053,7 @@ class PathBuilder:
         region: str,
         absorber2: str = None,
         region2: str = None,
-    ):
+    ) -> Path:
         """Method to get the path to a metal distortion matrix file for forest-forest
         correlations.
 
@@ -3077,7 +3077,7 @@ class PathBuilder:
         region: str,
         absorber2: str = None,
         region2: str = None,
-    ):
+    ) -> Path:
         """Method to get the path to a forest-forest correlation export file.
 
         Args:
@@ -3092,7 +3092,7 @@ class PathBuilder:
         cor_file = self.cf_fname(absorber, region, absorber2, region2)
         return cor_file.parent / f"cf_exp.fits.gz"
 
-    def xcf_fname(self, absorber: str, region: str):
+    def xcf_fname(self, absorber: str, region: str) -> Path:
         """Method to get the path to a forest-quasar correlation export file.
 
         Args:
@@ -3109,7 +3109,7 @@ class PathBuilder:
             / f"xcf.fits.gz"
         )
 
-    def xdmat_fname(self, absorber: str, region: str):
+    def xdmat_fname(self, absorber: str, region: str) -> Path:
         """Method to get the path to a distortion matrix file for forest-quasar
         correlations.
 
@@ -3122,7 +3122,7 @@ class PathBuilder:
         """
         return self.xcf_fname(absorber, region).parent / f"xdmat.fits.gz"
 
-    def xmetal_fname(self, absorber: str, region: str):
+    def xmetal_fname(self, absorber: str, region: str) -> Path:
         """Method to get the path to a metal distortion matrix file for forest-quasar
         correlations.
 
@@ -3135,7 +3135,7 @@ class PathBuilder:
         """
         return self.xcf_fname(absorber, region).parent / f"xmetal.fits.gz"
 
-    def exp_xcf_fname(self, absorber: str, region: str):
+    def exp_xcf_fname(self, absorber: str, region: str) -> Path:
         """Method to get the path to a forest-quasar correlation export file.
 
         Args:
@@ -3154,7 +3154,7 @@ class PathBuilder:
         region: str,
         absorber2: str = None,
         region2: str = None,
-    ):
+    ) -> Path:
         """Method to get te path to a given fit auto config file.
 
         Args:
@@ -3172,7 +3172,7 @@ class PathBuilder:
             self.fits_path / "configs" / f"{absorber}{region}x{absorber2}{region2}.ini"
         )
 
-    def fit_cross_fname(self, absorber: str, region: str):
+    def fit_cross_fname(self, absorber: str, region: str) -> Path:
         """Method to get te path to a given fit cross config file.
 
         Args:
@@ -3184,7 +3184,7 @@ class PathBuilder:
         """
         return self.fits_path / "configs" / f"qsox{absorber}{region}.ini"
 
-    def fit_main_fname(self):
+    def fit_main_fname(self) -> Path:
         """Method to get the path to the main fit config file.
 
         Returns:
@@ -3192,7 +3192,7 @@ class PathBuilder:
         """
         return self.fits_path / "configs" / "main.ini"
 
-    def fit_out_fname(self):
+    def fit_out_fname(self) -> Path:
         """Method to get the path to the fit output file.
 
         Returns:
