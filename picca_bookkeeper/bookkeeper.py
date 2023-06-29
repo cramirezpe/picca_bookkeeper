@@ -233,7 +233,7 @@ class Bookkeeper:
                         "delta extraction section of config file should match delta "
                         "extraction section from file already in the bookkeeper. "
                         "Unmatching items: ",
-                        comparison,
+                        DictUtils.print_dict(comparison),
                     )
 
         if self.correlations is not None and config_type != "fits":
@@ -266,7 +266,7 @@ class Bookkeeper:
                     raise ValueError(
                         "correlations section of config file should match correlation section "
                         "from file already in the bookkeeper. Unmatching items: ",
-                        comparison,
+                        DictUtils.print_dict(comparison),
                     )
 
         if self.fits is not None:
@@ -300,7 +300,7 @@ class Bookkeeper:
                     raise ValueError(
                         "fits section of config file should match fits section "
                         "from file already in the bookkeeper. Unmatching items: ",
-                        comparison,
+                        DictUtils.print_dict(comparison),
                     )
 
         # Read defaults and check if they have changed.
@@ -588,9 +588,10 @@ class Bookkeeper:
         if self.defaults_diff != {}:
             raise ValueError(
                 "Default values changed since last run of the "
-                f"bookkeeper. Remove the file {self.paths.defaults_file} "
-                "to be able to write jobs (with the new default "
-                f"values). Defaults diff: {self.defaults_diff}"
+                f"bookkeeper. Remove the file:\n\n {self.paths.defaults_file} "
+                "\n\n to be able to write jobs (with the new default "
+                f"values\). Defaults diff:\n\n"
+                f"{DictUtils.print_dict(self.defaults_diff)}"
             )
         region = self.validate_region(region)
 
@@ -692,9 +693,10 @@ class Bookkeeper:
         if self.defaults_diff != {}:
             raise ValueError(
                 "Default values changed since last run of the "
-                f"bookkeeper. Remove the file {self.paths.defaults_file} "
-                "to be able to write jobs (with the new default "
-                f"values). Defaults diff: {self.defaults_diff}"
+                f"bookkeeper. Remove the file:\n\n {self.paths.defaults_file} "
+                "\n\n to be able to write jobs (with the new default "
+                f"values\). Defaults diff:\n\n"
+                f"{DictUtils.print_dict(self.defaults_diff)}"
             )
         region = self.validate_region(region)
 
@@ -1255,9 +1257,10 @@ class Bookkeeper:
         if self.defaults_diff != {}:
             raise ValueError(
                 "Default values changed since last run of the "
-                f"bookkeeper. Remove the file {self.paths.default_file} "
-                "to be able to write jobs (with the new default "
-                f"values). Defaults diff: {self.paths.defaults_diff}"
+                f"bookkeeper. Remove the file:\n\n {self.paths.defaults_file} "
+                "\n\n to be able to write jobs (with the new default "
+                f"values\). Defaults diff:\n\n"
+                f"{DictUtils.print_dict(self.defaults_diff)}"
             )
         region2 = region if region2 is None else region2
         region2 = self.validate_region(region2)
@@ -1388,9 +1391,10 @@ class Bookkeeper:
         if self.defaults_diff != {}:
             raise ValueError(
                 "Default values changed since last run of the "
-                f"bookkeeper. Remove the file {self.paths.defaults_file} "
-                "to be able to write jobs (with the new default "
-                f"values). Defaults diff: {self.defaults_diff}"
+                f"bookkeeper. Remove the file:\n\n {self.paths.defaults_file} "
+                "\n\n to be able to write jobs (with the new default "
+                f"values\). Defaults diff:\n\n"
+                f"{DictUtils.print_dict(self.defaults_diff)}"
             )
         region2 = region if region2 is None else region2
         region2 = self.validate_region(region2)
@@ -1520,9 +1524,10 @@ class Bookkeeper:
         if self.defaults_diff != {}:
             raise ValueError(
                 "Default values changed since last run of the "
-                f"bookkeeper. Remove the file {self.paths.defaults_file} "
-                "to be able to write jobs (with the new default "
-                f"values). Defaults diff: {self.defaults_diff}"
+                f"bookkeeper. Remove the file:\n\n {self.paths.defaults_file} "
+                "\n\n to be able to write jobs (with the new default "
+                f"values\). Defaults diff:\n\n"
+                f"{DictUtils.print_dict(self.defaults_diff)}"
             )
         region2 = region if region2 is None else region2
         region2 = self.validate_region(region2)
@@ -1645,9 +1650,10 @@ class Bookkeeper:
         if self.defaults_diff != {}:
             raise ValueError(
                 "Default values changed since last run of the "
-                f"bookkeeper. Remove the file {self.paths.defaults_file} "
-                "to be able to write jobs (with the new default "
-                f"values). Defaults diff: {self.defaults_diff}"
+                f"bookkeeper. Remove the file:\n\n {self.paths.defaults_file} "
+                "\n\n to be able to write jobs (with the new default "
+                f"values\). Defaults diff:\n\n"
+                f"{DictUtils.print_dict(self.defaults_diff)}"
             )
         region2 = region if region2 is None else region2
         region2 = self.validate_region(region2)
@@ -1769,9 +1775,10 @@ class Bookkeeper:
         if self.defaults_diff != {}:
             raise ValueError(
                 "Default values changed since last run of the "
-                f"bookkeeper. Remove the file {self.paths.defaults_file} "
-                "to be able to write jobs (with the new default "
-                f"values). Defaults diff: {self.defaults_diff}"
+                f"bookkeeper. Remove the file:\n\n {self.paths.defaults_file} "
+                "\n\n to be able to write jobs (with the new default "
+                f"values\). Defaults diff:\n\n"
+                f"{DictUtils.print_dict(self.defaults_diff)}"
             )
         region = self.validate_region(region)
         absorber = self.validate_absorber(absorber)
@@ -1883,9 +1890,10 @@ class Bookkeeper:
         if self.defaults_diff != {}:
             raise ValueError(
                 "Default values changed since last run of the "
-                f"bookkeeper. Remove the file {self.paths.defaults_file} "
-                "to be able to write jobs (with the new default "
-                f"values). Defaults diff: {self.defaults_diff}"
+                f"bookkeeper. Remove the file:\n\n {self.paths.defaults_file} "
+                "\n\n to be able to write jobs (with the new default "
+                f"values\). Defaults diff:\n\n"
+                f"{DictUtils.print_dict(self.defaults_diff)}"
             )
         region = self.validate_region(region)
         absorber = self.validate_absorber(absorber)
@@ -2217,9 +2225,10 @@ class Bookkeeper:
         if self.defaults_diff != {}:
             raise ValueError(
                 "Default values changed since last run of the "
-                f"bookkeeper. Remove the file {self.paths.defaults_file} "
-                "to be able to write jobs (with the new default "
-                f"values). Defaults diff: {self.defaults_diff}"
+                f"bookkeeper. Remove the file:\n\n {self.paths.defaults_file} "
+                "\n\n to be able to write jobs (with the new default "
+                f"values\). Defaults diff:\n\n"
+                f"{DictUtils.print_dict(self.defaults_diff)}"
             )
         region = self.validate_region(region)
         absorber = self.validate_absorber(absorber)
@@ -2327,9 +2336,10 @@ class Bookkeeper:
         if self.defaults_diff != {}:
             raise ValueError(
                 "Default values changed since last run of the "
-                f"bookkeeper. Remove the file {self.paths.defaults_file} "
-                "to be able to write jobs (with the new default "
-                f"values). Defaults diff: {self.defaults_diff}"
+                f"bookkeeper. Remove the file:\n\n {self.paths.defaults_file} "
+                "\n\n to be able to write jobs (with the new default "
+                f"values\). Defaults diff:\n\n"
+                f"{DictUtils.print_dict(self.defaults_diff)}"
             )
         region = self.validate_region(region)
         absorber = self.validate_absorber(absorber)
@@ -2448,9 +2458,10 @@ class Bookkeeper:
         if self.defaults_diff != {}:
             raise ValueError(
                 "Default values changed since last run of the "
-                f"bookkeeper. Remove the file {self.paths.defaults_file} "
-                "to be able to write jobs (with the new default "
-                f"values). Defaults diff: {self.defaults_diff}"
+                f"bookkeeper. Remove the file:\n\n {self.paths.defaults_file} "
+                "\n\n to be able to write jobs (with the new default "
+                f"values\). Defaults diff:\n\n"
+                f"{DictUtils.print_dict(self.defaults_diff)}"
             )
         updated_system = self.generate_system_arg(system)
 

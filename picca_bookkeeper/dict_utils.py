@@ -73,3 +73,18 @@ class DictUtils:
                 if result != config:
                     result = DictUtils.remove_empty(result)
                 return result
+
+    @staticmethod
+    def print_dict(dict_, depth=0, string="") -> str:
+        """Nicely prints a dict with multiple depth levels.
+
+        Returns
+            Printable string
+        """
+        for key in dict_.keys():
+            if isinstance(dict_[key], collections.abc.Mapping):
+                string += "  " * depth + key + ":\n"
+                string += DictUtils.print_dict(dict_[key], depth=depth + 1)
+            else:
+                string += " " * depth + f"{key}: {dict_[key]}\n"
+        return string
