@@ -10,6 +10,11 @@ general:
   # bash: run on terminal (login nodes at NERSC)
   system: slurm_perlmutter
 
+  # general slurm args, e.g. mail options
+  slurm args:
+    mail-type: fail
+    mail-user: user@host.com
+
 data:
   # Parent path of the bookkeeper.
   early dir: /blabla
@@ -104,8 +109,6 @@ delta extraction:
   # Slurm arguments to be used by the bookkeeper
   slurm args:
     general:
-      mail-type: fail
-      mail-user: user@host.com
     
     picca_delta_extraction:
       time: 00:16:00
@@ -157,8 +160,6 @@ correlations:
 
   slurm args:
     general: 
-      mail-type: fail
-      mail-user: user@host.com
 
 fits:
   # If a delta extraction is defined in the same config file (as the current one), 

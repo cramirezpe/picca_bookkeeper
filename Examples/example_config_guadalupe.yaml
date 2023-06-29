@@ -18,15 +18,6 @@ delta extraction:
   bal: 0
   suffix: 0
 
-  slurm args:
-    general:
-      mail-type: fail
-      mail-user: user@host.com
-  
 correlations:
   run name: default
 
-  slurm args:
-    general:
-      mail-type: fail
-      mail-user: user@host.com

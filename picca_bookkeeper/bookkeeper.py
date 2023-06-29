@@ -331,7 +331,7 @@ class Bookkeeper:
             file: path where to store the bookkeeper.
         """
         correct_order = {
-            "general": ["conda environment", "system"],
+            "general": ["conda environment", "system", "slurm args"],
             "data": ["early dir", "healpix data", "release", "survey", "catalog"],
             "delta extraction": [
                 "prefix",
@@ -419,6 +419,7 @@ class Bookkeeper:
         self,
         config: Dict,
         default_config: Dict,
+        section: str,
         slurm_args: Dict,
         command: str,
         region: str = None,
@@ -429,8 +430,9 @@ class Bookkeeper:
         """Add extra slurm header args to the run.
 
         Args:
-            config: Section of the bookkeeper config to look into.
-            default_config: Section of the deafults config to look into.
+            config: bookkeeper config to look into.
+            default_config: deafults config to look into.
+            section: Section name to look into.
             slurm_args: Slurm args passed through the get_tasker method. They
                 should be prioritized.
             command: Picca command to be run.
@@ -439,9 +441,13 @@ class Bookkeeper:
             region2: For scripts where two regions are needed.
             absorber2: Second absorber to use for correlations.
         """
+        if "slurm args" in config["general"]:
+            args = copy.deepcopy(config["general"]["slurm args"])
+        else:
+            args = dict()
         copied_args = copy.deepcopy(slurm_args)
-        config = copy.deepcopy(config)
-        defaults = copy.deepcopy(default_config)
+        config = copy.deepcopy(config[section])
+        defaults = copy.deepcopy(default_config[section])
 
         sections = ["general", command.split(".py")[0]]
 
@@ -455,7 +461,6 @@ class Bookkeeper:
             if region2 is not None:
                 sections[-1] = sections[-1] + region2
 
-        args = dict()
         # We iterate over the sections from low to high priority
         # overriding the previous set values if there is a coincidence
         if "slurm args" in defaults.keys() and isinstance(defaults["slurm args"], dict):
@@ -482,6 +487,7 @@ class Bookkeeper:
         self,
         config: Dict,
         default_config: Dict,
+        section: str,
         picca_args: Dict,
         command: str,
         region: str = None,
@@ -494,6 +500,7 @@ class Bookkeeper:
         Args:
             config: Section of the bookkeeper config to look into.
             default_config: Section of the deafults config to look into.
+            section: Section name to look into.
             picca_args: picca args passed through the get_tasker method. They
                 should be prioritized.
             command: picca command to be run.
@@ -503,8 +510,8 @@ class Bookkeeper:
             absorber2: Second absorber to use for correlations.
         """
         copied_args = copy.deepcopy(picca_args)
-        config = copy.deepcopy(config)
-        defaults = copy.deepcopy(default_config)
+        config = copy.deepcopy(config[section])
+        defaults = copy.deepcopy(default_config[section])
 
         sections = [command.split(".py")[0]]
 
@@ -598,15 +605,17 @@ class Bookkeeper:
         command = "picca_convert_transmission.py"
 
         updated_picca_extra_args = self.generate_picca_extra_args(
-            config=self.config["delta extraction"],
-            default_config=self.defaults["delta extraction"],
+            config=self.config,
+            default_config=self.defaults,
+            section="delta extraction",
             picca_args=picca_extra_args,
             command=command,
             region=region,
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
-            config=self.config["delta extraction"],
-            default_config=self.defaults["delta extraction"],
+            config=self.config,
+            default_config=self.defaults,
+            section="delta extraction",
             slurm_args=slurm_header_extra_args,
             command=command,
             region=region,
@@ -703,15 +712,17 @@ class Bookkeeper:
         command = "picca_delta_extraction.py"
 
         updated_picca_extra_args = self.generate_picca_extra_args(
-            config=self.config["delta extraction"],
-            default_config=self.defaults["delta extraction"],
+            config=self.config,
+            default_config=self.defaults,
+            section="delta extraction",
             picca_args=picca_extra_args,
             command=command,
             region=region,
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
-            config=self.config["delta extraction"],
-            default_config=self.defaults["delta extraction"],
+            config=self.config,
+            default_config=self.defaults,
+            section="delta extraction",
             slurm_args=slurm_header_extra_args,
             command=command,
             region=region,
@@ -1273,8 +1284,9 @@ class Bookkeeper:
         command = "picca_cf.py"
 
         updated_picca_extra_args = self.generate_picca_extra_args(
-            config=self.config["correlations"],
-            default_config=self.defaults["correlations"],
+            config=self.config,
+            default_config=self.defaults,
+            section="correlations",
             picca_args=picca_extra_args,
             command=command,
             region=region,
@@ -1283,8 +1295,9 @@ class Bookkeeper:
             absorber2=absorber2,
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
-            config=self.config["correlations"],
-            default_config=self.defaults["correlations"],
+            config=self.config,
+            default_config=self.defaults,
+            section="correlations",
             slurm_args=slurm_header_extra_args,
             command=command,
             region=region,
@@ -1407,8 +1420,9 @@ class Bookkeeper:
         command = "picca_dmat.py"
 
         updated_picca_extra_args = self.generate_picca_extra_args(
-            config=self.config["correlations"],
-            default_config=self.defaults["correlations"],
+            config=self.config,
+            default_config=self.defaults,
+            section="correlations",
             picca_args=picca_extra_args,
             command=command,
             region=region,
@@ -1417,8 +1431,9 @@ class Bookkeeper:
             absorber2=absorber2,
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
-            config=self.config["correlations"],
-            default_config=self.defaults["correlations"],
+            config=self.config,
+            default_config=self.defaults,
+            section="correlations",
             slurm_args=slurm_header_extra_args,
             command=command,
             region=region,
@@ -1540,8 +1555,9 @@ class Bookkeeper:
         command = "picca_export.py"
 
         updated_picca_extra_args = self.generate_picca_extra_args(
-            config=self.config["correlations"],
-            default_config=self.defaults["correlations"],
+            config=self.config,
+            default_config=self.defaults,
+            section="correlations",
             picca_args=picca_extra_args,
             command=command,
             region=region,
@@ -1550,8 +1566,9 @@ class Bookkeeper:
             absorber2=absorber2,
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
-            config=self.config["correlations"],
-            default_config=self.defaults["correlations"],
+            config=self.config,
+            default_config=self.defaults,
+            section="correlations",
             slurm_args=slurm_header_extra_args,
             command=command,
             region=region,
@@ -1666,8 +1683,9 @@ class Bookkeeper:
         command = "picca_metal_dmat.py"
 
         updated_picca_extra_args = self.generate_picca_extra_args(
-            config=self.config["correlations"],
-            default_config=self.defaults["correlations"],
+            config=self.config,
+            default_config=self.defaults,
+            section="correlations",
             picca_args=picca_extra_args,
             command=command,
             region=region,
@@ -1676,8 +1694,9 @@ class Bookkeeper:
             absorber2=absorber2,
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
-            config=self.config["correlations"],
-            default_config=self.defaults["correlations"],
+            config=self.config,
+            default_config=self.defaults,
+            section="correlations",
             slurm_args=slurm_header_extra_args,
             command=command,
             region=region,
@@ -1786,16 +1805,18 @@ class Bookkeeper:
         command = "picca_xcf.py"
 
         updated_picca_extra_args = self.generate_picca_extra_args(
-            config=self.config["correlations"],
-            default_config=self.defaults["correlations"],
+            config=self.config,
+            default_config=self.defaults,
+            section="correlations",
             picca_args=picca_extra_args,
             command=command,
             region=region,
             absorber=absorber,
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
-            config=self.config["correlations"],
-            default_config=self.defaults["correlations"],
+            config=self.config,
+            default_config=self.defaults,
+            section="correlations",
             slurm_args=slurm_header_extra_args,
             command=command,
             region=region,
@@ -1901,16 +1922,18 @@ class Bookkeeper:
         command = "picca_xdmat.py"
 
         updated_picca_extra_args = self.generate_picca_extra_args(
-            config=self.config["correlations"],
-            default_config=self.defaults["correlations"],
+            config=self.config,
+            default_config=self.defaults,
+            section="correlations",
             picca_args=picca_extra_args,
             command=command,
             region=region,
             absorber=absorber,
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
-            config=self.config["correlations"],
-            default_config=self.defaults["correlations"],
+            config=self.config,
+            default_config=self.defaults,
+            section="correlations",
             slurm_args=slurm_header_extra_args,
             command=command,
             region=region,
@@ -2008,16 +2031,18 @@ class Bookkeeper:
         command = "picca_export.py"
 
         updated_picca_extra_args = self.generate_picca_extra_args(
-            config=self.config["correlations"],
-            default_config=self.defaults["correlations"],
+            config=self.config,
+            default_config=self.defaults,
+            section="correlations",
             picca_args=picca_extra_args,
             command=command,
             region=region,
             absorber=absorber,
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
-            config=self.config["correlations"],
-            default_config=self.defaults["correlations"],
+            config=self.config,
+            default_config=self.defaults,
+            section="correlations",
             slurm_args=slurm_header_extra_args,
             command=command,
             region=region,
@@ -2109,16 +2134,18 @@ class Bookkeeper:
         command = "picca_xdmat.py"
 
         updated_picca_extra_args = self.generate_picca_extra_args(
-            config=self.config["correlations"],
-            default_config=self.defaults["correlations"],
+            config=self.config,
+            default_config=self.defaults,
+            section="correlations",
             picca_args=picca_extra_args,
             command=command,
             region=region,
             absorber=absorber,
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
-            config=self.config["correlations"],
-            default_config=self.defaults["correlations"],
+            config=self.config,
+            default_config=self.defaults,
+            section="correlations",
             slurm_args=slurm_header_extra_args,
             command=command,
             region=region,
@@ -2236,16 +2263,18 @@ class Bookkeeper:
         command = "picca_export.py"
 
         updated_picca_extra_args = self.generate_picca_extra_args(
-            config=self.config["correlations"],
-            default_config=self.defaults["correlations"],
+            config=self.config,
+            default_config=self.defaults,
+            section="correlations",
             picca_args=picca_extra_args,
             command=command,
             region=region,
             absorber=absorber,
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
-            config=self.config["correlations"],
-            default_config=self.defaults["correlations"],
+            config=self.config,
+            default_config=self.defaults,
+            section="correlations",
             slurm_args=slurm_header_extra_args,
             command=command,
             region=region,
@@ -2347,16 +2376,18 @@ class Bookkeeper:
         command = "picca_metal_xdmat.py"
 
         updated_picca_extra_args = self.generate_picca_extra_args(
-            config=self.config["correlations"],
-            default_config=self.defaults["correlations"],
+            config=self.config,
+            default_config=self.defaults,
+            section="correlations",
             picca_args=picca_extra_args,
             command=command,
             region=region,
             absorber=absorber,
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
-            config=self.config["correlations"],
-            default_config=self.defaults["correlations"],
+            config=self.config,
+            default_config=self.defaults,
+            section="correlations",
             slurm_args=slurm_header_extra_args,
             command=command,
             region=region,
@@ -2477,8 +2508,9 @@ class Bookkeeper:
             absorber2 = self.validate_absorber(absorber2)
 
             vega_args = self.generate_picca_extra_args(
-                config=self.config["fits"],
-                default_config=self.defaults["fits"],
+                config=self.config,
+                default_config=self.defaults,
+                section="fits",
                 picca_args=dict(),
                 command="vega_auto.py",  # The use of .py only for using same function
                 region=region,
@@ -2518,8 +2550,9 @@ class Bookkeeper:
             absorber = self.validate_absorber(absorber)
 
             vega_args = self.generate_picca_extra_args(
-                config=self.config["fits"],
-                default_config=self.defaults["fits"],
+                config=self.config,
+                default_config=self.defaults,
+                section="fits",
                 picca_args=dict(),
                 command="vega_cross.py",  # The use of .py only for using same function
                 region=region,
@@ -2549,9 +2582,10 @@ class Bookkeeper:
 
         # Now the main file
         vega_args = self.generate_picca_extra_args(
-            config=self.config["fits"],
+            config=self.config,
+            default_config=self.defaults,
+            section="fits",
             picca_args=dict(),
-            default_config=self.defaults["fits"],
             command="vega_main.py",  # The .py needed to make use of same function
         )
 
@@ -2588,8 +2622,9 @@ class Bookkeeper:
         # Now slurm args
         command = "run_vega.py"
         updated_slurm_header_args = self.generate_slurm_header_extra_args(
-            config=self.config["fits"],
-            default_config=self.defaults["fits"],
+            config=self.config,
+            default_config=self.defaults,
+            section="fits",
             slurm_args=slurm_header_extra_args,
             command=command,
         )
