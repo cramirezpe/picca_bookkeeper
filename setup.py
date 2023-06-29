@@ -32,6 +32,7 @@ setuptools.setup(
             "desi_bookkeeper_add_extra_deltas_data = picca_bookkeeper.scripts.add_extra_deltas_data:main",
             "desi_bookkeeper_run_fit = picca_bookkeeper.scripts.run_fit:main",
             "desi_bookkeeper_generate_fit_config = picca_bookkeeper.scripts.generate_fit_config:main",
+            "desi_bookkeeper_search_runs = picca_bookkeeper.scripts.search_runs:main",
         ]
     },
     classifiers=[
