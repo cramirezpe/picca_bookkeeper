@@ -41,7 +41,7 @@ def find_qso_pixel(los_id: int, catalog: Union[str, Path]):
 def get_spectra_from_los_id(
     los_id: int,
     catalog: Union[str, Path],
-    input_healpix = Union[str, Path],
+    input_healpix: Union[str, Path]=None,
     lambda_grid: List[float] = np.arange(3600, 9824, 0.8),
 ):
     """Get quasar spectra given los_id
@@ -55,8 +55,13 @@ def get_spectra_from_los_id(
     healpix, survey = find_qso_pixel(los_id, catalog)
     healpix = str(healpix)
 
+    if input_healpix is None:
+        input_healpix = Path("/global/cfs/cdirs/desi/science/lya/fugu_healpix/healpix")
+    else:
+        input_healpix = Path(input_healpix)
+
     coadd_file = (
-        Path("/global/cfs/cdirs/desi/science/lya/fugu_healpix/healpix")
+        input_healpix
         / survey
         / "dark"
         / healpix[:-2]
