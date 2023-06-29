@@ -106,8 +106,8 @@ def write_full_analysis(bookkeeper, calib=False, region="lya", region2=None):
         task.send_job()
 
     fit = bookkeeper.get_fit_tasker(
-        auto_correlations=["lya-lya_lya-lya"],
-        cross_correlations=["lya-lya"],
+        auto_correlations=["lya.lya-lya.lya"],
+        cross_correlations=["lya.lya"],
     )
 
     fit.write_job()
@@ -551,8 +551,8 @@ class TestBookkeeper(unittest.TestCase):
         bookkeeper2 = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
         fit = bookkeeper2.get_fit_tasker(
-            auto_correlations=["lya-lya_lya-lya"],
-            cross_correlations=["lya-lya"],
+            auto_correlations=["lya.lya-lya.lya"],
+            cross_correlations=["lya.lya"],
         )
 
         fit.write_job()

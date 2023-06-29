@@ -1305,7 +1305,7 @@ class Bookkeeper:
 
         args = {
             "in-dir": str(self.paths.deltas_path(region)),
-            "out": str(self.paths.cf_fname(region, region2, absorber, absorber2)),
+            "out": str(self.paths.cf_fname(absorber, region, absorber2, region2)),
             "lambda-abs": absorber_igm[absorber.lower()],
         }
 
@@ -1329,7 +1329,7 @@ class Bookkeeper:
                 dict(nspec=1000),
             )
 
-        self.paths.cf_fname(region, region2, absorber, absorber2).parent.mkdir(
+        self.paths.cf_fname(absorber, region, absorber2, region2).parent.mkdir(
             exist_ok=True, parents=True
         )
 
@@ -1438,7 +1438,7 @@ class Bookkeeper:
 
         args = {
             "in-dir": str(self.paths.deltas_path(region)),
-            "out": str(self.paths.dmat_fname(region, region2, absorber, absorber2)),
+            "out": str(self.paths.dmat_fname(absorber, region, absorber2, region2)),
             "lambda-abs": absorber_igm[absorber.lower()],
         }
 
@@ -1460,7 +1460,7 @@ class Bookkeeper:
             )
             args = DictUtils.merge_dicts(args, dict(nspec=1000))
 
-        self.paths.dmat_fname(region, region2, absorber, absorber2).parent.mkdir(
+        self.paths.dmat_fname(absorber, region, absorber2, region2).parent.mkdir(
             exist_ok=True,
             parents=True,
         )
@@ -1569,12 +1569,12 @@ class Bookkeeper:
         )
 
         args = {
-            "data": str(self.paths.cf_fname(region, region2, absorber, absorber2)),
-            "out": str(self.paths.exp_cf_fname(region, region2, absorber, absorber2)),
+            "data": str(self.paths.cf_fname(absorber, region, absorber2, region2)),
+            "out": str(self.paths.exp_cf_fname(absorber, region, absorber2, region2)),
         }
         if not no_dmat:
             args["dmat"] = str(
-                self.paths.dmat_fname(region, region2, absorber, absorber2)
+                self.paths.dmat_fname(absorber, region, absorber2, region2)
             )
 
         args = DictUtils.merge_dicts(args, updated_picca_extra_args)
@@ -1695,7 +1695,7 @@ class Bookkeeper:
 
         args = {
             "in-dir": str(self.paths.deltas_path(region)),
-            "out": str(self.paths.metal_fname(region, region2, absorber, absorber2)),
+            "out": str(self.paths.metal_fname(absorber, region, absorber2, region2)),
             "lambda-abs": absorber_igm[absorber.lower()],
         }
 
@@ -1717,7 +1717,7 @@ class Bookkeeper:
             )
             args = DictUtils.merge_dicts(args, dict(nspec=1000))
 
-        self.paths.metal_fname(region, region2, absorber, absorber2).parent.mkdir(
+        self.paths.metal_fname(absorber, region, absorber2, region2).parent.mkdir(
             exist_ok=True, parents=True
         )
 
@@ -1813,7 +1813,7 @@ class Bookkeeper:
         args = {
             "in-dir": str(self.paths.deltas_path(region)),
             "drq": str(drq),
-            "out": str(self.paths.xcf_fname(region, absorber)),
+            "out": str(self.paths.xcf_fname(absorber, region)),
             "lambda-abs": absorber_igm[absorber.lower()],
         }
 
@@ -1831,7 +1831,7 @@ class Bookkeeper:
                 dict(nspec=1000),
             )
 
-        self.paths.xcf_fname(region, absorber).parent.mkdir(exist_ok=True, parents=True)
+        self.paths.xcf_fname(absorber, region).parent.mkdir(exist_ok=True, parents=True)
 
         return get_Tasker(
             updated_system,
@@ -1927,7 +1927,7 @@ class Bookkeeper:
         args = {
             "in-dir": str(self.paths.deltas_path(region)),
             "drq": str(drq),
-            "out": str(self.paths.xdmat_fname(region, absorber)),
+            "out": str(self.paths.xdmat_fname(absorber, region)),
             "lambda-abs": absorber_igm[absorber.lower()],
         }
 
@@ -1944,7 +1944,7 @@ class Bookkeeper:
                 args,
                 dict(nspec=1000),
             )
-        self.paths.xdmat_fname(region, absorber).parent.mkdir(
+        self.paths.xdmat_fname(absorber, region).parent.mkdir(
             exist_ok=True, parents=True
         )
 
@@ -2030,12 +2030,12 @@ class Bookkeeper:
         )
 
         args = {
-            "data": str(self.paths.xcf_fname(region, absorber)),
-            "out": str(self.paths.exp_xcf_fname(region, absorber)),
+            "data": str(self.paths.xcf_fname(absorber, region)),
+            "out": str(self.paths.exp_xcf_fname(absorber, region)),
             "blind-corr-type": "qsoxlya",
         }
         if not no_dmat:
-            args["dmat"] = str(self.paths.xdmat_fname(region, absorber))
+            args["dmat"] = str(self.paths.xdmat_fname(absorber, region))
 
         args = DictUtils.merge_dicts(args, updated_picca_extra_args)
 
@@ -2135,7 +2135,7 @@ class Bookkeeper:
         args = {
             "in-dir": str(self.paths.deltas_path(region)),
             "drq": str(drq),
-            "out": str(self.paths.xdmat_fname(region, absorber)),
+            "out": str(self.paths.xdmat_fname(absorber, region)),
             "mode": "desi_healpix",
             "nproc": 128,
             "rej": 0.99,
@@ -2162,7 +2162,7 @@ class Bookkeeper:
                 dict(nspec=1000),
             )
 
-        self.paths.xdmat_fname(region, absorber).parent.mkdir(
+        self.paths.xdmat_fname(absorber, region).parent.mkdir(
             exist_ok=True, parents=True
         )
 
@@ -2257,13 +2257,13 @@ class Bookkeeper:
         )
 
         args = {
-            "data": str(self.paths.xcf_fname(region, absorber)),
-            "out": str(self.paths.exp_xcf_fname(region, absorber)),
+            "data": str(self.paths.xcf_fname(absorber, region)),
+            "out": str(self.paths.exp_xcf_fname(absorber, region)),
             "blind-corr-type": "qsoxlya",
             "lambda-abs": absorber_igm[absorber.lower()],
         }
         if not no_dmat:
-            args["dmat"] = str(self.paths.xdmat_fname(region, absorber))
+            args["dmat"] = str(self.paths.xdmat_fname(absorber, region))
 
         args = DictUtils.merge_dicts(args, updated_picca_extra_args)
 
@@ -2371,7 +2371,7 @@ class Bookkeeper:
         args = {
             "in-dir": str(self.paths.deltas_path(region)),
             "drq": str(drq),
-            "out": str(self.paths.xmetal_fname(region, absorber)),
+            "out": str(self.paths.xmetal_fname(absorber, region)),
             "lambda-abs": absorber_igm[absorber.lower()],
         }
 
@@ -2393,7 +2393,7 @@ class Bookkeeper:
                 dict(nspec=1000),
             )
 
-        self.paths.xmetal_fname(region, absorber).parent.mkdir(
+        self.paths.xmetal_fname(absorber, region).parent.mkdir(
             exist_ok=True, parents=True
         )
 
@@ -2423,10 +2423,10 @@ class Bookkeeper:
 
         Args:
             auto_correlations: List of auto-correlations to include in the vega
-                fits. The format of the strings should be 'lya-lya_lya-lya'.
+                fits. The format of the strings should be 'lya.lya-lya.lya'.
                 This is to allow splitting.
             cross_correlations: List of cross-correlations to include in the vega
-                fits. The format of the strings should be 'lya-lya'.
+                fits. The format of the strings should be 'lya.lya'.
             system: Shell to use for job. 'slurm_cori' to use slurm scripts on
                 cori, 'slurm_perlmutter' to use slurm scripts on perlmutter,
                 'bash' to run it in login nodes or computer shell.
@@ -2458,8 +2458,8 @@ class Bookkeeper:
 
         for auto_correlation in auto_correlations:
             absorber, region, absorber2, region2 = auto_correlation.replace(
-                "_", "-"
-            ).split("-")
+                "-", "."
+            ).split(".")
             region = self.validate_region(region)
             absorber = self.validate_absorber(absorber)
             region2 = self.validate_region(region2)
@@ -2479,12 +2479,12 @@ class Bookkeeper:
             args = {
                 "data": {
                     "filename": self.paths.exp_cf_fname(
-                        region, region2, absorber, absorber2
+                        absorber, region, absorber2, region2
                     ),
                 },
                 "metals": {
                     "filename": self.paths.metal_fname(
-                        region, region2, absorber, absorber2
+                        absorber, region, absorber2, region2
                     ),
                 },
             }
@@ -2495,14 +2495,14 @@ class Bookkeeper:
             fit_config = configparser.ConfigParser()
             fit_config.read_dict(args)
 
-            filename = self.paths.fit_auto_fname(region, region2, absorber, absorber2)
+            filename = self.paths.fit_auto_fname(absorber, region, absorber2, region2)
             with open(filename, "w") as file:
                 fit_config.write(file)
 
             ini_files.append(str(filename))
 
         for cross_correlation in cross_correlations:
-            absorber, region = cross_correlation.split("-")
+            absorber, region = cross_correlation.split(".")
             region = self.validate_region(region)
             absorber = self.validate_absorber(absorber)
 
@@ -2517,10 +2517,10 @@ class Bookkeeper:
 
             args = {
                 "data": {
-                    "filename": self.paths.exp_xcf_fname(region, absorber),
+                    "filename": self.paths.exp_xcf_fname(absorber, region),
                 },
                 "metals": {
-                    "filename": self.paths.xmetal_fname(region, absorber),
+                    "filename": self.paths.xmetal_fname(absorber, region),
                 },
             }
 
@@ -2530,7 +2530,7 @@ class Bookkeeper:
             fit_config = configparser.ConfigParser()
             fit_config.read_dict(args)
 
-            filename = self.paths.fit_cross_fname(region, absorber)
+            filename = self.paths.fit_cross_fname(absorber, region)
             with open(filename, "w") as file:
                 fit_config.write(file)
 
@@ -2988,10 +2988,10 @@ class PathBuilder:
 
     def cf_fname(
         self,
+        absorber: str,
         region: str,
-        region2: str = None,
-        absorber: str = "lya",
         absorber2: str = None,
+        region2: str = None,
     ):
         """Method to get the path to a forest-forest correlation file.
 
@@ -3005,6 +3005,7 @@ class PathBuilder:
             Path: Path to correlation file.
         """
         region2 = region if region2 is None else region2
+        absorber2 = absorber if absorber2 is None else absorber2
         return (
             self.correlations_path
             / "correlations"
@@ -3014,10 +3015,10 @@ class PathBuilder:
 
     def dmat_fname(
         self,
+        absorber: str,
         region: str,
-        region2: str = None,
-        absorber: str = "lya",
         absorber2: str = None,
+        region2: str = None,
     ):
         """Method to get the path to a distortion matrix file for forest-forest
         correlations.
@@ -3031,17 +3032,16 @@ class PathBuilder:
         Returns:
             Path: Path to correlation file.
         """
-        region2 = region if region2 is None else region2
         return (
-            self.cf_fname(region, region2, absorber, absorber2).parent / f"dmat.fits.gz"
+            self.cf_fname(absorber, region, absorber2, region2).parent / f"dmat.fits.gz"
         )
 
     def metal_fname(
         self,
+        absorber: str,
         region: str,
-        region2: str = None,
-        absorber: str = "lya",
         absorber2: str = None,
+        region2: str = None,
     ):
         """Method to get the path to a metal distortion matrix file for forest-forest
         correlations.
@@ -3055,18 +3055,17 @@ class PathBuilder:
         Returns:
             Path: Path to correlation file.
         """
-        region2 = region if region2 is None else region2
         return (
-            self.cf_fname(region, region2, absorber, absorber2).parent
+            self.cf_fname(absorber, region, absorber2, region2).parent
             / f"metal.fits.gz"
         )
 
     def exp_cf_fname(
         self,
+        absorber: str,
         region: str,
-        region2: str = None,
-        absorber: str = "lya",
         absorber2: str = None,
+        region2: str = None,
     ):
         """Method to get the path to a forest-forest correlation export file.
 
@@ -3079,10 +3078,10 @@ class PathBuilder:
         Returns:
             Path: Path to export correlation file.
         """
-        cor_file = self.cf_fname(region, region2, absorber, absorber2)
+        cor_file = self.cf_fname(absorber, region, absorber2, region2)
         return cor_file.parent / f"cf_exp.fits.gz"
 
-    def xcf_fname(self, region: str, absorber: str):
+    def xcf_fname(self, absorber: str, region: str):
         """Method to get the path to a forest-quasar correlation export file.
 
         Args:
@@ -3095,11 +3094,11 @@ class PathBuilder:
         return (
             self.correlations_path
             / "correlations"
-            / f"lya{absorber}{region}_qso"
+            / f"qso_{absorber}{region}"
             / f"xcf.fits.gz"
         )
 
-    def xdmat_fname(self, region: str, absorber: str):
+    def xdmat_fname(self, absorber: str, region: str):
         """Method to get the path to a distortion matrix file for forest-quasar
         correlations.
 
@@ -3110,9 +3109,9 @@ class PathBuilder:
         Returns:
             Path: Path to export correlation file.
         """
-        return self.xcf_fname(region, absorber).parent / f"xdmat.fits.gz"
+        return self.xcf_fname(absorber, region).parent / f"xdmat.fits.gz"
 
-    def xmetal_fname(self, region: str, absorber: str):
+    def xmetal_fname(self, absorber: str, region: str):
         """Method to get the path to a metal distortion matrix file for forest-quasar
         correlations.
 
@@ -3123,9 +3122,9 @@ class PathBuilder:
         Returns:
             Path: Path to export correlation file.
         """
-        return self.xcf_fname(region, absorber).parent / f"xmetal.fits.gz"
+        return self.xcf_fname(absorber, region).parent / f"xmetal.fits.gz"
 
-    def exp_xcf_fname(self, region: str, absorber: str):
+    def exp_xcf_fname(self, absorber: str, region: str):
         """Method to get the path to a forest-quasar correlation export file.
 
         Args:
@@ -3135,10 +3134,16 @@ class PathBuilder:
         Returns:
             Path: Path to export correlation file.
         """
-        cor_file = self.xcf_fname(region, absorber)
+        cor_file = self.xcf_fname(absorber, region)
         return cor_file.parent / f"xcf_exp.fits.gz"
 
-    def fit_auto_fname(self, region: str, absorber: str, region2: str, absorber2: str):
+    def fit_auto_fname(
+        self,
+        absorber: str,
+        region: str,
+        absorber2: str = None,
+        region2: str = None,
+    ):
         """Method to get te path to a given fit auto config file.
 
         Args:
@@ -3150,9 +3155,13 @@ class PathBuilder:
         Returns:
             Path: Path to fit config file.
         """
-        return self.fits_path / "configs" / f"{absorber}{region}x{absorber}{region}.ini"
+        region2 = region if region2 is None else region2
+        absorber2 = absorber if absorber2 is None else absorber2
+        return (
+            self.fits_path / "configs" / f"{absorber}{region}x{absorber2}{region2}.ini"
+        )
 
-    def fit_cross_fname(self, region: str, absorber: str):
+    def fit_cross_fname(self, absorber: str, region: str):
         """Method to get te path to a given fit cross config file.
 
         Args:

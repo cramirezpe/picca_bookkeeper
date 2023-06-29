@@ -26,24 +26,25 @@ def main(args=None):
     regions = []
     autos = []
     for auto in args.auto_correlations:
-        absorber, region, absorber2, region2 = auto.replace("_", "-").split("-")
+        absorber, region, absorber2, region2 = auto.replace("-", ".").split(".")
 
         region = bookkeeper.validate_region(region)
         absorber = bookkeeper.validate_absorber(absorber)
         region2 = bookkeeper.validate_region(region2)
         absorber2 = bookkeeper.validate_absorber(absorber2)
 
-        autos.append([region, absorber, region2, absorber2])
+        autos.append([absorber, region, absorber2, region2])
         regions.append(region)
         regions.append(region2)
 
     crosses = []
     for cross in args.cross_correlations:
-        absorber, region = cross.split("-")
+        absorber, region = cross.split(".")
         region = bookkeeper.validate_region(region)
         absorber = bookkeeper.validate_absorber(absorber)
 
         regions.append(region)
+        crosses.append([absorber, region])
 
     regions = np.unique(regions)
 
@@ -107,7 +108,7 @@ def main(args=None):
                 absorber2=absorber2,
                 no_dmat=args.no_dmat,
                 no_metal=args.no_metal,
-                debug=args.debug,
+                debug=False,  # Debug, only set deltas
                 only_write=args.only_write,
                 wait_for=calib_jobid,
             )
@@ -123,10 +124,11 @@ def main(args=None):
                 absorber=absorber,
                 no_dmat=args.no_dmat,
                 no_metal=args.no_metal,
-                debug=args.debug,
+                debug=False,  # Debug, only set deltas,
                 only_write=args.only_write,
                 wait_for=region_jobids[region],
             )
+
             correlation_jobids.append(run_xcf(cross_args))
     else:
         # Again, if correlations are not computed, we should
