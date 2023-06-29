@@ -638,6 +638,7 @@ class Bookkeeper:
             srun_options=dict(),
             environment=self.config["general"]["conda environment"],
             run_file=self.paths.run_path / f"scripts/run_{job_name}.sh",
+            jobid_log_file=self.paths.run_path / f"logs/jobids.log",
             wait_for=wait_for,
         )
 
@@ -1105,6 +1106,7 @@ class Bookkeeper:
             srun_options=dict(),
             environment=self.config["general"]["conda environment"],
             run_file=self.paths.run_path / f"scripts/run_{job_name}.sh",
+            jobid_log_file=self.paths.run_path / f"logs/jobids.log",
             wait_for=wait_for,
         )
 
@@ -1323,6 +1325,7 @@ class Bookkeeper:
             srun_options=dict(),
             environment=self.config["general"]["conda environment"],
             run_file=self.paths.correlations_path / f"scripts/run_{job_name}.sh",
+            jobid_log_file=self.paths.correlations_path / f"logs/jobids.log",
             wait_for=wait_for,
         )
 
@@ -1453,6 +1456,7 @@ class Bookkeeper:
             srun_options=dict(),
             environment=self.config["general"]["conda environment"],
             run_file=self.paths.correlations_path / f"scripts/run_{job_name}.sh",
+            jobid_log_file=self.paths.correlations_path / f"logs/jobids.log",
             wait_for=wait_for,
         )
 
@@ -1576,6 +1580,7 @@ class Bookkeeper:
             environment=self.config["general"]["conda environment"],
             environmental_variables=environmental_variables,
             run_file=self.paths.correlations_path / f"scripts/run_{job_name}.sh",
+            jobid_log_file=self.paths.correlations_path / f"logs/jobids.log",
             wait_for=wait_for,
         )
 
@@ -1705,6 +1710,7 @@ class Bookkeeper:
             srun_options=dict(),
             environment=self.config["general"]["conda environment"],
             run_file=self.paths.correlations_path / f"scripts/run_{job_name}.sh",
+            jobid_log_file=self.paths.correlations_path / f"logs/jobids.log",
             wait_for=wait_for,
         )
 
@@ -1815,6 +1821,7 @@ class Bookkeeper:
             srun_options=dict(),
             environment=self.config["general"]["conda environment"],
             run_file=self.paths.correlations_path / f"scripts/run_{job_name}.sh",
+            jobid_log_file=self.paths.correlations_path / f"logs/jobids.log",
             wait_for=wait_for,
         )
 
@@ -1928,6 +1935,7 @@ class Bookkeeper:
             srun_options=dict(),
             environment=self.config["general"]["conda environment"],
             run_file=self.paths.correlations_path / f"scripts/run_{job_name}.sh",
+            jobid_log_file=self.paths.correlations_path / f"logs/jobids.log",
             wait_for=wait_for,
         )
 
@@ -2029,6 +2037,7 @@ class Bookkeeper:
             environment=self.config["general"]["conda environment"],
             environmental_variables=environmental_variables,
             run_file=self.paths.correlations_path / f"scripts/run_{job_name}.sh",
+            jobid_log_file=self.paths.correlations_path / f"logs/jobids.log",
             wait_for=wait_for,
         )
 
@@ -2144,6 +2153,7 @@ class Bookkeeper:
             srun_options=dict(),
             environment=self.config["general"]["conda environment"],
             run_file=self.paths.correlations_path / f"scripts/run_{job_name}.sh",
+            jobid_log_file=self.paths.correlations_path / f"logs/jobids.log",
             wait_for=wait_for,
         )
 
@@ -2254,6 +2264,7 @@ class Bookkeeper:
             environment=self.config["general"]["conda environment"],
             environmental_variables=environmental_variables,
             run_file=self.paths.correlations_path / f"scripts/run_{job_name}.sh",
+            jobid_log_file=self.paths.correlations_path / f"logs/jobids.log",
             wait_for=wait_for,
         )
 
@@ -2372,6 +2383,7 @@ class Bookkeeper:
             environment=self.config["general"]["conda environment"],
             environmental_variables=environmental_variables,
             run_file=self.paths.correlations_path / f"scripts/run_{job_name}.sh",
+            jobid_log_file=self.paths.correlations_path / f"logs/jobids.log",
             wait_for=wait_for,
         )
 
@@ -2560,6 +2572,7 @@ class Bookkeeper:
             srun_options=dict(),
             environment=self.config["general"]["conda environment"],
             run_file=self.paths.fits_path / f"scripts/run_{job_name}.sh",
+            jobid_log_file=self.paths.fits_path / f"logs/jobids.log",
             wait_for=wait_for,
         )
 

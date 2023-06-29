@@ -65,6 +65,7 @@ class Tasker:
         run_file,
         wait_for,
         environmental_variables=dict(),
+        jobid_log_file=None,
     ):
         """
         Args:
@@ -76,6 +77,7 @@ class Tasker:
             run_file (Path): Location of the job file.
             wait_for (Tasker or int, optional): In NERSC, wait for a given job to finish before running the current one. Could be a  Tasker object or a slurm jobid (int). (Default: None, won't wait for anything).
             environmental_variables (dict, optional): Environmental variables to set before running the job. Format: {'environmental_variable': 'value'}. Default: No environmental variables defined.
+            jobid_log_file (Path): Location of log file where to include jobids of runs.
         """
         self.slurm_header_args = {**self.default_header, **slurm_header_args}
         self.command = command
@@ -85,6 +87,7 @@ class Tasker:
         self.srun_options = {**self.default_srun_options, **srun_options}
         self.run_file = run_file
         self.wait_for = wait_for
+        self.jobid_log_file = jobid_log_file
 
     def get_wait_for_ids(self):
         """Method to standardise wait_for Taskers or ids, in such a way that can be easily used afterwards."""
@@ -149,6 +152,11 @@ class Tasker:
         """Method to write job script into file."""
         with open(self.run_file, "w") as f:
             f.write(self._make_body())
+
+    def write_jobid(self):
+        """Method to write jobid into log file."""
+        with open(self.jobid_log_file, "a") as file:
+            file.write(str(self.jobid) + "\n")
 
 
 class SlurmTasker(Tasker):
@@ -258,6 +266,7 @@ export OMP_NUM_THREADS={self.srun_options['cpus-per-task']}
 
         if self.sbatch_process.returncode == 0:
             self.jobid = int(self.sbatch_process.stdout.decode("utf-8"))
+            self.write_jobid()
         else:
             raise ValueError(
                 f'Submitting job failed. {self.sbatch_process.stderr.decode("utf-8")}'
