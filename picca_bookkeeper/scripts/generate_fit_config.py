@@ -61,15 +61,15 @@ def main(args=None):
     )
 
     auto_correlations = [
-        "lya-lya_lya-lya",
+        "lya.lya-lya.lya",
     ]
     cross_correlations = [
-        "lya-lya",
+        "lya.lya",
     ]
 
     if args.lyb:
-        auto_correlations.append("lya-lya_lya-lyb")
-        cross_correlations.append("lya-lyb")
+        auto_correlations.append("lya.lya-lya.lyb")
+        cross_correlations.append("lya.lyb")
 
     if args.no_bao:
         bookkeeper.fits["picca args"] = DictUtils.merge_dicts(
@@ -216,7 +216,7 @@ def main(args=None):
     bookkeeper.write_bookkeeper(out_config, args.out_config)
 
     # The previous one was a full bookkeeper file, but we want
-    # to generate one with only the fits section:    
+    # to generate one with only the fits section:
     out_config.pop("delta extraction")
     out_config.pop("correlations")
 
@@ -230,7 +230,6 @@ def main(args=None):
             wait_for=args.wait_for,
         )
         fit.write_job()
-
 
         fit.send_job()
         print(fit.jobid)

@@ -176,7 +176,7 @@ def get_args():
         nargs="+",
         default=[],
         help="List of auto-correlations to include in the vega "
-        "fits. The format of the strings should be 'lya-lya_lya-lyb'. "
+        "fits. The format of the strings should be 'lya.lya-lya.lyb'. "
         "which reads as Lyman-alpha absorption in the Lyman-alpha region "
         "correlated with lyman alpha in the lyman beta region. "
         "This is to allow splitting.",
@@ -188,7 +188,7 @@ def get_args():
         nargs="+",
         default=[],
         help="List of cross-correlations to include in the vega "
-        "fits. The format of the strings should be 'lya-lya'.",
+        "fits. The format of the strings should be 'lya.lya'.",
     )
 
     parser.add_argument(

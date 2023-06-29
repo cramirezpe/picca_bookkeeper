@@ -8,21 +8,24 @@ def main(args=None):
     if args is None:
         args = get_args()
 
-    bookkeeper = Bookkeeper(args.bookkeeper_config, overwrite_config=args.overwrite_config)
+    bookkeeper = Bookkeeper(
+        args.bookkeeper_config, overwrite_config=args.overwrite_config
+    )
 
     fit = bookkeeper.get_fit_tasker(
-        auto_correlations = args.auto_correlations,
-        cross_correlations= args.cross_correlations,
-        wait_for = args.wait_for,
+        auto_correlations=args.auto_correlations,
+        cross_correlations=args.cross_correlations,
+        wait_for=args.wait_for,
     )
 
     fit.write_job()
     if not args.only_write:
         fit.send_job()
         print(fit.jobid)
-        return fit.jobid    
+        return fit.jobid
     else:
         return
+
 
 def get_args():
     parser = argparse.ArgumentParser()
@@ -33,7 +36,7 @@ def get_args():
     parser.add_argument(
         "--overwrite_config",
         action="store_true",
-        help="Force overwrite bookkeeper config."
+        help="Force overwrite bookkeeper config.",
     )
 
     parser.add_argument(
@@ -42,7 +45,7 @@ def get_args():
         nargs="+",
         default=[],
         help="List of auto-correlations to include in the vega fits. The format "
-        "of the strings should be 'lya-lya_lya-lya'. This is to allow splitting",
+        "of the strings should be 'lya.lya-lya.lya'. This is to allow splitting",
     )
 
     parser.add_argument(
@@ -51,13 +54,11 @@ def get_args():
         nargs="+",
         default=[],
         help="List of cross-correlations to include in the vega fits. The format of "
-        "the strings should be 'lya-lya'",
+        "the strings should be 'lya.lya'",
     )
 
     parser.add_argument(
-        "--only-write",
-        action="store_true",
-        help="Only write scripts, not send them."
+        "--only-write", action="store_true", help="Only write scripts, not send them."
     )
 
     parser.add_argument("--wait-for", nargs="+", type=int, default=None, required=False)
