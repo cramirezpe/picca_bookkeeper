@@ -42,6 +42,7 @@ correlations:
       np: 75
       nt: 50
       fid-Or: 7.975e-5
+      rebin-factor: 3
 
     picca_dmat:
       nproc: 128
@@ -52,6 +53,7 @@ correlations:
       np: 75
       nt: 50
       fid-Or: 7.975e-5
+      rebin-factor: 3
 
     picca_metal_dmat:
       nproc: 128
@@ -63,6 +65,7 @@ correlations:
       np: 75
       nt: 50
       fid-Or: 7.975e-5
+      rebin-factor: 3
 
     picca_metal_dmat_lyalyb_lyalya:
       abs-igm: "SiII(1260) SiIII(1207) SiII(1193) SiII(1190) CIV(eff)"
@@ -80,6 +83,7 @@ correlations:
       np: 150
       nt: 50
       fid-Or: 7.975e-5
+      rebin-factor: 3
 
     picca_xdmat:
       mode: "desi_healpix"
@@ -92,6 +96,7 @@ correlations:
       np: 150
       nt: 50
       fid-Or: 7.975e-5
+      rebin-factor: 3
 
     picca_metal_xdmat:
       mode: "desi_healpix"
@@ -104,6 +109,7 @@ correlations:
       np: 150
       nt: 50
       fid-Or: 7.975e-5
+      rebin-factor: 3
 
   slurm args:
     picca_cf:
@@ -169,8 +175,8 @@ fits:
         tracer2: LYA
 
       metals:
-        in tracer1: SiII(1260) SiIII(1207) SiII(1193) SiII(1190)
-        in tracer2: SiII(1260) SiIII(1207) SiII(1193) SiII(1190)
+        in tracer1: SiII(1260) SiIII(1207) SiII(1193) SiII(1190) CIV(eff)
+        in tracer2: SiII(1260) SiIII(1207) SiII(1193) SiII(1190) CIV(eff)
 
     vega_auto_lyalya_lyalyb:
       data:
@@ -220,7 +226,7 @@ fits:
         tracer2: LYA
         
       metals:
-        in tracer2: SiII(1260) SiIII(1207) SiII(1193) SiII(1190)
+        in tracer2: SiII(1260) SiIII(1207) SiII(1193) SiII(1190) CIV(eff)
 
     vega_cross_lyalyb:
       data:
@@ -232,7 +238,7 @@ fits:
 
     vega_main:
       data sets:
-        zeff: 2.353
+        zeff: 2.35
 
       cosmo-fit type:
         cosmo fit func: ap_at
@@ -242,7 +248,7 @@ fits:
         chi2: True
 
       output:
-        filename: y1_combined.fits
+        filename: combined.fits
         overwrite: True
 
       Polychord:
@@ -250,7 +256,7 @@ fits:
         num_live: 256
         num_repeats: 13
         path:
-        name: y1_com
+        name: com
         resume: True
         boost_posterior: 3
 
