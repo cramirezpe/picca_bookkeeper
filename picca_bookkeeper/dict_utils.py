@@ -1,7 +1,7 @@
-
 from typing import *
-import collections 
+import collections
 import copy
+
 
 class DictUtils:
     @staticmethod
@@ -18,7 +18,6 @@ class DictUtils:
                 result[key] = copy.deepcopy(dict2[key])
 
         return result
-
 
     @staticmethod
     def remove_matching(dict1: Dict, dict2: Dict):
@@ -45,10 +44,10 @@ class DictUtils:
                 differences[key] = DictUtils.diff_dicts(dict1[key], dict2[key])
             elif not dict1[key] == dict2[key]:
                 differences[key] = [dict1[key], dict2[key]]
-            
+
         for key, value in dict2.items():
             if key not in dict1:
-                differences[key] = [None, dict1[key]]
+                differences[key] = [None, dict2[key]]
 
         return differences
 
@@ -56,8 +55,8 @@ class DictUtils:
     def remove_empty(config: Dict):
         """Function to remove empty strings from dict"""
         result = copy.deepcopy(config)
-        
-        while True: 
+
+        while True:
             for key, value in result.items():
                 if value == "" or value == {}:
                     result.pop(key)
