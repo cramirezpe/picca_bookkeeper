@@ -117,13 +117,20 @@ class Bookkeeper:
         config (configparser.ConfigParser): Configuration file for the bookkeeper.
     """
 
-    def __init__(self, config_path: Union[str, Path], overwrite_config: bool = False):
+    def __init__(
+        self,
+        config_path: Union[str, Path],
+        overwrite_config: bool = False,
+        read_mode: bool = False,
+    ):
         """
         Args:
             config_path (Path or str): Path to configuration file or to an already
                 created run path.
             overwrite_config (bool, optional): overwrite bookkeeper config without
                 asking if it already exists inside bookkeeper.
+            read_modeo (bool, optional): do not try to write or create bookkeeper
+                structure.
         """
         # Try to read the file of the folder
         config_path = Path(config_path)
@@ -172,6 +179,28 @@ class Bookkeeper:
 
         self.paths = PathBuilder(self.config)
 
+        # If the calibration is taken from another place, we should
+        # also load this other bookkeeper
+        if config_type == "deltas" and self.config["delta extraction"].get(
+            "calibration data", ""
+        ) not in ("", None):
+            try:
+                self.calibration = Bookkeeper(
+                    self.paths.run_path.parent
+                    / self.config["delta extraction"].get("calibration data")
+                )
+            except Exception as e:
+                raise Exception("Error loading calibration bookkeeper").with_traceback(
+                    e.__traceback__
+                )
+        else:
+            self.calibration = self
+
+        if read_mode:
+            # Next steps imply writting on bookkeeper destination
+            # for read_mode we can finish here.
+            return
+
         self.paths.check_delta_directories()
 
         if self.correlations is not None:
@@ -204,7 +233,7 @@ class Bookkeeper:
                         "delta extraction section of config file should match delta "
                         "extraction section from file already in the bookkeeper. "
                         "Unmatching items: ",
-                        comparison 
+                        comparison,
                     )
 
         if self.correlations is not None and config_type != "fits":
@@ -228,7 +257,7 @@ class Bookkeeper:
                     "correlations",
                     ["delta extraction"],
                 )
-                if comparison == dict(): 
+                if comparison == dict():
                     # They are the same
                     self.write_bookkeeper(
                         config_corr, self.paths.correlation_config_file
@@ -237,7 +266,7 @@ class Bookkeeper:
                     raise ValueError(
                         "correlations section of config file should match correlation section "
                         "from file already in the bookkeeper. Unmatching items: ",
-                        comparison
+                        comparison,
                     )
 
         if self.fits is not None:
@@ -271,7 +300,7 @@ class Bookkeeper:
                     raise ValueError(
                         "fits section of config file should match fits section "
                         "from file already in the bookkeeper. Unmatching items: ",
-                        comparison
+                        comparison,
                     )
 
         # Read defaults and check if they have changed.
@@ -292,23 +321,6 @@ class Bookkeeper:
                 self.defaults,
                 self.paths.defaults_file,
             )
-            
-        # Finally, if the calibration is taken from another place, we should
-        # also load this other bookkeeper
-        if config_type == "deltas" and self.config["delta extraction"].get(
-            "calibration data", ""
-        ) not in ("", None):
-            try:
-                self.calibration = Bookkeeper(
-                    self.paths.run_path.parent
-                    / self.config["delta extraction"].get("calibration data")
-                )
-            except Exception as e:
-                raise Exception("Error loading calibration bookkeeper").with_traceback(
-                    e.__traceback__
-                )
-        else:
-            self.calibration = self
 
     @staticmethod
     def write_bookkeeper(config: Dict, file: Union[Path, str]):
@@ -361,10 +373,9 @@ class Bookkeeper:
                     sorted(value.items(), key=lambda s: correct_order[key].index(s[0]))
                 )
         except ValueError as e:
-            raise ValueError(
-                f"Invalid item in config file"
-            ).with_traceback(e.__traceback__)
-
+            raise ValueError(f"Invalid item in config file").with_traceback(
+                e.__traceback__
+            )
 
         with open(file, "w") as f:
             yaml.dump(config, f, sort_keys=False)
@@ -575,11 +586,12 @@ class Bookkeeper:
             Tasker: Tasker object to run delta extraction.
         """
         if self.defaults_diff != {}:
-            raise ValueError("Default values changed since last run of the "
-                             f"bookkeeper. Remove the file {self.paths.defaults_file} "
-                             "to be able to write jobs (with the new default "
-                             f"values). Defaults diff: {self.defaults_diff}"
-                             )
+            raise ValueError(
+                "Default values changed since last run of the "
+                f"bookkeeper. Remove the file {self.paths.defaults_file} "
+                "to be able to write jobs (with the new default "
+                f"values). Defaults diff: {self.defaults_diff}"
+            )
         region = self.validate_region(region)
 
         command = "picca_convert_transmission.py"
@@ -678,11 +690,12 @@ class Bookkeeper:
             Tasker: Tasker object to run delta extraction.
         """
         if self.defaults_diff != {}:
-            raise ValueError("Default values changed since last run of the "
-                             f"bookkeeper. Remove the file {self.paths.defaults_file} "
-                             "to be able to write jobs (with the new default "
-                             f"values). Defaults diff: {self.defaults_diff}"
-                             )
+            raise ValueError(
+                "Default values changed since last run of the "
+                f"bookkeeper. Remove the file {self.paths.defaults_file} "
+                "to be able to write jobs (with the new default "
+                f"values). Defaults diff: {self.defaults_diff}"
+            )
         region = self.validate_region(region)
 
         command = "picca_delta_extraction.py"
@@ -1073,7 +1086,9 @@ class Bookkeeper:
         #             f"mask arguments {i}": mask_section
         #         })
 
-        deltas_config_dict = DictUtils.merge_dicts(deltas_config_dict, updated_picca_extra_args)
+        deltas_config_dict = DictUtils.merge_dicts(
+            deltas_config_dict, updated_picca_extra_args
+        )
 
         # parse config
         deltas_config = configparser.ConfigParser()
@@ -1238,11 +1253,12 @@ class Bookkeeper:
             Tasker: Tasker object to run forest-forest correlation.
         """
         if self.defaults_diff != {}:
-            raise ValueError("Default values changed since last run of the "
-                             f"bookkeeper. Remove the file {self.paths.default_file} "
-                             "to be able to write jobs (with the new default "
-                             f"values). Defaults diff: {self.paths.defaults_diff}"
-                             )
+            raise ValueError(
+                "Default values changed since last run of the "
+                f"bookkeeper. Remove the file {self.paths.default_file} "
+                "to be able to write jobs (with the new default "
+                f"values). Defaults diff: {self.paths.defaults_diff}"
+            )
         region2 = region if region2 is None else region2
         region2 = self.validate_region(region2)
         region = self.validate_region(region)
@@ -1370,11 +1386,12 @@ class Bookkeeper:
             Tasker: Tasker object to run forest-forest correlation.
         """
         if self.defaults_diff != {}:
-            raise ValueError("Default values changed since last run of the "
-                             f"bookkeeper. Remove the file {self.paths.defaults_file} "
-                             "to be able to write jobs (with the new default "
-                             f"values). Defaults diff: {self.defaults_diff}"
-                             )
+            raise ValueError(
+                "Default values changed since last run of the "
+                f"bookkeeper. Remove the file {self.paths.defaults_file} "
+                "to be able to write jobs (with the new default "
+                f"values). Defaults diff: {self.defaults_diff}"
+            )
         region2 = region if region2 is None else region2
         region2 = self.validate_region(region2)
         region = self.validate_region(region)
@@ -1501,11 +1518,12 @@ class Bookkeeper:
             Tasker: Tasker object to run forest-forest correlation.
         """
         if self.defaults_diff != {}:
-            raise ValueError("Default values changed since last run of the "
-                             f"bookkeeper. Remove the file {self.paths.defaults_file} "
-                             "to be able to write jobs (with the new default "
-                             f"values). Defaults diff: {self.defaults_diff}"
-                             )
+            raise ValueError(
+                "Default values changed since last run of the "
+                f"bookkeeper. Remove the file {self.paths.defaults_file} "
+                "to be able to write jobs (with the new default "
+                f"values). Defaults diff: {self.defaults_diff}"
+            )
         region2 = region if region2 is None else region2
         region2 = self.validate_region(region2)
         region = self.validate_region(region)
@@ -1625,11 +1643,12 @@ class Bookkeeper:
             Tasker: Tasker object to run forest-forest correlation.
         """
         if self.defaults_diff != {}:
-            raise ValueError("Default values changed since last run of the "
-                             f"bookkeeper. Remove the file {self.paths.defaults_file} "
-                             "to be able to write jobs (with the new default "
-                             f"values). Defaults diff: {self.defaults_diff}"
-                             )
+            raise ValueError(
+                "Default values changed since last run of the "
+                f"bookkeeper. Remove the file {self.paths.defaults_file} "
+                "to be able to write jobs (with the new default "
+                f"values). Defaults diff: {self.defaults_diff}"
+            )
         region2 = region if region2 is None else region2
         region2 = self.validate_region(region2)
         region = self.validate_region(region)
@@ -1748,11 +1767,12 @@ class Bookkeeper:
             Tasker: Tasker object to run forest-forest correlation.
         """
         if self.defaults_diff != {}:
-            raise ValueError("Default values changed since last run of the "
-                             f"bookkeeper. Remove the file {self.paths.defaults_file} "
-                             "to be able to write jobs (with the new default "
-                             f"values). Defaults diff: {self.defaults_diff}"
-                             )
+            raise ValueError(
+                "Default values changed since last run of the "
+                f"bookkeeper. Remove the file {self.paths.defaults_file} "
+                "to be able to write jobs (with the new default "
+                f"values). Defaults diff: {self.defaults_diff}"
+            )
         region = self.validate_region(region)
         absorber = self.validate_absorber(absorber)
 
@@ -1861,11 +1881,12 @@ class Bookkeeper:
             Tasker: Tasker object to run forest-quasar distortion matrix.
         """
         if self.defaults_diff != {}:
-            raise ValueError("Default values changed since last run of the "
-                             f"bookkeeper. Remove the file {self.paths.defaults_file} "
-                             "to be able to write jobs (with the new default "
-                             f"values). Defaults diff: {self.defaults_diff}"
-                             )
+            raise ValueError(
+                "Default values changed since last run of the "
+                f"bookkeeper. Remove the file {self.paths.defaults_file} "
+                "to be able to write jobs (with the new default "
+                f"values). Defaults diff: {self.defaults_diff}"
+            )
         region = self.validate_region(region)
         absorber = self.validate_absorber(absorber)
 
@@ -2194,11 +2215,12 @@ class Bookkeeper:
             Tasker: Tasker object to run forest-forest correlation.
         """
         if self.defaults_diff != {}:
-            raise ValueError("Default values changed since last run of the "
-                             f"bookkeeper. Remove the file {self.paths.defaults_file} "
-                             "to be able to write jobs (with the new default "
-                             f"values). Defaults diff: {self.defaults_diff}"
-                             )
+            raise ValueError(
+                "Default values changed since last run of the "
+                f"bookkeeper. Remove the file {self.paths.defaults_file} "
+                "to be able to write jobs (with the new default "
+                f"values). Defaults diff: {self.defaults_diff}"
+            )
         region = self.validate_region(region)
         absorber = self.validate_absorber(absorber)
 
@@ -2303,11 +2325,12 @@ class Bookkeeper:
             Tasker: Tasker object to run forest-forest correlation.
         """
         if self.defaults_diff != {}:
-            raise ValueError("Default values changed since last run of the "
-                             f"bookkeeper. Remove the file {self.paths.defaults_file} "
-                             "to be able to write jobs (with the new default "
-                             f"values). Defaults diff: {self.defaults_diff}"
-                             )
+            raise ValueError(
+                "Default values changed since last run of the "
+                f"bookkeeper. Remove the file {self.paths.defaults_file} "
+                "to be able to write jobs (with the new default "
+                f"values). Defaults diff: {self.defaults_diff}"
+            )
         region = self.validate_region(region)
         absorber = self.validate_absorber(absorber)
 
@@ -2423,11 +2446,12 @@ class Bookkeeper:
             Tasker: Tasker object to run vega.
         """
         if self.defaults_diff != {}:
-            raise ValueError("Default values changed since last run of the "
-                             f"bookkeeper. Remove the file {self.paths.defaults_file} "
-                             "to be able to write jobs (with the new default "
-                             f"values). Defaults diff: {self.defaults_diff}"
-                             )
+            raise ValueError(
+                "Default values changed since last run of the "
+                f"bookkeeper. Remove the file {self.paths.defaults_file} "
+                "to be able to write jobs (with the new default "
+                f"values). Defaults diff: {self.defaults_diff}"
+            )
         updated_system = self.generate_system_arg(system)
 
         ini_files = []
@@ -2520,16 +2544,12 @@ class Bookkeeper:
             command="vega_main.py",  # The .py needed to make use of same function
         )
 
-        args = {
-            "output": {
-                "filename": self.paths.fit_out_fname()
-            }
-        }
+        args = {"output": {"filename": self.paths.fit_out_fname()}}
 
         if "fiducial" not in args:
             shutil.copy(
                 files(resources).joinpath("fit_models/PlanckDR16.fits"),
-                self.paths.fit_main_fname().parent / "PlanckDR16.fits"
+                self.paths.fit_main_fname().parent / "PlanckDR16.fits",
             )
             args = DictUtils.merge_dicts(
                 args,
@@ -2539,7 +2559,7 @@ class Bookkeeper:
                             self.paths.fit_main_fname().parent / "PlanckDR16.fits"
                         )
                     }
-                }
+                },
             )
 
         args = DictUtils.merge_dicts(args, vega_args)
@@ -2723,16 +2743,16 @@ class PathBuilder:
             Path
         """
         return self.run_path / "configs" / "bookkeeper_config.yaml"
-    
+
     @property
     def defaults_file(self):
         """Location of the defaults file inside the bookkeeper.
-        
+
         Returns
             Path
         """
         return self.delta_config_file.parent / "defaults.yaml"
-    
+
     @property
     def correlation_config_file(self):
         """Default path to the correlation config file inside bookkeeper.
@@ -2873,7 +2893,7 @@ class PathBuilder:
     def compare_config_files(
         file1: Union[str, Path],
         file2: Union[str, Path],
-        section: str=None,
+        section: str = None,
         ignore_fields: List[str] = [],
     ):
         """Compare two config files to determine if they are the same.
@@ -2900,10 +2920,12 @@ class PathBuilder:
             if field in config2:
                 config2.pop(field)
 
-        return DictUtils.remove_empty(DictUtils.diff_dicts(
-            config1,
-            config2,
-        ))
+        return DictUtils.remove_empty(
+            DictUtils.diff_dicts(
+                config1,
+                config2,
+            )
+        )
 
     def check_delta_directories(self):
         """Method to create basic directories in run directory."""

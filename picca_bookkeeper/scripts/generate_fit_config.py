@@ -12,6 +12,7 @@ def main(args=None):
 
     bookkeeper = Bookkeeper(
         args.bookkeeper_config,
+        read_mode=True,
     )
     if bookkeeper.correlations is None:
         raise ValueError("Bookkeeper should contain correlations information.")
@@ -28,16 +29,19 @@ def main(args=None):
 
     # Generate all the structure if it is not already there in the bookkeeper config
     # The defined fields in the config file will remain the same.
+    if "picca args" not in bookkeeper.fits:
+        bookkeeper.fits["picca args"] = dict()
+
     bookkeeper.fits["picca args"] = DictUtils.merge_dicts(
         {
-            "vega_auto" :{
+            "vega_auto": {
                 "data": {},
                 "cuts": {},
                 "model": {},
                 "metals": {},
             },
             "vega_cross": {
-                "data" : {},
+                "data": {},
                 "cuts": {},
                 "model": {},
                 "metals": {},
@@ -51,7 +55,7 @@ def main(args=None):
                 "Polychord": {},
                 "sample": {},
                 "parameters": {},
-            }
+            },
         },
         bookkeeper.fits["picca args"],
     )
@@ -71,62 +75,62 @@ def main(args=None):
         bookkeeper.fits["picca args"] = DictUtils.merge_dicts(
             bookkeeper.fits["picca args"],
             {
-                "remove_vega_main" : { # This removes fields
+                "remove_vega_main": {  # This removes fields
                     "sample": {
-                        "ap" : "",
-                        "at" : "",
+                        "ap": "",
+                        "at": "",
                     }
                 },
-                "vega_main" : {  # This adds/modifies fields
+                "vega_main": {  # This adds/modifies fields
                     "parameters": {
                         "bao_amp": 0,
                     }
-                }
-            }
+                },
+            },
         )
-    
+
     if args.no_hcd:
         bookkeeper.fits["picca args"] = DictUtils.merge_dicts(
             bookkeeper.fits["picca args"],
             {
-                "remove_vega_main" : {
-                    "sample" : {
-                        "bias_hcd" : "",
-                        "beta_hcd" : "",
+                "remove_vega_main": {
+                    "sample": {
+                        "bias_hcd": "",
+                        "beta_hcd": "",
                     }
                 },
-                "vega_auto" : {
-                    "model" : {
-                        "model-hcd" : "None",
+                "vega_auto": {
+                    "model": {
+                        "model-hcd": "None",
                     }
                 },
-                "vega_cross" : {
-                    "model" : {
-                        "model-hcd" : "None",
+                "vega_cross": {
+                    "model": {
+                        "model-hcd": "None",
                     }
-                }, 
-            }
+                },
+            },
         )
 
     if args.no_metals:
         bookkeeper.fits["picca args"] = DictUtils.merge_dicts(
             bookkeeper.fits["picca args"],
             {
-                "remove_vega_auto" : {
-                    "metals" : "",
+                "remove_vega_auto": {
+                    "metals": "",
                 },
                 "remove_vega_cross": {
-                    "metals" : "",
+                    "metals": "",
                 },
-                "remove_vega_main" : {
-                    "sample" : {
-                        "bias_eta_SiII(1190)" : "",
-                        "bias_eta_SiII(1193)" : "",
-                        "bias_eta_SiII(1260)" : "",
+                "remove_vega_main": {
+                    "sample": {
+                        "bias_eta_SiII(1190)": "",
+                        "bias_eta_SiII(1193)": "",
+                        "bias_eta_SiII(1260)": "",
                         "bias_eta_SiIII(1207)": "",
                     }
-                }
-            }
+                },
+            },
         )
 
     if args.no_sky:
@@ -135,15 +139,15 @@ def main(args=None):
             {
                 "remove_vega_main": {
                     "sample": {
-                        "desi_inst_sys_amp" : "",
+                        "desi_inst_sys_amp": "",
                     }
                 },
-                "vega_main" : {
-                    "parameters" : {
-                        "desi_inst_sys_amp" : "0",
+                "vega_main": {
+                    "parameters": {
+                        "desi_inst_sys_amp": "0",
                     }
-                }
-            }
+                },
+            },
         )
 
     if args.no_qso_rad:
@@ -152,15 +156,15 @@ def main(args=None):
             {
                 "remove_vega_main": {
                     "sample": {
-                        "qso_rad_strength" : "",
+                        "qso_rad_strength": "",
                     }
                 },
                 "vega main": {
                     "parameters": {
                         "qso_rad_strength": "0",
                     }
-                }
-            }
+                },
+            },
         )
 
     if args.rmin_cf is not None:
@@ -172,8 +176,8 @@ def main(args=None):
                         "r-min": str(args.rmin_cf),
                     }
                 }
-            }
-        )  
+            },
+        )
     if args.rmax_cf is not None:
         bookkeeper.fits["picca args"] = DictUtils.merge_dicts(
             bookkeeper.fits["picca args"],
@@ -183,8 +187,8 @@ def main(args=None):
                         "r-max": str(args.rmax_cf),
                     }
                 }
-            }
-        )  
+            },
+        )
     if args.rmin_xcf is not None:
         bookkeeper.fits["picca args"] = DictUtils.merge_dicts(
             bookkeeper.fits["picca args"],
@@ -194,8 +198,8 @@ def main(args=None):
                         "r-min": str(args.rmin_xcf),
                     }
                 }
-            }
-        )  
+            },
+        )
     if args.rmax_xcf is not None:
         bookkeeper.fits["picca args"] = DictUtils.merge_dicts(
             bookkeeper.fits["picca args"],
@@ -205,34 +209,35 @@ def main(args=None):
                         "r-max": str(args.rmax_xcf),
                     }
                 }
-            }
-        )  
+            },
+        )
 
     out_config = copy.deepcopy(bookkeeper.config)
+    bookkeeper.write_bookkeeper(out_config, args.out_config)
+
+    # The previous one was a full bookkeeper file, but we want
+    # to generate one with only the fits section:    
     out_config.pop("delta extraction")
     out_config.pop("correlations")
 
-    bookkeeper.write_bookkeeper(
-        out_config,
-        args.out_config
-    )
-    
     # Now we load the run itself.
-    bookkeeper_run = Bookkeeper(args.out_config)
+    if args.send_job:
+        bookkeeper_run = Bookkeeper(args.out_config)
 
-    fit = bookkeeper_run.get_fit_tasker(
-        auto_correlations = auto_correlations,
-        cross_correlations= cross_correlations,
-        wait_for = args.wait_for,
-    )
-    fit.write_job()
+        fit = bookkeeper_run.get_fit_tasker(
+            auto_correlations=auto_correlations,
+            cross_correlations=cross_correlations,
+            wait_for=args.wait_for,
+        )
+        fit.write_job()
 
-    if not args.only_write:
+
         fit.send_job()
         print(fit.jobid)
-        return fit.jobid    
+        return fit.jobid
     else:
         return
+
 
 def get_args():
     parser = argparse.ArgumentParser()
@@ -244,35 +249,34 @@ def get_args():
         "--run-name",
         type=str,
         required=True,
-        help="Name of the fit run (if not specified in bookkeeper file)"
+        help="Name of the fit run (if not specified in bookkeeper file)",
     )
 
     parser.add_argument(
         "--out-config",
         type=Path,
-        default='.fit_bookkeeper.yaml',
-        help="Store configuration file before loading bookkeeper."
+        default=".fit_bookkeeper.yaml",
+        help="Store configuration file before loading bookkeeper.",
     )
 
-    parser.add_argument("--no-bao", action="store_true",default=False,required=False)
-    parser.add_argument("--no-hcd", action="store_true",default=False,required=False)
-    parser.add_argument("--no-metals", action="store_true",default=False,required=False)
-    parser.add_argument("--no-sky", action="store_true",default=False,required=False)
-    parser.add_argument("--no-qso-rad", action="store_true",default=False,required=False)
-    parser.add_argument("--lyb", action="store_true",default=False,required=False)
+    parser.add_argument("--no-bao", action="store_true", default=False, required=False)
+    parser.add_argument("--no-hcd", action="store_true", default=False, required=False)
+    parser.add_argument(
+        "--no-metals", action="store_true", default=False, required=False
+    )
+    parser.add_argument("--no-sky", action="store_true", default=False, required=False)
+    parser.add_argument(
+        "--no-qso-rad", action="store_true", default=False, required=False
+    )
+    parser.add_argument("--lyb", action="store_true", default=False, required=False)
 
     parser.add_argument("--rmin-cf", type=int, default=None, required=False)
     parser.add_argument("--rmax-cf", type=int, default=None, required=False)
     parser.add_argument("--rmin-xcf", type=int, default=None, required=False)
     parser.add_argument("--rmax-xcf", type=int, default=None, required=False)
 
-    parser.add_argument("--send-job", action="store_true",default=False,required=False)
- 
-
     parser.add_argument(
-        "--only-write",
-        action="store_true",
-        help="Only write scripts, not send them."
+        "--send-job", action="store_true", default=False, required=False
     )
 
     parser.add_argument("--wait-for", nargs="+", type=int, default=None, required=False)

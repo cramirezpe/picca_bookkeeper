@@ -72,6 +72,10 @@ def get_args():
     )
 
     parser.add_argument(
+        "--absorber", type=str, default="lya", help="Absorber to use for correlations"
+    )
+
+    parser.add_argument(
         "--overwrite-config",
         action="store_true",
         help="Force overwrite bookkeeper config."

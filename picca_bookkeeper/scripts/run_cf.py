@@ -9,11 +9,15 @@ def main(args=None):
     if args is None:
         args = get_args()
 
-    bookkeeper = Bookkeeper(args.bookkeeper_config, overwrite_config=args.overwrite_config)
+    bookkeeper = Bookkeeper(
+        args.bookkeeper_config, overwrite_config=args.overwrite_config
+    )
 
     cf = bookkeeper.get_cf_tasker(
         region=args.region,
         region2=args.region2,
+        absorber=args.absorber,
+        absorber2=args.absorber2,
         system=None,
         debug=args.debug,
         wait_for=args.wait_for,
@@ -29,6 +33,8 @@ def main(args=None):
         dmat = bookkeeper.get_dmat_tasker(
             region=args.region,
             region2=args.region2,
+            absorber=args.absorber,
+            absorber2=args.absorber2,
             wait_for=args.wait_for,
             debug=args.debug,
         )
@@ -41,6 +47,8 @@ def main(args=None):
         metal = bookkeeper.get_metal_tasker(
             region=args.region,
             region2=args.region2,
+            absorber=args.absorber,
+            absorber2=args.absorber2,
             system=None,
             debug=args.debug,
             wait_for=args.wait_for,
@@ -52,6 +60,8 @@ def main(args=None):
     cf_exp = bookkeeper.get_cf_exp_tasker(
         region=args.region,
         region2=args.region2,
+        absorber=args.absorber,
+        absorber2=args.absorber2,
         system=None,
         wait_for=wait_for,
         no_dmat=args.no_dmat,
@@ -75,13 +85,12 @@ def get_args():
     parser.add_argument(
         "--overwrite_config",
         action="store_true",
-        help="Force overwrite bookkeeper config."
+        help="Force overwrite bookkeeper config.",
     )
 
     parser.add_argument(
         "--region",
         type=str,
-        choices=["lya", "lyb"],
         default="lya",
         help="Region to compute correlation in",
     )
@@ -89,9 +98,19 @@ def get_args():
     parser.add_argument(
         "--region2",
         type=str,
-        choices=["lya", "lyb"],
         default=None,
         help="Second region (for cross-correlations between forests",
+    )
+
+    parser.add_argument(
+        "--absorber", type=str, default="lya", help="Absorber to use for correlations"
+    )
+
+    parser.add_argument(
+        "--absorber2",
+        type=str,
+        default=None,
+        help="Second absorber (for cross-correlations between forests)",
     )
 
     parser.add_argument(
@@ -108,9 +127,7 @@ def get_args():
     )
 
     parser.add_argument(
-        "--only-write",
-        action="store_true",
-        help="Only write scripts, not send them."
+        "--only-write", action="store_true", help="Only write scripts, not send them."
     )
 
     parser.add_argument("--wait-for", nargs="+", type=int, default=None, required=False)

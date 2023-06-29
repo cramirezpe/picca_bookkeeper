@@ -15,6 +15,7 @@ def main(args=None):
     if args.only_calibration or (
         (continuum_type in ("dMdB20", "custom"))
         and bookkeeper.config["delta extraction"]["calib"] != "0"
+        and not args.skip_calibration
     ):
         calibration = bookkeeper.get_calibration_extraction_tasker(
             system=None,
@@ -90,6 +91,12 @@ def get_args():
         help="Only compute calibration steps.",
     )
 
+    parser.add_argument(
+        "--skip_calibration",
+        action="store_true",
+        help="Skip calibration step if already computed."
+    )
+    
     parser.add_argument(
         "--only-write",
         action="store_true",
