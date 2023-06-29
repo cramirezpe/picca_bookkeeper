@@ -86,5 +86,5 @@ class DictUtils:
                 string += "  " * depth + key + ":\n"
                 string += DictUtils.print_dict(dict_[key], depth=depth + 1)
             else:
-                string += " " * depth + f"{key}: {dict_[key]}\n"
+                string += "  " * depth + f"{key}: {dict_[key]}\n"
         return string

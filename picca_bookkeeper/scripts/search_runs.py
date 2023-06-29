@@ -16,6 +16,7 @@ def main(args=None):
             analysis_type="delta",
             remove_identical=not args.keep_identical,
             transpose=args.transpose,
+            sort_by_value=args.sort_by_value,
         )
 
     if args.correlation:
@@ -24,6 +25,7 @@ def main(args=None):
             analysis_type="correlation",
             remove_identical=not args.keep_identical,
             transpose=args.transpose,
+            sort_by_value=args.sort_by_value,
         )
 
     if args.fit:
@@ -32,6 +34,7 @@ def main(args=None):
             analysis_type="fit",
             remove_identical=not args.keep_identical,
             transpose=args.transpose,
+            sort_by_value=args.sort_by_value,
         )
 
 
@@ -65,6 +68,10 @@ def get_args():
 
     parser.add_argument(
         "--transpose", action="store_true", help="Tranpose output tables."
+    )
+
+    parser.add_argument(
+        "--sort-by-value", action="store_true", help="Sort by value not by name."
     )
 
     args = parser.parse_args()

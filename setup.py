@@ -13,9 +13,10 @@ setuptools.setup(
     long_description_content="text/markdown",
     url="",
     packages=setuptools.find_packages(),
-    package_data={'picca_bookkeeper': [
-        'resources/*',
-        'resources/*/*',
+    package_data={
+        "picca_bookkeeper": [
+            "resources/*",
+            "resources/*/*",
         ]
     },
     # include_package_data=True,
@@ -25,15 +26,16 @@ setuptools.setup(
             "desi_bookkeeper_run_cf = picca_bookkeeper.scripts.run_cf:main",
             "desi_bookkeeper_run_xcf = picca_bookkeeper.scripts.run_xcf:main",
             "desi_bookkeeper_run_convert_deltas = picca_bookkeeper.scripts.run_convert_deltas:main",
+            "desi_bookkeeper_run_add_extra_deltas_data = picca_bookkeeper.scripts.run_add_extra_deltas_data:main",
+            "desi_bookkeeper_run_fit = picca_bookkeeper.scripts.run_fit:main",
+            "desi_bookkeeper_run_full_analysis = picca_bookkeeper.scripts.run_full_analysis:main",
             "desi_bookkeeper_convert_deltas = picca_bookkeeper.scripts.convert_deltas_format:main",
             "desi_bookkeeper_mix_DLA_catalogues = picca_bookkeeper.scripts.mix_DLA_catalogues:main",
             "desi_bookkeeper_add_last_night_column = picca_bookkeeper.scripts.add_last_night_column:main",
-            "desi_bookkeeper_run_add_extra_deltas_data = picca_bookkeeper.scripts.run_add_extra_deltas_data:main",
             "desi_bookkeeper_add_extra_deltas_data = picca_bookkeeper.scripts.add_extra_deltas_data:main",
-            "desi_bookkeeper_run_fit = picca_bookkeeper.scripts.run_fit:main",
-            "desi_bookkeeper_run_full_analysis = picca_bookkeeper.scripts.run_full_analysis:main",
             "desi_bookkeeper_generate_fit_config = picca_bookkeeper.scripts.generate_fit_config:main",
             "desi_bookkeeper_search_runs = picca_bookkeeper.scripts.search_runs:main",
+            "desi_bookkeeper_show_defaults = picca_bookkeeper.scripts.print_bookkeeper_defaults:main",
         ]
     },
     classifiers=[

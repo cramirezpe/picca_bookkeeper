@@ -12,8 +12,9 @@ from picca_bookkeeper.dict_utils import DictUtils
 def get_bookkeeper_differences(
     locations: Union[str, Path],
     analysis_type: str = "delta",
-    remove_identical=True,
-    transpose=False,
+    remove_identical: bool = True,
+    transpose: bool = False,
+    sort_by_value: bool = False,
 ) -> None:
     assert analysis_type in ("delta", "correlation", "fit")
     if analysis_type == "delta":
@@ -44,6 +45,7 @@ def get_bookkeeper_differences(
         name_values=np.array([analysis.first_els_values for analysis in analyses]),
         remove_identical=remove_identical,
         transpose=transpose,
+        sort_by_value=sort_by_value,
     )
 
 
@@ -53,6 +55,7 @@ def show_diffs(
     name_values: List[str],
     remove_identical: bool = True,
     transpose: bool = False,
+    sort_by_value: bool = False,
     depth: int = 1,
     title: str = "",
 ) -> None:
@@ -87,6 +90,7 @@ def show_diffs(
             name_values=name_values,
             remove_identical=remove_identical,
             transpose=transpose,
+            sort_by_value=sort_by_value,
             depth=depth + 1,
             title=title + "/" + dict_key,
         )
@@ -118,6 +122,11 @@ def show_diffs(
 
     rows = np.concatenate((name_values, rows), axis=1)
     keys = np.concatenate((name_keys, keys))
+
+    ind = np.lexsort([rows[:, i] for i in range(len(name_keys))])
+    if sort_by_value:
+        ind = np.lexsort([rows[:, i] for i in range(len(name_keys), rows.shape[1])])
+    rows = rows[ind]
 
     if title is not None:
         print(title)
