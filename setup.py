@@ -36,6 +36,7 @@ setuptools.setup(
             "desi_bookkeeper_generate_fit_config = picca_bookkeeper.scripts.generate_fit_config:main",
             "desi_bookkeeper_search_runs = picca_bookkeeper.scripts.search_runs:main",
             "desi_bookkeeper_show_defaults = picca_bookkeeper.scripts.print_bookkeeper_defaults:main",
+            "desi_bookkeeper_show_example = picca_bookkeeper.scripts.print_example:main",
         ]
     },
     classifiers=[
