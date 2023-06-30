@@ -54,7 +54,7 @@ delta extraction:
   # We usually want to read from the continuum fitting output (our results are
   # being saved there)
 
-  picca args:
+  extra args:
     picca_convert_transmission:
       nspec: 30
     
@@ -120,8 +120,8 @@ fits:
 
     picca_fitter2:
 
-  # Picca args to be used by the bookkeeper
-  picca args:
+  # extra args to be used by the bookkeeper
+  extra args:
     picca_convert_transmission:
       nspec: 30
     

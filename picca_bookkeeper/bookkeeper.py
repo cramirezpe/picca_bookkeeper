@@ -373,7 +373,7 @@ class Bookkeeper:
                 "mask file",
                 "dla catalog",
                 "bal catalog",
-                "picca args",
+                "extra args",
                 "slurm args",
             ],
             "correlations": [
@@ -381,14 +381,14 @@ class Bookkeeper:
                 "run name",
                 "catalog tracer",
                 "metal matrices",
-                "picca args",
+                "extra args",
                 "slurm args",
             ],
             "fits": [
                 "delta extraction",
                 "correlation run name",
                 "run name",
-                "picca args",
+                "extra args",
                 "slurm args",
             ],
         }
@@ -513,25 +513,25 @@ class Bookkeeper:
         # Copied args is the highest priority
         return DictUtils.merge_dicts(args, copied_args)
 
-    def generate_picca_extra_args(
+    def generate_extra_args(
         self,
         config: Dict,
         default_config: Dict,
         section: str,
-        picca_args: Dict,
+        extra_args: Dict,
         command: str,
         region: str = None,
         absorber: str = None,
         region2: str = None,
         absorber2: str = None,
     ) -> Dict:
-        """Add extra picca args to the run.
+        """Add extra extra args to the run.
 
         Args:
             config: Section of the bookkeeper config to look into.
             default_config: Section of the deafults config to look into.
             section: Section name to look into.
-            picca_args: picca args passed through the get_tasker method. They
+            extra_args: extra args passed through the get_tasker method. They
                 should be prioritized.
             command: picca command to be run.
             region: specify region where the command will be run.
@@ -539,7 +539,7 @@ class Bookkeeper:
             region2: For scripts where two regions are needed.
             absorber2: Second absorber to use for correlations.
         """
-        copied_args = copy.deepcopy(picca_args)
+        copied_args = copy.deepcopy(extra_args)
         config = copy.deepcopy(config[section])
         defaults = copy.deepcopy(default_config[section])
 
@@ -556,27 +556,27 @@ class Bookkeeper:
                 sections[-1] = sections[-1] + region2
 
         args = dict()
-        if "picca args" in defaults.keys() and isinstance(defaults["picca args"], dict):
+        if "extra args" in defaults.keys() and isinstance(defaults["extra args"], dict):
             for section in sections:
-                if section in defaults["picca args"] and isinstance(
-                    defaults["picca args"][section], dict
+                if section in defaults["extra args"] and isinstance(
+                    defaults["extra args"][section], dict
                 ):
-                    args = DictUtils.merge_dicts(args, defaults["picca args"][section])
+                    args = DictUtils.merge_dicts(args, defaults["extra args"][section])
 
-        if "picca args" in config.keys() and isinstance(config["picca args"], dict):
+        if "extra args" in config.keys() and isinstance(config["extra args"], dict):
             for section in sections:
-                if section in config["picca args"] and isinstance(
-                    config["picca args"][section], dict
+                if section in config["extra args"] and isinstance(
+                    config["extra args"][section], dict
                 ):
-                    args = DictUtils.merge_dicts(args, config["picca args"][section])
+                    args = DictUtils.merge_dicts(args, config["extra args"][section])
 
             # remove args marked as remove_
             for section in sections:
-                if "remove_" + section in config["picca args"] and isinstance(
-                    config["picca args"]["remove_" + section], dict
+                if "remove_" + section in config["extra args"] and isinstance(
+                    config["extra args"]["remove_" + section], dict
                 ):
                     args = DictUtils.remove_matching(
-                        args, config["picca args"]["remove_" + section]
+                        args, config["extra args"]["remove_" + section]
                     )
 
         # Copied args is the highest priority
@@ -597,7 +597,7 @@ class Bookkeeper:
         debug: bool = False,
         wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
         slurm_header_extra_args: Dict = dict(),
-        picca_extra_args: Dict = dict(),
+        extra_args: Dict = dict(),
     ) -> Tasker:
         """Method to get a Tasker object to run raw deltas with picca.
 
@@ -614,7 +614,7 @@ class Bookkeeper:
             slurm_header_extra_args (dict, optional): Change slurm header
                 default options if needed (time, qos, etc...). Use a
                 dictionary with the format {'option_name': 'option_value'}.
-            picca_extra_args : Send extra arguments to
+            extra_args : Send extra arguments to
                 picca_deltas.py script. Use a dictionary with the format
                 {'argument_name', 'argument_value'}. Use {'argument_name': ''}
                 if a action-like option is used.
@@ -634,11 +634,11 @@ class Bookkeeper:
 
         command = "picca_convert_transmission.py"
 
-        updated_picca_extra_args = self.generate_picca_extra_args(
+        updated_extra_args = self.generate_extra_args(
             config=self.config,
             default_config=self.defaults,
             section="delta extraction",
-            picca_args=picca_extra_args,
+            extra_args=extra_args,
             command=command,
             region=region,
         )
@@ -671,7 +671,7 @@ class Bookkeeper:
             "lambda-rest-min": forest_regions[region]["lambda-rest-min"],
             "lambda-rest-max": forest_regions[region]["lambda-rest-max"],
         }
-        args = DictUtils.merge_dicts(args, updated_picca_extra_args)
+        args = DictUtils.merge_dicts(args, updated_extra_args)
 
         if debug:  # pragma: no cover
             slurm_header_args = DictUtils.merge_dicts(
@@ -701,7 +701,7 @@ class Bookkeeper:
         debug: bool = False,
         wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
         slurm_header_extra_args: Dict = dict(),
-        picca_extra_args: Dict = dict(),
+        extra_args: Dict = dict(),
         calib_step: int = None,
     ) -> Tasker:
         """Method to get a Tasker object to run delta extraction with picca.
@@ -720,7 +720,7 @@ class Bookkeeper:
             slurm_header_extra_args: Change slurm header default options if
                 needed (time, qos, etc...). Use a dictionary with the format
                 {'option_name': 'option_value'}.
-            picca_extra_args: Set extra options for picca delta extraction.
+            extra_args: Set extra options for picca delta extraction.
                 The format should be a dict of dicts: wanting to change
                 "num masks" in "masks" section one should pass
                 {'num masks': {'masks': value}}.
@@ -741,11 +741,11 @@ class Bookkeeper:
 
         command = "picca_delta_extraction.py"
 
-        updated_picca_extra_args = self.generate_picca_extra_args(
+        updated_extra_args = self.generate_extra_args(
             config=self.config,
             default_config=self.defaults,
             section="delta extraction",
-            picca_args=picca_extra_args,
+            extra_args=extra_args,
             command=command,
             region=region,
         )
@@ -766,13 +766,13 @@ class Bookkeeper:
 
         # MASKS
         # add masks section if necessary
-        updated_picca_extra_args = DictUtils.merge_dicts(
+        updated_extra_args = DictUtils.merge_dicts(
             dict(
                 masks={
                     "num masks": 0,
                 },
             ),
-            updated_picca_extra_args,
+            updated_extra_args,
         )
         if self.config["delta extraction"].get("mask file", "") not in ("", None):
             # If a mask file is given in the config file
@@ -797,22 +797,22 @@ class Bookkeeper:
                         self.paths.continuum_fitting_mask,
                     )
 
-            prev_mask_number = int(updated_picca_extra_args["masks"]["num masks"])
-            updated_picca_extra_args["masks"]["num masks"] = prev_mask_number + 1
-            updated_picca_extra_args["masks"][f"type {prev_mask_number}"] = "LinesMask"
-            updated_picca_extra_args[f"mask arguments {prev_mask_number}"] = dict(
+            prev_mask_number = int(updated_extra_args["masks"]["num masks"])
+            updated_extra_args["masks"]["num masks"] = prev_mask_number + 1
+            updated_extra_args["masks"][f"type {prev_mask_number}"] = "LinesMask"
+            updated_extra_args[f"mask arguments {prev_mask_number}"] = dict(
                 filename=self.paths.continuum_fitting_mask,
             )
 
         # CORRECTIONS
         # add corrections section if necessary
-        updated_picca_extra_args = DictUtils.merge_dicts(
+        updated_extra_args = DictUtils.merge_dicts(
             dict(
                 corrections={
                     "num corrections": 0,
                 }
             ),
-            updated_picca_extra_args,
+            updated_extra_args,
         )
 
         # update corrections section
@@ -822,9 +822,8 @@ class Bookkeeper:
             raise ValueError("Trying to run calibration with calib = 0 in config file.")
         if self.config["delta extraction"]["calib"] not in (0, 10):
             if (
-                "CalibrationCorrection"
-                in updated_picca_extra_args["corrections"].values()
-                or "IvarCorrection" in updated_picca_extra_args["corrections"].values()
+                "CalibrationCorrection" in updated_extra_args["corrections"].values()
+                or "IvarCorrection" in updated_extra_args["corrections"].values()
             ):
                 raise ValueError(
                     "Calibration corrections added by user with calib option != 10"
@@ -836,22 +835,20 @@ class Bookkeeper:
             if calib_step is not None:
                 if calib_step == 2:
                     prev_n_corrections = int(
-                        updated_picca_extra_args.get("corrections").get(
-                            "num corrections", 0
-                        )
+                        updated_extra_args.get("corrections").get("num corrections", 0)
                     )
-                    updated_picca_extra_args["corrections"]["num corrections"] = (
+                    updated_extra_args["corrections"]["num corrections"] = (
                         prev_n_corrections + 1
                     )
-                    updated_picca_extra_args["corrections"][
+                    updated_extra_args["corrections"][
                         f"type {prev_n_corrections}"
                     ] = "CalibrationCorrection"
-                    updated_picca_extra_args[
+                    updated_extra_args[
                         f"correction arguments {prev_n_corrections}"
                     ] = dict()
-                    updated_picca_extra_args[
-                        f"correction arguments {prev_n_corrections}"
-                    ]["filename"] = str(
+                    updated_extra_args[f"correction arguments {prev_n_corrections}"][
+                        "filename"
+                    ] = str(
                         self.calibration.paths.delta_attributes_file(
                             None, calib_step=1
                         )  # @TODO fix this
@@ -864,40 +861,38 @@ class Bookkeeper:
                         "before running deltas."
                     )
                 prev_n_corrections = int(
-                    updated_picca_extra_args.get("corrections").get(
-                        "num corrections", 0
-                    )
+                    updated_extra_args.get("corrections").get("num corrections", 0)
                 )
-                updated_picca_extra_args["corrections"]["num corrections"] = (
+                updated_extra_args["corrections"]["num corrections"] = (
                     prev_n_corrections + 2
                 )
-                updated_picca_extra_args["corrections"][
+                updated_extra_args["corrections"][
                     f"type {prev_n_corrections}"
                 ] = "CalibrationCorrection"
-                updated_picca_extra_args[
+                updated_extra_args[
                     f"correction arguments {prev_n_corrections}"
                 ] = dict()
-                updated_picca_extra_args[f"correction arguments {prev_n_corrections}"][
+                updated_extra_args[f"correction arguments {prev_n_corrections}"][
                     "filename"
                 ] = str(
                     self.calibration.paths.delta_attributes_file(None, calib_step=1)
                 )
 
-                updated_picca_extra_args["corrections"][
+                updated_extra_args["corrections"][
                     f"type {prev_n_corrections+1}"
                 ] = "IvarCorrection"
-                updated_picca_extra_args[
+                updated_extra_args[
                     f"correction arguments {prev_n_corrections+1}"
                 ] = dict()
-                updated_picca_extra_args[
-                    f"correction arguments {prev_n_corrections+1}"
-                ]["filename"] = str(
+                updated_extra_args[f"correction arguments {prev_n_corrections+1}"][
+                    "filename"
+                ] = str(
                     self.calibration.paths.delta_attributes_file(None, calib_step=2)
                 )
         elif self.config["delta extraction"]["calib"] == 2:
             # Set expected flux
-            updated_picca_extra_args = DictUtils.merge_dicts(
-                updated_picca_extra_args,
+            updated_extra_args = DictUtils.merge_dicts(
+                updated_extra_args,
                 {
                     "expected flux": {
                         "type": "Dr16FixedFudgeExpectedFlux",
@@ -915,28 +910,26 @@ class Bookkeeper:
                         "before running deltas."
                     )
                 prev_n_corrections = int(
-                    updated_picca_extra_args.get("corrections").get(
-                        "num corrections", 0
-                    )
+                    updated_extra_args.get("corrections").get("num corrections", 0)
                 )
-                updated_picca_extra_args["corrections"]["num corrections"] = (
+                updated_extra_args["corrections"]["num corrections"] = (
                     prev_n_corrections + 1
                 )
-                updated_picca_extra_args["corrections"][
+                updated_extra_args["corrections"][
                     f"type {prev_n_corrections}"
                 ] = "CalibrationCorrection"
-                updated_picca_extra_args[
+                updated_extra_args[
                     f"correction arguments {prev_n_corrections}"
                 ] = dict()
-                updated_picca_extra_args[f"correction arguments {prev_n_corrections}"][
+                updated_extra_args[f"correction arguments {prev_n_corrections}"][
                     "filename"
                 ] = str(
                     self.calibration.paths.delta_attributes_file(None, calib_step=1)
                 )
         elif self.config["delta extraction"]["calib"] == 3:
             # Set expected flux
-            updated_picca_extra_args = DictUtils.merge_dicts(
-                updated_picca_extra_args,
+            updated_extra_args = DictUtils.merge_dicts(
+                updated_extra_args,
                 {
                     "expected flux": {
                         "type": "Dr16ExpectedFlux",
@@ -953,20 +946,18 @@ class Bookkeeper:
                         "before running deltas."
                     )
                 prev_n_corrections = int(
-                    updated_picca_extra_args.get("corrections").get(
-                        "num corrections", 0
-                    )
+                    updated_extra_args.get("corrections").get("num corrections", 0)
                 )
-                updated_picca_extra_args["corrections"]["num corrections"] = (
+                updated_extra_args["corrections"]["num corrections"] = (
                     prev_n_corrections + 1
                 )
-                updated_picca_extra_args["corrections"][
+                updated_extra_args["corrections"][
                     f"type {prev_n_corrections}"
                 ] = "CalibrationCorrection"
-                updated_picca_extra_args[
+                updated_extra_args[
                     f"correction arguments {prev_n_corrections}"
                 ] = dict()
-                updated_picca_extra_args[f"correction arguments {prev_n_corrections}"][
+                updated_extra_args[f"correction arguments {prev_n_corrections}"][
                     "filename"
                 ] = str(
                     self.calibration.paths.delta_attributes_file(None, calib_step=1)
@@ -977,44 +968,36 @@ class Bookkeeper:
             self.config["delta extraction"]["dla"] != 0
             or self.config["delta extraction"]["bal"] != 0
         ) and calib_step is None:
-            prev_mask_number = int(updated_picca_extra_args["masks"]["num masks"])
+            prev_mask_number = int(updated_extra_args["masks"]["num masks"])
             if self.config["delta extraction"]["dla"] != 0:
-                if "DlaMask" in updated_picca_extra_args["masks"].values():
+                if "DlaMask" in updated_extra_args["masks"].values():
                     raise ValueError("DlaMask set by user with dla option != 0")
 
-                updated_picca_extra_args["masks"][
-                    f"type {prev_mask_number}"
-                ] = "DlaMask"
-                updated_picca_extra_args[f"mask arguments {prev_mask_number}"] = dict()
-                updated_picca_extra_args[f"mask arguments {prev_mask_number}"][
+                updated_extra_args["masks"][f"type {prev_mask_number}"] = "DlaMask"
+                updated_extra_args[f"mask arguments {prev_mask_number}"] = dict()
+                updated_extra_args[f"mask arguments {prev_mask_number}"][
                     "filename"
                 ] = self.paths.catalog_dla
-                updated_picca_extra_args[f"mask arguments {prev_mask_number}"][
+                updated_extra_args[f"mask arguments {prev_mask_number}"][
                     "los_id name"
                 ] = "TARGETID"
-                updated_picca_extra_args["masks"]["num masks"] = prev_mask_number + 1
+                updated_extra_args["masks"]["num masks"] = prev_mask_number + 1
 
-            prev_mask_number = int(updated_picca_extra_args["masks"]["num masks"])
+            prev_mask_number = int(updated_extra_args["masks"]["num masks"])
             if self.config["delta extraction"]["bal"] != 0:
                 if self.config["delta extraction"]["bal"] == 2:
-                    if "BalMask" in updated_picca_extra_args["masks"].values():
+                    if "BalMask" in updated_extra_args["masks"].values():
                         raise ValueError("BalMask set by user with bal option !=0")
 
-                    updated_picca_extra_args["masks"][
-                        f"type {prev_mask_number}"
-                    ] = "BalMask"
-                    updated_picca_extra_args[
-                        f"mask arguments {prev_mask_number}"
-                    ] = dict()
-                    updated_picca_extra_args[f"mask arguments {prev_mask_number}"][
+                    updated_extra_args["masks"][f"type {prev_mask_number}"] = "BalMask"
+                    updated_extra_args[f"mask arguments {prev_mask_number}"] = dict()
+                    updated_extra_args[f"mask arguments {prev_mask_number}"][
                         "filename"
                     ] = self.paths.catalog_bal
-                    updated_picca_extra_args[f"mask arguments {prev_mask_number}"][
+                    updated_extra_args[f"mask arguments {prev_mask_number}"][
                         "los_id name"
                     ] = "TARGETID"
-                    updated_picca_extra_args["masks"]["num masks"] = (
-                        prev_mask_number + 1
-                    )
+                    updated_extra_args["masks"]["num masks"] = prev_mask_number + 1
                 else:
                     raise ValueError(
                         "Invalid value for bal: ",
@@ -1039,22 +1022,18 @@ class Bookkeeper:
             )
         elif self.config["delta extraction"]["prefix"] == True:
             if (
-                "expected flux" not in updated_picca_extra_args
-                or "raw statistics file"
-                not in updated_picca_extra_args["expected flux"]
-                or updated_picca_extra_args["expected flux"]["raw statistics file"]
+                "expected flux" not in updated_extra_args
+                or "raw statistics file" not in updated_extra_args["expected flux"]
+                or updated_extra_args["expected flux"]["raw statistics file"]
                 in ("", None)
             ):
                 raise ValueError(
-                    f"Should define expected flux and raw statistics file in picca "
+                    f"Should define expected flux and raw statistics file in extra "
                     "args section in order to run TrueContinuum"
                 )
-            updated_picca_extra_args["expected flux"]["type"] = "TrueContinuum"
-            if (
-                updated_picca_extra_args.get("expected flux").get("input directory", 0)
-                == 0
-            ):
-                updated_picca_extra_args["expected flux"][
+            updated_extra_args["expected flux"]["type"] = "TrueContinuum"
+            if updated_extra_args.get("expected flux").get("input directory", 0) == 0:
+                updated_extra_args["expected flux"][
                     "input directory"
                 ] = self.paths.healpix_data
 
@@ -1068,20 +1047,20 @@ class Bookkeeper:
                 )
                 + "/",
             },
-            "data": updated_picca_extra_args.get("data", {}),
-            "corrections": updated_picca_extra_args.get(
+            "data": updated_extra_args.get("data", {}),
+            "corrections": updated_extra_args.get(
                 "corrections",
                 {
                     "num corrections": 0,
                 },
             ),
-            "masks": updated_picca_extra_args.get(
+            "masks": updated_extra_args.get(
                 "masks",
                 {
                     "num masks": 0,
                 },
             ),
-            "expected flux": updated_picca_extra_args.get("expected flux", {}),
+            "expected flux": updated_extra_args.get("expected flux", {}),
         }
 
         # update data section with extra options
@@ -1111,7 +1090,7 @@ class Bookkeeper:
         )
         assert isinstance(num_corrections, int) and num_corrections >= 0
         for i in range(num_corrections):
-            correction_section = updated_picca_extra_args.get(
+            correction_section = updated_extra_args.get(
                 f"correction arguments {i}", None
             )
             if correction_section is not None:
@@ -1123,14 +1102,14 @@ class Bookkeeper:
         # num_masks = deltas_config_dict.get("masks").get("num masks")
         # assert (isinstance(num_masks, int) and num_masks >= 0)
         # for i in range(num_masks):
-        #     mask_section = updated_picca_extra_args.get(f"mask arguments {i}", None)
+        #     mask_section = updated_extra_args.get(f"mask arguments {i}", None)
         #     if mask_section is not None:
         #         deltas_config_dict.update({
         #             f"mask arguments {i}": mask_section
         #         })
 
         deltas_config_dict = DictUtils.merge_dicts(
-            deltas_config_dict, updated_picca_extra_args
+            deltas_config_dict, updated_extra_args
         )
 
         self.write_ini(deltas_config_dict, config_file)
@@ -1169,7 +1148,7 @@ class Bookkeeper:
         debug: str = False,
         wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
         slurm_header_extra_args: Dict = dict(),
-        picca_extra_args: Dict = dict(),
+        extra_args: Dict = dict(),
     ) -> Tasker:
         """Method to get a Tasker object to run calibration with picca delta
         extraction method.
@@ -1186,7 +1165,7 @@ class Bookkeeper:
             slurm_header_extra_args (dict, optional): Change slurm header
                 default options if needed (time, qos, etc...). Use a dictionary
                 with the format {'option_name': 'option_value'}.
-            picca_extra_args : Send extra arguments to
+            extra_args : Send extra arguments to
                 picca_deltas.py script. Use a dictionary with the format
                 {'argument_name', 'argument_value'}. Use {'argument_name': ''}
                 if a action-like option is used.
@@ -1213,7 +1192,7 @@ class Bookkeeper:
                     debug=debug,
                     wait_for=wait_for,
                     slurm_header_extra_args=slurm_header_extra_args,
-                    picca_extra_args=picca_extra_args,
+                    extra_args=extra_args,
                     calib_step=1,
                 )
             )
@@ -1224,7 +1203,7 @@ class Bookkeeper:
                     debug=debug,
                     wait_for=steps[0],
                     slurm_header_extra_args=slurm_header_extra_args,
-                    picca_extra_args=picca_extra_args,
+                    extra_args=extra_args,
                     calib_step=2,
                 )
             )
@@ -1236,7 +1215,7 @@ class Bookkeeper:
                     debug=debug,
                     wait_for=wait_for,
                     slurm_header_extra_args=slurm_header_extra_args,
-                    picca_extra_args=picca_extra_args,
+                    extra_args=extra_args,
                     calib_step=1,
                 ),
             )
@@ -1255,7 +1234,7 @@ class Bookkeeper:
         debug: bool = False,
         wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
         slurm_header_extra_args: Dict = dict(),
-        picca_extra_args: Dict = dict(),
+        extra_args: Dict = dict(),
     ) -> Tasker:
         """Method to get a Tasker object to run forest-forest correlations with picca.
 
@@ -1276,7 +1255,7 @@ class Bookkeeper:
             slurm_header_extra_args (dict, optional): Change slurm header
                 default options if needed (time, qos, etc...). Use a
                 dictionary with the format {'option_name': 'option_value'}.
-            picca_extra_args : Send extra arguments to
+            extra_args : Send extra arguments to
                 picca_deltas.py script. Use a dictionary with the format
                 {'argument_name', 'argument_value'}. Use {'argument_name': ''}
                 if a action-like option is used.
@@ -1302,11 +1281,11 @@ class Bookkeeper:
 
         command = "picca_cf.py"
 
-        updated_picca_extra_args = self.generate_picca_extra_args(
+        updated_extra_args = self.generate_extra_args(
             config=self.config,
             default_config=self.defaults,
             section="correlations",
-            picca_args=picca_extra_args,
+            extra_args=extra_args,
             command=command,
             region=region,
             absorber=absorber,
@@ -1353,7 +1332,7 @@ class Bookkeeper:
         if region2 != region:
             args["in-dir2"] = str(self.paths.deltas_path(region2))
 
-        args = DictUtils.merge_dicts(args, updated_picca_extra_args)
+        args = DictUtils.merge_dicts(args, updated_extra_args)
 
         if debug:  # pragma: no cover
             slurm_header_args = DictUtils.merge_dicts(
@@ -1390,7 +1369,7 @@ class Bookkeeper:
         debug: bool = False,
         wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
         slurm_header_extra_args: Dict = dict(),
-        picca_extra_args: Dict = dict(),
+        extra_args: Dict = dict(),
     ) -> Tasker:
         """Method to get a Tasker object to run forest-forest distortion matrix
         measurements with picca.
@@ -1412,7 +1391,7 @@ class Bookkeeper:
             slurm_header_extra_args (dict, optional): Change slurm header
                 default options if needed (time, qos, etc...). Use a
                 dictionary with the format {'option_name': 'option_value'}.
-            picca_extra_args : Send extra arguments to
+            extra_args : Send extra arguments to
                 picca_deltas.py script. Use a dictionary with the format
                 {'argument_name', 'argument_value'}. Use {'argument_name': ''}
                 if a action-like option is used.
@@ -1438,11 +1417,11 @@ class Bookkeeper:
 
         command = "picca_dmat.py"
 
-        updated_picca_extra_args = self.generate_picca_extra_args(
+        updated_extra_args = self.generate_extra_args(
             config=self.config,
             default_config=self.defaults,
             section="correlations",
-            picca_args=picca_extra_args,
+            extra_args=extra_args,
             command=command,
             region=region,
             absorber=absorber,
@@ -1489,7 +1468,7 @@ class Bookkeeper:
         if region2 != region:
             args["in-dir2"] = str(self.paths.deltas_path(region2))
 
-        args = DictUtils.merge_dicts(args, updated_picca_extra_args)
+        args = DictUtils.merge_dicts(args, updated_extra_args)
 
         if debug:  # pragma: no cover
             slurm_header_args = DictUtils.merge_dicts(
@@ -1524,7 +1503,7 @@ class Bookkeeper:
         system: str = None,
         wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
         slurm_header_extra_args: Dict = dict(),
-        picca_extra_args: Dict = dict(),
+        extra_args: Dict = dict(),
         no_dmat: bool = False,
     ) -> Tasker:
         """Method to get a Tasker object to run forest-forest correlation export with
@@ -1546,7 +1525,7 @@ class Bookkeeper:
             slurm_header_extra_args (dict, optional): Change slurm header
                 default options if needed (time, qos, etc...). Use a
                 dictionary with the format {'option_name': 'option_value'}.
-            picca_extra_args : Send extra arguments to
+            extra_args : Send extra arguments to
                 picca_deltas.py script. Use a dictionary with the format
                 {'argument_name', 'argument_value'}. Use {'argument_name': ''}
                 if a action-like option is used.
@@ -1573,11 +1552,11 @@ class Bookkeeper:
 
         command = "picca_export.py"
 
-        updated_picca_extra_args = self.generate_picca_extra_args(
+        updated_extra_args = self.generate_extra_args(
             config=self.config,
             default_config=self.defaults,
             section="correlations",
-            picca_args=picca_extra_args,
+            extra_args=extra_args,
             command=command,
             region=region,
             absorber=absorber,
@@ -1618,7 +1597,7 @@ class Bookkeeper:
                 self.paths.dmat_fname(absorber, region, absorber2, region2)
             )
 
-        args = DictUtils.merge_dicts(args, updated_picca_extra_args)
+        args = DictUtils.merge_dicts(args, updated_extra_args)
 
         if (
             self.paths.config["data"]["survey"] == "main"
@@ -1653,7 +1632,7 @@ class Bookkeeper:
         debug: bool = False,
         wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
         slurm_header_extra_args: Dict = dict(),
-        picca_extra_args: Dict = dict(),
+        extra_args: Dict = dict(),
     ) -> Tasker:
         """Method to get a Tasker object to run forest-forest metal distortion matrix
         measurements with picca.
@@ -1675,7 +1654,7 @@ class Bookkeeper:
             slurm_header_extra_args (dict, optional): Change slurm header
                 default options if needed (time, qos, etc...). Use a
                 dictionary with the format {'option_name': 'option_value'}.
-            picca_extra_args : Send extra arguments to
+            extra_args : Send extra arguments to
                 picca_deltas.py script. Use a dictionary with the format
                 {'argument_name', 'argument_value'}. Use {'argument_name': ''}
                 if a action-like option is used.
@@ -1725,11 +1704,11 @@ class Bookkeeper:
 
         command = "picca_metal_dmat.py"
 
-        updated_picca_extra_args = self.generate_picca_extra_args(
+        updated_extra_args = self.generate_extra_args(
             config=self.config,
             default_config=self.defaults,
             section="correlations",
-            picca_args=picca_extra_args,
+            extra_args=extra_args,
             command=command,
             region=region,
             absorber=absorber,
@@ -1776,7 +1755,7 @@ class Bookkeeper:
         if region2 != region:
             args["in-dir2"] = str(self.paths.deltas_path(region2))
 
-        args = DictUtils.merge_dicts(args, updated_picca_extra_args)
+        args = DictUtils.merge_dicts(args, updated_extra_args)
 
         if debug:  # pragma: no cover
             slurm_header_args = DictUtils.merge_dicts(
@@ -1809,7 +1788,7 @@ class Bookkeeper:
         debug: bool = False,
         wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
         slurm_header_extra_args: Dict = dict(),
-        picca_extra_args: Dict = dict(),
+        extra_args: Dict = dict(),
     ) -> Tasker:
         """Method to get a Tasker object to run forest-quasar correlations with picca.
 
@@ -1826,7 +1805,7 @@ class Bookkeeper:
             slurm_header_extra_args (dict, optional): Change slurm header
                 default options if needed (time, qos, etc...). Use a
                 dictionary with the format {'option_name': 'option_value'}.
-            picca_extra_args : Send extra arguments to
+            extra_args : Send extra arguments to
                 picca_deltas.py script. Use a dictionary with the format
                 {'argument_name', 'argument_value'}. Use {'argument_name': ''}
                 if a action-like option is used.
@@ -1847,11 +1826,11 @@ class Bookkeeper:
 
         command = "picca_xcf.py"
 
-        updated_picca_extra_args = self.generate_picca_extra_args(
+        updated_extra_args = self.generate_extra_args(
             config=self.config,
             default_config=self.defaults,
             section="correlations",
-            picca_args=picca_extra_args,
+            extra_args=extra_args,
             command=command,
             region=region,
             absorber=absorber,
@@ -1891,7 +1870,7 @@ class Bookkeeper:
         if "v9." in self.config["data"]["release"]:
             args["mode"] = "desi_mocks"
 
-        args = DictUtils.merge_dicts(args, updated_picca_extra_args)
+        args = DictUtils.merge_dicts(args, updated_extra_args)
 
         if debug:  # pragma: no cover
             slurm_header_args = DictUtils.merge_dicts(
@@ -1924,7 +1903,7 @@ class Bookkeeper:
         debug: bool = False,
         wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
         slurm_header_extra_args: Dict = dict(),
-        picca_extra_args: Dict = dict(),
+        extra_args: Dict = dict(),
     ) -> Tasker:
         """Method to get a Tasker object to run forest-quasar distortion matrix
         measurements with picca.
@@ -1944,7 +1923,7 @@ class Bookkeeper:
             slurm_header_extra_args (dict, optional): Change slurm header default
                 options if needed (time, qos, etc...). Use a dictionary with the
                 format {'option_name': 'option_value'}.
-            picca_extra_args : Send extra arguments to picca_deltas.py script.
+            extra_args : Send extra arguments to picca_deltas.py script.
                 Use a dictionary with the format {'argument_name', 'argument_value'}.
                 Use {'argument_name': ''} if a action-like option is used.
 
@@ -1964,11 +1943,11 @@ class Bookkeeper:
 
         command = "picca_xdmat.py"
 
-        updated_picca_extra_args = self.generate_picca_extra_args(
+        updated_extra_args = self.generate_extra_args(
             config=self.config,
             default_config=self.defaults,
             section="correlations",
-            picca_args=picca_extra_args,
+            extra_args=extra_args,
             command=command,
             region=region,
             absorber=absorber,
@@ -2008,7 +1987,7 @@ class Bookkeeper:
         if "v9." in self.config["data"]["release"]:
             args["mode"] = "desi_mocks"
 
-        args = DictUtils.merge_dicts(args, updated_picca_extra_args)
+        args = DictUtils.merge_dicts(args, updated_extra_args)
 
         if debug:  # pragma: no cover
             slurm_header_args = DictUtils.merge_dicts(
@@ -2041,7 +2020,7 @@ class Bookkeeper:
         debug: bool = False,
         wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
         slurm_header_extra_args: Dict = dict(),
-        picca_extra_args: Dict = dict(),
+        extra_args: Dict = dict(),
         no_dmat: bool = False,
     ):
         """Method to get a Tasker object to run forest-quasar correlation export
@@ -2059,7 +2038,7 @@ class Bookkeeper:
             slurm_header_extra_args (dict, optional): Change slurm header
                 default options if needed (time, qos, etc...). Use a
                 dictionary with the format {'option_name': 'option_value'}.
-            picca_extra_args : Send extra arguments to
+            extra_args : Send extra arguments to
                 picca_deltas.py script. Use a dictionary with the format
                 {'argument_name', 'argument_value'}. Use {'argument_name': ''}
                 if a action-like option is used.
@@ -2073,11 +2052,11 @@ class Bookkeeper:
 
         command = "picca_export.py"
 
-        updated_picca_extra_args = self.generate_picca_extra_args(
+        updated_extra_args = self.generate_extra_args(
             config=self.config,
             default_config=self.defaults,
             section="correlations",
-            picca_args=picca_extra_args,
+            extra_args=extra_args,
             command=command,
             region=region,
             absorber=absorber,
@@ -2113,7 +2092,7 @@ class Bookkeeper:
         if not no_dmat:
             args["dmat"] = str(self.paths.xdmat_fname(absorber, region))
 
-        args = DictUtils.merge_dicts(args, updated_picca_extra_args)
+        args = DictUtils.merge_dicts(args, updated_extra_args)
 
         if (
             self.paths.config["data"]["survey"] == "main"
@@ -2146,7 +2125,7 @@ class Bookkeeper:
         debug: bool = False,
         wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
         slurm_header_extra_args: Dict = dict(),
-        picca_extra_args: Dict = dict(),
+        extra_args: Dict = dict(),
     ):
         """Method to get a Tasker object to run forest-quasar metal distortion matrix
         measurements with picca.
@@ -2163,7 +2142,7 @@ class Bookkeeper:
             slurm_header_extra_args (dict, optional): Change slurm header
                 default options if needed (time, qos, etc...). Use a
                 dictionary with the format {'option_name': 'option_value'}.
-            picca_extra_args : Send extra arguments to
+            extra_args : Send extra arguments to
                 picca_deltas.py script. Use a dictionary with the format
                 {'argument_name', 'argument_value'}. Use {'argument_name': ''}
                 if a action-like option is used.
@@ -2200,11 +2179,11 @@ class Bookkeeper:
 
         command = "picca_xdmat.py"
 
-        updated_picca_extra_args = self.generate_picca_extra_args(
+        updated_extra_args = self.generate_extra_args(
             config=self.config,
             default_config=self.defaults,
             section="correlations",
-            picca_args=picca_extra_args,
+            extra_args=extra_args,
             command=command,
             region=region,
             absorber=absorber,
@@ -2253,7 +2232,7 @@ class Bookkeeper:
         if "v9." in self.config["data"]["release"]:
             args["mode"] = "desi_mocks"
 
-        args = DictUtils.merge_dicts(args, updated_picca_extra_args)
+        args = DictUtils.merge_dicts(args, updated_extra_args)
 
         if debug:  # pragma: no cover
             slurm_header_args = DictUtils.merge_dicts(
@@ -2288,7 +2267,7 @@ class Bookkeeper:
         debug: bool = False,
         wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
         slurm_header_extra_args: Dict = dict(),
-        picca_extra_args: Dict = dict(),
+        extra_args: Dict = dict(),
         no_dmat: bool = False,
     ) -> Tasker:
         """Method to get a Tasker object to run forest-quasar correlation export with
@@ -2307,7 +2286,7 @@ class Bookkeeper:
             slurm_header_extra_args (dict, optional): Change slurm header
                 default options if needed (time, qos, etc...). Use a
                 dictionary with the format {'option_name': 'option_value'}.
-            picca_extra_args : Send extra arguments to
+            extra_args : Send extra arguments to
                 picca_deltas.py script. Use a dictionary with the format
                 {'argument_name', 'argument_value'}. Use {'argument_name': ''}
                 if a action-like option is used.
@@ -2329,11 +2308,11 @@ class Bookkeeper:
 
         command = "picca_export.py"
 
-        updated_picca_extra_args = self.generate_picca_extra_args(
+        updated_extra_args = self.generate_extra_args(
             config=self.config,
             default_config=self.defaults,
             section="correlations",
-            picca_args=picca_extra_args,
+            extra_args=extra_args,
             command=command,
             region=region,
             absorber=absorber,
@@ -2369,7 +2348,7 @@ class Bookkeeper:
         if not no_dmat:
             args["dmat"] = str(self.paths.xdmat_fname(absorber, region))
 
-        args = DictUtils.merge_dicts(args, updated_picca_extra_args)
+        args = DictUtils.merge_dicts(args, updated_extra_args)
 
         if (
             self.paths.config["data"]["survey"] == "main"
@@ -2402,7 +2381,7 @@ class Bookkeeper:
         debug: bool = False,
         wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
         slurm_header_extra_args: Dict = dict(),
-        picca_extra_args: Dict = dict(),
+        extra_args: Dict = dict(),
     ) -> Tasker:
         """Method to get a Tasker object to run forest-quasar metal distortion matrix
         measurements with picca.
@@ -2420,7 +2399,7 @@ class Bookkeeper:
             slurm_header_extra_args (dict, optional): Change slurm header
                 default options if needed (time, qos, etc...). Use a
                 dictionary with the format {'option_name': 'option_value'}.
-            picca_extra_args : Send extra arguments to
+            extra_args : Send extra arguments to
                 picca_deltas.py script. Use a dictionary with the format
                 {'argument_name', 'argument_value'}. Use {'argument_name': ''}
                 if a action-like option is used.
@@ -2441,11 +2420,11 @@ class Bookkeeper:
 
         command = "picca_metal_xdmat.py"
 
-        updated_picca_extra_args = self.generate_picca_extra_args(
+        updated_extra_args = self.generate_extra_args(
             config=self.config,
             default_config=self.defaults,
             section="correlations",
-            picca_args=picca_extra_args,
+            extra_args=extra_args,
             command=command,
             region=region,
             absorber=absorber,
@@ -2485,7 +2464,7 @@ class Bookkeeper:
         if "v9." in self.config["data"]["release"]:
             args["mode"] = "desi_mocks"
 
-        args = DictUtils.merge_dicts(args, updated_picca_extra_args)
+        args = DictUtils.merge_dicts(args, updated_extra_args)
 
         environmental_variables = {
             "HDF5_USE_FILE_LOCKING": "FALSE",
@@ -2573,11 +2552,11 @@ class Bookkeeper:
             region2 = self.validate_region(region2)
             absorber2 = self.validate_absorber(absorber2)
 
-            vega_args = self.generate_picca_extra_args(
+            vega_args = self.generate_extra_args(
                 config=self.config,
                 default_config=self.defaults,
                 section="fits",
-                picca_args=dict(),
+                extra_args=dict(),
                 command="vega_auto.py",  # The use of .py only for using same function
                 region=region,
                 absorber=absorber,
@@ -2610,11 +2589,11 @@ class Bookkeeper:
             region = self.validate_region(region)
             absorber = self.validate_absorber(absorber)
 
-            vega_args = self.generate_picca_extra_args(
+            vega_args = self.generate_extra_args(
                 config=self.config,
                 default_config=self.defaults,
                 section="fits",
-                picca_args=dict(),
+                extra_args=dict(),
                 command="vega_cross.py",  # The use of .py only for using same function
                 region=region,
                 absorber=absorber,
@@ -2636,11 +2615,11 @@ class Bookkeeper:
             ini_files.append(str(filename))
 
         # Now the main file
-        vega_args = self.generate_picca_extra_args(
+        vega_args = self.generate_extra_args(
             config=self.config,
             default_config=self.defaults,
             section="fits",
-            picca_args=dict(),
+            extra_args=dict(),
             command="vega_main.py",  # The .py needed to make use of same function
         )
 

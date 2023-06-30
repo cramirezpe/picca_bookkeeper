@@ -9,7 +9,9 @@ from picca_bookkeeper.bookkeeper import Bookkeeper
 def main(args=None):
     if args is None:
         args = get_args()
-    bookkeeper = Bookkeeper(args.bookkeeper_config, overwrite_config=args.overwrite_config)
+    bookkeeper = Bookkeeper(
+        args.bookkeeper_config, overwrite_config=args.overwrite_config
+    )
 
     script_args = {
         "log-level": args.log_level,
@@ -23,7 +25,7 @@ def main(args=None):
         add_flux_properties=args.add_flux_properties,
         wait_for=args.wait_for,
         debug=args.debug,
-        picca_extra_args=script_args,
+        extra_args=script_args,
     )
 
     task.write_job()
@@ -44,7 +46,7 @@ def get_args():
     parser.add_argument(
         "--overwrite-config",
         action="store_true",
-        help="Force overwrite bookkeeper config."
+        help="Force overwrite bookkeeper config.",
     )
 
     parser.add_argument(
@@ -79,9 +81,7 @@ def get_args():
     )
 
     parser.add_argument(
-        "--only-write",
-        action="store_true",
-        help="Only write scripts, not send them."
+        "--only-write", action="store_true", help="Only write scripts, not send them."
     )
 
     parser.add_argument("--wait-for", nargs="+", type=int, default=None, required=False)

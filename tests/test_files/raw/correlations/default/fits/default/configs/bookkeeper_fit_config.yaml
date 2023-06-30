@@ -10,7 +10,7 @@ fits:
   delta extraction: raw_0_0.0.0_0
   correlation run name: default
   run name: default
-  picca args:
+  extra args:
     picca_convert_transmission:
       linear-spacing: true
       lambda-min: 3600

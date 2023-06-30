@@ -18,7 +18,7 @@ delta extraction:
   bal: 0
   suffix: 0
 
-  picca args:
+  extra args:
     picca_delta_extraction:
       data:
         wave solution: log
@@ -27,7 +27,7 @@ correlations:
   catalog tracer:
   run name: nondefault
 
-  picca args:
+  extra args:
     picca_cf:
       nside: 128
 fits:

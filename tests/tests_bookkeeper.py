@@ -740,14 +740,14 @@ class TestBookkeeper(unittest.TestCase):
         test_files = THIS_DIR / "test_files" / "true"
         bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
-        bookkeeper.config["delta extraction"]["picca args"]["picca_delta_extraction"][
+        bookkeeper.config["delta extraction"]["extra args"]["picca_delta_extraction"][
             "expected flux"
         ] = dict()
 
         with self.assertRaises(ValueError) as cm:
             write_full_analysis(bookkeeper, calib=False, region="lyb", region2="lya")
         self.assertEqual(
-            "Should define expected flux and raw statistics file in picca args section in order to run TrueContinuum",
+            "Should define expected flux and raw statistics file in extra args section in order to run TrueContinuum",
             str(cm.exception),
         )
 

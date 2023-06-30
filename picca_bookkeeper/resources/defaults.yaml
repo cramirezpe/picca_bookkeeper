@@ -1,5 +1,5 @@
 delta extraction:  
-  picca args:
+  extra args:
     picca_convert_transmission:
       
     picca_delta_extraction:
@@ -33,7 +33,7 @@ delta extraction:
 
 
 correlations:
-  picca args:
+  extra args:
     picca_cf:
       nproc: 128
       rp-min: 0
@@ -142,7 +142,7 @@ correlations:
 
 
 fits:
-  picca args:
+  extra args:
     vega_auto:
       data:
         tracer1-type: continuous

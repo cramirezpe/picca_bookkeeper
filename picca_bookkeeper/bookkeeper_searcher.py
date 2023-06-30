@@ -195,8 +195,6 @@ class ConfigReader:
         )
 
 
-#         for key in self.config["picca args"].keys():
-#             self.config["picca args"] = g
 
 
 class DeltaConfigReader(ConfigReader):

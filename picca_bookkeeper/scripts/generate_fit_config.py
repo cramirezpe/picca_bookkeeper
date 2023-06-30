@@ -29,10 +29,10 @@ def main(args=None):
 
     # Generate all the structure if it is not already there in the bookkeeper config
     # The defined fields in the config file will remain the same.
-    if "picca args" not in bookkeeper.fits:
-        bookkeeper.fits["picca args"] = dict()
+    if "extra args" not in bookkeeper.fits:
+        bookkeeper.fits["extra args"] = dict()
 
-    bookkeeper.fits["picca args"] = DictUtils.merge_dicts(
+    bookkeeper.fits["extra args"] = DictUtils.merge_dicts(
         {
             "vega_auto": {
                 "data": {},
@@ -57,7 +57,7 @@ def main(args=None):
                 "parameters": {},
             },
         },
-        bookkeeper.fits["picca args"],
+        bookkeeper.fits["extra args"],
     )
 
     auto_correlations = [
@@ -72,8 +72,8 @@ def main(args=None):
         cross_correlations.append("lya.lyb")
 
     if args.no_bao:
-        bookkeeper.fits["picca args"] = DictUtils.merge_dicts(
-            bookkeeper.fits["picca args"],
+        bookkeeper.fits["extra args"] = DictUtils.merge_dicts(
+            bookkeeper.fits["extra args"],
             {
                 "remove_vega_main": {  # This removes fields
                     "sample": {
@@ -90,8 +90,8 @@ def main(args=None):
         )
 
     if args.no_hcd:
-        bookkeeper.fits["picca args"] = DictUtils.merge_dicts(
-            bookkeeper.fits["picca args"],
+        bookkeeper.fits["extra args"] = DictUtils.merge_dicts(
+            bookkeeper.fits["extra args"],
             {
                 "remove_vega_main": {
                     "sample": {
@@ -113,8 +113,8 @@ def main(args=None):
         )
 
     if args.no_metals:
-        bookkeeper.fits["picca args"] = DictUtils.merge_dicts(
-            bookkeeper.fits["picca args"],
+        bookkeeper.fits["extra args"] = DictUtils.merge_dicts(
+            bookkeeper.fits["extra args"],
             {
                 "remove_vega_auto": {
                     "metals": "",
@@ -134,8 +134,8 @@ def main(args=None):
         )
 
     if args.no_sky:
-        bookkeeper.fits["picca args"] = DictUtils.merge_dicts(
-            bookkeeper.fits["picca args"],
+        bookkeeper.fits["extra args"] = DictUtils.merge_dicts(
+            bookkeeper.fits["extra args"],
             {
                 "remove_vega_main": {
                     "sample": {
@@ -151,8 +151,8 @@ def main(args=None):
         )
 
     if args.no_qso_rad:
-        bookkeeper.fits["picca args"] = DictUtils.merge_dicts(
-            bookkeeper.fits["picca args"],
+        bookkeeper.fits["extra args"] = DictUtils.merge_dicts(
+            bookkeeper.fits["extra args"],
             {
                 "remove_vega_main": {
                     "sample": {
@@ -168,8 +168,8 @@ def main(args=None):
         )
 
     if args.rmin_cf is not None:
-        bookkeeper.fits["picca args"] = DictUtils.merge_dicts(
-            bookkeeper.fits["picca args"],
+        bookkeeper.fits["extra args"] = DictUtils.merge_dicts(
+            bookkeeper.fits["extra args"],
             {
                 "vega_auto": {
                     "cuts": {
@@ -179,8 +179,8 @@ def main(args=None):
             },
         )
     if args.rmax_cf is not None:
-        bookkeeper.fits["picca args"] = DictUtils.merge_dicts(
-            bookkeeper.fits["picca args"],
+        bookkeeper.fits["extra args"] = DictUtils.merge_dicts(
+            bookkeeper.fits["extra args"],
             {
                 "vega_auto": {
                     "cuts": {
@@ -190,8 +190,8 @@ def main(args=None):
             },
         )
     if args.rmin_xcf is not None:
-        bookkeeper.fits["picca args"] = DictUtils.merge_dicts(
-            bookkeeper.fits["picca args"],
+        bookkeeper.fits["extra args"] = DictUtils.merge_dicts(
+            bookkeeper.fits["extra args"],
             {
                 "vega_cross": {
                     "cuts": {
@@ -201,8 +201,8 @@ def main(args=None):
             },
         )
     if args.rmax_xcf is not None:
-        bookkeeper.fits["picca args"] = DictUtils.merge_dicts(
-            bookkeeper.fits["picca args"],
+        bookkeeper.fits["extra args"] = DictUtils.merge_dicts(
+            bookkeeper.fits["extra args"],
             {
                 "vega_cross": {
                     "cuts": {

@@ -20,7 +20,7 @@ delta extraction:
   bal: 2
   suffix: 0
 
-  picca args:
+  extra args:
     picca_convert_transmission:
 
     picca_delta_extraction:

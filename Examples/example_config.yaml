@@ -85,9 +85,9 @@ delta extraction:
   # force BAL catalog (if not the one corresponent to the catalog above will be used)
   bal catalog:
 
-  # Picca args to be used by the bookkeeper
+  # extra args to be used by the bookkeeper
   # match the section name with the name of the scripts under picca.bin
-  picca args:
+  extra args:
     picca_delta_extraction:
       expected flux:
         type: Dr16ExpectedFlux
@@ -134,7 +134,7 @@ correlations:
   metal matrices:
 
 
-  picca args:
+  extra args:
     picca_cf:
       nside: 16
     # no-project: # use empty string for action args like no-project.
@@ -179,8 +179,8 @@ fits:
   # This is the user-friendly name for the fit run
   run name: default
 
-  # To use same functions we call this picca_args although vega is used.
-  picca args:
+  # To use same functions we call this extra_args although vega is used.
+  extra args:
     vega_auto:
       data:
         tracer1-type: continuous

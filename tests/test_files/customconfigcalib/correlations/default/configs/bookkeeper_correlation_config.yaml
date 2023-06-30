@@ -12,7 +12,7 @@ correlations:
   catalog tracer:
 fits:
   run name: default
-  picca args:
+  extra args:
     picca_convert_transmission:
       nspec: 30
     picca_delta_extraction:

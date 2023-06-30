@@ -22,7 +22,7 @@ correlations:
   catalog tracer:
   run name: nondefault
 
-  picca args:
+  extra args:
     picca_cf:
       nside: 128
 fits:

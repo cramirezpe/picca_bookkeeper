@@ -80,8 +80,8 @@ delta extraction:
 
     picca_fitter2:
 
-  # Picca args to be used by the bookkeeper
-  picca args:
+  # extra args to be used by the bookkeeper
+  extra args:
     picca_convert_transmission:
       nspec: 30
     
@@ -155,8 +155,8 @@ fits:
 
     picca_fitter2:
 
-  # Picca args to be used by the bookkeeper
-  picca args:
+  # extra args to be used by the bookkeeper
+  extra args:
     picca_convert_transmission:
       nspec: 30
     

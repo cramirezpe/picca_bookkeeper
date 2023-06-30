@@ -1,5 +1,5 @@
 delta extraction:
-  picca args:
+  extra args:
     picca_convert_transmission:
     picca_delta_extraction:
       data:
@@ -19,7 +19,7 @@ delta extraction:
       time: 02:00:00
       qos: regular
 correlations:
-  picca args:
+  extra args:
     picca_cf:
       nproc: 128
       rp-min: 0
@@ -112,7 +112,7 @@ correlations:
       qos: regular
       time: '10:00:00'
 fits:
-  picca args:
+  extra args:
     vega_auto:
       data:
         tracer1-type: continuous
