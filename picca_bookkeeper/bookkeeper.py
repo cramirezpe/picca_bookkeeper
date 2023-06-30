@@ -380,6 +380,7 @@ class Bookkeeper:
                 "delta extraction",
                 "run name",
                 "catalog tracer",
+                "metal matrices",
                 "picca args",
                 "slurm args",
             ],
@@ -1682,6 +1683,30 @@ class Bookkeeper:
         Returns:
             Tasker: Tasker object to run forest-forest correlation.
         """
+        # If metal matrices are provided, we just copy them into the bookkeeper
+        # as if they were computed.
+        if self.config["correlations"].get("metal matrices", "") not in ("", None):
+            if len(self.config["correlations"]["metal matrices"]) != 2:
+                raise ValueError(
+                    "Invalid value for the field metal matrices ",
+                    "in the bookkeeper config. Expected two strings. "
+                    "if only one metal matrices is given, create a dummy "
+                    "string accordingly, e.g.: 'path_to_metal.fits.gz dummy'",
+                )
+            metal_matrix = self.config["correlations"]["metal matrices"][0]
+
+            if not metal_matrix.is_file():
+                raise ValueError(
+                    "Provided metal matrix filename does not exist", metal_matrix
+                )
+            else:
+                filename = self.paths.metal_fname(absorber, region, absorber2, region2)
+                filename.parent.mkdir(exist_ok=True, parents=True)
+                shutil.copy(
+                    metal_matrix,
+                    filename,
+                )
+
         if self.defaults_diff != {}:
             raise ValueError(
                 "Default values changed since last run of the "
@@ -2146,6 +2171,30 @@ class Bookkeeper:
         Returns:
             Tasker: Tasker object to run forest-forest correlation.
         """
+        # If metal matrices are provided, we just copy them into the bookkeeper
+        # as if they were computed.
+        if self.config["correlations"].get("metal matrices", "") not in ("", None):
+            if len(self.config["correlations"]["metal matrices"]) != 2:
+                raise ValueError(
+                    "Invalid value for the field metal matrices ",
+                    "in the bookkeeper config. Expected two strings. "
+                    "if only one metal matrices is given, create a dummy "
+                    "string accordingly, e.g.: 'dummy path_to_xmetal.fits.gz'",
+                )
+            metal_matrix = self.config["correlations"]["metal matrices"][1]
+
+            if not metal_matrix.is_file():
+                raise ValueError(
+                    "Provided metal matrix filename does not exist", metal_matrix
+                )
+            else:
+                filename = self.paths.xmetal_fname(absorber, region)
+                filename.parent.mkdir(exist_ok=True, parents=True)
+                shutil.copy(
+                    metal_matrix,
+                    filename,
+                )
+
         region = self.validate_region(region)
         absorber = self.validate_absorber(absorber)
 

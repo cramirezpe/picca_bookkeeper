@@ -128,6 +128,11 @@ correlations:
   # by default will use the previous one for all the analyses.
   catalog tracer: 
 
+  # copy metal matrices from a different run, either this field expects
+  # the format "metal_matrix_1.fits.gz metal_matrix_2.fits.gz" 
+  # with the full path given.
+  metal matrices:
+
 
   picca args:
     picca_cf:
