@@ -2,7 +2,7 @@
 
 #SBATCH --qos regular
 #SBATCH --nodes 1
-#SBATCH --time 30
+#SBATCH --time 00:30:00
 #SBATCH --constraint cpu
 #SBATCH --account desi
 #SBATCH --mail-type fail

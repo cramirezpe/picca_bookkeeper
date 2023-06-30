@@ -1,8 +1,16 @@
+import logging
 import os
-from pathlib import Path
+import sys
 import textwrap
+from pathlib import Path
 from subprocess import run
+
 import numpy as np
+
+logging.basicConfig(
+    stream=sys.stdout, format="%(levelname)s:%(name)s:%(funcName)s:%(message)s"
+)
+logger = logging.getLogger(__name__)
 
 
 def get_Tasker(system, *args, **kwargs):
@@ -80,6 +88,15 @@ class Tasker:
             jobid_log_file (Path): Location of log file where to include jobids of runs.
         """
         self.slurm_header_args = {**self.default_header, **slurm_header_args}
+
+        if isinstance(self.slurm_header_args.get("time", ""), int):
+            print(self.slurm_header_args["time"])
+            logger.warning(
+                "Detected int value in field time inside slurm args. "
+                "Be sure to quote time values in config file if the "
+                "format is hours:minutes:seconds. "
+                "If you sent an int as minutes, ignore this warning."
+            )
         self.command = command
         self.command_args = command_args
         self.environment = environment
@@ -190,7 +207,7 @@ class SlurmTasker(Tasker):
     default_header = {
         "qos": "regular",
         "nodes": 1,
-        "time": 30,
+        "time": "00:30:00",
     }
 
     def __init__(self, *args, **kwargs):
@@ -289,7 +306,7 @@ class SlurmCoriTasker(SlurmTasker):
     default_header = {
         "qos": "regular",
         "nodes": 1,
-        "time": 30,
+        "time": "00:30:00",
         "constraint": "haswell",
         "account": "desi",
     }
@@ -299,7 +316,7 @@ class SlurmPerlmutterTasker(SlurmTasker):
     default_header = {
         "qos": "regular",
         "nodes": 1,
-        "time": 30,
+        "time": "00:30:00",
         "constraint": "cpu",
         "account": "desi",
     }

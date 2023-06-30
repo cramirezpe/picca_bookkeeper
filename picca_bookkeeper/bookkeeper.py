@@ -1,18 +1,25 @@
-from pathlib import Path
-from typing import *
 import configparser
 import copy
 import filecmp
+import logging
 import shutil
+import sys
+from pathlib import Path
+from typing import *
+
 import yaml
-from yaml import SafeDumper
 from importlib_resources import files
-
 from picca.constants import ABSORBER_IGM
+from yaml import SafeDumper
 
-from picca_bookkeeper.tasker import get_Tasker, ChainedTasker, Tasker
-from picca_bookkeeper.dict_utils import DictUtils
 from picca_bookkeeper import resources
+from picca_bookkeeper.dict_utils import DictUtils
+from picca_bookkeeper.tasker import ChainedTasker, Tasker, get_Tasker
+
+logging.basicConfig(
+    stream=sys.stdout, format="%(levelname)s:%(name)s:%(funcName)s:%(message)s"
+)
+logger = logging.getLogger(__name__)
 
 SafeDumper.add_representer(
     type(None),
