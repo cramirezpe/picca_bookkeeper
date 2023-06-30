@@ -107,7 +107,15 @@ class Tasker:
                     ).with_traceback(e.__traceback__)
         else:
             if isinstance(self.wait_for[0], int):
+                self.wait_for = [x for x in self.wait_for if x is not None]
                 self.wait_for_ids = list(self.wait_for)
+            elif self.wait_for[0] == None:
+                self.wait_for = [x for x in self.wait_for if x is not None]
+                if len(self.wait_for) == 0:
+                    self.wait_for = None
+                    self.wait_for_ids = None
+                else:
+                    self.wait_for_ids = list(self.wait_for)
             elif isinstance(self.wait_for[0], Tasker) or isinstance(
                 self.wait_for[0], ChainedTasker
             ):
@@ -254,8 +262,12 @@ export OMP_NUM_THREADS={self.srun_options['cpus-per-task']}
             wait_for_str = ""
         else:
             self.get_wait_for_ids()
-            wait_for_str = f"--dependency=afterok:"
-            wait_for_str += ",afterok:".join(map(str, self.wait_for_ids))
+
+            if self.wait_for_ids is None:
+                wait_for_str = ""
+            else:
+                wait_for_str = f"--dependency=afterok:"
+                wait_for_str += ",afterok:".join(map(str, self.wait_for_ids))
 
         self.sbatch_process = run(
             f"sbatch --parsable {wait_for_str} {self.run_file}",

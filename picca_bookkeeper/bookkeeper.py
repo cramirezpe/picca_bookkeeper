@@ -2298,7 +2298,6 @@ class Bookkeeper:
             "data": str(self.paths.xcf_fname(absorber, region)),
             "out": str(self.paths.exp_xcf_fname(absorber, region)),
             "blind-corr-type": "qsoxlya",
-            "lambda-abs": absorber_igm[absorber.lower()],
         }
         if not no_dmat:
             args["dmat"] = str(self.paths.xdmat_fname(absorber, region))

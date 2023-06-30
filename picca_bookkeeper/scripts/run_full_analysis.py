@@ -86,6 +86,7 @@ def main(args=None):
     else:
         # If deltas are not computed, wait_for should be generated resembling
         # the output from this step
+        region_jobids = dict()
         for region in regions:
             region_jobids[region] = args.wait_for
 
@@ -110,7 +111,7 @@ def main(args=None):
                 no_metal=args.no_metal,
                 debug=False,  # Debug, only set deltas
                 only_write=args.only_write,
-                wait_for=calib_jobid,
+                wait_for=wait_for,
             )
             correlation_jobids.append(run_cf(auto_args))
 

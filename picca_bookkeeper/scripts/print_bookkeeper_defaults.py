@@ -6,15 +6,14 @@ from importlib_resources import files
 
 import yaml
 
+
 def main():
     defaults = yaml.load(
         files(resources).joinpath("defaults.yaml").read_text(),
         Loader=yaml.BaseLoader,
     )
 
-    print(
-        DictUtils.print_dict(defaults)
-    )
+    print(DictUtils.print_dict(defaults))
 
 
 if __name__ == "__main__":
