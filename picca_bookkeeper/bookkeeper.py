@@ -21,6 +21,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# This converts Nones in dict into empty fields in yaml.
 SafeDumper.add_representer(
     type(None),
     lambda dumper, value: dumper.represent_scalar("tag:yaml.org,2002:null", ""),
