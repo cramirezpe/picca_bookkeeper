@@ -3,7 +3,7 @@ general:
   system: slurm_cori
 data:
   early dir: /global/u2/c/cramirez/Codes/picca_bookkeeper/tests/test_files/output
-  healpix data: ''
+  healpix data:
   release: guadalupe
   survey: main
   catalog: afterburn_v0

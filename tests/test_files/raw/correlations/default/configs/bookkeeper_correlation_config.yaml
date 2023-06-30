@@ -2,31 +2,31 @@ general:
   conda environment: picca
 data:
   early dir: /picca_bookkeeper/tests/test_files/output
-  healpix data: ''
+  healpix data:
   release: v9.0.0
   survey: raw
   catalog: LyaCoLoRe
 correlations:
   delta extraction: raw_0_0.0.0_0
   run name: default
-  catalog tracer: ''
+  catalog tracer:
 fits:
   run name: default
   picca args:
     picca_convert_transmission:
-      linear-spacing: 'True'
-      lambda-min: '3600'
-      lambda-max: '5500'
-      delta-lambda: '0.8'
-    picca_delta_extraction: ''
-    picca_deltas: ''
-    picca_cf: ''
-    picca_xcf: ''
-    picca_dmat: ''
-    picca_xdmat: ''
-    picca_metal_dmat: ''
-    picca_export: ''
-    picca_fitter2: ''
+      linear-spacing: true
+      lambda-min: 3600
+      lambda-max: 5500
+      delta-lambda: 0.8
+    picca_delta_extraction:
+    picca_deltas:
+    picca_cf:
+    picca_xcf:
+    picca_dmat:
+    picca_xdmat:
+    picca_metal_dmat:
+    picca_export:
+    picca_fitter2:
   slurm args:
     general:
       mail-type: fail
@@ -35,11 +35,11 @@ fits:
       time: 00:30:00
     picca_delta_extraction:
       time: 00:30:00
-    picca_deltas: ''
-    picca_cf: ''
-    picca_xcf: ''
-    picca_dmat: ''
-    picca_xdmat: ''
-    picca_metal_dmat: ''
-    picca_export: ''
-    picca_fitter2: ''
+    picca_deltas:
+    picca_cf:
+    picca_xcf:
+    picca_dmat:
+    picca_xdmat:
+    picca_metal_dmat:
+    picca_export:
+    picca_fitter2:

@@ -88,3 +88,22 @@ class DictUtils:
             else:
                 string += "  " * depth + f"{key}: {dict_[key]}\n"
         return string
+
+    @staticmethod
+    def convert_to_string(dict_) -> Dict:
+        """Convert dictionary values into strings for savely output into .ini
+        file
+
+        Returns
+            Dict with fields changed
+        """
+        dict_ = copy.deepcopy(dict_)
+        for key, value in dict_.items():
+            if isinstance(dict_[key], collections.abc.Mapping):
+                dict_[key] = DictUtils.convert_to_string(dict_[key])
+            else:
+                if value is None:
+                    dict_[key] = ""
+                else:
+                    dict_[key] = str(dict_[key])
+        return dict_

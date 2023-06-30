@@ -111,7 +111,7 @@ delta extraction:
     general:
     
     picca_delta_extraction:
-      time: 00:16:00
+      time: "00:16:00"
       qos: debug
 
 correlations:

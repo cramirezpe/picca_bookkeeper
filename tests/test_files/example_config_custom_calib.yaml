@@ -60,7 +60,7 @@ delta extraction:
       mail-type: fail
       mail-user: user@host.com
     picca_delta_extraction:
-      time: 00:16:00
+      time: "00:16:00"
       qos: regular
 
     picca_cf:
@@ -68,7 +68,7 @@ delta extraction:
     picca_xcf:
     
     picca_cf:
-      time: 00:12:12
+      time: "00:12:12"
 
     picca_dmat:
 
@@ -133,7 +133,7 @@ fits:
       mail-type: fail
       mail-user: user@host.com
     picca_delta_extraction:
-      time: 00:16:00
+      time: "00:16:00"
       qos: regular
 
     picca_cf:
@@ -141,7 +141,7 @@ fits:
     picca_xcf:
     
     picca_cf:
-      time: 00:12:12
+      time: "00:12:12"
 
     picca_dmat:
 

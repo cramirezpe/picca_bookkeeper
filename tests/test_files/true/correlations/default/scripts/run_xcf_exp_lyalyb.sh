@@ -6,8 +6,8 @@
 #SBATCH --constraint cpu
 #SBATCH --account desi
 #SBATCH --job-name xcf_exp_lyalyb
-#SBATCH --output /picca_bookkeeper/tests/test_files/output/v9.0.0/desi-2.0-1000/LyaCoLoRe/true_0_0.0.0_0/correlations/default/logs/xcf_exp_lyalyb-%j.out
-#SBATCH --error /picca_bookkeeper/tests/test_files/output/v9.0.0/desi-2.0-1000/LyaCoLoRe/true_0_0.0.0_0/correlations/default/logs/xcf_exp_lyalyb-%j.err
+#SBATCH --output /picca_bookkeeper/tests/test_files/output/v9.0.0/desi-2.0-1000/LyaCoLoRe/True_0_0.0.0_0/correlations/default/logs/xcf_exp_lyalyb-%j.out
+#SBATCH --error /picca_bookkeeper/tests/test_files/output/v9.0.0/desi-2.0-1000/LyaCoLoRe/True_0_0.0.0_0/correlations/default/logs/xcf_exp_lyalyb-%j.err
 
 module load python
 source activate picca_add_tests
@@ -16,5 +16,5 @@ export OMP_NUM_THREADS=1
 
 export HDF5_USE_FILE_LOCKING=FALSE
 
-command="picca_export.py --data /picca_bookkeeper/tests/test_files/output/v9.0.0/desi-2.0-1000/LyaCoLoRe/true_0_0.0.0_0/correlations/default/correlations/qso_lyalyb/xcf.fits.gz --out /picca_bookkeeper/tests/test_files/output/v9.0.0/desi-2.0-1000/LyaCoLoRe/true_0_0.0.0_0/correlations/default/correlations/qso_lyalyb/xcf_exp.fits.gz --blind-corr-type qsoxlya --dmat /picca_bookkeeper/tests/test_files/output/v9.0.0/desi-2.0-1000/LyaCoLoRe/true_0_0.0.0_0/correlations/default/correlations/qso_lyalyb/xdmat.fits.gz"
+command="picca_export.py --data /picca_bookkeeper/tests/test_files/output/v9.0.0/desi-2.0-1000/LyaCoLoRe/True_0_0.0.0_0/correlations/default/correlations/qso_lyalyb/xcf.fits.gz --out /picca_bookkeeper/tests/test_files/output/v9.0.0/desi-2.0-1000/LyaCoLoRe/True_0_0.0.0_0/correlations/default/correlations/qso_lyalyb/xcf_exp.fits.gz --blind-corr-type qsoxlya --dmat /picca_bookkeeper/tests/test_files/output/v9.0.0/desi-2.0-1000/LyaCoLoRe/True_0_0.0.0_0/correlations/default/correlations/qso_lyalyb/xdmat.fits.gz"
 srun --nodes 1 --ntasks 1 --cpus-per-task 1 $command

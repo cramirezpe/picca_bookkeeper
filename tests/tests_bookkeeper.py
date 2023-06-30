@@ -323,15 +323,15 @@ class TestBookkeeper(unittest.TestCase):
         copy_config_substitute(self.files_path / "example_config_guadalupe.yaml")
         bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
-        bookkeeper.config["delta extraction"]["calib"] = "11"
+        bookkeeper.config["delta extraction"]["calib"] = 11
         with self.assertRaises(ValueError) as cm:
             deltas = bookkeeper.get_calibration_extraction_tasker()
         self.assertEqual(
-            "Invalid calib value in config file. (Valid values are 0 1 2 3 4)",
+            "Invalid calib value in config file. (Valid values are 0 1 2 3 10)",
             str(cm.exception),
         )
 
-        bookkeeper.config["delta extraction"]["calib"] = "1"
+        bookkeeper.config["delta extraction"]["calib"] = 1
         bookkeeper.config["delta extraction"]["prefix"] = "dr16"
         with self.assertRaises(ValueError) as cm:
             deltas = bookkeeper.get_calibration_extraction_tasker()

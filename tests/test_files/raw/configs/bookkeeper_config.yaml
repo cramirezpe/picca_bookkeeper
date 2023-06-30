@@ -28,10 +28,10 @@ delta extraction:
       mail-user: mail@host.es
 
     picca_convert_transmission:
-      time: 00:30:00
+      time: "00:30:00"
 
     picca_delta_extraction:
-      time: 00:30:00
+      time: "00:30:00"
     picca_deltas:
 
     picca_cf:
@@ -97,10 +97,10 @@ fits:
       mail-user: mail@host.es
 
     picca_convert_transmission:
-      time: 00:30:00
+      time: "00:30:00"
 
     picca_delta_extraction:
-      time: 00:30:00
+      time: "00:30:00"
     picca_deltas:
 
     picca_cf:

@@ -8,9 +8,8 @@ import yaml
 
 
 def main():
-    defaults = yaml.load(
-        files(resources).joinpath("defaults.yaml").read_text(),
-        Loader=yaml.BaseLoader,
+    defaults = yaml.safe_load(
+        files(resources).joinpath("defaults.yaml").read_text()
     )
 
     print(DictUtils.print_dict(defaults))

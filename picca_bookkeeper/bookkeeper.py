@@ -5,6 +5,7 @@ import copy
 import filecmp
 import shutil
 import yaml
+from yaml import SafeDumper
 from importlib_resources import files
 
 from picca.constants import ABSORBER_IGM
@@ -12,6 +13,11 @@ from picca.constants import ABSORBER_IGM
 from picca_bookkeeper.tasker import get_Tasker, ChainedTasker, Tasker
 from picca_bookkeeper.dict_utils import DictUtils
 from picca_bookkeeper import resources
+
+SafeDumper.add_representer(
+    type(None),
+    lambda dumper, value: dumper.represent_scalar("tag:yaml.org,2002:null", ""),
+)
 
 forest_regions = {
     "lya": {
@@ -141,7 +147,7 @@ class Bookkeeper:
                 raise FileNotFoundError("Config file couldn't be found", config_path)
 
         with open(config_path) as file:
-            self.config = yaml.load(file, Loader=yaml.BaseLoader)
+            self.config = yaml.safe_load(file)
 
         self.paths = PathBuilder(self.config)
 
@@ -165,7 +171,7 @@ class Bookkeeper:
             # In this case, correlations is not defined in the config file
             # and therefore, we should search for it.
             with open(self.paths.correlation_config_file, "r") as f:
-                correlation_config = yaml.load(f, Loader=yaml.BaseLoader)
+                correlation_config = yaml.safe_load(f)
             self.correlations = correlation_config["correlations"]
             self.config["correlations"] = self.correlations
 
@@ -173,7 +179,7 @@ class Bookkeeper:
             # In this case, delta extraction is not defined in the config file
             # and therefore, we should search for it.
             with open(self.paths.delta_config_file, "r") as f:
-                delta_config = yaml.load(f, Loader=yaml.BaseLoader)
+                delta_config = yaml.safe_load(f)
             self.delta_extraction = delta_config["delta extraction"]
             self.config["delta extraction"] = self.delta_extraction
 
@@ -304,9 +310,8 @@ class Bookkeeper:
                     )
 
         # Read defaults and check if they have changed.
-        self.defaults = yaml.load(
-            files(resources).joinpath("defaults.yaml").read_text(),
-            Loader=yaml.BaseLoader,
+        self.defaults = yaml.safe_load(
+            files(resources).joinpath("defaults.yaml").read_text()
         )
 
         self.defaults_diff = dict()
@@ -321,6 +326,22 @@ class Bookkeeper:
                 self.defaults,
                 self.paths.defaults_file,
             )
+
+    @staticmethod
+    def write_ini(config: Dict, file: Union[Path, str]) -> None:
+        """Safely save a dictionary into an .ini file
+
+        Args
+            config: Dict to store as ini file.
+            file: path where to store the ini.
+        """
+        config = DictUtils.convert_to_string(config)
+
+        parser = configparser.ConfigParser()
+        parser.read_dict(config)
+
+        with open(file, "w") as file:
+            parser.write(file)
 
     @staticmethod
     def write_bookkeeper(config: Dict, file: Union[Path, str]) -> None:
@@ -378,7 +399,7 @@ class Bookkeeper:
             )
 
         with open(file, "w") as f:
-            yaml.dump(config, f, sort_keys=False)
+            yaml.safe_dump(config, f, sort_keys=False)
 
     @property
     def is_mock(self) -> bool:
@@ -788,9 +809,9 @@ class Bookkeeper:
         # update corrections section
         # here we are dealing with calibration runs
         # If there is no calibration, we should not have calib_steps
-        if self.config["delta extraction"]["calib"] == "0" and calib_step is not None:
+        if self.config["delta extraction"]["calib"] == 0 and calib_step is not None:
             raise ValueError("Trying to run calibration with calib = 0 in config file.")
-        if self.config["delta extraction"]["calib"] not in ("0", "10"):
+        if self.config["delta extraction"]["calib"] not in (0, 10):
             if (
                 "CalibrationCorrection"
                 in updated_picca_extra_args["corrections"].values()
@@ -801,7 +822,7 @@ class Bookkeeper:
                 )
 
         # Now we deal with dMdB20 option (calib = 1)
-        if self.config["delta extraction"]["calib"] == "1":
+        if self.config["delta extraction"]["calib"] == 1:
             # only for calibrating runs
             if calib_step is not None:
                 if calib_step == 2:
@@ -864,7 +885,7 @@ class Bookkeeper:
                 ]["filename"] = str(
                     self.calibration.paths.delta_attributes_file(None, calib_step=2)
                 )
-        elif self.config["delta extraction"]["calib"] == "2":
+        elif self.config["delta extraction"]["calib"] == 2:
             # Set expected flux
             updated_picca_extra_args = DictUtils.merge_dicts(
                 updated_picca_extra_args,
@@ -903,7 +924,7 @@ class Bookkeeper:
                 ] = str(
                     self.calibration.paths.delta_attributes_file(None, calib_step=1)
                 )
-        elif self.config["delta extraction"]["calib"] == "3":
+        elif self.config["delta extraction"]["calib"] == 3:
             # Set expected flux
             updated_picca_extra_args = DictUtils.merge_dicts(
                 updated_picca_extra_args,
@@ -944,11 +965,11 @@ class Bookkeeper:
 
         # update masks sections if necessary
         if (
-            self.config["delta extraction"]["dla"] != "0"
-            or self.config["delta extraction"]["bal"] != "0"
+            self.config["delta extraction"]["dla"] != 0
+            or self.config["delta extraction"]["bal"] != 0
         ) and calib_step is None:
             prev_mask_number = int(updated_picca_extra_args["masks"]["num masks"])
-            if self.config["delta extraction"]["dla"] != "0":
+            if self.config["delta extraction"]["dla"] != 0:
                 if "DlaMask" in updated_picca_extra_args["masks"].values():
                     raise ValueError("DlaMask set by user with dla option != 0")
 
@@ -965,8 +986,8 @@ class Bookkeeper:
                 updated_picca_extra_args["masks"]["num masks"] = prev_mask_number + 1
 
             prev_mask_number = int(updated_picca_extra_args["masks"]["num masks"])
-            if self.config["delta extraction"]["bal"] != "0":
-                if self.config["delta extraction"]["bal"] == "2":
+            if self.config["delta extraction"]["bal"] != 0:
+                if self.config["delta extraction"]["bal"] == 2:
                     if "BalMask" in updated_picca_extra_args["masks"].values():
                         raise ValueError("BalMask set by user with bal option !=0")
 
@@ -995,7 +1016,7 @@ class Bookkeeper:
         if self.config["delta extraction"]["prefix"] not in [
             "dMdB20",
             "raw",
-            "true",
+            True,
             "custom",
         ]:
             raise ValueError(
@@ -1007,7 +1028,7 @@ class Bookkeeper:
                 f"raw continuum fitting provided in config file, use "
                 "get_raw_deltas_tasker instead"
             )
-        elif self.config["delta extraction"]["prefix"] == "true":
+        elif self.config["delta extraction"]["prefix"] == True:
             if (
                 "expected flux" not in updated_picca_extra_args
                 or "raw statistics file"
@@ -1103,12 +1124,7 @@ class Bookkeeper:
             deltas_config_dict, updated_picca_extra_args
         )
 
-        # parse config
-        deltas_config = configparser.ConfigParser()
-        deltas_config.read_dict(deltas_config_dict)
-
-        with open(config_file, "w") as file:
-            deltas_config.write(file)
+        self.write_ini(deltas_config_dict, config_file)
 
         slurm_header_args = {
             "job-name": job_name,
@@ -1176,17 +1192,11 @@ class Bookkeeper:
         else:
             region = self.validate_region(region)
 
-        if self.config["delta extraction"]["calib"] not in [
-            "0",
-            "1",
-            "2",
-            "3",
-            "10",
-        ]:
+        if self.config["delta extraction"]["calib"] not in [0, 1, 2, 3, 10]:
             raise ValueError(
-                "Invalid calib value in config file. (Valid values are 0 1 2 3 4)"
+                "Invalid calib value in config file. (Valid values are 0 1 2 3 10)"
             )
-        elif self.config["delta extraction"]["calib"] in ("1",):
+        elif self.config["delta extraction"]["calib"] in (1,):
             steps.append(
                 self.get_delta_extraction_tasker(
                     region=region,
@@ -1209,7 +1219,7 @@ class Bookkeeper:
                     calib_step=2,
                 )
             )
-        elif self.config["delta extraction"]["calib"] in ("2", "3", "10"):
+        elif self.config["delta extraction"]["calib"] in (2, 3, 10):
             steps = (
                 self.get_delta_extraction_tasker(
                     region=region,
@@ -2533,13 +2543,8 @@ class Bookkeeper:
 
             args = DictUtils.merge_dicts(args, vega_args)
 
-            # parse config
-            fit_config = configparser.ConfigParser()
-            fit_config.read_dict(args)
-
             filename = self.paths.fit_auto_fname(absorber, region, absorber2, region2)
-            with open(filename, "w") as file:
-                fit_config.write(file)
+            self.write_ini(args, filename)
 
             ini_files.append(str(filename))
 
@@ -2569,14 +2574,8 @@ class Bookkeeper:
 
             args = DictUtils.merge_dicts(args, vega_args)
 
-            # parse config
-            fit_config = configparser.ConfigParser()
-            fit_config.read_dict(args)
-
             filename = self.paths.fit_cross_fname(absorber, region)
-            with open(filename, "w") as file:
-                fit_config.write(file)
-
+            self.write_ini(args, filename)
             ini_files.append(str(filename))
 
         # Now the main file
@@ -2608,13 +2607,8 @@ class Bookkeeper:
 
         args = DictUtils.merge_dicts(args, vega_args)
 
-        # parse config
-        fit_config = configparser.ConfigParser()
-        fit_config.read_dict(args)
-
         filename = self.paths.fit_main_fname()
-        with open(filename, "w") as file:
-            fit_config.write(file)
+        self.write_ini(args, filename)
 
         ini_files.append(str(filename))
 
@@ -2708,7 +2702,7 @@ class PathBuilder:
     def transmission_data(self) -> Path:
         """Path: Location of transmission LyaCoLoRe mock data."""
         if (
-            self.config["data"]["healpix data"] != ""
+            self.config["data"]["healpix data"] not in ("", None)
             and Path(self.config["data"]["healpix data"]).is_dir()
         ):
             return Path(self.config["data"]["healpix data"])
@@ -2830,7 +2824,12 @@ class PathBuilder:
             Path: catalog to be used.
         """
         if field == "dla":
-            if Path(self.config["delta extraction"].get("dla catalog", "")).is_file():
+            if (
+                not (self.config["delta extraction"].get("dla catalog", "") is None)
+                and Path(
+                    self.config["delta extraction"].get("dla catalog", "")
+                ).is_file()
+            ):
                 catalog = Path(self.config["delta extraction"]["dla catalog"])
             else:
                 field_value = self.config["delta extraction"]["dla"]
@@ -2840,18 +2839,30 @@ class PathBuilder:
                     version=field_value,
                 )
         elif field == "bal":
-            if Path(self.config["delta extraction"].get("bal catalog", "")).is_file():
+            if (
+                not (self.config["delta extraction"].get("bal catalog", "") is None)
+                and Path(
+                    self.config["delta extraction"].get("bal catalog", "")
+                ).is_file()
+            ):
                 catalog = Path(self.config["delta extraction"]["bal catalog"])
             else:
                 catalog = self.get_catalog_from_field("catalog")
         elif field == "catalog_tracer":
-            if Path(self.config["correlations"].get("catalog tracer", "")).is_file():
+            if (
+                not (self.config["correlations"].get("catalog tracer", "") is None)
+                and Path(
+                    self.config["correlations"].get("catalog tracer", "")
+                ).is_file()
+            ):
                 catalog = Path(self.config["correlations"]["catalog tracer"])
             else:
                 catalog = self.get_catalog_from_field("catalog")
         else:
             # Here is the normal catalog
-            if Path(self.config["data"][field]).is_file():
+            if (self.config["data"][field] is None) or Path(
+                self.config["data"][field]
+            ).is_file():
                 catalog = Path(self.config["data"][field])
             elif "/" in self.config["data"][field]:
                 raise ValueError("Invalid catalog name", self.config["data"][field])
@@ -2865,8 +2876,7 @@ class PathBuilder:
                     self.config["data"]["release"],
                     self.config["data"]["survey"],
                     self.config["data"]["catalog"],
-                    bal=self.config.get("delta extraction", dict()).get("bal", "0")
-                    != "0",
+                    bal=self.config.get("delta extraction", dict()).get("bal", 0) != 0,
                 )
 
         if catalog.is_file():
@@ -2926,12 +2936,8 @@ class PathBuilder:
         calib_region = self.config["delta extraction"].get("calib region", 0)
         suffix = self.config["delta extraction"]["suffix"]
         bal = self.config["delta extraction"]["bal"]
+        dla = self.config["delta extraction"]["dla"]
 
-        dla_field = self.config["delta extraction"]["dla"]
-        if Path(dla_field).is_file():
-            dla = self.get_fits_file_name(Path(dla_field))
-        else:
-            dla = dla_field
         return "{}_{}_{}.{}.{}_{}".format(prefix, calib, calib_region, dla, bal, suffix)
 
     @staticmethod
@@ -2950,10 +2956,10 @@ class PathBuilder:
             ignore_fields: Fields to ignore in the comparison
         """
         with open(file1, "r") as f:
-            config1 = yaml.load(f, Loader=yaml.BaseLoader)
+            config1 = yaml.safe_load(f)
 
         with open(file2, "r") as f:
-            config2 = yaml.load(f, Loader=yaml.BaseLoader)
+            config2 = yaml.safe_load(f)
 
         if section is not None:
             config1 = config1[section]

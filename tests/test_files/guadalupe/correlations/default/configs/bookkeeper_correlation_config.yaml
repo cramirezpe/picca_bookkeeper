@@ -3,13 +3,13 @@ general:
   system: slurm_cori
 data:
   early dir: /picca_bookkeeper/tests/test_files/output
-  healpix data: ''
+  healpix data:
   release: guadalupe
   survey: main
   catalog: afterburn_v0
 correlations:
   delta extraction: dMdB20_1_mgii_r.0.0_0
   run name: default
-  catalog tracer: ''
+  catalog tracer:
 fits:
   run name: default

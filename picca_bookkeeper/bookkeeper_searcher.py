@@ -180,14 +180,14 @@ class ConfigReader:
         """Method to read bookkeeper defaults"""
         if self.defaults_file.is_file():
             with open(self.defaults_file) as file:
-                self.defaults = yaml.load(file, Loader=yaml.BaseLoader)
+                self.defaults = yaml.safe_load(file)
         else:
             self.defaults = dict()
 
     def read_config(self):
         """Method to read a bookkeeper configuration yaml file"""
         with open(self.path) as file:
-            self.config = yaml.load(file, Loader=yaml.BaseLoader)
+            self.config = yaml.safe_load(file)
 
         self.config = DictUtils.merge_dicts(
             self.defaults,
