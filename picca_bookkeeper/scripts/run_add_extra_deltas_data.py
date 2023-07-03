@@ -11,7 +11,7 @@ def main(args=None):
         args = get_args()
     bookkeeper = Bookkeeper(args.bookkeeper_config, overwrite_config=args.overwrite_config)
 
-    command = "desi_bookkeeper_add_extra_deltas_data"
+    command = "picca_bookkeeper_add_extra_deltas_data"
 
     if args.region == "calibration_1":
         region = None
