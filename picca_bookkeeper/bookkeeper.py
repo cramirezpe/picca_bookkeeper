@@ -224,21 +224,25 @@ class Bookkeeper:
         # Copy bookkeeper configuration into destination
         # If bookkeeper included delta
         if config_type == "deltas":
+            config_delta = copy.deepcopy(self.config)
+            config_delta.pop("correlations", None)
+            config_delta.pop("fits", None)
+
             if not self.paths.delta_config_file.is_file():
-                shutil.copyfile(config_path, self.paths.delta_config_file)
+                self.write_bookkeeper(config_delta, self.paths.delta_config_file)
             elif filecmp.cmp(self.paths.delta_config_file, config_path):
                 # If files are the same we can continue
                 pass
             elif overwrite_config:
                 # If we want to directly overwrite the config file in destination
-                shutil.copyfile(config_path, self.paths.delta_config_file)
+                self.write_bookkeeper(config_delta, self.paths.delta_config_file)
             else:
                 comparison = PathBuilder.compare_config_files(
                     config_path, self.paths.delta_config_file, "delta extraction"
                 )
                 if comparison == dict():
                     # They are the same
-                    shutil.copyfile(config_path, self.paths.delta_config_file)
+                    self.write_bookkeeper(config_delta, self.paths.delta_config_file)
                 else:
                     raise ValueError(
                         "delta extraction section of config file should match delta "
@@ -246,6 +250,11 @@ class Bookkeeper:
                         "Unmatching items: ",
                         DictUtils.print_dict(comparison),
                     )
+            # Copy full bookkeeper.
+            shutil.copyfile(
+                config_path,
+                self.paths.delta_config_file.parent / "bookkeeper_config_full.yaml",
+            )
 
         if self.correlations is not None and config_type != "fits":
             config_corr = copy.deepcopy(self.config)
@@ -1688,6 +1697,7 @@ class Bookkeeper:
                 copy_metal_matrix,
                 filename,
             )
+            return
 
         command = "picca_metal_dmat.py"
 
@@ -2159,6 +2169,7 @@ class Bookkeeper:
                 copy_metal_matrix,
                 filename,
             )
+            return
 
         if self.defaults_diff != {}:
             raise ValueError(

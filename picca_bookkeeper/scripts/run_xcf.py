@@ -5,6 +5,7 @@ import sys
 from pathlib import Path
 
 from picca_bookkeeper.bookkeeper import Bookkeeper
+from picca_bookkeeper.tasker import Tasker
 
 
 def main(args=None):
@@ -52,9 +53,17 @@ def main(args=None):
             debug=args.debug,
             wait_for=args.wait_for,
         )
-        metal.write_job()
-        if not args.only_write:
-            metal.send_job()
+        # Only run metal if it has not been copied
+        # only if metal is a tasker instance
+        if isinstance(metal, Tasker):
+            metal.write_job()
+            if not args.only_write:
+                metal.send_job()
+                metal_jobid = metal.jobid
+            else:
+                metal_jobid = None
+        else:
+            metal_jobid = None
 
     xcf_exp = bookkeeper.get_xcf_exp_tasker(
         region=args.region,
@@ -66,7 +75,7 @@ def main(args=None):
     if not args.only_write:
         xcf_exp.send_job()
         print(xcf_exp.jobid)
-        return xcf_exp.jobid
+        return [metal_jobid, xcf_exp.jobid]
     else:
         return
 

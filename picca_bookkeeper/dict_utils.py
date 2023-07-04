@@ -38,16 +38,17 @@ class DictUtils:
         differences = dict()
 
         for key, value in dict1.items():
-            if key not in dict2:
+            if not isinstance(dict2, collections.abc.Mapping) or key not in dict2:
                 differences[key] = [dict1[key], None]
             elif isinstance(value, collections.abc.Mapping):
                 differences[key] = DictUtils.diff_dicts(dict1[key], dict2[key])
             elif not dict1[key] == dict2[key]:
                 differences[key] = [dict1[key], dict2[key]]
 
-        for key, value in dict2.items():
-            if key not in dict1:
-                differences[key] = [None, dict2[key]]
+        if isinstance(dict2, collections.abc.Mapping):
+            for key, value in dict2.items():
+                if key not in dict1:
+                    differences[key] = [None, dict2[key]]
 
         return differences
 
@@ -58,7 +59,7 @@ class DictUtils:
 
         while True:
             for key, value in result.items():
-                if value == "" or value == {}:
+                if value == "" or value == {} or value is None:
                     result.pop(key)
                     break
                 elif isinstance(value, collections.abc.Mapping):

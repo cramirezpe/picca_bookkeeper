@@ -84,6 +84,9 @@ def show_diffs(
     keys = keys[~np.in1d(keys, dict_keys)]
 
     for dict_key in dict_keys:
+        for config in configs:
+            if dict_key not in config:
+                config[dict_key] = dict()
         show_diffs(
             configs=[config[dict_key] for config in configs],
             name_keys=name_keys,
@@ -97,6 +100,8 @@ def show_diffs(
 
     rows = []
     for config in configs:
+        if config is None:
+            config = dict()
         row = []
         for key in keys:
             if key in config:
@@ -191,10 +196,8 @@ class ConfigReader:
 
         self.config = DictUtils.merge_dicts(
             self.defaults,
-            self.config,
+            DictUtils.remove_empty(self.config),
         )
-
-
 
 
 class DeltaConfigReader(ConfigReader):
@@ -240,7 +243,7 @@ class CorrelationConfigReader(ConfigReader):
 
     @property
     def defaults_file(self) -> Path:
-        return self.path.parent.parent.parent / "configs" / "defaults.yaml"
+        return self.path.parent.parent.parent.parent / "configs" / "defaults.yaml"
 
 
 class FitConfigReader(ConfigReader):
@@ -272,5 +275,7 @@ class FitConfigReader(ConfigReader):
     @property
     def defaults_file(self) -> Path:
         return (
-            self.path.parent.parent.parent.parent.parent / "configs" / "defaults.yaml"
+            self.path.parent.parent.parent.parent.parent.parent
+            / "configs"
+            / "defaults.yaml"
         )
