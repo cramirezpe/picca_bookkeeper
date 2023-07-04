@@ -1,13 +1,26 @@
 """ Script to run picca_xcf and export given a bookkeeper config file."""
-from pathlib import Path
 import argparse
+import logging
+import sys
+from pathlib import Path
+
 from picca_bookkeeper.bookkeeper import Bookkeeper
 
 
 def main(args=None):
     if args is None:
         args = get_args()
-    bookkeeper = Bookkeeper(args.bookkeeper_config, overwrite_config=args.overwrite_config)
+
+    level = logging.getLevelName(args.log_level)
+    logging.basicConfig(
+        stream=sys.stdout,
+        level=level,
+        format="%(levelname)s:%(message)s",
+    )
+
+    bookkeeper = Bookkeeper(
+        args.bookkeeper_config, overwrite_config=args.overwrite_config
+    )
 
     xcf = bookkeeper.get_xcf_tasker(
         region=args.region,
@@ -78,7 +91,7 @@ def get_args():
     parser.add_argument(
         "--overwrite-config",
         action="store_true",
-        help="Force overwrite bookkeeper config."
+        help="Force overwrite bookkeeper config.",
     )
 
     parser.add_argument(
@@ -95,12 +108,16 @@ def get_args():
     )
 
     parser.add_argument(
-        "--only-write",
-        action="store_true",
-        help="Only write scripts, not send them."
+        "--only-write", action="store_true", help="Only write scripts, not send them."
     )
 
     parser.add_argument("--wait-for", nargs="+", type=int, default=None, required=False)
+
+    parser.add_argument(
+        "--log-level",
+        default="INFO",
+        choices=["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"],
+    )
 
     args = parser.parse_args()
 

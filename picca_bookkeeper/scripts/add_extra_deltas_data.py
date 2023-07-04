@@ -163,8 +163,8 @@ def compute_RF_statistics(
     forest: Forest,
 ):
     bins = find_bins(
-        10 ** forest.log_lambda / (1 + forest.z),
-        10 ** Forest.log_lambda_rest_frame_grid,
+        10**forest.log_lambda / (1 + forest.z),
+        10**Forest.log_lambda_rest_frame_grid,
     )
 
     count = np.bincount(bins, minlength=len(Forest.log_lambda_rest_frame_grid))
@@ -227,12 +227,12 @@ def save_healpix_data_mask(
         )
 
         hdul.write(
-            10 ** Forest.log_lambda_grid,
+            10**Forest.log_lambda_grid,
             extname="LAMBDA",
         )
 
         hdul.write(
-            10 ** Forest.log_lambda_rest_frame_grid,
+            10**Forest.log_lambda_rest_frame_grid,
             extname="LAMBDA_RF",
         )
 
@@ -270,7 +270,7 @@ def save_healpix_data_mask(
 
         # SAVE RF properties
         hdul.write(
-            10 ** Forest.log_lambda_rest_frame_grid,
+            10**Forest.log_lambda_rest_frame_grid,
             extname="LAMBDA_RF",
         )
 
@@ -350,19 +350,19 @@ def save_healpix_data_flux(
 
 
 def read_DLA_mask_single(forest: Forest, mask: DlaMask):
-    lambda_ = 10 ** forest.log_lambda
+    lambda_ = 10**forest.log_lambda
 
     # load DLAs
     if mask.los_ids.get(forest.los_id) is not None:
         dla_transmission = np.ones(len(lambda_))
-        for (z_abs, nhi) in mask.los_ids.get(forest.los_id):
+        for z_abs, nhi in mask.los_ids.get(forest.los_id):
             dla_transmission *= dla_profile(lambda_, z_abs, nhi)
 
         # find out which pixels to mask
         w = dla_transmission > mask.dla_mask_limit
         if len(mask.mask) > 0:
             for mask_range in mask.mask:
-                for (z_abs, nhi) in mask.los_ids.get(forest.los_id):
+                for z_abs, nhi in mask.los_ids.get(forest.los_id):
                     w &= (lambda_ / (1.0 + z_abs) < mask_range["wave_min"]) | (
                         lambda_ / (1.0 + z_abs) > mask_range["wave_max"]
                     )
@@ -408,7 +408,6 @@ def read_BAL_mask_single(forest: Forest, mask: BalMask):
 
 
 def find_bins(original_array, grid_array):
-
     idx = np.searchsorted(grid_array, original_array)
     np.clip(idx, 0, len(grid_array) - 1, out=idx)
 
@@ -426,7 +425,7 @@ def main(args=None):
     logging.basicConfig(
         stream=sys.stdout,
         level=level,
-        format="%(levelname)s:%(name)s:%(funcName)s:%(message)s",
+        format="%(levelname)s:%(message)s",
     )
 
     read = ReadExtraDeltasData(args.picca_config)
@@ -493,7 +492,7 @@ def getArgs():
 
     parser.add_argument(
         "--log-level",
-        default="WARNING",
+        default="INFO",
         choices=["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"],
     )
 

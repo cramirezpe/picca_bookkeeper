@@ -128,10 +128,20 @@ correlations:
   # by default will use the previous one for all the analyses.
   catalog tracer: 
 
-  # copy metal matrices from a different run, either this field expects
-  # the format "metal_matrix_1.fits.gz metal_matrix_2.fits.gz" 
-  # with the full path given.
-  metal matrices:
+  # copy metal matrices from a different place.
+  # For auto-, one should provide the two absorbers and regions
+  metal matrices: 
+    # Use all to use same matrices for all analyses
+    all: 
+    # or specify regions/absorbers
+    lyalya_lyalya: /global/cfs/cdirs/desicollab/users/cgordon/Y1/bookkeeper_test/iron/main/QSO_cat_iron_main_dark_healpix_v0/dMdB20_2_ciii.1.2_0/correlations/default/correlations/lyalya_lyalya/metal.fits.gz 
+    lyalya_lyalyb: /global/cfs/cdirs/desicollab/users/cgordon/Y1/bookkeeper_test/iron/main/QSO_cat_iron_main_dark_healpix_v0/dMdB20_2_ciii.1.2_0/correlations/default/correlations/lyalya_lyalyb/metal.fits.gz 
+
+  xmetal matrices:
+    all:
+    # For cross-, only one absorber/region is needed.
+    lyalya: /global/cfs/cdirs/desicollab/users/cgordon/Y1/bookkeeper_test/iron/main/QSO_cat_iron_main_dark_healpix_v0/dMdB20_2_ciii.1.2_0/correlations/default/correlations/lyalya_qso/xmetal.fits.gz
+    lyalyb: /global/cfs/cdirs/desicollab/users/cgordon/Y1/bookkeeper_test/iron/main/QSO_cat_iron_main_dark_healpix_v0/dMdB20_2_ciii.1.2_0/correlations/default/correlations/lyalyb_qso/xmetal.fits.gz
 
 
   extra args:

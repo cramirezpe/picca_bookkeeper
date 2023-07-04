@@ -1,14 +1,24 @@
 """ Script to search bookkeeper runs and print
 differences in tables."""
 
-from pathlib import Path
 import argparse
+import logging
+import sys
+from pathlib import Path
+
 from picca_bookkeeper.bookkeeper_searcher import get_bookkeeper_differences
 
 
 def main(args=None):
     if args is None:
         args = get_args()
+
+    level = logging.getLevelName(args.log_level)
+    logging.basicConfig(
+        stream=sys.stdout,
+        level=level,
+        format="%(levelname)s:%(message)s",
+    )
 
     if args.delta:
         get_bookkeeper_differences(
@@ -72,6 +82,12 @@ def get_args():
 
     parser.add_argument(
         "--sort-by-value", action="store_true", help="Sort by value not by name."
+    )
+
+    parser.add_argument(
+        "--log-level",
+        default="INFO",
+        choices=["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"],
     )
 
     args = parser.parse_args()

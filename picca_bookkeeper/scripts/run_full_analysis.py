@@ -1,20 +1,32 @@
 """Script to run all the analyis from terminal"""
-from pathlib import Path
 import argparse
+import logging
+import sys
+from pathlib import Path
+
 import numpy as np
 
-from picca_bookkeeper.bookkeeper import Bookkeeper
 from picca_bookkeeper import bookkeeper
-
-from picca_bookkeeper.scripts.run_delta_extraction import main as run_delta_extraction
+from picca_bookkeeper.bookkeeper import Bookkeeper
 from picca_bookkeeper.scripts.run_cf import main as run_cf
-from picca_bookkeeper.scripts.run_xcf import main as run_xcf
+from picca_bookkeeper.scripts.run_delta_extraction import main as run_delta_extraction
 from picca_bookkeeper.scripts.run_fit import main as run_fit
+from picca_bookkeeper.scripts.run_xcf import main as run_xcf
+
+logger = logging.getLogger(__name__)
 
 
 def main(args=None):
     if args is None:
         args = get_args()
+
+    level = logging.getLevelName(args.log_level)
+    logging.basicConfig(
+        stream=sys.stdout,
+        level=level,
+        format="%(levelname)s:%(message)s",
+    )
+
     bookkeeper = Bookkeeper(
         args.bookkeeper_config, overwrite_config=args.overwrite_config
     )
@@ -56,6 +68,7 @@ def main(args=None):
         if (continuum_type in ("dMdB20", "custom")) and bookkeeper.config[
             "delta extraction"
         ]["calib"] != "0":
+            logger.info(f"Adding calibration.")
             calib_args = argparse.Namespace(
                 bookkeeper_config=args.bookkeeper_config,
                 region="lya",  # It doesn't really matter
@@ -65,6 +78,7 @@ def main(args=None):
                 skip_calibration=False,
                 only_write=args.only_write,
                 wait_for=args.wait_for,
+                log_level=args.log_level,
             )
             calib_jobid = run_delta_extraction(calib_args)
         else:
@@ -72,6 +86,7 @@ def main(args=None):
 
         region_jobids = dict()
         for region in regions:
+            logger.info(f"Adding deltas for region {region}")
             region_args = argparse.Namespace(
                 bookkeeper_config=args.bookkeeper_config,
                 region=region,
@@ -81,6 +96,7 @@ def main(args=None):
                 skip_calibration=True,
                 only_write=args.only_write,
                 wait_for=calib_jobid,
+                log_level=args.log_level,
             )
             region_jobids[region] = run_delta_extraction(region_args)
     else:
@@ -98,6 +114,10 @@ def main(args=None):
         for auto in autos:
             absorber, region, absorber2, region2 = auto
 
+            logger.info(
+                f"Adding auto-correlation: {absorber}{region}_{absorber2}{region2}"
+            )
+
             wait_for = [region_jobids[region] for region in (region, region2)]
 
             auto_args = argparse.Namespace(
@@ -112,11 +132,14 @@ def main(args=None):
                 debug=False,  # Debug, only set deltas
                 only_write=args.only_write,
                 wait_for=wait_for,
+                log_level=args.log_level,
             )
             correlation_jobids.append(run_cf(auto_args))
 
         for cross in crosses:
             absorber, region = cross
+
+            logger.info(f"Adding cross-correlation: {absorber}{region}_qso")
 
             cross_args = argparse.Namespace(
                 bookkeeper_config=args.bookkeeper_config,
@@ -128,6 +151,7 @@ def main(args=None):
                 debug=False,  # Debug, only set deltas,
                 only_write=args.only_write,
                 wait_for=region_jobids[region],
+                log_level=args.log_level,
             )
 
             correlation_jobids.append(run_xcf(cross_args))
@@ -141,6 +165,7 @@ def main(args=None):
     ## Running fits
     ########################################
     if not args.no_fits:
+        logger.info("Adding fit.")
         fit_args = argparse.Namespace(
             bookkeeper_config=args.bookkeeper_config,
             overwrite_config=False,
@@ -148,6 +173,7 @@ def main(args=None):
             cross_correlations=args.cross_correlations,
             only_write=args.only_write,
             wait_for=correlation_jobids,
+            log_level=args.log_level,
         )
         fit_jobid = run_fit(fit_args)
     else:
@@ -220,6 +246,12 @@ def get_args():
     )
 
     parser.add_argument("--wait-for", nargs="+", type=int, default=None, required=False)
+
+    parser.add_argument(
+        "--log-level",
+        default="INFO",
+        choices=["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"],
+    )
 
     args = parser.parse_args()
 

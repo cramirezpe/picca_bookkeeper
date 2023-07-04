@@ -1,14 +1,25 @@
 """ Script to run build_new_deltas_format.py
 through the bookkeeper.
 """
-from pathlib import Path
 import argparse
+import logging
+import sys
+from pathlib import Path
+
 from picca_bookkeeper.bookkeeper import Bookkeeper
 
 
 def main(args=None):
     if args is None:
         args = get_args()
+
+    level = logging.getLevelName(args.log_level)
+    logging.basicConfig(
+        stream=sys.stdout,
+        level=level,
+        format="%(levelname)s:%(message)s",
+    )
+
     bookkeeper = Bookkeeper(
         args.bookkeeper_config, overwrite_config=args.overwrite_config
     )
@@ -88,7 +99,7 @@ def get_args():
 
     parser.add_argument(
         "--log-level",
-        default="WARNING",
+        default="INFO",
         choices=["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"],
     )
 

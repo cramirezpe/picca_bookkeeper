@@ -65,7 +65,7 @@ class Plots:
             )
         else:
             plt.suptitle("Percentage of masked pixels")
-        
+
         plt.tight_layout()
         if save_plot:
             plt.savefig(
@@ -130,7 +130,7 @@ class Plots:
 
         axs[0].set_ylabel("# QSOs")
         plt.tight_layout()
-        
+
         if save_plot:
             plt.savefig(
                 output_prefix.parent
@@ -283,7 +283,7 @@ def main(args=None):
     logging.basicConfig(
         stream=sys.stdout,
         level=level,
-        format="%(levelname)s:%(name)s:%(funcName)s:%(message)s",
+        format="%(levelname)s:%(message)s",
     )
 
     if not args.output_prefix.parent.is_dir():
@@ -359,7 +359,7 @@ def getArgs():
 
     parser.add_argument(
         "--log-level",
-        default="WARNING",
+        default="INFO",
         choices=["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"],
     )
 

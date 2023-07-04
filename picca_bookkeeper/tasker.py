@@ -7,9 +7,6 @@ from subprocess import run
 
 import numpy as np
 
-logging.basicConfig(
-    stream=sys.stdout, format="%(levelname)s:%(name)s:%(funcName)s:%(message)s"
-)
 logger = logging.getLogger(__name__)
 
 

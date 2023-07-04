@@ -16,9 +16,6 @@ from picca_bookkeeper import resources
 from picca_bookkeeper.dict_utils import DictUtils
 from picca_bookkeeper.tasker import ChainedTasker, Tasker, get_Tasker
 
-logging.basicConfig(
-    stream=sys.stdout, format="%(levelname)s:%(name)s:%(funcName)s:%(message)s"
-)
 logger = logging.getLogger(__name__)
 
 # This converts Nones in dict into empty fields in yaml.
@@ -381,6 +378,7 @@ class Bookkeeper:
                 "run name",
                 "catalog tracer",
                 "metal matrices",
+                "xmetal matrices",
                 "extra args",
                 "slurm args",
             ],
@@ -1662,30 +1660,6 @@ class Bookkeeper:
         Returns:
             Tasker: Tasker object to run forest-forest correlation.
         """
-        # If metal matrices are provided, we just copy them into the bookkeeper
-        # as if they were computed.
-        if self.config["correlations"].get("metal matrices", "") not in ("", None):
-            if len(self.config["correlations"]["metal matrices"]) != 2:
-                raise ValueError(
-                    "Invalid value for the field metal matrices ",
-                    "in the bookkeeper config. Expected two strings. "
-                    "if only one metal matrices is given, create a dummy "
-                    "string accordingly, e.g.: 'path_to_metal.fits.gz dummy'",
-                )
-            metal_matrix = self.config["correlations"]["metal matrices"][0]
-
-            if not metal_matrix.is_file():
-                raise ValueError(
-                    "Provided metal matrix filename does not exist", metal_matrix
-                )
-            else:
-                filename = self.paths.metal_fname(absorber, region, absorber2, region2)
-                filename.parent.mkdir(exist_ok=True, parents=True)
-                shutil.copy(
-                    metal_matrix,
-                    filename,
-                )
-
         if self.defaults_diff != {}:
             raise ValueError(
                 "Default values changed since last run of the "
@@ -1701,6 +1675,19 @@ class Bookkeeper:
         absorber2 = absorber if absorber2 is None else absorber2
         absorber2 = self.validate_absorber(absorber2)
         absorber = self.validate_absorber(absorber)
+
+        # If metal matrices are provided, we just copy them into the bookkeeper
+        # as if they were computed.
+        copy_metal_matrix = self.paths.copied_metal_matrix(
+            absorber, region, absorber2, region2
+        )
+        if copy_metal_matrix is not None:
+            filename = self.paths.metal_fname(absorber, region, absorber2, region2)
+            filename.parent.mkdir(exist_ok=True, parents=True)
+            shutil.copy(
+                copy_metal_matrix,
+                filename,
+            )
 
         command = "picca_metal_dmat.py"
 
@@ -2016,252 +2003,6 @@ class Bookkeeper:
     def get_xcf_exp_tasker(
         self,
         region: str = "lya",
-        system: str = None,
-        debug: bool = False,
-        wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
-        slurm_header_extra_args: Dict = dict(),
-        extra_args: Dict = dict(),
-        no_dmat: bool = False,
-    ):
-        """Method to get a Tasker object to run forest-quasar correlation export
-        with picca.
-
-        Args:
-            region: Region to use. Options: ('lya', 'lyb'). Default: 'lya'.
-            system: Shell to use for job. 'slurm_perlmutter' to use slurm
-                scripts on perlmutter, 'bash' to  run it in login nodes or
-                computer shell. Default: None, read from config file.
-            debug: Whether to use debug options.
-            wait_for: In NERSC, wait for a given job to finish before running
-                the current one. Could be a  Tasker object or a slurm jobid
-                (int). (Default: None, won't wait for anything).
-            slurm_header_extra_args (dict, optional): Change slurm header
-                default options if needed (time, qos, etc...). Use a
-                dictionary with the format {'option_name': 'option_value'}.
-            extra_args : Send extra arguments to
-                picca_deltas.py script. Use a dictionary with the format
-                {'argument_name', 'argument_value'}. Use {'argument_name': ''}
-                if a action-like option is used.
-            no_dmat: Do not use disortion matrix
-
-        Returns:
-            Tasker: Tasker object to run forest-forest correlation.
-        """
-        region = self.validate_region(region)
-        absorber = self.validate_absorber(absorber)
-
-        command = "picca_export.py"
-
-        updated_extra_args = self.generate_extra_args(
-            config=self.config,
-            default_config=self.defaults,
-            section="correlations",
-            extra_args=extra_args,
-            command=command,
-            region=region,
-            absorber=absorber,
-        )
-        updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
-            config=self.config,
-            default_config=self.defaults,
-            section="correlations",
-            slurm_args=slurm_header_extra_args,
-            command=command,
-            region=region,
-            absorber=absorber,
-        )
-        updated_system = self.generate_system_arg(system)
-
-        job_name = f"xcf_exp_{absorber}{region}"
-
-        slurm_header_args = {
-            "job-name": job_name,
-            "output": str(self.paths.correlations_path / f"logs/{job_name}-%j.out"),
-            "error": str(self.paths.correlations_path / f"logs/{job_name}-%j.err"),
-        }
-
-        slurm_header_args = DictUtils.merge_dicts(
-            slurm_header_args, updated_slurm_header_extra_args
-        )
-
-        args = {
-            "data": str(self.paths.xcf_fname(absorber, region)),
-            "out": str(self.paths.exp_xcf_fname(absorber, region)),
-            "blind-corr-type": "qsoxlya",
-        }
-        if not no_dmat:
-            args["dmat"] = str(self.paths.xdmat_fname(absorber, region))
-
-        args = DictUtils.merge_dicts(args, updated_extra_args)
-
-        if (
-            self.paths.config["data"]["survey"] == "main"
-            or self.paths.config["data"]["survey"] == "all"
-        ):
-            args["blind-corr-type"] = "qsoxlya"
-
-        environmental_variables = {
-            "HDF5_USE_FILE_LOCKING": "FALSE",
-        }
-
-        return get_Tasker(
-            updated_system,
-            command=command,
-            command_args=args,
-            slurm_header_args=slurm_header_args,
-            srun_options={"cpus-per-task": 1},
-            environment=self.config["general"]["conda environment"],
-            environmental_variables=environmental_variables,
-            run_file=self.paths.correlations_path / f"scripts/run_{job_name}.sh",
-            jobid_log_file=self.paths.correlations_path / f"logs/jobids.log",
-            wait_for=wait_for,
-        )
-
-    def get_xmetal_tasker(
-        self,
-        region: str = "lya",
-        absorber: str = "lya",
-        system: str = None,
-        debug: bool = False,
-        wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
-        slurm_header_extra_args: Dict = dict(),
-        extra_args: Dict = dict(),
-    ):
-        """Method to get a Tasker object to run forest-quasar metal distortion matrix
-        measurements with picca.
-
-        Args:
-            region: Region to use. Options: ('lya', 'lyb'). Default: 'lya'.
-            system: Shell to use for job. 'slurm_perlmutter' to use slurm
-                scripts on perlmutter, 'bash' to  run it in login nodes or
-                computer shell. Default: None, read from config file.
-            debug: Whether to use debug options.
-            wait_for: In NERSC, wait for a given job to finish before running
-                the current one. Could be a  Tasker object or a slurm jobid
-                (int). (Default: None, won't wait for anything).
-            slurm_header_extra_args (dict, optional): Change slurm header
-                default options if needed (time, qos, etc...). Use a
-                dictionary with the format {'option_name': 'option_value'}.
-            extra_args : Send extra arguments to
-                picca_deltas.py script. Use a dictionary with the format
-                {'argument_name', 'argument_value'}. Use {'argument_name': ''}
-                if a action-like option is used.
-
-        Returns:
-            Tasker: Tasker object to run forest-forest correlation.
-        """
-        # If metal matrices are provided, we just copy them into the bookkeeper
-        # as if they were computed.
-        if self.config["correlations"].get("metal matrices", "") not in ("", None):
-            if len(self.config["correlations"]["metal matrices"]) != 2:
-                raise ValueError(
-                    "Invalid value for the field metal matrices ",
-                    "in the bookkeeper config. Expected two strings. "
-                    "if only one metal matrices is given, create a dummy "
-                    "string accordingly, e.g.: 'dummy path_to_xmetal.fits.gz'",
-                )
-            metal_matrix = self.config["correlations"]["metal matrices"][1]
-
-            if not metal_matrix.is_file():
-                raise ValueError(
-                    "Provided metal matrix filename does not exist", metal_matrix
-                )
-            else:
-                filename = self.paths.xmetal_fname(absorber, region)
-                filename.parent.mkdir(exist_ok=True, parents=True)
-                shutil.copy(
-                    metal_matrix,
-                    filename,
-                )
-
-        region = self.validate_region(region)
-        absorber = self.validate_absorber(absorber)
-
-        command = "picca_xdmat.py"
-
-        updated_extra_args = self.generate_extra_args(
-            config=self.config,
-            default_config=self.defaults,
-            section="correlations",
-            extra_args=extra_args,
-            command=command,
-            region=region,
-            absorber=absorber,
-        )
-        updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
-            config=self.config,
-            default_config=self.defaults,
-            section="correlations",
-            slurm_args=slurm_header_extra_args,
-            command=command,
-            region=region,
-            absorber=absorber,
-        )
-        updated_system = self.generate_system_arg(system)
-
-        job_name = f"xdmat_{absorber}{region}"
-
-        slurm_header_args = {
-            "job-name": job_name,
-            "output": str(self.paths.correlations_path / f"logs/{job_name}-%j.out"),
-            "error": str(self.paths.correlations_path / f"logs/{job_name}-%j.err"),
-        }
-
-        slurm_header_args = DictUtils.merge_dicts(
-            slurm_header_args, updated_slurm_header_extra_args
-        )
-
-        drq = self.paths.catalog_tracer
-
-        args = {
-            "in-dir": str(self.paths.deltas_path(region)),
-            "drq": str(drq),
-            "out": str(self.paths.xdmat_fname(absorber, region)),
-            "mode": "desi_healpix",
-            "nproc": 128,
-            "rej": 0.99,
-            "nside": 16,
-            "rp-min": -300,
-            "rp-max": 300,
-            "rt-max": 200,
-            "np": 150,
-            "nt": 50,
-            "fid-Or": 7.975e-5,
-        }
-
-        if "v9." in self.config["data"]["release"]:
-            args["mode"] = "desi_mocks"
-
-        args = DictUtils.merge_dicts(args, updated_extra_args)
-
-        if debug:  # pragma: no cover
-            slurm_header_args = DictUtils.merge_dicts(
-                slurm_header_args, dict(qos="debug", time="00:30:00")
-            )
-            args = DictUtils.merge_dicts(
-                args,
-                dict(nspec=1000),
-            )
-
-        self.paths.xdmat_fname(absorber, region).parent.mkdir(
-            exist_ok=True, parents=True
-        )
-
-        return get_Tasker(
-            updated_system,
-            command=command,
-            command_args=args,
-            slurm_header_args=slurm_header_args,
-            srun_options=dict(),
-            environment=self.config["general"]["conda environment"],
-            run_file=self.paths.correlations_path / f"scripts/run_{job_name}.sh",
-            jobid_log_file=self.paths.correlations_path / f"logs/jobids.log",
-            wait_for=wait_for,
-        )
-
-    def get_xcf_exp_tasker(
-        self,
-        region: str = "lya",
         absorber: str = "lya",
         system: str = None,
         debug: bool = False,
@@ -2407,6 +2148,18 @@ class Bookkeeper:
         Returns:
             Tasker: Tasker object to run forest-forest correlation.
         """
+        region = self.validate_region(region)
+        absorber = self.validate_absorber(absorber)
+
+        copy_metal_matrix = self.paths.copied_xmetal_matrix(absorber, region)
+        if copy_metal_matrix is not None:
+            filename = self.paths.xmetal_fname(absorber, region)
+            filename.parent.mkdir(exist_ok=True, parents=True)
+            shutil.copy(
+                copy_metal_matrix,
+                filename,
+            )
+
         if self.defaults_diff != {}:
             raise ValueError(
                 "Default values changed since last run of the "
@@ -2415,8 +2168,6 @@ class Bookkeeper:
                 f"values\). Defaults diff:\n\n"
                 f"{DictUtils.print_dict(self.defaults_diff)}"
             )
-        region = self.validate_region(region)
-        absorber = self.validate_absorber(absorber)
 
         command = "picca_metal_xdmat.py"
 
@@ -3168,6 +2919,48 @@ class PathBuilder:
         cor_file = self.cf_fname(absorber, region, absorber2, region2)
         return cor_file.parent / f"cf_exp.fits.gz"
 
+    def copied_metal_matrix(
+        self,
+        absorber: str,
+        region: str,
+        absorber2: str = None,
+        region2: str = None,
+    ) -> Union[Path, None]:
+        """Method to get path to metal matrix if it appears in the bookkeeper config.
+
+        Args:
+            region: Region where the correlation is computed.
+            region2: Second region used (if cross-correlation).
+            absorber: First absorber
+            absorber2: Second absorber
+
+        Returns:
+            Path: Path to metal matrix
+        """
+        matrix = (
+            self.config["correlations"]
+            .get("metal matrices", dict())
+            .get(f"{absorber}{region}_{absorber2}{region2}", None)
+        )
+
+        if matrix is None:
+            # If no specific metal matrix, use all (or None if not)
+            matrix = (
+                self.config["correlations"]
+                .get("metal matrices", dict())
+                .get("all", None)
+            )
+
+        name = f"{absorber}{region}_{absorber2}{region2}"
+        if matrix is not None:
+            if not Path(matrix).is_file:
+                raise ValueError(f"{name}: Invalid metal matrix provided", matrix)
+            logger.info(f"{name}: Using metal matrix from file:\n\t{str(matrix)}")
+        else:
+            logger.info(f"{name}: No metal matrix provided, it will be computed.")
+
+        return matrix
+
     def xcf_fname(self, absorber: str, region: str) -> Path:
         """Method to get the path to a forest-quasar correlation export file.
 
@@ -3223,6 +3016,39 @@ class PathBuilder:
         """
         cor_file = self.xcf_fname(absorber, region)
         return cor_file.parent / f"xcf_exp.fits.gz"
+
+    def copied_xmetal_matrix(self, absorber: str, region: str) -> Union[Path, None]:
+        """Method to get path to xmetal matrix if it appears in the bookkeeper config.
+
+        Args:
+            absorber: First absorber
+            region: region of the forest used
+
+        Returns:
+            Path: Path to metal matrix
+        """
+        matrix = (
+            self.config["correlations"]
+            .get("xmetal matrices", dict())
+            .get(f"{absorber}{region}", None)
+        )
+        if matrix is None:
+            # If no specific metal matrix, use all (or None if not)
+            matrix = (
+                self.config["correlations"]
+                .get("xmetal matrices", dict())
+                .get("all", None)
+            )
+
+        name = f"{absorber}{region}"
+        if matrix is not None:
+            if not Path(matrix).is_file:
+                raise ValueError(f"{name}: Invalid metal matrix provided", matrix)
+            logger.info(f"{name}: Using xmetal matrix from file:\n\t{str(matrix)}")
+        else:
+            logger.info(f"{name}: No xmetal matrix provided, it will be computed.")
+
+        return matrix
 
     def fit_auto_fname(
         self,

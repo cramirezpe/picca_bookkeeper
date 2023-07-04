@@ -19,7 +19,7 @@ def main(args=None):
     logging.basicConfig(
         stream=sys.stdout,
         level=level,
-        format="%(levelname)s:%(name)s:%(funcName)s:%(message)s",
+        format="%(levelname)s:%(message)s",
     )
 
     logger.info(f"Using fill value: {args.fill_value}")
@@ -50,7 +50,7 @@ def getArgs():
 
     parser.add_argument(
         "--log-level",
-        default="WARNING",
+        default="INFO",
         choices=["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"],
     )
 

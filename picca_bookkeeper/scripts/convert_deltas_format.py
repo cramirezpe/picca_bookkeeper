@@ -22,7 +22,7 @@ def main(args=None):
     logging.basicConfig(
         stream=sys.stdout,
         level=level,
-        format="%(levelname)s:%(name)s:%(funcName)s:%(message)s",
+        format="%(levelname)s:%(message)s",
     )
 
     args.out_dir.mkdir(exist_ok=True, parents=True)
@@ -63,7 +63,7 @@ def convert_delta_file(delta_path, out_dir, config, survey_data=None):
             + float(config["data"]["delta log lambda"]),
             float(config["data"]["delta log lambda"]),
         )
-        lambda_grid = 10 ** lambda_grid
+        lambda_grid = 10**lambda_grid
 
     original_delta = fitsio.FITS(delta_path)
 
@@ -205,14 +205,13 @@ def read_survey_data(config_file):
     ids = np.asarray([forest.los_id for forest in survey.data.forests])
     fluxes = np.asarray([forest.flux for forest in survey.data.forests])
     ivars = np.asarray([forest.ivar for forest in survey.data.forests])
-    lambdas = np.asarray([10 ** forest.log_lambda for forest in survey.data.forests])
+    lambdas = np.asarray([10**forest.log_lambda for forest in survey.data.forests])
 
     sortinds = ids.argsort()
     return ids[sortinds], fluxes[sortinds], ivars[sortinds], lambdas[sortinds]
 
 
 def find_bins(original_array, grid_array):
-
     idx = np.searchsorted(grid_array, original_array)
     # El problema es que si un elemento de original
     # array es más grande (aunque sea por poco) que
@@ -231,7 +230,7 @@ def getArgs():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--log-level",
-        default="WARNING",
+        default="INFO",
         choices=["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"],
     )
 

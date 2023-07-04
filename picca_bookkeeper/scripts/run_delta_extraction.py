@@ -1,14 +1,27 @@
 """ Script to run picca_delta_extraction or picca_convert_transmission
 given a bookkeeper config file."""
-from pathlib import Path
 import argparse
+import logging
+import sys
+from pathlib import Path
+
 from picca_bookkeeper.bookkeeper import Bookkeeper
 
 
 def main(args=None):
     if args is None:
         args = get_args()
-    bookkeeper = Bookkeeper(args.bookkeeper_config, overwrite_config=args.overwrite_config)
+
+    level = logging.getLevelName(args.log_level)
+    logging.basicConfig(
+        stream=sys.stdout,
+        level=level,
+        format="%(levelname)s:%(message)s",
+    )
+
+    bookkeeper = Bookkeeper(
+        args.bookkeeper_config, overwrite_config=args.overwrite_config
+    )
 
     continuum_type = bookkeeper.config["delta extraction"]["prefix"]
 
@@ -23,7 +36,7 @@ def main(args=None):
             wait_for=args.wait_for,
         )
         calibration.write_job()
-        if not args.only_write: 
+        if not args.only_write:
             calibration.send_job()
 
         if args.only_calibration:
@@ -77,7 +90,7 @@ def get_args():
     parser.add_argument(
         "--overwrite-config",
         action="store_true",
-        help="Force overwrite bookkeeper config."
+        help="Force overwrite bookkeeper config.",
     )
 
     parser.add_argument(
@@ -94,16 +107,22 @@ def get_args():
     parser.add_argument(
         "--skip_calibration",
         action="store_true",
-        help="Skip calibration step if already computed."
+        help="Skip calibration step if already computed.",
     )
-    
+
     parser.add_argument(
         "--only-write",
         action="store_true",
-        help="Only write scripts, do not send them."
+        help="Only write scripts, do not send them.",
     )
 
     parser.add_argument("--wait-for", nargs="+", type=int, default=None, required=False)
+
+    parser.add_argument(
+        "--log-level",
+        default="INFO",
+        choices=["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"],
+    )
 
     args = parser.parse_args()
 

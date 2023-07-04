@@ -1,14 +1,24 @@
 """ Script to run vega fit given a bookkeeper config file"""
-from pathlib import Path
 import argparse
+import copy
+import logging
+import sys
+from pathlib import Path
+
 from picca_bookkeeper.bookkeeper import Bookkeeper
 from picca_bookkeeper.dict_utils import DictUtils
-import copy
 
 
 def main(args=None):
     if args is None:
         args = get_args()
+
+    level = logging.getLevelName(args.log_level)
+    logging.basicConfig(
+        stream=sys.stdout,
+        level=level,
+        format="%(levelname)s:%(message)s",
+    )
 
     bookkeeper = Bookkeeper(
         args.bookkeeper_config,
@@ -279,6 +289,12 @@ def get_args():
     )
 
     parser.add_argument("--wait-for", nargs="+", type=int, default=None, required=False)
+
+    parser.add_argument(
+        "--log-level",
+        default="INFO",
+        choices=["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"],
+    )
 
     args = parser.parse_args()
 
