@@ -108,7 +108,7 @@ class Tasker:
         if self.wait_for is None:
             self.wait_for_ids = None
         if np.ndim(self.wait_for) == 0:
-            if isinstance(self.wait_for, int):
+            if isinstance(self.wait_for, (int, np.integer)):
                 self.wait_for_ids = [self.wait_for]
             elif isinstance(self.wait_for, Tasker) or isinstance(
                 self.wait_for, ChainedTasker
@@ -120,7 +120,8 @@ class Tasker:
                         f"jobid not defined for wait_for input. Have you send any script with this object?"
                     ).with_traceback(e.__traceback__)
         else:
-            if isinstance(self.wait_for[0], int):
+            self.wait_for = list(np.array(self.wait_for).reshape(-1))
+            if isinstance(self.wait_for[0], (int, np.integer)):
                 self.wait_for = [x for x in self.wait_for if x is not None]
                 self.wait_for_ids = list(self.wait_for)
             elif self.wait_for[0] == None:

@@ -2948,19 +2948,17 @@ class PathBuilder:
         Returns:
             Path: Path to metal matrix
         """
-        matrix = (
-            self.config["correlations"]
-            .get("metal matrices", dict())
-            .get(f"{absorber}{region}_{absorber2}{region2}", None)
-        )
+        metal_matrices = self.config["correlations"].get("xmetal matrices", None)
 
-        if matrix is None:
-            # If no specific metal matrix, use all (or None if not)
-            matrix = (
-                self.config["correlations"]
-                .get("metal matrices", dict())
-                .get("all", None)
+        if metal_matrices is None:
+            matrix = None
+        else:
+            matrix = metal_matrices.get(
+                f"{absorber}{region}_{absorber2}{region2}", None
             )
+
+            if matrix is None:
+                matrix = metal_matrices.get("all", None)
 
         name = f"{absorber}{region}_{absorber2}{region2}"
         if matrix is not None:
@@ -3038,6 +3036,8 @@ class PathBuilder:
         Returns:
             Path: Path to metal matrix
         """
+        metal_matrices = self.config["correlations"].get("metal matrices", None)
+
         matrix = (
             self.config["correlations"]
             .get("xmetal matrices", dict())
