@@ -23,8 +23,8 @@ data:
 
 continuum fitting:
   # The structure of folders and sub-folders is the following:
-  # .../early-3d/{relase}/{survey}/{qso_cat}/{prefix}_0.0.0_{suffix}
-  # where {prefix}_0.0.0_{suffix} defines de continuum fitting used:
+  # {bookkeeper dir}/{relase}/{survey}/{qso_cat}/{prefix}_0.0.0_{suffix}
+  # where {prefix}_0.0.0.0_{suffix} defines de continuum fitting used:
   #   - prefix (dMdB20, pca, etc): specifies the type of continuum fit
   #        - dMdB20: used in eBOSS DR16, default in picca.
   #        - true: use true continuum branch
@@ -41,9 +41,7 @@ continuum fitting:
   bla catalog: # The same for BAL catalog
   mask file:
 
-  # In each of the steps, we could change the input or leave the default one (if blank)
-  # We usually want to read from the continuum fitting output (our results are
-  # being saved there)
+
 correlations:
   run name: default
   # catalog_tracer could be set up to use a different catalog for cross-correlations
