@@ -2374,7 +2374,7 @@ class Bookkeeper:
                 f"{DictUtils.print_dict(self.defaults_diff)}"
             )
 
-        if self.paths.fit_main_fname().is_file() and not overwrite:
+        if self.paths.fit_out_fname().is_file() and not overwrite:
             raise FileExistsError(
                 "Destination file already exists, run with overwrite option"
                 "to continue",
@@ -3037,7 +3037,7 @@ class PathBuilder:
         Returns:
             Path: Path to metal matrix
         """
-        metal_matrices = self.config["correlations"].get("xmetal matrices", None)
+        metal_matrices = self.config["correlations"].get("metal matrices", None)
 
         if metal_matrices is None:
             matrix = None

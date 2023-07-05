@@ -7,6 +7,8 @@ from pathlib import Path
 from picca_bookkeeper.bookkeeper import Bookkeeper
 from picca_bookkeeper.tasker import Tasker
 
+logger = logging.getLogger(__name__)
+
 
 def main(args=None):
     if args is None:
@@ -18,6 +20,8 @@ def main(args=None):
         level=level,
         format="%(levelname)s:%(message)s",
     )
+
+    logger.info(f"Adding cross-correlation: {args.absorber}{args.region}_qso")
 
     bookkeeper = Bookkeeper(
         args.bookkeeper_config, overwrite_config=args.overwrite_config
@@ -104,11 +108,9 @@ def get_args():
     )
 
     parser.add_argument(
-        "--overwrite",
-        action="store_true",
-        help="Force overwrite output data."
+        "--overwrite", action="store_true", help="Force overwrite output data."
     )
-    
+
     parser.add_argument(
         "--overwrite-config",
         action="store_true",

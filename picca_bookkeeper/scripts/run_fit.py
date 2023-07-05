@@ -6,6 +6,7 @@ from pathlib import Path
 
 from picca_bookkeeper.bookkeeper import Bookkeeper
 
+logger = logging.getLogger(__name__)
 
 def main(args=None):
     if args is None:
@@ -17,6 +18,8 @@ def main(args=None):
         level=level,
         format="%(levelname)s:%(message)s",
     )
+
+    logger.info("Adding fit.")
 
     bookkeeper = Bookkeeper(
         args.bookkeeper_config, overwrite_config=args.overwrite_config

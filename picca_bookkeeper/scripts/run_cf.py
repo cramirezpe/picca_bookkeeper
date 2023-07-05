@@ -8,6 +8,8 @@ from pathlib import Path
 from picca_bookkeeper.bookkeeper import Bookkeeper
 from picca_bookkeeper.tasker import Tasker
 
+logger = logging.getLogger(__name__)
+
 
 def main(args=None):
     if args is None:
@@ -24,6 +26,10 @@ def main(args=None):
         format="%(levelname)s:%(message)s",
     )
 
+    logger.info(
+        f"Adding auto-correlation: "
+        f"{args.absorber}{args.region}_{args.absorber2}{args.region2}"
+    )
     cf = bookkeeper.get_cf_tasker(
         region=args.region,
         region2=args.region2,
@@ -106,9 +112,7 @@ def get_args():
     )
 
     parser.add_argument(
-        "--overwrite",
-        action="store_true",
-        help="Force overwrite output data."
+        "--overwrite", action="store_true", help="Force overwrite output data."
     )
 
     parser.add_argument(

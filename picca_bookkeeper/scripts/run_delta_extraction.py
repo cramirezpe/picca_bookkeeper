@@ -7,6 +7,8 @@ from pathlib import Path
 
 from picca_bookkeeper.bookkeeper import Bookkeeper
 
+logger = logging.getLogger(__name__)
+
 
 def main(args=None):
     if args is None:
@@ -30,6 +32,7 @@ def main(args=None):
         and bookkeeper.config["delta extraction"]["calib"] != "0"
         and not args.skip_calibration
     ):
+        logger.info("Adding calibration step(s).")
         calibration = bookkeeper.get_calibration_extraction_tasker(
             system=None,
             debug=args.debug,
@@ -56,6 +59,7 @@ def main(args=None):
         tasker = bookkeeper.get_delta_extraction_tasker
         wait_for = args.wait_for
 
+    logger.info(f"Adding deltas for region: {args.region}.")
     deltas = tasker(
         region=args.region,
         system=None,
@@ -63,7 +67,6 @@ def main(args=None):
         wait_for=wait_for,
         overwrite=args.overwrite,
     )
-
     deltas.write_job()
     if args.only_write:
         return
@@ -86,9 +89,7 @@ def get_args():
     )
 
     parser.add_argument(
-        "--overwrite",
-        action="store_true",
-        help="Force overwrite output data."
+        "--overwrite", action="store_true", help="Force overwrite output data."
     )
 
     parser.add_argument(

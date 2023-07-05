@@ -68,7 +68,6 @@ def main(args=None):
         if (str(continuum_type) not in ("raw", "True")) and bookkeeper.config[
             "delta extraction"
         ]["calib"] != "0":
-            logger.info(f"Adding calibration.")
             calib_args = argparse.Namespace(
                 bookkeeper_config=args.bookkeeper_config,
                 region="lya",  # It doesn't really matter
@@ -87,7 +86,6 @@ def main(args=None):
 
         region_jobids = dict()
         for region in regions:
-            logger.info(f"Adding deltas for region {region}")
             region_args = argparse.Namespace(
                 bookkeeper_config=args.bookkeeper_config,
                 region=region,
@@ -116,10 +114,6 @@ def main(args=None):
         for auto in autos:
             absorber, region, absorber2, region2 = auto
 
-            logger.info(
-                f"Adding auto-correlation: {absorber}{region}_{absorber2}{region2}"
-            )
-
             wait_for = [region_jobids[region] for region in (region, region2)]
 
             auto_args = argparse.Namespace(
@@ -141,8 +135,6 @@ def main(args=None):
 
         for cross in crosses:
             absorber, region = cross
-
-            logger.info(f"Adding cross-correlation: {absorber}{region}_qso")
 
             cross_args = argparse.Namespace(
                 bookkeeper_config=args.bookkeeper_config,
@@ -169,7 +161,6 @@ def main(args=None):
     ## Running fits
     ########################################
     if not args.no_fits:
-        logger.info("Adding fit.")
         fit_args = argparse.Namespace(
             bookkeeper_config=args.bookkeeper_config,
             overwrite_config=False,
