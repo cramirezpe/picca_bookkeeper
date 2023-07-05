@@ -1,15 +1,11 @@
 general:
   conda environment: picca
-  
 data:
   early dir: /picca_bookkeeper/tests/test_files/output
-  
   healpix data:
   release: guadalupe
   survey: main
   catalog: afterburn_v0
-   
-  
 delta extraction:
   prefix: dMdB20
   calib: 1
@@ -17,13 +13,3 @@ delta extraction:
   dla: 0
   bal: 0
   suffix: 0
-  
-correlations:
-  catalog tracer:
-  run name: nondefault
-
-  extra args:
-    picca_cf:
-      nside: 128
-fits:
-  run name: default

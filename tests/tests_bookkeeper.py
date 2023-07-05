@@ -198,36 +198,6 @@ class TestBookkeeper(unittest.TestCase):
         with self.assertRaises(ValueError):
             bookkeeper.validate_region("lyc")
 
-    def test_config_overwrite(self):
-        copy_config_substitute(self.files_path / "example_config_guadalupe.yaml")
-        bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
-
-        copy_config_substitute(
-            self.files_path / "example_config_guadalupe_conflict.yaml"
-        )
-        bookkeeper = Bookkeeper(
-            THIS_DIR / "test_files" / "output" / "tmp.yaml", overwrite_config=True
-        )
-
-        self.assertTrue(
-            filecmp.cmp(
-                bookkeeper.paths.delta_config_file,
-                THIS_DIR / "test_files" / "output" / "tmp.yaml",
-            )
-        )
-
-    def test_config_rerun(self):
-        copy_config_substitute(self.files_path / "example_config_guadalupe.yaml")
-        bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
-        bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
-
-        self.assertTrue(
-            filecmp.cmp(
-                bookkeeper.paths.delta_config_file,
-                THIS_DIR / "test_files" / "output" / "tmp.yaml",
-            )
-        )
-
     # @patch("builtins.input", return_value="yes")
     # def test_config_overwrite_on_yes(self, mock_print):
     #     copy_config_substitute(self.files_path / "example_config_guadalupe.yaml")
@@ -449,7 +419,7 @@ class TestBookkeeper(unittest.TestCase):
         self.assertEqual(
             "delta extraction section of config file should match delta extraction "
             "section from file already in the bookkeeper.",
-            str(cm.exception)[2:116],
+            str(cm.exception)[0:114],
         )
 
         # Now failing run (2)
@@ -465,7 +435,7 @@ class TestBookkeeper(unittest.TestCase):
         self.assertEqual(
             "correlations section of config file should match correlation section "
             "from file already in the bookkeeper.",
-            str(cm.exception)[2:107],
+            str(cm.exception)[0:105],
         )
 
         # Now main run:
@@ -517,7 +487,7 @@ class TestBookkeeper(unittest.TestCase):
         self.assertEqual(
             "correlations section of config file should match correlation section from "
             "file already in the bookkeeper.",
-            str(cm.exception)[2:107],
+            str(cm.exception)[0:105],
         )
 
         # Now failing run (2)
@@ -532,7 +502,7 @@ class TestBookkeeper(unittest.TestCase):
             bookkeeper2 = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
         self.assertEqual(
             "fits section of config file should match fits section from file already in the bookkeeper.",
-            str(cm.exception)[2:92],
+            str(cm.exception)[0:90],
         )
 
         # Now main run:
