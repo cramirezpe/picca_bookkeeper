@@ -756,7 +756,7 @@ class Bookkeeper:
                     )
 
             num_masks = int(extra_args["masks"]["num masks"]) + 1
-            extra_args = DictUtils(
+            extra_args = DictUtils.merge_dicts(
                 extra_args,
                 {
                     "masks": {
