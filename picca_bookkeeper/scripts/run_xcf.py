@@ -64,6 +64,8 @@ def main(args=None):
                 metal_jobid = None
         else:
             metal_jobid = None
+    else:
+        metal_jobid = None
 
     xcf_exp = bookkeeper.get_xcf_exp_tasker(
         region=args.region,

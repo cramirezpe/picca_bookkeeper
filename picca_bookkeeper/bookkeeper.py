@@ -244,11 +244,11 @@ class Bookkeeper:
                     # They are the same
                     self.write_bookkeeper(config_delta, self.paths.delta_config_file)
                 else:
+                    print(DictUtils.print_dict(comparison))
                     raise ValueError(
                         "delta extraction section of config file should match delta "
                         "extraction section from file already in the bookkeeper. "
-                        "Unmatching items: ",
-                        DictUtils.print_dict(comparison),
+                        "Unmatching items above"
                     )
             # Copy full bookkeeper.
             shutil.copyfile(
@@ -283,12 +283,11 @@ class Bookkeeper:
                         config_corr, self.paths.correlation_config_file
                     )
                 else:
+                    print(DictUtils.print_dict(comparison))
                     raise ValueError(
                         "correlations section of config file should match correlation section "
-                        "from file already in the bookkeeper. Unmatching items: ",
-                        DictUtils.print_dict(comparison),
+                        "from file already in the bookkeeper. Unmatching items above"
                     )
-
         if self.fits is not None:
             config_fit = copy.deepcopy(self.config)
 
@@ -317,10 +316,10 @@ class Bookkeeper:
                 if comparison == dict():
                     self.write_bookkeeper(config_fit, self.paths.fit_config_file)
                 else:
+                    print(DictUtils.print_dict(comparison))
                     raise ValueError(
                         "fits section of config file should match fits section "
-                        "from file already in the bookkeeper. Unmatching items: ",
-                        DictUtils.print_dict(comparison),
+                        "from file already in the bookkeeper. Unmatching items above."
                     )
 
         # Read defaults and check if they have changed.
