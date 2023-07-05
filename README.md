@@ -15,7 +15,7 @@ pip install .
 ``picca_bookkeeper`` relies in a particular file structure to work as intended. The parent folder structure where the bookkeeper is located depends on the input data to be used by the run:
 
 ```
-/early-dir/{release}/{survey}/{qso_cat}/
+{bookkeeper dir}/{release}/{survey}/{qso_cat}/
 ```
 
 where:
@@ -25,28 +25,38 @@ where:
 
 After the folder structure, we have one or many continuum fitting runs. The name of the folder will describe the contained fitting procedure in the following way:
 ```
-{prefix}_{calib}.{dla}.{bal}_{suxfix}
+{prefix}_{calib}.{calib_regions}.{dla}.{bal}_{suxfix}
 ```
-- prefix (dMdB20, pca, etc): specifies the type of continuum fit (dMdB20 is the         one used in eBOSS DR16, default in Picca).
-- calib (0, 1, 2, etc): integer identifying the version of pre-calibration and weight estimation
+- prefix (dMdB20, CRP23, raw, True): specifies the general configuration of the run.
+    - dMdB20: fudge included, 2.4A bins, var lss mod=0 (see resources/dMdB20.yaml)
+    - CRP23: analysis performed for early3D DESI analyses. nofudge, 0.8A bins, var lss mod = 7.5, lambda rest frame max=1205.
+    - raw: use this for raw mocks.
+    - true: use this for true continuum analyses.
+    - Could also match any of the yaml files under picca_bookkeeper.resources.default_configs
+
+- calib (0, 1, 2): Integer defining the number of calibration steps.
     - 0: no calibration.
-    - 1: dMdB20 calibration: Two step calibration (first for flux, second for IVAR). 
-      - weighting scheme includes eta, var_lss, fudge
-    - 2: early3D calibration: One step calibration (flux).
-      - weighting scheme uses eta and var_lss
-    - 3: dMdB20 1 step calibration: One step calibration (flux).
-      - weighting scheme uses eta, var_lss, fudge
+    - 1: early3D calibration: One step calibration (flux).
+    - 2: dMdB20 calibration: Two step calibration (first for flux, second for IVAR).
     - 10: Accept custom options for calibration in yaml file.
+
 - calib region (any of the ones defined in picca_bookkeeper.Bookkeeper.forest_regions)
     - 0 if no calibration is used.
+
 - dla (0, 1, 2, etc): integer identifying the version of DLA masking used
     - 0: no DLA masking.
     - 1: First version of DLA catalog.
-- bal (0, 1, 2, etc): integer identifying the type of BAL masking used 
+    - N: Nth version of DLA catalog.
+
+- bal (0, 1, 2, etc): integer identifying the version of BAL masking used 
     - 0: No BAL masking.
     - 1: Drop BAL objects (not implemented).
     - 2: Mask BAL objects.
-- suffix (0, any string): any string identifying anything else particular in the analysis (0 means nothing). This is free for the user to select whatever they consider appropriately if it does not overlap with other runs.
+
+- suffix (0, any string): any string identifying anything else particular
+        in the analysis (0 means nothing). This is free for the user to select
+        whatever they consider appropiately if it does not overlap with other 
+        runs.
 
 Inside each continuum fitting folder, the internal structure is the following:
 ```
@@ -54,7 +64,7 @@ Inside each continuum fitting folder, the internal structure is the following:
 ├── correlations
 │   └── default
 │       ├── configs
-│       ├── correlations
+│       ├── results
 │       ├── fits
 │       │   └── default
 │       │       ├── configs
@@ -63,18 +73,18 @@ Inside each continuum fitting folder, the internal structure is the following:
 │       │       └── scripts
 │       ├── logs
 │       └── scripts
-├── deltas
+├── results
 ├── logs
 └── scripts
 ```
 In the first level, we have the different data associated with the delta extraction step:
 - configs: Configuration files used for the analysis. This includes picca ``.ini`` files and line masking files. It also saves a copy of the bookkeeper configuration file used.
-- deltas: ``{..}/deltas/{region}``, where:
+- results: ``{..}/results/{region}``, where:
   - region (lya, lyb, calibration_1, calibration_2): where the deltas is computed. 
     For each computed region we have two subfolders:
         - Delta: delta files.
         - Log: delta log files used for calibration.
-- logs: shell logs for all the runs.
+- logs: shell logs for all the runs.e
 - scripts: slurm scripts for all the runs
 
 The second level defines the correlations run on this set of deltas. There can be multiple runs for different options, each of them labeled with a different name. In the case of the previous tree, this label is ``default``. The label can be set by the user using the ``correlations/run name`` field in the configuration file.
@@ -86,15 +96,58 @@ The third level defines the fits run on a specific correlation measurements. As 
 Again, the internal structure of fits is similar as the previous two. In configs, the ``.ini`` files needed to run vega are stored. Alongside a copy of the bookkeeper config file used.
 
 # Configuration file
-All the information needed to reproduce each of the run is (and should be) contained in the ``bookkeeper_config.yaml`` file. An example of a config file is stored under ``picca_bookkeeper.resources.example_config.yaml`` or can be retrieved in console by running  ``picca_bookkeeper_show_defaults`` anywhere.
+All the information needed to reproduce each of the run is (and should be) contained in the ``bookkeeper_config.yaml`` file. An example of a config file is stored under ``picca_bookkeeper.resources.example_config.yaml`` or can be retrieved in console by running  ``picca_bookkeeper_show_example`` anywhere.
 # Scripts
 There are multiple scripts associated with the package that are installed with the application, the most relevant are:
 - ``picca_bookkeeper_run_delta_extraction``: Can be used to run deltas.
 - ``picca_bookkeeper_run_cf`` and ``picca_bookkeeper_run_xcf``: Can be used to run correlations.
-- ``picca_bookkeeper_run_full_analysis``: This can be used to run the full analysis.
+- ``picca_bookkeeper_run_full_analysis``: Can be used to run the full analysis.
 - ``picca_bookkeeper_run_fit``: Run fit.
 - ``picca_bookkeeper_generate_fit_config``: Useful script to generate a valid bookkeeper config file for fits.
 
 For more information on how to run each of them use the ``--help`` command. (the scripts can be run directly from shell, e.g. ``picca_bookkeeper_run_full_analysis --help``.).
 
-# Example analysis.
+# Examples
+## Run full analysis
+``` bash
+picca_bookkeeper_run_full_analysis config.yaml --auto-correlations lya.lya-lya.lya lya.lya-lya.lyb --cross-correlations lya.lya lya.lyb 
+```
+
+## Run full analysis if deltas were already computed (skipping them)
+``` bash
+picca_bookkeeper_run_full_analysis config.yaml --auto-correlations lya.lya-lya.lya lya.lya-lya.lyb --cross-correlations lya.lya lya.lyb --no-deltas
+```
+
+## Run two different correlations 
+If one wants to run two different correlation measurements for the same set of deltas, they will need to generate two config files ``config1.yaml``  ``config2.yaml``, config2 ``run name`` inside ``correlations`` section should be different than the one in config1:
+```bash
+picca_bookkeeper_run_full_analysis config1.yaml --auto-correlations lya.lya-lya.lya lya.lya-lya.lyb --cross-correlations lya.lya lya.lyb --no-fits
+```
+We can collect the jobid from the deltas steps (number returned in terminal), and use it for the next correlation measurements to wait for them:
+```
+# We don't need to rerun deltas
+picca_bookkeeper_run_full_analysis config2.yaml --auto-correlations lya.lya-lya.lya lya.lya-lya.lyb --cross-correlations lya.lya lya.lyb --no-deltas --no-fits --wait-for {jobidlya} {jobidlyb}
+```
+
+## Run full analysis with modified fits
+Generic custom fits can be created by using the script ``picca_bookkeeper_generate_fit_config`` in the following way, assuming a valid ``config.yaml`` is available (fits section not needed in the file):
+``` bash
+picca_bookkeeper_generate_fit_config config.yaml --run-name nobao_metal --out-config tmp.yaml --no-bao --no-metal
+
+picca_bookkeeper_run_full_analysis tmp.yaml --auto-correlations lya.lya-lya.lya lya.lya-lya.lyb --cross-correlations lya.lya lya.lyb
+```
+
+## Run full analysis with 2 different fit options:
+First, we run the full analysis with the default fits configuration:
+``` bash
+picca_bookkeeper_run_full_analysis config.yaml --auto-correlations lya.lya-lya.lya lya.lya-lya.lyb --cross-correlations lya.lya lya.lyb 
+```
+
+Then we recycle the same config file to generate a new fit config file, and run the new fit.
+``` bash
+picca_bookkeeper_generate_fit_config config.yaml --run-name nobao_metal --out-config tmp.yaml --no-bao --no-metal
+
+# we only need to run the fit
+picca_bookkeeper_run_fit tmp.yaml --auto-correlations lya.lya-lya.lya lya.lya-lya.lyb --cross-correlations lya.lya lya.lyb
+```
+
