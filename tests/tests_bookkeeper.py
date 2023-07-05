@@ -301,14 +301,6 @@ class TestBookkeeper(unittest.TestCase):
             str(cm.exception),
         )
 
-        bookkeeper.config["delta extraction"]["calib"] = 1
-        bookkeeper.config["delta extraction"]["prefix"] = "dr16"
-        with self.assertRaises(ValueError) as cm:
-            deltas = bookkeeper.get_calibration_extraction_tasker()
-        self.assertEqual(
-            "Unrecognized continuum fitting prefix: dr16", str(cm.exception)
-        )
-
     # @patch("picca_bookkeeper.tasker.run", side_effect=mock_run)
     # @patch("picca_bookkeeper.bookkeeper.get_quasar_catalog", side_effect=mock_get_3d_catalog)
     # def test_custom_calib(self, mock_func_1, mock_func_2):

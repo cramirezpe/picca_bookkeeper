@@ -323,15 +323,19 @@ class Bookkeeper:
                     )
 
         # Read defaults and check if they have changed.
-        self.defaults = yaml.safe_load(
-            files(resources).joinpath("defaults.yaml").read_text()
+        defaults_file = files(resources).joinpath(
+            str(self.config["delta extraction"]["prefix"]) + ".yaml"
         )
+        if not defaults_file.is_file():
+            raise ValueError("Invalid prefix, no defaults file found.", defaults_file)
+
+        self.defaults = yaml.safe_load(defaults_file.read_text())
 
         self.defaults_diff = dict()
 
         if self.paths.defaults_file.is_file():
             self.defaults_diff = PathBuilder.compare_config_files(
-                self.paths.defaults_file, files(resources).joinpath("defaults.yaml")
+                self.paths.defaults_file, defaults_file,
             )
         else:
             self.defaults_diff = {}
@@ -818,17 +822,17 @@ class Bookkeeper:
         Args:
             delta_config_dict: Dict containing config to be used
         """
-        if self.config["delta extraction"]["prefix"] not in [
-            "dMdB20",
-            "raw",
-            True,
-            "custom",
-        ]:
-            raise ValueError(
-                f"Unrecognized continuum fitting prefix: "
-                f"{self.config['delta extraction']['prefix']}"
-            )
-        elif self.config["delta extraction"]["prefix"] == "raw":
+        # if self.config["delta extraction"]["prefix"] not in [
+        #     "dMdB20",
+        #     "raw",
+        #     True,
+        #     "custom",
+        # ]:
+        #     raise ValueError(
+        #         f"Unrecognized continuum fitting prefix: "
+        #         f"{self.config['delta extraction']['prefix']}"
+        #     )
+        if self.config["delta extraction"]["prefix"] == "raw":
             raise ValueError(
                 f"raw continuum fitting provided in config file, use "
                 "get_raw_deltas_tasker instead"
