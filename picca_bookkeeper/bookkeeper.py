@@ -1140,7 +1140,7 @@ class Bookkeeper:
         else:
             region = self.validate_region(region)
 
-        if self.config["delta extraction"]["calib"] not in [0, 1, 2, 3, 10]:
+        if self.config["delta extraction"]["calib"] not in [0, 1, 2, 10]:
             raise ValueError(
                 "Invalid calib value in config file. (Valid values are 0 1 2 3 10)"
             )
@@ -1167,7 +1167,7 @@ class Bookkeeper:
                     calib_step=2,
                 )
             )
-        elif self.config["delta extraction"]["calib"] in (2, 3, 10):
+        elif self.config["delta extraction"]["calib"] in (2, 10):
             steps = (
                 self.get_delta_extraction_tasker(
                     region=region,
