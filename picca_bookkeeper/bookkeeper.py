@@ -2750,10 +2750,10 @@ class PathBuilder:
             Path: Path to deltas directory.
         """
         if calib_step is not None:
-            return self.run_path / "deltas" / f"calibration_{calib_step}" / "Delta"
+            return self.run_path / "results" / f"calibration_{calib_step}" / "Delta"
         else:
             region = Bookkeeper.validate_region(region)
-            return self.run_path / "deltas" / region / "Delta"
+            return self.run_path / "results" / region / "Delta"
 
     def deltas_log_path(self, region: str, calib_step: int = None) -> Path:
         """Method to get the path to deltas log.
@@ -2805,7 +2805,7 @@ class PathBuilder:
         absorber2 = absorber if absorber2 is None else absorber2
         return (
             self.correlations_path
-            / "correlations"
+            / "results"
             / f"{absorber}{region}_{absorber2}{region2}"
             / f"cf.fits.gz"
         )
@@ -2930,7 +2930,7 @@ class PathBuilder:
         """
         return (
             self.correlations_path
-            / "correlations"
+            / "results"
             / f"qso_{absorber}{region}"
             / f"xcf.fits.gz"
         )
