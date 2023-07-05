@@ -2860,12 +2860,12 @@ class PathBuilder:
 
     def check_delta_directories(self) -> None:
         """Method to create basic directories in run directory."""
-        for folder in ("scripts", "correlations", "logs", "deltas", "configs"):
+        for folder in ("scripts", "correlations", "logs", "results", "configs"):
             (self.run_path / folder).mkdir(exist_ok=True, parents=True)
 
     def check_correlation_directories(self) -> None:
         """Method to create basic directories in correlations directory."""
-        for folder in ("scripts", "correlations", "fits", "logs", "configs"):
+        for folder in ("scripts", "results", "fits", "logs", "configs"):
             (self.correlations_path / folder).mkdir(exist_ok=True, parents=True)
 
     def check_fit_directories(self) -> None:

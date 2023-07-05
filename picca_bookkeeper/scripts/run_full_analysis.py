@@ -65,7 +65,7 @@ def main(args=None):
     ## and then all the deltas needed.
     ########################################
     if not args.no_deltas:
-        if (continuum_type in ("dMdB20", "custom")) and bookkeeper.config[
+        if (str(continuum_type) not in ("raw", "True")) and bookkeeper.config[
             "delta extraction"
         ]["calib"] != "0":
             logger.info(f"Adding calibration.")

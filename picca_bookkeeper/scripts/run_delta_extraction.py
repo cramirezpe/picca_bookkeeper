@@ -26,7 +26,7 @@ def main(args=None):
     continuum_type = bookkeeper.config["delta extraction"]["prefix"]
 
     if args.only_calibration or (
-        (continuum_type in ("dMdB20", "custom"))
+        (str(continuum_type) not in ("raw", "True"))
         and bookkeeper.config["delta extraction"]["calib"] != "0"
         and not args.skip_calibration
     ):
@@ -49,15 +49,11 @@ def main(args=None):
 
         tasker = bookkeeper.get_delta_extraction_tasker
         wait_for = calibration
-    elif (
-        (continuum_type == "dMdB20")
-        or (continuum_type == "true")
-        or (continuum_type == "custom")
-    ):
-        tasker = bookkeeper.get_delta_extraction_tasker
-        wait_for = args.wait_for
     elif continuum_type == "raw":
         tasker = bookkeeper.get_raw_deltas_tasker
+        wait_for = args.wait_for
+    else:
+        tasker = bookkeeper.get_delta_extraction_tasker
         wait_for = args.wait_for
 
     deltas = tasker(
