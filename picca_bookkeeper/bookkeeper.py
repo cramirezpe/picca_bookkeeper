@@ -596,6 +596,260 @@ class Bookkeeper:
         else:
             return system
 
+    def add_calibration_options(self, extra_args: Dict, calib_step: int = None) -> Dict:
+        """Method to add calibration options to extra args
+
+        Args:
+            extra_args: Configuration to be used in the run.
+            calib_step: Current calibration step, None if main run.
+
+        Retursn:
+            updated extra_args
+        """
+        # update corrections section
+        # here we are dealing with calibration runs
+        # If there is no calibration, we should not have calib_steps
+        if self.config["delta extraction"]["calib"] not in (0, 10):
+            if (
+                "CalibrationCorrection" in extra_args["corrections"].values()
+                or "IvarCorrection" in extra_args["corrections"].values()
+            ):
+                raise ValueError(
+                    "Calibration corrections added by user with calib option != 10"
+                )
+
+        if self.config["delta extraction"]["calib"] == 0 and calib_step is not None:
+            raise ValueError("Trying to run calibration with calib = 0 in config file.")
+
+        # Two calibration steps:
+        elif self.config["delta extraction"]["calib"] == 1:
+            # Second calibration step
+            if calib_step is not None:
+                if calib_step == 2:
+                    num_corrections = (
+                        int(extra_args.get("corrections").get("num corrections", 0)) + 1
+                    )
+
+                    extra_args = DictUtils.merge_dicts(
+                        extra_args,
+                        {
+                            "corrections": {
+                                "num corrections": num_corrections,
+                                f"type {num_corrections - 1}": "CalibrationCorrection",
+                            },
+                            f"correction arguments {num_corrections - 1}": {
+                                "filename": str(
+                                    self.calibration.paths.delta_attributes_file(
+                                        None, calib_step=1
+                                    )
+                                ),
+                            },
+                        },
+                    )
+
+            # Actual run (no calibration)
+            else:
+                if not self.calibration.paths.deltas_path(calib_step=2).is_dir():
+                    raise FileNotFoundError(
+                        "Calibration folder does not exist. run get_calibration_tasker "
+                        "before running deltas."
+                    )
+
+                num_corrections = (
+                    int(extra_args.get("corrections").get("num corrections", 0)) + 2
+                )
+
+                extra_args = DictUtils.merge_dicts(
+                    extra_args,
+                    {
+                        "corrections": {
+                            "num corrections": num_corrections,
+                            f"type {num_corrections -2}": "CalibrationCorrection",
+                            f"type {num_corrections -1}": "IvarCorrection",
+                        },
+                        f"correction arguments {num_corrections - 2}": {
+                            "filename": str(
+                                self.calibration.paths.delta_attributes_file(
+                                    None, calib_step=1
+                                )
+                            ),
+                        },
+                        f"correction arguments {num_corrections - 1}": {
+                            "filename": str(
+                                self.calibration.paths.delta_attributes_file(
+                                    None, calib_step=2
+                                )
+                            ),
+                        },
+                    },
+                )
+
+        elif self.config["delta extraction"]["calib"] == 2:
+            # No special action for calibration steps,
+            # only add extra actions for main run
+            if calib_step is None:
+                if not self.paths.deltas_path(calib_step=1).is_dir():
+                    raise FileNotFoundError(
+                        "Calibration folder does not exist. run get_calibration tasker "
+                        "before running deltas."
+                    )
+                num_corrections = (
+                    int(extra_args.get("corrections").get("num corrections", 0)) + 1
+                )
+
+                extra_args = DictUtils.merge_dicts(
+                    extra_args,
+                    {
+                        "corrections": {
+                            "num corrections": num_corrections,
+                            f"type {num_corrections - 1}": "CalibrationCorrection",
+                        },
+                        f"corrections arguments {num_corrections - 1}": {
+                            "filename": str(
+                                self.calibration.paths.delta_attributes_file(
+                                    None, calib_step=1
+                                )
+                            ),
+                        },
+                    },
+                )
+        return extra_args
+
+    def add_mask_options(self, extra_args: Dict, calib_step: int = None) -> Dict:
+        """Method to add mask options to extra args
+
+        Args:
+            extra_args: Configuration to be used in the run.
+            calib_step: Current calibration step, None if main run.
+
+        Retursn:
+            updated extra_args
+        """
+        if self.config["delta extraction"].get("mask file", "") not in ("", None):
+            # If a mask file is given in the config file
+            if not Path(self.config["delta extraction"]["mask file"]).is_file():
+                # If the file does not exist
+                raise FileNotFoundError("Provided mask file does not exist.")
+            else:
+                # If the file does exist
+                if not self.paths.continuum_fitting_mask.is_file():
+                    # If no file in output bookkeeper
+                    shutil.copy(
+                        self.config["delta extraction"]["mask file"],
+                        self.paths.continuum_fitting_mask,
+                    )
+                # If file in output bookkeeper
+                elif not filecmp.cmp(
+                    self.paths.continuum_fitting_mask,
+                    self.config["delta extraction"]["mask file"],
+                ):
+                    raise FileExistsError(
+                        "different mask file already stored in the bookkeeper",
+                        self.paths.continuum_fitting_mask,
+                    )
+
+            num_masks = int(extra_args["masks"]["num masks"]) + 1
+            extra_args = DictUtils(
+                extra_args,
+                {
+                    "masks": {
+                        "num masks": num_masks,
+                        f"type {num_masks - 1}": "LinesMask",
+                    },
+                    f"mask arguments {num_masks - 1}": {
+                        "filename": self.paths.continuum_fitting_mask,
+                    },
+                },
+            )
+
+        # update masks sections if necessary
+        if (
+            self.config["delta extraction"]["dla"] != 0
+            or self.config["delta extraction"]["bal"] != 0
+        ) and calib_step is None:
+            if self.config["delta extraction"]["dla"] != 0:
+                if "DlaMask" in extra_args["masks"].values():
+                    raise ValueError("DlaMask set by user with dla option != 0")
+
+                prev_mask_number = int(extra_args["masks"]["num masks"])
+                extra_args = DictUtils.merge_dicts(
+                    extra_args,
+                    {
+                        "masks": {
+                            "num masks": prev_mask_number + 1,
+                            f"type {prev_mask_number}": "DlaMask",
+                        },
+                        f"mask arguments {prev_mask_number}": {
+                            f"filename": self.paths.catalog_dla,
+                            "los_id name": "TARGETID",
+                        },
+                    },
+                )
+
+            if self.config["delta extraction"]["bal"] != 0:
+                if self.config["delta extraction"]["bal"] == 2:
+                    if "BalMask" in extra_args["masks"].values():
+                        raise ValueError("BalMask set by user with bal option !=0")
+
+                prev_mask_number = int(extra_args["masks"]["num masks"])
+                extra_args = DictUtils.merge_dicts(
+                    extra_args,
+                    {
+                        "masks": {
+                            "num masks": prev_mask_number + 1,
+                            f"type {prev_mask_number}": "BalMask",
+                        },
+                        f"mask arguments {prev_mask_number}": {
+                            "filename": self.paths.catalog_bal,
+                            "los_id name": "TARGETID",
+                        },
+                    },
+                )
+            else:
+                raise ValueError(
+                    "Invalid value for bal: ",
+                    self.config["delta extraction"]["bal"],
+                )
+        return extra_args
+
+    def validate_mock_runs(self, deltas_config_dict: Dict) -> None:
+        """Method to validate config file for mock runs
+        
+        Args:
+            delta_config_dict: Dict containing config to be used
+        """
+        if self.config["delta extraction"]["prefix"] not in [
+            "dMdB20",
+            "raw",
+            True,
+            "custom",
+        ]:
+            raise ValueError(
+                f"Unrecognized continuum fitting prefix: "
+                f"{self.config['delta extraction']['prefix']}"
+            )
+        elif self.config["delta extraction"]["prefix"] == "raw":
+            raise ValueError(
+                f"raw continuum fitting provided in config file, use "
+                "get_raw_deltas_tasker instead"
+            )
+        elif self.config["delta extraction"]["prefix"] == True:
+            if (
+                "expected flux" not in deltas_config_dict
+                or "raw statistics file" not in deltas_config_dict["expected flux"]
+                or deltas_config_dict["expected flux"]["raw statistics file"]
+                in ("", None)
+            ):
+                raise ValueError(
+                    f"Should define expected flux and raw statistics file in extra "
+                    "args section in order to run TrueContinuum"
+                )
+            deltas_config_dict["expected flux"]["type"] = "TrueContinuum"
+            if deltas_config_dict.get("expected flux").get("input directory", 0) == 0:
+                deltas_config_dict["expected flux"][
+                    "input directory"
+                ] = self.paths.healpix_data
+
     def get_raw_deltas_tasker(
         self,
         region: str = "lya",
@@ -770,354 +1024,54 @@ class Bookkeeper:
             job_name += "_calib_step_" + str(calib_step)
         config_file = self.paths.run_path / f"configs/{job_name}.ini"
 
-        # MASKS
-        # add masks section if necessary
-        updated_extra_args = DictUtils.merge_dicts(
-            dict(
-                masks={
+        deltas_config_dict = DictUtils.merge_dicts(
+            {
+                "general": {
+                    "overwrite": True,
+                    "out dir": str(
+                        self.paths.deltas_path(region, calib_step).parent.resolve()
+                    )
+                    + "/",
+                },
+                "data": {
+                    "lambda min": 3600,  # @remove
+                    "lambda max": 5772,  # @remove
+                    "wave solution": "lin",  # @remove
+                    "delta lambda": 0.8,  # @remove
+                    "minimum number pixels in forest": 150,  # @remove
+                    "type": "DesisimMocks"
+                    if "v9." in self.config["data"]["release"]
+                    else "DesiHealpix",
+                    "catalogue": str(self.paths.catalog),
+                    "input directory": str(self.paths.healpix_data),
+                    "lambda min rest frame": forest_regions[region]["lambda-rest-min"],
+                    "lambda max rest frame": forest_regions[region]["lambda-rest-max"],
+                },
+                "corrections": {
+                    "num corrections": 0,
+                },
+                "masks": {
                     "num masks": 0,
                 },
-            ),
-            updated_extra_args,
-        )
-        if self.config["delta extraction"].get("mask file", "") not in ("", None):
-            # If a mask file is given in the config file
-            if not Path(self.config["delta extraction"]["mask file"]).is_file():
-                # If the file does not exist
-                raise FileNotFoundError("Provided mask file does not exist.")
-            else:
-                # If the file does exist
-                if not self.paths.continuum_fitting_mask.is_file():
-                    # If no file in output bookkeeper
-                    shutil.copy(
-                        self.config["delta extraction"]["mask file"],
-                        self.paths.continuum_fitting_mask,
-                    )
-                # If file in output bookkeeper
-                elif not filecmp.cmp(
-                    self.paths.continuum_fitting_mask,
-                    self.config["delta extraction"]["mask file"],
-                ):
-                    raise FileExistsError(
-                        "different mask file already stored in the bookkeeper",
-                        self.paths.continuum_fitting_mask,
-                    )
-
-            prev_mask_number = int(updated_extra_args["masks"]["num masks"])
-            updated_extra_args["masks"]["num masks"] = prev_mask_number + 1
-            updated_extra_args["masks"][f"type {prev_mask_number}"] = "LinesMask"
-            updated_extra_args[f"mask arguments {prev_mask_number}"] = dict(
-                filename=self.paths.continuum_fitting_mask,
-            )
-
-        # CORRECTIONS
-        # add corrections section if necessary
-        updated_extra_args = DictUtils.merge_dicts(
-            dict(
-                corrections={
-                    "num corrections": 0,
-                }
-            ),
+                "expected flux": {},
+            },
             updated_extra_args,
         )
 
-        # update corrections section
-        # here we are dealing with calibration runs
-        # If there is no calibration, we should not have calib_steps
-        if self.config["delta extraction"]["calib"] == 0 and calib_step is not None:
-            raise ValueError("Trying to run calibration with calib = 0 in config file.")
-        if self.config["delta extraction"]["calib"] not in (0, 10):
-            if (
-                "CalibrationCorrection" in updated_extra_args["corrections"].values()
-                or "IvarCorrection" in updated_extra_args["corrections"].values()
-            ):
-                raise ValueError(
-                    "Calibration corrections added by user with calib option != 10"
-                )
+        deltas_config_dict = self.add_calibration_options(
+            deltas_config_dict,
+            calib_step,
+        )
 
-        # Now we deal with dMdB20 option (calib = 1)
-        if self.config["delta extraction"]["calib"] == 1:
-            # only for calibrating runs
-            if calib_step is not None:
-                if calib_step == 2:
-                    prev_n_corrections = int(
-                        updated_extra_args.get("corrections").get("num corrections", 0)
-                    )
-                    updated_extra_args["corrections"]["num corrections"] = (
-                        prev_n_corrections + 1
-                    )
-                    updated_extra_args["corrections"][
-                        f"type {prev_n_corrections}"
-                    ] = "CalibrationCorrection"
-                    updated_extra_args[
-                        f"correction arguments {prev_n_corrections}"
-                    ] = dict()
-                    updated_extra_args[f"correction arguments {prev_n_corrections}"][
-                        "filename"
-                    ] = str(
-                        self.calibration.paths.delta_attributes_file(
-                            None, calib_step=1
-                        )  # @TODO fix this
-                    )
-            # actual run using with both corrections
-            else:
-                if not self.calibration.paths.deltas_path(calib_step=2).is_dir():
-                    raise FileNotFoundError(
-                        "Calibration folder does not exist. run get_calibration_tasker "
-                        "before running deltas."
-                    )
-                prev_n_corrections = int(
-                    updated_extra_args.get("corrections").get("num corrections", 0)
-                )
-                updated_extra_args["corrections"]["num corrections"] = (
-                    prev_n_corrections + 2
-                )
-                updated_extra_args["corrections"][
-                    f"type {prev_n_corrections}"
-                ] = "CalibrationCorrection"
-                updated_extra_args[
-                    f"correction arguments {prev_n_corrections}"
-                ] = dict()
-                updated_extra_args[f"correction arguments {prev_n_corrections}"][
-                    "filename"
-                ] = str(
-                    self.calibration.paths.delta_attributes_file(None, calib_step=1)
-                )
+        deltas_config_dict = self.add_mask_options(
+            deltas_config_dict,
+            calib_step,
+        )
 
-                updated_extra_args["corrections"][
-                    f"type {prev_n_corrections+1}"
-                ] = "IvarCorrection"
-                updated_extra_args[
-                    f"correction arguments {prev_n_corrections+1}"
-                ] = dict()
-                updated_extra_args[f"correction arguments {prev_n_corrections+1}"][
-                    "filename"
-                ] = str(
-                    self.calibration.paths.delta_attributes_file(None, calib_step=2)
-                )
-        elif self.config["delta extraction"]["calib"] == 2:
-            # Set expected flux
-            updated_extra_args = DictUtils.merge_dicts(
-                updated_extra_args,
-                {
-                    "expected flux": {
-                        "type": "Dr16FixedFudgeExpectedFlux",
-                        "fudge value": 0,
-                    },
-                },
-            )
-
-            # No special action for calibration steps,
-            # only add extra actions for main run
-            if calib_step is None:
-                if not self.paths.deltas_path(calib_step=1).is_dir():
-                    raise FileNotFoundError(
-                        "Calibration folder does not exist. run get_calibration tasker "
-                        "before running deltas."
-                    )
-                prev_n_corrections = int(
-                    updated_extra_args.get("corrections").get("num corrections", 0)
-                )
-                updated_extra_args["corrections"]["num corrections"] = (
-                    prev_n_corrections + 1
-                )
-                updated_extra_args["corrections"][
-                    f"type {prev_n_corrections}"
-                ] = "CalibrationCorrection"
-                updated_extra_args[
-                    f"correction arguments {prev_n_corrections}"
-                ] = dict()
-                updated_extra_args[f"correction arguments {prev_n_corrections}"][
-                    "filename"
-                ] = str(
-                    self.calibration.paths.delta_attributes_file(None, calib_step=1)
-                )
-        elif self.config["delta extraction"]["calib"] == 3:
-            # Set expected flux
-            updated_extra_args = DictUtils.merge_dicts(
-                updated_extra_args,
-                {
-                    "expected flux": {
-                        "type": "Dr16ExpectedFlux",
-                    },
-                },
-            )
-
-            # No special action for calibration steps,
-            # only add extra actions for main run
-            if calib_step is None:
-                if not self.paths.deltas_path(calib_step=1).is_dir():
-                    raise FileNotFoundError(
-                        "Calibration folder does not exist. run get_calibration tasker "
-                        "before running deltas."
-                    )
-                prev_n_corrections = int(
-                    updated_extra_args.get("corrections").get("num corrections", 0)
-                )
-                updated_extra_args["corrections"]["num corrections"] = (
-                    prev_n_corrections + 1
-                )
-                updated_extra_args["corrections"][
-                    f"type {prev_n_corrections}"
-                ] = "CalibrationCorrection"
-                updated_extra_args[
-                    f"correction arguments {prev_n_corrections}"
-                ] = dict()
-                updated_extra_args[f"correction arguments {prev_n_corrections}"][
-                    "filename"
-                ] = str(
-                    self.calibration.paths.delta_attributes_file(None, calib_step=1)
-                )
-
-        # update masks sections if necessary
-        if (
-            self.config["delta extraction"]["dla"] != 0
-            or self.config["delta extraction"]["bal"] != 0
-        ) and calib_step is None:
-            prev_mask_number = int(updated_extra_args["masks"]["num masks"])
-            if self.config["delta extraction"]["dla"] != 0:
-                if "DlaMask" in updated_extra_args["masks"].values():
-                    raise ValueError("DlaMask set by user with dla option != 0")
-
-                updated_extra_args["masks"][f"type {prev_mask_number}"] = "DlaMask"
-                updated_extra_args[f"mask arguments {prev_mask_number}"] = dict()
-                updated_extra_args[f"mask arguments {prev_mask_number}"][
-                    "filename"
-                ] = self.paths.catalog_dla
-                updated_extra_args[f"mask arguments {prev_mask_number}"][
-                    "los_id name"
-                ] = "TARGETID"
-                updated_extra_args["masks"]["num masks"] = prev_mask_number + 1
-
-            prev_mask_number = int(updated_extra_args["masks"]["num masks"])
-            if self.config["delta extraction"]["bal"] != 0:
-                if self.config["delta extraction"]["bal"] == 2:
-                    if "BalMask" in updated_extra_args["masks"].values():
-                        raise ValueError("BalMask set by user with bal option !=0")
-
-                    updated_extra_args["masks"][f"type {prev_mask_number}"] = "BalMask"
-                    updated_extra_args[f"mask arguments {prev_mask_number}"] = dict()
-                    updated_extra_args[f"mask arguments {prev_mask_number}"][
-                        "filename"
-                    ] = self.paths.catalog_bal
-                    updated_extra_args[f"mask arguments {prev_mask_number}"][
-                        "los_id name"
-                    ] = "TARGETID"
-                    updated_extra_args["masks"]["num masks"] = prev_mask_number + 1
-                else:
-                    raise ValueError(
-                        "Invalid value for bal: ",
-                        self.config["delta extraction"]["bal"],
-                    )
-
-        # update expected flux section if necessary
-        if self.config["delta extraction"]["prefix"] not in [
-            "dMdB20",
-            "raw",
-            True,
-            "custom",
-        ]:
-            raise ValueError(
-                f"Unrecognized continuum fitting prefix: "
-                f"{self.config['delta extraction']['prefix']}"
-            )
-        elif self.config["delta extraction"]["prefix"] == "raw":
-            raise ValueError(
-                f"raw continuum fitting provided in config file, use "
-                "get_raw_deltas_tasker instead"
-            )
-        elif self.config["delta extraction"]["prefix"] == True:
-            if (
-                "expected flux" not in updated_extra_args
-                or "raw statistics file" not in updated_extra_args["expected flux"]
-                or updated_extra_args["expected flux"]["raw statistics file"]
-                in ("", None)
-            ):
-                raise ValueError(
-                    f"Should define expected flux and raw statistics file in extra "
-                    "args section in order to run TrueContinuum"
-                )
-            updated_extra_args["expected flux"]["type"] = "TrueContinuum"
-            if updated_extra_args.get("expected flux").get("input directory", 0) == 0:
-                updated_extra_args["expected flux"][
-                    "input directory"
-                ] = self.paths.healpix_data
+        self.validate_mock_runs(deltas_config_dict)
 
         # create config for delta_extraction options
         self.paths.deltas_path(region, calib_step).mkdir(parents=True, exist_ok=True)
-        deltas_config_dict = {
-            "general": {
-                "overwrite": True,
-                "out dir": str(
-                    self.paths.deltas_path(region, calib_step).parent.resolve()
-                )
-                + "/",
-            },
-            "data": updated_extra_args.get("data", {}),
-            "corrections": updated_extra_args.get(
-                "corrections",
-                {
-                    "num corrections": 0,
-                },
-            ),
-            "masks": updated_extra_args.get(
-                "masks",
-                {
-                    "num masks": 0,
-                },
-            ),
-            "expected flux": updated_extra_args.get("expected flux", {}),
-        }
-
-        # update data section with extra options
-        # but leave them if provided by user
-        deltas_config_dict["data"]["type"] = deltas_config_dict["data"].get(
-            "type",
-            "DesisimMocks"
-            if "v9." in self.config["data"]["release"]
-            else "DesiHealpix",
-        )
-        deltas_config_dict["data"]["catalogue"] = deltas_config_dict["data"].get(
-            "catalogue", str(self.paths.catalog)
-        )
-        deltas_config_dict["data"]["input directory"] = deltas_config_dict["data"].get(
-            "input directory", str(self.paths.healpix_data)
-        )
-        deltas_config_dict["data"]["lambda min rest frame"] = deltas_config_dict[
-            "data"
-        ].get("lambda min rest frame", forest_regions[region]["lambda-rest-min"])
-        deltas_config_dict["data"]["lambda max rest frame"] = deltas_config_dict[
-            "data"
-        ].get("lambda max rest frame", forest_regions[region]["lambda-rest-max"])
-
-        # update corrections section
-        num_corrections = int(
-            deltas_config_dict.get("corrections").get("num corrections")
-        )
-        assert isinstance(num_corrections, int) and num_corrections >= 0
-        for i in range(num_corrections):
-            correction_section = updated_extra_args.get(
-                f"correction arguments {i}", None
-            )
-            if correction_section is not None:
-                deltas_config_dict.update(
-                    {f"correction arguments {i}": correction_section}
-                )
-
-        # # update mask section
-        # num_masks = deltas_config_dict.get("masks").get("num masks")
-        # assert (isinstance(num_masks, int) and num_masks >= 0)
-        # for i in range(num_masks):
-        #     mask_section = updated_extra_args.get(f"mask arguments {i}", None)
-        #     if mask_section is not None:
-        #         deltas_config_dict.update({
-        #             f"mask arguments {i}": mask_section
-        #         })
-
-        deltas_config_dict = DictUtils.merge_dicts(
-            deltas_config_dict, updated_extra_args
-        )
-
         self.write_ini(deltas_config_dict, config_file)
 
         slurm_header_args = {
