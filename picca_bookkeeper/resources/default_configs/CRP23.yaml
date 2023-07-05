@@ -18,11 +18,11 @@ delta extraction:
 
   slurm args:
     picca_convert_transmission:
-      time: "02:00:00"
+      time: "03:30:00"
       qos: regular
     
     picca_delta_extraction:
-      time: "02:00:00"
+      time: "03:30:00"
       qos: regular
 
 
@@ -114,11 +114,11 @@ correlations:
   slurm args:
     picca_cf:
       qos: regular
-      time: "02:00:00"
+      time: "04:00:00"
 
     picca_dmat:
       qos: regular
-      time: "02:00:00"
+      time: "04:00:00"
 
     picca_export:
       qos: regular
@@ -130,11 +130,11 @@ correlations:
 
     picca_xcf:
       qos: regular
-      time: "02:00:00"
+      time: "03:00:00"
 
     picca_xdmat:
       qos: regular
-      time: "02:00:00"
+      time: "03:00:00"
 
     picca_metal_xdmat:
       qos: regular
