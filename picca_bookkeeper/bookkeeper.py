@@ -324,7 +324,9 @@ class Bookkeeper:
 
         # Read defaults and check if they have changed.
         defaults_file = files(resources).joinpath(
-            str(self.config["delta extraction"]["prefix"]) + ".yaml"
+            "default_configs/"
+            + str(self.config["delta extraction"]["prefix"])
+            + ".yaml"
         )
         if not defaults_file.is_file():
             raise ValueError("Invalid prefix, no defaults file found.", defaults_file)
