@@ -2550,7 +2550,7 @@ class PathBuilder:
         Returns
             Path
         """
-        return self.correlations_path / "configs" / "bookkeeper_correlation_config.yaml"
+        return self.correlations_path / "configs" / "bookkeeper_config.yaml"
 
     @property
     def fit_config_file(self) -> Path:
@@ -2559,7 +2559,7 @@ class PathBuilder:
         Returns
             Path
         """
-        return self.fits_path / "configs" / "bookkeeper_fit_config.yaml"
+        return self.fits_path / "configs" / "bookkeeper_config.yaml"
 
     def get_catalog_from_field(self, field) -> Path:
         """Method to obtain catalogs given a catalog name in config file.
