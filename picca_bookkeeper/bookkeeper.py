@@ -627,7 +627,7 @@ class Bookkeeper:
             raise ValueError("Trying to run calibration with calib = 0 in config file.")
 
         # Two calibration steps:
-        elif self.config["delta extraction"]["calib"] == 1:
+        elif self.config["delta extraction"]["calib"] == 2:
             # Second calibration step
             if calib_step is not None:
                 if calib_step == 2:
@@ -689,7 +689,7 @@ class Bookkeeper:
                     },
                 )
 
-        elif self.config["delta extraction"]["calib"] == 2:
+        elif self.config["delta extraction"]["calib"] == 1:
             # No special action for calibration steps,
             # only add extra actions for main run
             if calib_step is None:
@@ -1144,7 +1144,7 @@ class Bookkeeper:
             raise ValueError(
                 "Invalid calib value in config file. (Valid values are 0 1 2 3 10)"
             )
-        elif self.config["delta extraction"]["calib"] in (1,):
+        elif self.config["delta extraction"]["calib"] in (2,):
             steps.append(
                 self.get_delta_extraction_tasker(
                     region=region,
@@ -1167,7 +1167,7 @@ class Bookkeeper:
                     calib_step=2,
                 )
             )
-        elif self.config["delta extraction"]["calib"] in (2, 10):
+        elif self.config["delta extraction"]["calib"] in (1, 10):
             steps = (
                 self.get_delta_extraction_tasker(
                     region=region,
