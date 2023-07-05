@@ -9,7 +9,7 @@ data:
   healpix data:
 
   release: v9.0.0
-  survey: raw
+  survey: desi-2.0-1000
   catalog: LyaCoLoRe
   
 

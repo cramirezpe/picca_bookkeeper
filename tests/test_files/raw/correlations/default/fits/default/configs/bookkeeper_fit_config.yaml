@@ -4,7 +4,7 @@ data:
   early dir: /picca_bookkeeper/tests/test_files/output
   healpix data:
   release: v9.0.0
-  survey: raw
+  survey: desi-2.0-1000
   catalog: LyaCoLoRe
 fits:
   delta extraction: raw_0_0.0.0_0
