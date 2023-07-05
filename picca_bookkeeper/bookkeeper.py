@@ -711,7 +711,7 @@ class Bookkeeper:
                             "num corrections": num_corrections,
                             f"type {num_corrections - 1}": "CalibrationCorrection",
                         },
-                        f"corrections arguments {num_corrections - 1}": {
+                        f"correction arguments {num_corrections - 1}": {
                             "filename": str(
                                 self.calibration.paths.delta_attributes_file(
                                     None, calib_step=1
@@ -2610,9 +2610,15 @@ class PathBuilder:
         """
         # Potentially could add fits things here
         # Start from the bottom (correlations)
-        if self.config.get("correlations", dict()).get("delta extraction", "") not in ("", None):
+        if self.config.get("correlations", dict()).get("delta extraction", "") not in (
+            "",
+            None,
+        ):
             delta_name = self.config["correlations"]["delta extraction"]
-        elif self.config.get("fits", dict()).get("delta extraction", "") not in ("", None):
+        elif self.config.get("fits", dict()).get("delta extraction", "") not in (
+            "",
+            None,
+        ):
             delta_name = self.config["fits"]["delta extraction"]
         else:
             try:
@@ -2634,7 +2640,10 @@ class PathBuilder:
         Returns:
             Path
         """
-        if self.config.get("fits", dict()).get("correlation run name", "") not in ("", None):
+        if self.config.get("fits", dict()).get("correlation run name", "") not in (
+            "",
+            None,
+        ):
             correlation_name = self.config["fits"]["correlation run name"]
         else:
             correlation_name = self.config["correlations"]["run name"]
@@ -2703,11 +2712,11 @@ class PathBuilder:
         """
         if field == "dla":
             if (
-                (self.config["delta extraction"].get("dla catalog", None) not in ("", None))
-                and Path(
-                    self.config["delta extraction"].get("dla catalog", "")
-                ).is_file()
-            ):
+                self.config["delta extraction"].get("dla catalog", None)
+                not in ("", None)
+            ) and Path(
+                self.config["delta extraction"].get("dla catalog", "")
+            ).is_file():
                 catalog = Path(self.config["delta extraction"]["dla catalog"])
             else:
                 field_value = self.config["delta extraction"]["dla"]
@@ -2718,21 +2727,19 @@ class PathBuilder:
                 )
         elif field == "bal":
             if (
-                (self.config["delta extraction"].get("bal catalog", None) not in ("",None))
-                and Path(
-                    self.config["delta extraction"].get("bal catalog", "")
-                ).is_file()
-            ):
+                self.config["delta extraction"].get("bal catalog", None)
+                not in ("", None)
+            ) and Path(
+                self.config["delta extraction"].get("bal catalog", "")
+            ).is_file():
                 catalog = Path(self.config["delta extraction"]["bal catalog"])
             else:
                 catalog = self.get_catalog_from_field("catalog")
         elif field == "catalog_tracer":
             if (
-                (self.config["correlations"].get("catalog tracer", None) not in ("",None))
-                and Path(
-                    self.config["correlations"].get("catalog tracer", "")
-                ).is_file()
-            ):
+                self.config["correlations"].get("catalog tracer", None)
+                not in ("", None)
+            ) and Path(self.config["correlations"].get("catalog tracer", "")).is_file():
                 catalog = Path(self.config["correlations"]["catalog tracer"])
             else:
                 catalog = self.get_catalog_from_field("catalog")
