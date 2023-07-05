@@ -99,7 +99,7 @@ class Tasker:
         self.environment = environment
         self.environmental_variables = environmental_variables
         self.srun_options = {**self.default_srun_options, **srun_options}
-        self.run_file = run_file
+        self.run_file = Path(run_file)
         self.wait_for = wait_for
         self.jobid_log_file = jobid_log_file
 
@@ -173,6 +173,14 @@ class Tasker:
 
     def write_job(self):
         """Method to write job script into file."""
+        if self.run_file.is_file():
+            with open(self.run_file, "r") as f:
+                if self._make_body() != f.read():
+                    raise ValueError(
+                        "Script already generated and different in target.",
+                        str(self.run_file),
+                    )
+
         with open(self.run_file, "w") as f:
             f.write(self._make_body())
 
