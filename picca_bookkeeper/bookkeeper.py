@@ -335,7 +335,8 @@ class Bookkeeper:
 
         if self.paths.defaults_file.is_file():
             self.defaults_diff = PathBuilder.compare_config_files(
-                self.paths.defaults_file, defaults_file,
+                self.paths.defaults_file,
+                defaults_file,
             )
         else:
             self.defaults_diff = {}
@@ -370,7 +371,7 @@ class Bookkeeper:
         """
         correct_order = {
             "general": ["conda environment", "system", "slurm args"],
-            "data": ["early dir", "healpix data", "release", "survey", "catalog"],
+            "data": ["bookkeeper dir", "healpix data", "release", "survey", "catalog"],
             "delta extraction": [
                 "prefix",
                 "calib",
@@ -2468,7 +2469,7 @@ class PathBuilder:
     def survey_path(self) -> Path:
         """Path: Survey path following bookkeeper convention."""
         return (
-            Path(self.config["data"]["early dir"])
+            Path(self.config["data"]["bookkeeper dir"])
             / self.config["data"]["release"]
             / self.config["data"]["survey"]
         )

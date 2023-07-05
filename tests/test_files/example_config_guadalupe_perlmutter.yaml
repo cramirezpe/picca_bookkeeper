@@ -3,7 +3,7 @@ general:
   system: slurm_perlmutter
   
 data:
-  early dir: results_directory
+  bookkeeper dir: results_directory
   
   healpix data:
   release: guadalupe

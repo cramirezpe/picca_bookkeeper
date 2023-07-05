@@ -2,7 +2,7 @@ general:
   conda environment: picca
   system: slurm_cori
 data:
-  early dir: /global/u2/c/cramirez/Codes/picca_bookkeeper/tests/test_files/output
+  bookkeeper dir: /global/u2/c/cramirez/Codes/picca_bookkeeper/tests/test_files/output
   healpix data:
   release: guadalupe
   survey: main

@@ -3,7 +3,7 @@ general:
   system: slurm_perlmutter
   
 data:
-  early dir: /global/cfs/cdirs/desi/science/lya/early-3d/
+  bookkeeper dir: /global/cfs/cdirs/desi/science/lya/early-3d/
   
   healpix data:
   release: guadalupe

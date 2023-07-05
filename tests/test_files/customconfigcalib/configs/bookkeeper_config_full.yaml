@@ -8,7 +8,7 @@ data:
   # Define the ouput_dir where the results will be stored on.
   # also define a default input_dir where all the input values 
   # will be read by default.
-  early dir: /picca_bookkeeper/tests/test_files/output
+  bookkeeper dir: /picca_bookkeeper/tests/test_files/output
   
   
   

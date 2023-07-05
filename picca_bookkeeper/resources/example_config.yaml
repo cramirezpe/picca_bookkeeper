@@ -17,13 +17,13 @@ general:
 
 data:
   # Parent path of the bookkeeper.
-  early dir: /blabla
+  bookkeeper dir: /blabla
   # Hardcode the healpix data location, by default it will be set
   # according to the release, e.g. for everest:
   # /global/cfs/cdirs/desi/spectro/redux/everest/healpix/
   healpix data:
   # The structure of folders and sub-folders is the following:
-  # {early dir}/{release}/{survey}/{qso_cat}
+  # {bookkeeper dir}/{release}/{survey}/{qso_cat}
   # where:
   #   - release (everest, fuji): specifies the version of the pipeline used.
   #   - survey (sv1, sv2, sv3, sv, all, main): specifies the survey (or 

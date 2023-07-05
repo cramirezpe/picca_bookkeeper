@@ -3,7 +3,7 @@ general:
   system: slurm_cori
   
 data:
-  early dir: /picca_bookkeeper/tests/test_files/output
+  bookkeeper dir: /picca_bookkeeper/tests/test_files/output
   
   healpix data:
   release: guadalupe

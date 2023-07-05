@@ -2,7 +2,7 @@ general:
   conda environment: different_environment
   
 data:
-  early dir: results_directory
+  bookkeeper dir: results_directory
   
   healpix data:
   release: guadalupe

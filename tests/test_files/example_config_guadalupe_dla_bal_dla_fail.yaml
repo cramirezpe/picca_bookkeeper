@@ -2,7 +2,7 @@ general:
   conda environment: picca
   
 data:
-  early dir: results_directory
+  bookkeeper dir: results_directory
   
   
   

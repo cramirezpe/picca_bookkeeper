@@ -2,7 +2,7 @@ general:
   conda environment: picca
 
 data:
-  early dir: /picca_bookkeeper/tests/test_files/output
+  bookkeeper dir: /picca_bookkeeper/tests/test_files/output
   
   
 

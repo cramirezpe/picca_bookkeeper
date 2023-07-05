@@ -3,7 +3,7 @@ general:
   system: slurm_perlmutter
   
 data:
-  early dir: /path/to/analysis  
+  bookkeeper dir: /path/to/analysis  
   healpix data:
   release: guadalupe
   survey: main

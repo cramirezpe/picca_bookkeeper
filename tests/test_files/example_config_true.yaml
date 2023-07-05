@@ -2,7 +2,7 @@ general:
   conda environment: picca_add_tests
 
 data:
-  early dir: results_directory
+  bookkeeper dir: results_directory
 
   healpix data:
 

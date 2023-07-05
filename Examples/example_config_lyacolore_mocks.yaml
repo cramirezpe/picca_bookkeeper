@@ -3,7 +3,7 @@ general:
   system: slurm_perlmutter
 
 data:
-  early dir: /path/to/analysis
+  bookkeeper dir: /path/to/analysis
   input_dir: 
  
   # Provide custom healpix data folder /../../spectra-16
