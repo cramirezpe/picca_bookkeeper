@@ -865,6 +865,7 @@ class Bookkeeper:
         wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
         slurm_header_extra_args: Dict = dict(),
         extra_args: Dict = dict(),
+        overwrite: bool = False,
     ) -> Tasker:
         """Method to get a Tasker object to run raw deltas with picca.
 
@@ -885,6 +886,7 @@ class Bookkeeper:
                 picca_deltas.py script. Use a dictionary with the format
                 {'argument_name', 'argument_value'}. Use {'argument_name': ''}
                 if a action-like option is used.
+            overwrite: Overwrite files in destination.
 
         Returns:
             Tasker: Tasker object to run delta extraction.
@@ -898,6 +900,17 @@ class Bookkeeper:
                 f"{DictUtils.print_dict(self.defaults_diff)}"
             )
         region = self.validate_region(region)
+
+        if (
+            self.paths.deltas_path(region).is_dir()
+            and any(self.paths.deltas_path(region).iterdir())
+            and not overwrite
+        ):
+            raise FileExistsError(
+                "Destination files already exists, run with overwrite option"
+                "to continue",
+                self.paths.deltas_path(region),
+            )
 
         command = "picca_convert_transmission.py"
 
@@ -970,6 +983,7 @@ class Bookkeeper:
         slurm_header_extra_args: Dict = dict(),
         extra_args: Dict = dict(),
         calib_step: int = None,
+        overwrite: bool = False,
     ) -> Tasker:
         """Method to get a Tasker object to run delta extraction with picca.
 
@@ -992,6 +1006,7 @@ class Bookkeeper:
                 "num masks" in "masks" section one should pass
                 {'num masks': {'masks': value}}.
             calib_step: Calibration step. Default: None, no calibration
+            overwrite: Overwrite files in destination.
 
         Returns:
             Tasker: Tasker object to run delta extraction.
@@ -1005,6 +1020,17 @@ class Bookkeeper:
                 f"{DictUtils.print_dict(self.defaults_diff)}"
             )
         region = self.validate_region(region)
+
+        if (
+            self.paths.deltas_path(region).is_dir()
+            and any(self.paths.deltas_path(region).iterdir())
+            and not overwrite
+        ):
+            raise FileExistsError(
+                "Destination files already exists, run with overwrite option"
+                "to continue",
+                self.paths.deltas_path(region),
+            )
 
         command = "picca_delta_extraction.py"
 
@@ -1111,6 +1137,7 @@ class Bookkeeper:
         wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
         slurm_header_extra_args: Dict = dict(),
         extra_args: Dict = dict(),
+        overwrite: bool = False,
     ) -> Tasker:
         """Method to get a Tasker object to run calibration with picca delta
         extraction method.
@@ -1131,6 +1158,7 @@ class Bookkeeper:
                 picca_deltas.py script. Use a dictionary with the format
                 {'argument_name', 'argument_value'}. Use {'argument_name': ''}
                 if a action-like option is used.
+            overwrite: Overwrite files in destination.
 
         Returns:
             Tasker: Tasker object to run delta extraction for calibration.
@@ -1156,6 +1184,7 @@ class Bookkeeper:
                     slurm_header_extra_args=slurm_header_extra_args,
                     extra_args=extra_args,
                     calib_step=1,
+                    overwrite=overwrite,
                 )
             )
             steps.append(
@@ -1167,6 +1196,7 @@ class Bookkeeper:
                     slurm_header_extra_args=slurm_header_extra_args,
                     extra_args=extra_args,
                     calib_step=2,
+                    overwrite=overwrite,
                 )
             )
         elif self.config["delta extraction"]["calib"] in (1, 10):
@@ -1179,6 +1209,7 @@ class Bookkeeper:
                     slurm_header_extra_args=slurm_header_extra_args,
                     extra_args=extra_args,
                     calib_step=1,
+                    overwrite=overwrite,
                 ),
             )
         else:
@@ -1197,6 +1228,7 @@ class Bookkeeper:
         wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
         slurm_header_extra_args: Dict = dict(),
         extra_args: Dict = dict(),
+        overwrite: bool = False,
     ) -> Tasker:
         """Method to get a Tasker object to run forest-forest correlations with picca.
 
@@ -1221,6 +1253,7 @@ class Bookkeeper:
                 picca_deltas.py script. Use a dictionary with the format
                 {'argument_name', 'argument_value'}. Use {'argument_name': ''}
                 if a action-like option is used.
+            overwrite: Overwrite files in destination.
 
         Returns:
             Tasker: Tasker object to run forest-forest correlation.
@@ -1240,6 +1273,16 @@ class Bookkeeper:
         absorber2 = absorber if absorber2 is None else absorber2
         absorber2 = self.validate_absorber(absorber2)
         absorber = self.validate_absorber(absorber)
+
+        if (
+            self.paths.cf_fname(absorber, region, absorber2, region2).is_file()
+            and not overwrite
+        ):
+            raise FileExistsError(
+                "Destination file already exists, run with overwrite option"
+                "to continue",
+                self.paths.cf_fname(absorber, region, absorber2, region2),
+            )
 
         command = "picca_cf.py"
 
@@ -1332,6 +1375,7 @@ class Bookkeeper:
         wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
         slurm_header_extra_args: Dict = dict(),
         extra_args: Dict = dict(),
+        overwrite: bool = False,
     ) -> Tasker:
         """Method to get a Tasker object to run forest-forest distortion matrix
         measurements with picca.
@@ -1357,6 +1401,7 @@ class Bookkeeper:
                 picca_deltas.py script. Use a dictionary with the format
                 {'argument_name', 'argument_value'}. Use {'argument_name': ''}
                 if a action-like option is used.
+            overwrite: Overwrite files in destination.
 
         Returns:
             Tasker: Tasker object to run forest-forest correlation.
@@ -1376,6 +1421,16 @@ class Bookkeeper:
         absorber2 = absorber if absorber2 is None else absorber2
         absorber2 = self.validate_absorber(absorber2)
         absorber = self.validate_absorber(absorber)
+
+        if (
+            self.paths.dmat_fname(absorber, region, absorber2, region2).is_file()
+            and not overwrite
+        ):
+            raise FileExistsError(
+                "Destination file already exists, run with overwrite option"
+                "to continue",
+                self.paths.dmat_fname(absorber, region, absorber2, region2),
+            )
 
         command = "picca_dmat.py"
 
@@ -1467,6 +1522,7 @@ class Bookkeeper:
         slurm_header_extra_args: Dict = dict(),
         extra_args: Dict = dict(),
         no_dmat: bool = False,
+        overwrite: bool = False,
     ) -> Tasker:
         """Method to get a Tasker object to run forest-forest correlation export with
          picca.
@@ -1492,6 +1548,7 @@ class Bookkeeper:
                 {'argument_name', 'argument_value'}. Use {'argument_name': ''}
                 if a action-like option is used.
             no_dmat: Do not use distortion matrix.
+            overwrite: Overwrite files in destination.
 
         Returns:
             Tasker: Tasker object to run forest-forest correlation.
@@ -1511,6 +1568,16 @@ class Bookkeeper:
         absorber2 = absorber if absorber2 is None else absorber2
         absorber2 = self.validate_absorber(absorber2)
         absorber = self.validate_absorber(absorber)
+
+        if (
+            self.paths.exp_cf_fname(absorber, region, absorber2, region2).is_file()
+            and not overwrite
+        ):
+            raise FileExistsError(
+                "Destination file already exists, run with overwrite option"
+                "to continue",
+                self.paths.exp_cf_fname(absorber, region, absorber2, region2),
+            )
 
         command = "picca_export.py"
 
@@ -1595,6 +1662,7 @@ class Bookkeeper:
         wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
         slurm_header_extra_args: Dict = dict(),
         extra_args: Dict = dict(),
+        overwrite: bool = False,
     ) -> Tasker:
         """Method to get a Tasker object to run forest-forest metal distortion matrix
         measurements with picca.
@@ -1620,6 +1688,7 @@ class Bookkeeper:
                 picca_deltas.py script. Use a dictionary with the format
                 {'argument_name', 'argument_value'}. Use {'argument_name': ''}
                 if a action-like option is used.
+            overwrite: Overwrite files in destination.
 
         Returns:
             Tasker: Tasker object to run forest-forest correlation.
@@ -1639,6 +1708,16 @@ class Bookkeeper:
         absorber2 = absorber if absorber2 is None else absorber2
         absorber2 = self.validate_absorber(absorber2)
         absorber = self.validate_absorber(absorber)
+
+        if (
+            self.paths.metal_fname(absorber, region, absorber2, region2).is_file()
+            and not overwrite
+        ):
+            raise FileExistsError(
+                "Destination file already exists, run with overwrite option"
+                "to continue",
+                self.paths.metal_fname(absorber, region, absorber2, region2),
+            )
 
         # If metal matrices are provided, we just copy them into the bookkeeper
         # as if they were computed.
@@ -1741,6 +1820,7 @@ class Bookkeeper:
         wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
         slurm_header_extra_args: Dict = dict(),
         extra_args: Dict = dict(),
+        overwrite: bool = False,
     ) -> Tasker:
         """Method to get a Tasker object to run forest-quasar correlations with picca.
 
@@ -1761,6 +1841,7 @@ class Bookkeeper:
                 picca_deltas.py script. Use a dictionary with the format
                 {'argument_name', 'argument_value'}. Use {'argument_name': ''}
                 if a action-like option is used.
+            overwrite: Overwrite files in destination.
 
         Returns:
             Tasker: Tasker object to run forest-forest correlation.
@@ -1775,6 +1856,13 @@ class Bookkeeper:
             )
         region = self.validate_region(region)
         absorber = self.validate_absorber(absorber)
+
+        if self.paths.xcf_fname(absorber, region).is_file() and not overwrite:
+            raise FileExistsError(
+                "Destination file already exists, run with overwrite option"
+                "to continue",
+                self.paths.xcf_fname(absorber, region),
+            )
 
         command = "picca_xcf.py"
 
@@ -1856,6 +1944,7 @@ class Bookkeeper:
         wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
         slurm_header_extra_args: Dict = dict(),
         extra_args: Dict = dict(),
+        overwrite: bool = False,
     ) -> Tasker:
         """Method to get a Tasker object to run forest-quasar distortion matrix
         measurements with picca.
@@ -1878,6 +1967,7 @@ class Bookkeeper:
             extra_args : Send extra arguments to picca_deltas.py script.
                 Use a dictionary with the format {'argument_name', 'argument_value'}.
                 Use {'argument_name': ''} if a action-like option is used.
+            overwrite: Overwrite files in destination.
 
         Returns:
             Tasker: Tasker object to run forest-quasar distortion matrix.
@@ -1892,6 +1982,13 @@ class Bookkeeper:
             )
         region = self.validate_region(region)
         absorber = self.validate_absorber(absorber)
+
+        if self.paths.xdmat_fname(absorber, region).is_file() and not overwrite:
+            raise FileExistsError(
+                "Destination file already exists, run with overwrite option"
+                "to continue",
+                self.paths.xdmat_fname(absorber, region),
+            )
 
         command = "picca_xdmat.py"
 
@@ -1975,6 +2072,7 @@ class Bookkeeper:
         slurm_header_extra_args: Dict = dict(),
         extra_args: Dict = dict(),
         no_dmat: bool = False,
+        overwrite: bool = False,
     ) -> Tasker:
         """Method to get a Tasker object to run forest-quasar correlation export with
         picca.
@@ -1997,6 +2095,7 @@ class Bookkeeper:
                 {'argument_name', 'argument_value'}. Use {'argument_name': ''}
                 if a action-like option is used.
             no_dmat: Do not use disortion matrix
+            overwrite: Overwrite files in destination.
 
         Returns:
             Tasker: Tasker object to run forest-forest correlation.
@@ -2011,6 +2110,13 @@ class Bookkeeper:
             )
         region = self.validate_region(region)
         absorber = self.validate_absorber(absorber)
+
+        if self.paths.exp_xcf_fname(absorber, region).is_file() and not overwrite:
+            raise FileExistsError(
+                "Destination file already exists, run with overwrite option"
+                "to continue",
+                self.paths.exp_xcf_fname(absorber, region),
+            )
 
         command = "picca_export.py"
 
@@ -2088,6 +2194,7 @@ class Bookkeeper:
         wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
         slurm_header_extra_args: Dict = dict(),
         extra_args: Dict = dict(),
+        overwrite: bool = False,
     ) -> Tasker:
         """Method to get a Tasker object to run forest-quasar metal distortion matrix
         measurements with picca.
@@ -2109,12 +2216,20 @@ class Bookkeeper:
                 picca_deltas.py script. Use a dictionary with the format
                 {'argument_name', 'argument_value'}. Use {'argument_name': ''}
                 if a action-like option is used.
+            overwrite: Overwrite files in destination.
 
         Returns:
             Tasker: Tasker object to run forest-forest correlation.
         """
         region = self.validate_region(region)
         absorber = self.validate_absorber(absorber)
+
+        if self.paths.xmetal_fname(absorber, region).is_file() and not overwrite:
+            raise FileExistsError(
+                "Destination file already exists, run with overwrite option"
+                "to continue",
+                self.paths.xmetal_fname(absorber, region),
+            )
 
         copy_metal_matrix = self.paths.copied_xmetal_matrix(absorber, region)
         if copy_metal_matrix is not None:
@@ -2221,6 +2336,7 @@ class Bookkeeper:
         wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
         # vega_extra_args: Dict = dict(),
         slurm_header_extra_args: Dict = dict(),
+        overwrite: bool = False,
     ) -> Tasker:
         """Method to get a Tasker object to run vega with correlation data.
 
@@ -2244,6 +2360,7 @@ class Bookkeeper:
             slurm_header_extra_args: Change slurm header default options if
                 needed (time, qos, etc...). Use a dictionary with the format
                 {'option_name': 'option_value'}.
+            overwrite: Overwrite files in destination.
 
         Returns:
             Tasker: Tasker object to run vega.
@@ -2256,6 +2373,14 @@ class Bookkeeper:
                 f"values\). Defaults diff:\n\n"
                 f"{DictUtils.print_dict(self.defaults_diff)}"
             )
+
+        if self.paths.fit_main_fname().is_file() and not overwrite:
+            raise FileExistsError(
+                "Destination file already exists, run with overwrite option"
+                "to continue",
+                self.paths.fit_main_fname(),
+            )
+
         updated_system = self.generate_system_arg(system)
 
         ini_files = []

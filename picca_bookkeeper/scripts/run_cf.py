@@ -32,6 +32,7 @@ def main(args=None):
         system=None,
         debug=args.debug,
         wait_for=args.wait_for,
+        overwrite=args.overwrite,
     )
     cf.write_job()
     if not args.only_write:
@@ -48,6 +49,7 @@ def main(args=None):
             absorber2=args.absorber2,
             wait_for=args.wait_for,
             debug=args.debug,
+            overwrite=args.overwrite,
         )
         dmat.write_job()
         if not args.only_write:
@@ -63,6 +65,7 @@ def main(args=None):
             system=None,
             debug=args.debug,
             wait_for=args.wait_for,
+            overwrite=args.overwrite,
         )
         if isinstance(metal, Tasker):
             metal.write_job()
@@ -84,6 +87,7 @@ def main(args=None):
         system=None,
         wait_for=wait_for,
         no_dmat=args.no_dmat,
+        overwrite=args.overwrite,
     )
 
     cf_exp.write_job()
@@ -102,7 +106,13 @@ def get_args():
     )
 
     parser.add_argument(
-        "--overwrite_config",
+        "--overwrite",
+        action="store_true",
+        help="Force overwrite output data."
+    )
+
+    parser.add_argument(
+        "--overwrite-config",
         action="store_true",
         help="Force overwrite bookkeeper config.",
     )

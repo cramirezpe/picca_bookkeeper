@@ -27,6 +27,7 @@ def main(args=None):
         region=args.region,
         debug=args.debug,
         wait_for=args.wait_for,
+        overwrite=args.overwrite,
     )
     xcf.write_job()
     if not args.only_write:
@@ -40,6 +41,7 @@ def main(args=None):
             region=args.region,
             debug=args.debug,
             wait_for=args.wait_for,
+            overwrite=args.overwrite,
         )
         xdmat.write_job()
         if not args.only_write:
@@ -52,6 +54,7 @@ def main(args=None):
             system=None,
             debug=args.debug,
             wait_for=args.wait_for,
+            overwrite=args.overwrite,
         )
         # Only run metal if it has not been copied
         # only if metal is a tasker instance
@@ -71,6 +74,7 @@ def main(args=None):
         region=args.region,
         wait_for=wait_for,
         no_dmat=args.no_dmat,
+        overwrite=args.overwrite,
     )
 
     xcf_exp.write_job()
@@ -99,6 +103,12 @@ def get_args():
         "--absorber", type=str, default="lya", help="Absorber to use for correlations"
     )
 
+    parser.add_argument(
+        "--overwrite",
+        action="store_true",
+        help="Force overwrite output data."
+    )
+    
     parser.add_argument(
         "--overwrite-config",
         action="store_true",

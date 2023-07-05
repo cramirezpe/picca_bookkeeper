@@ -9,7 +9,9 @@ from picca_bookkeeper.tasker import get_Tasker
 def main(args=None):
     if args is None:
         args = get_args()
-    bookkeeper = Bookkeeper(args.bookkeeper_config, overwrite_config=args.overwrite_config)
+    bookkeeper = Bookkeeper(
+        args.bookkeeper_config, overwrite_config=args.overwrite_config
+    )
 
     command = "picca_bookkeeper_add_extra_deltas_data"
 
@@ -62,11 +64,11 @@ def main(args=None):
     }
 
     updated_slurm_header_args = bookkeeper.generate_slurm_header_extra_args(
-        config = bookkeeper.config['delta extraction'], 
-        default_config = bookkeeper.defaults['delta extraction'], 
-        slurm_args = slurm_header_args, 
-        command = command,
-        region = region,
+        config=bookkeeper.config["delta extraction"],
+        default_config=bookkeeper.defaults["delta extraction"],
+        slurm_args=slurm_header_args,
+        command=command,
+        region=region,
     )
     srun_options = {
         "nodes": 1,
@@ -103,9 +105,9 @@ def get_args():
     )
 
     parser.add_argument(
-        "--overwrite_config",
+        "--overwrite-config",
         action="store_true",
-        help="Force overwrite bookkeeper config."
+        help="Force overwrite bookkeeper config.",
     )
 
     parser.add_argument(
@@ -134,9 +136,7 @@ def get_args():
     )
 
     parser.add_argument(
-        "--only-write",
-        action="store_true",
-        help="Only write scripts, not send them."
+        "--only-write", action="store_true", help="Only write scripts, not send them."
     )
 
     parser.add_argument("--wait-for", nargs="+", type=int, default=None, required=False)

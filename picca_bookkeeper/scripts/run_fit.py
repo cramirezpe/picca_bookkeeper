@@ -26,6 +26,7 @@ def main(args=None):
         auto_correlations=args.auto_correlations,
         cross_correlations=args.cross_correlations,
         wait_for=args.wait_for,
+        overwrite=args.overwrite,
     )
 
     fit.write_job()
@@ -44,7 +45,13 @@ def get_args():
     )
 
     parser.add_argument(
-        "--overwrite_config",
+        "--overwrite",
+        action="store_true",
+        help="Force overwrite output data."
+    )
+
+    parser.add_argument(
+        "--overwrite-config",
         action="store_true",
         help="Force overwrite bookkeeper config.",
     )

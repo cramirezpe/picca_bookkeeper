@@ -79,6 +79,7 @@ def main(args=None):
                 only_write=args.only_write,
                 wait_for=args.wait_for,
                 log_level=args.log_level,
+                overwrite=args.overwrite,
             )
             calib_jobid = run_delta_extraction(calib_args)
         else:
@@ -97,6 +98,7 @@ def main(args=None):
                 only_write=args.only_write,
                 wait_for=calib_jobid,
                 log_level=args.log_level,
+                overwrite=args.overwrite,
             )
             region_jobids[region] = run_delta_extraction(region_args)
     else:
@@ -133,6 +135,7 @@ def main(args=None):
                 only_write=args.only_write,
                 wait_for=wait_for,
                 log_level=args.log_level,
+                overwrite=args.overwrite,
             )
             correlation_jobids.append(run_cf(auto_args))
 
@@ -152,6 +155,7 @@ def main(args=None):
                 only_write=args.only_write,
                 wait_for=region_jobids[region],
                 log_level=args.log_level,
+                overwrite=args.overwrite,
             )
 
             correlation_jobids.append(run_xcf(cross_args))
@@ -174,6 +178,7 @@ def main(args=None):
             only_write=args.only_write,
             wait_for=correlation_jobids,
             log_level=args.log_level,
+            overwrite=args.overwrite,
         )
         fit_jobid = run_fit(fit_args)
     else:
@@ -192,7 +197,11 @@ def get_args():
     )
 
     parser.add_argument(
-        "--overwrite_config",
+        "--overwrite", action="store_true", help="Force overwrite output data."
+    )
+
+    parser.add_argument(
+        "--overwrite-config",
         action="store_true",
         help="Force overwrite bookkeeper config.",
     )

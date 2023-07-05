@@ -34,6 +34,7 @@ def main(args=None):
             system=None,
             debug=args.debug,
             wait_for=args.wait_for,
+            overwrite=args.overwrite,
         )
         calibration.write_job()
         if not args.only_write:
@@ -64,6 +65,7 @@ def main(args=None):
         system=None,
         debug=args.debug,
         wait_for=wait_for,
+        overwrite=args.overwrite,
     )
 
     deltas.write_job()
@@ -85,6 +87,12 @@ def get_args():
         type=str,
         default="lya",
         help="Region to compute deltas in",
+    )
+
+    parser.add_argument(
+        "--overwrite",
+        action="store_true",
+        help="Force overwrite output data."
     )
 
     parser.add_argument(
