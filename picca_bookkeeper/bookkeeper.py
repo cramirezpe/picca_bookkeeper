@@ -814,7 +814,7 @@ class Bookkeeper:
 
     def validate_mock_runs(self, deltas_config_dict: Dict) -> None:
         """Method to validate config file for mock runs
-        
+
         Args:
             delta_config_dict: Dict containing config to be used
         """
@@ -1034,11 +1034,6 @@ class Bookkeeper:
                     + "/",
                 },
                 "data": {
-                    "lambda min": 3600,  # @remove
-                    "lambda max": 5772,  # @remove
-                    "wave solution": "lin",  # @remove
-                    "delta lambda": 0.8,  # @remove
-                    "minimum number pixels in forest": 150,  # @remove
                     "type": "DesisimMocks"
                     if "v9." in self.config["data"]["release"]
                     else "DesiHealpix",
