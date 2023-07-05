@@ -2610,9 +2610,9 @@ class PathBuilder:
         """
         # Potentially could add fits things here
         # Start from the bottom (correlations)
-        if self.config.get("correlations", dict()).get("delta extraction", "") != "":
+        if self.config.get("correlations", dict()).get("delta extraction", "") not in ("", None):
             delta_name = self.config["correlations"]["delta extraction"]
-        elif self.config.get("fits", dict()).get("delta extraction", "") != "":
+        elif self.config.get("fits", dict()).get("delta extraction", "") not in ("", None):
             delta_name = self.config["fits"]["delta extraction"]
         else:
             try:
@@ -2634,7 +2634,7 @@ class PathBuilder:
         Returns:
             Path
         """
-        if self.config.get("fits", dict()).get("correlation run name", "") != "":
+        if self.config.get("fits", dict()).get("correlation run name", "") not in ("", None):
             correlation_name = self.config["fits"]["correlation run name"]
         else:
             correlation_name = self.config["correlations"]["run name"]
@@ -2703,7 +2703,7 @@ class PathBuilder:
         """
         if field == "dla":
             if (
-                not (self.config["delta extraction"].get("dla catalog", "") is None)
+                (self.config["delta extraction"].get("dla catalog", None) not in ("", None))
                 and Path(
                     self.config["delta extraction"].get("dla catalog", "")
                 ).is_file()
@@ -2718,7 +2718,7 @@ class PathBuilder:
                 )
         elif field == "bal":
             if (
-                not (self.config["delta extraction"].get("bal catalog", "") is None)
+                (self.config["delta extraction"].get("bal catalog", None) not in ("",None))
                 and Path(
                     self.config["delta extraction"].get("bal catalog", "")
                 ).is_file()
@@ -2728,7 +2728,7 @@ class PathBuilder:
                 catalog = self.get_catalog_from_field("catalog")
         elif field == "catalog_tracer":
             if (
-                not (self.config["correlations"].get("catalog tracer", "") is None)
+                (self.config["correlations"].get("catalog tracer", None) not in ("",None))
                 and Path(
                     self.config["correlations"].get("catalog tracer", "")
                 ).is_file()
