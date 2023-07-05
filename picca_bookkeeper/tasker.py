@@ -179,7 +179,7 @@ class Tasker:
     def write_jobid(self):
         """Method to write jobid into log file."""
         with open(self.jobid_log_file, "a") as file:
-            file.write(str(self.jobid) + "\n")
+            file.write(str(self.run_file.name) + " " + str(self.jobid) + "\n")
 
 
 class SlurmTasker(Tasker):

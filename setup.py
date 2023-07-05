@@ -37,6 +37,7 @@ setuptools.setup(
             "picca_bookkeeper_search_runs = picca_bookkeeper.scripts.search_runs:main",
             "picca_bookkeeper_show_defaults = picca_bookkeeper.scripts.print_bookkeeper_defaults:main",
             "picca_bookkeeper_show_example = picca_bookkeeper.scripts.print_example:main",
+            "picca_bookkeeper_cancel_jobids = picca_bookkeeper.scripts.cancel_jobids_from_file:main",
         ]
     },
     classifiers=[
