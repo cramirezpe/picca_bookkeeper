@@ -2492,20 +2492,32 @@ class Bookkeeper:
 
         # Now slurm args
         command = "run_vega.py"
-        updated_slurm_header_args = self.generate_slurm_header_extra_args(
+        updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
             config=self.config,
             default_config=self.defaults,
             section="fits",
             slurm_args=slurm_header_extra_args,
             command=command,
         )
+
         job_name = "vega_fit"
+        
+        slurm_header_args = {
+            "job-name": job_name,
+            "output": str(self.paths.fits_path / f"logs/{job_name}-%j.out"),
+            "error": str(self.paths.fits_path / f"logs/{job_name}-%j.err"),
+        }
+
+        slurm_header_args = DictUtils.merge_dicts(
+            slurm_header_args,
+            updated_slurm_header_extra_args,
+        )
 
         return get_Tasker(
             updated_system,
             command=command,
             command_args={"": str(self.paths.fit_main_fname().resolve())},
-            slurm_header_args=updated_slurm_header_args,
+            slurm_header_args=slurm_header_args,
             srun_options=dict(),
             environment=self.config["general"]["conda environment"],
             run_file=self.paths.fits_path / f"scripts/run_{job_name}.sh",
