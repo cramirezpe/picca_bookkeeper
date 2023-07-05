@@ -225,7 +225,6 @@ class DeltaConfigReader(ConfigReader):
 
 
 class CorrelationConfigReader(ConfigReader):
-    config_name = "bookkeeper_config.yaml"
     first_els = np.array(["delta run", "correlation run"])
 
     def clean_config(self):
@@ -247,7 +246,6 @@ class CorrelationConfigReader(ConfigReader):
 
 
 class FitConfigReader(ConfigReader):
-    config_name = "bookkeeper_config.yaml"
     first_els = np.array(["delta run", "correlation run", "fit run"])
 
     def clean_config(self):
