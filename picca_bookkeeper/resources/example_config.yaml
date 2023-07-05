@@ -18,10 +18,12 @@ general:
 data:
   # Parent path of the bookkeeper.
   bookkeeper dir: /blabla
+
   # Hardcode the healpix data location, by default it will be set
   # according to the release, e.g. for everest:
   # /global/cfs/cdirs/desi/spectro/redux/everest/healpix/
   healpix data:
+
   # The structure of folders and sub-folders is the following:
   # {bookkeeper dir}/{release}/{survey}/{qso_cat}
   # where:
@@ -39,21 +41,19 @@ data:
 
 delta extraction:  
   # The structure of folders and sub-folders is the following:
-  # .../early-3d/{relase}/{survey}/{qso_cat}/{prefix}_{calib}_{calib_region}.{dla}.{bal}_{suffix}
   # .../{bookkeeper dir}/{relase}/{survey}/{qso_cat}/{prefix}_{calib}.{calib_region}.{dla}.{bal}_{suffix}
-  # where {prefix}_{calib}.{calib_region}.{dla}.{bal}_{suffix} defines de continuum fitting used:
+  # where {prefix}_{calib}.{calib_region}.{dla}.{bal}_{suffix} defines the continuum fitting used:
   #   - prefix (dMdB20, CRP23, raw, True): specifies the general configuration of the run.
-  #       dMdB20: fudge included, 2.4A bins, var lss mod=0 (see resources/dMdB20.yaml)
-  #       CRP23: analysis performed for early3D DESI analyses. nofudge, 0.8A bins, var lss mod = 7.5, lambda rest frame max=1205.
-  #       raw: use this for raw mocks.
-  #       true: use this for true continuum analyses.
+  #       - dMdB20: fudge included, 2.4A bins, var lss mod=0 (see resources/dMdB20.yaml)
+  #       - CRP23: analysis performed for early3D DESI analyses. nofudge, 0.8A bins, var lss mod = 7.5, lambda rest frame max=1205.
+  #       - raw: use this for raw mocks.
+  #       - true: use this for true continuum analyses.
+  #       - Could also match any of the yaml files under picca_bookkeeper.resources.default_configs
   #
   #   - calib (0, 1, 2): Integer defining the number of calibration steps.
   #       - 0: no calibration.
   #       - 1: early3D calibration: One step calibration (flux).
-  #                                weighting scheme uses eta and var_lss
   #       - 2: dMdB20 calibration: Two step calibration (first for flux, second for IVAR).
-  #                                weighting scheme includes eta, var_lss, fudge
   #       - 10: Accept custom options for calibration in yaml file.
   #
   #   - calib region (any of the ones defined in picca_bookkeeper.Bookkeeper.forest_regions)
@@ -62,6 +62,7 @@ delta extraction:
   #   - dla (0, 1, 2, etc): integer identifying the version of DLA masking used
   #       - 0: no DLA masking.
   #       - 1: First version of DLA catalog.
+  #       - N: Nth version of DLA catalog. 
   #
   #   - bal (0, 1, 2, etc): integer identifying the version of BAL masking used 
   #       - 0: No BAL masking.
@@ -85,7 +86,7 @@ delta extraction:
   # in order to use calibration files from there.
   # Leave empty to compute calibration deltas.
   calibration data:
-  # mask to be applied in the continuum fitting process.
+  # line masking to be applied in the continuum fitting process.
   mask file:
   # force DLA catalog (if not the one correspondent to the catalog above will be used)
   dla catalog:
@@ -111,7 +112,7 @@ delta extraction:
     # Scripts with terminal args are also compatible
     picca_convert_transmission:
       nspec: 30
-    # use-splines: # use empty string for action args like no-project.
+    # use-splines: ""# use empty string for action args like no-project.
 
     
   # Slurm arguments to be used by the bookkeeper
@@ -125,9 +126,9 @@ delta extraction:
 correlations:
   # If a delta extraction is defined in the same config file (as the current one), 
   # this can be left empty. Otherwise, the user should provide the name of the analysis
-  # using the format # {prefix}_{calib}_{calib_region}.{dla}.{bal}_{suffix}, 
+  # using the format # {prefix}_{calib}.{calib_region}.{dla}.{bal}_{suffix}, 
   # e.g: dMdB20_2.ciii.0.0_0
-  delta extraction: ''
+  delta extraction:
 
   # This is the user-friendly name for the correlation run+
   run name: default
@@ -157,10 +158,9 @@ correlations:
       nside: 16
     # no-project: "" # use empty string for action args like no-project.
 
-    # To affect an specific region use 
+    # To affect an specific region use the following format
     # remember fo follow the region names in picca_bookkeeper.Bookkeeper.forest_regions
-    # The values set here will overlap the ones defined in picca_cf
-    # for the lyalya_lyalya region only. (auto, could use lyalya_lyalyb for cross lya lyb)
+    # The values set here will overlap the ones defined in picca_cf, so both will be applied
     picca_cf_lyalya_lyalya:
 
     # lyalyb: Lyman alpha in the lyman beta forest.
@@ -168,7 +168,7 @@ correlations:
 
     picca_xcf:
 
-    # lyalya
+    # For the cross we se lyalya format.
     picca_xcf_lyalya:
 
     picca_dmat:
@@ -211,8 +211,9 @@ fits:
 
     vega_main:
 
-    ## Uncomment this to remove certain configuration from the fit
-    ## This will remove BAO fitting
+    ## Uncomment this to remove certain configuration parameters from the fit
+    ## This will remove ap and at from sample section in vega main
+    # effectively removing BAO fitting
     # remove_vega_main:
     #   sample:
     #     ap:
