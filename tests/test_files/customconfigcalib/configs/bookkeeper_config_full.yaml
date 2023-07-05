@@ -47,7 +47,7 @@ delta extraction:
   #   - suffix (0, any string): any string identifying anythin else particular
   #           in the analysis (0 means nothing).
   prefix: dMdB20
-  calib: 1
+  calib: 2
   calib region: mgii_r
   dla: 0
   bal: 0

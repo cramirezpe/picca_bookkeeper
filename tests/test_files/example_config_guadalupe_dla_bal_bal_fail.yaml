@@ -14,7 +14,7 @@ data:
   
 delta extraction:
   prefix: dMdB20
-  calib: 1
+  calib: 2
   calib region: mgii_r
   dla: 1
   bal: 2

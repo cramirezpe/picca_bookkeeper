@@ -81,7 +81,7 @@ delta extraction:
   suffix: 0
 
   # Insert here the name of the analysis using the format
-  # {prefix}_{calib}_{calib_region}.{dla}.{bal}_{suffix}, e.g: dMdB20_2_ciii.0.0_0
+  # {prefix}_{calib}_{calib_region}.{dla}.{bal}_{suffix}, e.g: dMdB20_2.ciii.0.0_0
   # in order to use calibration files from there.
   # Leave empty to compute calibration deltas.
   calibration data:
@@ -126,7 +126,7 @@ correlations:
   # If a delta extraction is defined in the same config file (as the current one), 
   # this can be left empty. Otherwise, the user should provide the name of the analysis
   # using the format # {prefix}_{calib}_{calib_region}.{dla}.{bal}_{suffix}, 
-  # e.g: dMdB20_2_ciii.0.0_0
+  # e.g: dMdB20_2.ciii.0.0_0
   delta extraction: ''
 
   # This is the user-friendly name for the correlation run+
@@ -142,14 +142,14 @@ correlations:
     # Use all to use same matrix for all analyses
     all: 
     # or specify regions/absorbers
-    lyalya_lyalya: /global/cfs/cdirs/desicollab/users/cgordon/Y1/bookkeeper_test/iron/main/QSO_cat_iron_main_dark_healpix_v0/dMdB20_2_ciii.1.2_0/correlations/default/correlations/lyalya_lyalya/metal.fits.gz 
-    lyalya_lyalyb: /global/cfs/cdirs/desicollab/users/cgordon/Y1/bookkeeper_test/iron/main/QSO_cat_iron_main_dark_healpix_v0/dMdB20_2_ciii.1.2_0/correlations/default/correlations/lyalya_lyalyb/metal.fits.gz 
+    lyalya_lyalya: /global/cfs/cdirs/desicollab/users/cgordon/Y1/bookkeeper_test/iron/main/QSO_cat_iron_main_dark_healpix_v0/dMdB20_2.ciii.1.2_0/correlations/default/correlations/lyalya_lyalya/metal.fits.gz 
+    lyalya_lyalyb: /global/cfs/cdirs/desicollab/users/cgordon/Y1/bookkeeper_test/iron/main/QSO_cat_iron_main_dark_healpix_v0/dMdB20_2.ciii.1.2_0/correlations/default/correlations/lyalya_lyalyb/metal.fits.gz 
 
   xmetal matrices:
     all:
     # For cross-, only one absorber/region is needed.
-    lyalya: /global/cfs/cdirs/desicollab/users/cgordon/Y1/bookkeeper_test/iron/main/QSO_cat_iron_main_dark_healpix_v0/dMdB20_2_ciii.1.2_0/correlations/default/correlations/lyalya_qso/xmetal.fits.gz
-    lyalyb: /global/cfs/cdirs/desicollab/users/cgordon/Y1/bookkeeper_test/iron/main/QSO_cat_iron_main_dark_healpix_v0/dMdB20_2_ciii.1.2_0/correlations/default/correlations/lyalyb_qso/xmetal.fits.gz
+    lyalya: /global/cfs/cdirs/desicollab/users/cgordon/Y1/bookkeeper_test/iron/main/QSO_cat_iron_main_dark_healpix_v0/dMdB20_2.ciii.1.2_0/correlations/default/correlations/lyalya_qso/xmetal.fits.gz
+    lyalyb: /global/cfs/cdirs/desicollab/users/cgordon/Y1/bookkeeper_test/iron/main/QSO_cat_iron_main_dark_healpix_v0/dMdB20_2.ciii.1.2_0/correlations/default/correlations/lyalyb_qso/xmetal.fits.gz
 
 
   extra args:
@@ -188,7 +188,7 @@ fits:
   # If a delta extraction is defined in the same config file (as the current one), 
   # this can be left empty. Otherwise, the user should provide the name of the analysis
   # using the format # {prefix}_{calib}_{calib_region}.{dla}.{bal}_{suffix}, 
-  # e.g: dMdB20_2_ciii.0.0_0
+  # e.g: dMdB20_2.ciii.0.0_0
   delta extraction: 
 
   # Similarly as before, define a correlation run name if it was not defined above.

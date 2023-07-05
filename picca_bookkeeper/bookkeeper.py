@@ -695,7 +695,7 @@ class Bookkeeper:
             if calib_step is None:
                 if not self.paths.deltas_path(calib_step=1).is_dir():
                     raise FileNotFoundError(
-                        "Calibration folder does not exist. run get_calibration tasker "
+                        "Calibration folder does not exist. run get_calibration_tasker "
                         "before running deltas."
                     )
                 num_corrections = (

@@ -7,7 +7,7 @@ data:
   survey: main
   catalog: afterburn_v0
 correlations:
-  delta extraction: dMdB20_0_mgii_r.0.0_0
+  delta extraction: dMdB20_0.0.0.0_0
   run name: default
   catalog tracer:
 fits:

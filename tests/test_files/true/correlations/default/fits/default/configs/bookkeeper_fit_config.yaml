@@ -7,6 +7,6 @@ data:
   survey: desi-2.0-1000
   catalog: LyaCoLoRe
 fits:
-  delta extraction: True_0_0.0.0_0
+  delta extraction: True_0.0.0.0_0
   correlation run name: default
   run name: default

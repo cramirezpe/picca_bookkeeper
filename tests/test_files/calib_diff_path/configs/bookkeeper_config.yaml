@@ -8,9 +8,9 @@ data:
   catalog: afterburn_v0
 delta extraction:
   prefix: dMdB20
-  calib: 1
+  calib: 2
   calib region: mgii_r
   dla: 0
   bal: 0
   suffix: _reuse_calib
-  calibration data: dMdB20_1_mgii_r.0.0_0
+  calibration data: dMdB20_2.mgii_r.0.0_0

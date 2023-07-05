@@ -12,7 +12,7 @@ data:
   
 delta extraction:
   prefix: dMdB20
-  calib: 1 #dr16 method of calibraiton
+  calib: 2 #dr16 method of calibraiton
   calib region: ciii
   dla: 0
   bal: 2 #bal masking
