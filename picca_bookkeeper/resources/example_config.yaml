@@ -40,32 +40,39 @@ data:
 delta extraction:  
   # The structure of folders and sub-folders is the following:
   # .../early-3d/{relase}/{survey}/{qso_cat}/{prefix}_{calib}_{calib_region}.{dla}.{bal}_{suffix}
-  # where {prefix}_{calib}_{calib_region}.{dla}.{bal}_{suffix} defines de continuum fitting used:
-  #   - prefix (dMdB20, pca, etc): specifies the type of continuum fit (dMdB20 is the 
-  #           one used in eBOSS DR16, default in Picca).
-  #   - calib (0, 1, 2, etc): integer identifying the version of pre-calibration 
-  #           and weight estimation
+  # .../{bookkeeper dir}/{relase}/{survey}/{qso_cat}/{prefix}_{calib}.{calib_region}.{dla}.{bal}_{suffix}
+  # where {prefix}_{calib}.{calib_region}.{dla}.{bal}_{suffix} defines de continuum fitting used:
+  #   - prefix (dMdB20, CRP23, raw, True): specifies the general configuration of the run.
+  #       dMdB20: fudge included, 2.4A bins, var lss mod=0 (see resources/dMdB20.yaml)
+  #       CRP23: analysis performed for early3D DESI analyses. nofudge, 0.8A bins, var lss mod = 7.5, lambda rest frame max=1205.
+  #       raw: use this for raw mocks.
+  #       true: use this for true continuum analyses.
+  #
+  #   - calib (0, 1, 2): Integer defining the number of calibration steps.
   #       - 0: no calibration.
-  #       - 1: dMdB20 calibration: Two step calibration (first for flux, second for IVAR).
-  #                                weighting scheme includes eta, var_lss, fudge
-  #       - 2: early3D calibration: One step calibration (flux).
+  #       - 1: early3D calibration: One step calibration (flux).
   #                                weighting scheme uses eta and var_lss
-  #       - 3: dMdB20 1 step calibration: One step calibration (flux).
-  #                                weighting scheme uses eta, var_lss, fudge
-  #       - 4: Accept custom options for calibration in yaml file.
+  #       - 2: dMdB20 calibration: Two step calibration (first for flux, second for IVAR).
+  #                                weighting scheme includes eta, var_lss, fudge
+  #       - 10: Accept custom options for calibration in yaml file.
+  #
   #   - calib region (any of the ones defined in picca_bookkeeper.Bookkeeper.forest_regions)
   #         0 if no calibration is used.
+  #
   #   - dla (0, 1, 2, etc): integer identifying the version of DLA masking used
   #       - 0: no DLA masking.
   #       - 1: First version of DLA catalog.
+  #
   #   - bal (0, 1, 2, etc): integer identifying the version of BAL masking used 
   #       - 0: No BAL masking.
   #       - 1: Drop BAL objects (not implemented).
   #       - 2: Mask BAL objects.
+  #
   #   - suffix (0, any string): any string identifying anything else particular
   #           in the analysis (0 means nothing). This is free for the user to select
   #           whatever they consider appropiately if it does not overlap with other 
   #           runs
+
   prefix: dMdB20
   calib: 0
   calib region: mgii_r

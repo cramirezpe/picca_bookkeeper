@@ -2685,11 +2685,13 @@ class PathBuilder:
         prefix = self.config["delta extraction"]["prefix"]
         calib = self.config["delta extraction"]["calib"]
         calib_region = self.config["delta extraction"].get("calib region", 0)
+        if calib == 0:
+            calib_region = 0
         suffix = self.config["delta extraction"]["suffix"]
         bal = self.config["delta extraction"]["bal"]
         dla = self.config["delta extraction"]["dla"]
 
-        return "{}_{}_{}.{}.{}_{}".format(prefix, calib, calib_region, dla, bal, suffix)
+        return "{}_{}.{}.{}.{}_{}".format(prefix, calib, calib_region, dla, bal, suffix)
 
     @staticmethod
     def compare_config_files(
