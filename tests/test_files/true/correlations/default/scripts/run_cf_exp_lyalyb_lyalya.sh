@@ -16,5 +16,5 @@ export OMP_NUM_THREADS=128
 
 export HDF5_USE_FILE_LOCKING=FALSE
 
-command="picca_export.py --data /picca_bookkeeper/tests/test_files/output/v9.0.0/desi-2.0-1000/LyaCoLoRe/True_0_0.0.0_0/correlations/default/correlations/lyalyb_lyalya/cf.fits.gz --out /picca_bookkeeper/tests/test_files/output/v9.0.0/desi-2.0-1000/LyaCoLoRe/True_0_0.0.0_0/correlations/default/correlations/lyalyb_lyalya/cf_exp.fits.gz --dmat /picca_bookkeeper/tests/test_files/output/v9.0.0/desi-2.0-1000/LyaCoLoRe/True_0_0.0.0_0/correlations/default/correlations/lyalyb_lyalya/dmat.fits.gz"
+command="picca_export.py --data /picca_bookkeeper/tests/test_files/output/v9.0.0/desi-2.0-1000/LyaCoLoRe/True_0_0.0.0_0/correlations/default/results/lyalyb_lyalya/cf.fits.gz --out /picca_bookkeeper/tests/test_files/output/v9.0.0/desi-2.0-1000/LyaCoLoRe/True_0_0.0.0_0/correlations/default/results/lyalyb_lyalya/cf_exp.fits.gz --dmat /picca_bookkeeper/tests/test_files/output/v9.0.0/desi-2.0-1000/LyaCoLoRe/True_0_0.0.0_0/correlations/default/results/lyalyb_lyalya/dmat.fits.gz"
 srun --nodes 1 --ntasks 1 --cpus-per-task 128 $command
