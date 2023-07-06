@@ -341,6 +341,7 @@ class Bookkeeper:
         config = DictUtils.convert_to_string(config)
 
         parser = configparser.ConfigParser()
+        parser.optionxform = str
         parser.read_dict(config)
 
         with open(file, "w") as file:
@@ -2481,6 +2482,7 @@ class Bookkeeper:
         args = DictUtils.merge_dicts(args, vega_args)
 
         filename = self.paths.fit_main_fname()
+        print(DictUtils.print_dict(args))
         self.write_ini(args, filename)
 
         ini_files.append(str(filename))
