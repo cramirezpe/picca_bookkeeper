@@ -639,9 +639,6 @@ class Bookkeeper:
             # Actual run (no calibration)
             else:
                 if not self.paths.deltas_log_path(None, calib_step=2).is_dir():
-                    import pdb
-
-                    pdb.set_trace()
                     raise FileNotFoundError(
                         "Calibration folder does not exist. run get_calibration_tasker "
                         "before running deltas."
@@ -2482,7 +2479,6 @@ class Bookkeeper:
         args = DictUtils.merge_dicts(args, vega_args)
 
         filename = self.paths.fit_main_fname()
-        print(DictUtils.print_dict(args))
         self.write_ini(args, filename)
 
         ini_files.append(str(filename))
