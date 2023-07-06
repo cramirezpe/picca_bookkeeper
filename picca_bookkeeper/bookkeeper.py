@@ -739,10 +739,7 @@ class Bookkeeper:
             )
 
         # update masks sections if necessary
-        if (
-            self.config["delta extraction"]["dla"] != 0
-            or self.config["delta extraction"]["bal"] != 0
-        ) and calib_step is None:
+        if calib_step is None:
             if self.config["delta extraction"]["dla"] != 0:
                 if "DlaMask" in extra_args["masks"].values():
                     raise ValueError("DlaMask set by user with dla option != 0")
@@ -781,11 +778,7 @@ class Bookkeeper:
                         },
                     },
                 )
-            else:
-                raise ValueError(
-                    "Invalid value for bal: ",
-                    self.config["delta extraction"]["bal"],
-                )
+
         return extra_args
 
     def validate_mock_runs(self, deltas_config_dict: Dict) -> None:
