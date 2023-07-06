@@ -228,11 +228,11 @@ class Bookkeeper:
                     # They are the same
                     self.write_bookkeeper(config_delta, self.paths.delta_config_file)
                 else:
-                    print(DictUtils.print_dict(comparison))
                     raise ValueError(
                         "delta extraction section of config file should match delta "
                         "extraction section from file already in the bookkeeper. "
-                        "Unmatching items above"
+                        "Unmatching items:\n\n"
+                        f"{DictUtils.print_dict(comparison)}"
                     )
             # Copy full bookkeeper.
             shutil.copyfile(
@@ -267,10 +267,10 @@ class Bookkeeper:
                         config_corr, self.paths.correlation_config_file
                     )
                 else:
-                    print(DictUtils.print_dict(comparison))
                     raise ValueError(
                         "correlations section of config file should match correlation section "
-                        "from file already in the bookkeeper. Unmatching items above"
+                        "from file already in the bookkeeper. Unmatching items:\n\n"
+                        f"{DictUtils.print_dict(comparison)}"
                     )
         if self.fits is not None:
             config_fit = copy.deepcopy(self.config)
@@ -300,10 +300,10 @@ class Bookkeeper:
                 if comparison == dict():
                     self.write_bookkeeper(config_fit, self.paths.fit_config_file)
                 else:
-                    print(DictUtils.print_dict(comparison))
                     raise ValueError(
                         "fits section of config file should match fits section "
-                        "from file already in the bookkeeper. Unmatching items above."
+                        "from file already in the bookkeeper. Unmatching items:\n\n"
+                        f"{DictUtils.print_dict(comparison)}"
                     )
 
         # Read defaults and check if they have changed.
@@ -2383,8 +2383,30 @@ class Bookkeeper:
             region2 = self.validate_region(region2)
             absorber2 = self.validate_absorber(absorber2)
 
+            args = DictUtils.merge_dicts(
+                config,
+                {
+                    "fits": {
+                        "extra args": {
+                            "vega_auto": {
+                                "data": {
+                                    "filename": self.paths.exp_cf_fname(
+                                        absorber, region, absorber2, region2
+                                    ),
+                                },
+                                "metals": {
+                                    "filename": self.paths.metal_fname(
+                                        absorber, region, absorber2, region2
+                                    ),
+                                },
+                            }
+                        }
+                    }
+                },
+            )
+
             vega_args = self.generate_extra_args(
-                config=config,
+                config=args,
                 default_config=self.defaults,
                 section="fits",
                 extra_args=dict(),
@@ -2395,23 +2417,8 @@ class Bookkeeper:
                 absorber2=absorber2,
             )
 
-            args = {
-                "data": {
-                    "filename": self.paths.exp_cf_fname(
-                        absorber, region, absorber2, region2
-                    ),
-                },
-                "metals": {
-                    "filename": self.paths.metal_fname(
-                        absorber, region, absorber2, region2
-                    ),
-                },
-            }
-
-            args = DictUtils.merge_dicts(args, vega_args)
-
             filename = self.paths.fit_auto_fname(absorber, region, absorber2, region2)
-            self.write_ini(args, filename)
+            self.write_ini(vega_args, filename)
 
             ini_files.append(str(filename))
 
@@ -2421,8 +2428,30 @@ class Bookkeeper:
             region = self.validate_region(region)
             absorber = self.validate_absorber(absorber)
 
+            args = DictUtils.merge_dicts(
+                config,
+                {
+                    "fits": {
+                        "extra args": {
+                            "vega_cross": {
+                                "data": {
+                                    "filename": self.paths.exp_xcf_fname(
+                                        absorber, region
+                                    ),
+                                },
+                                "metals": {
+                                    "filename": self.paths.xmetal_fname(
+                                        absorber, region
+                                    ),
+                                },
+                            }
+                        }
+                    }
+                },
+            )
+
             vega_args = self.generate_extra_args(
-                config=config,
+                config=args,
                 default_config=self.defaults,
                 section="fits",
                 extra_args=dict(),
@@ -2431,57 +2460,63 @@ class Bookkeeper:
                 absorber=absorber,
             )
 
-            args = {
-                "data": {
-                    "filename": self.paths.exp_xcf_fname(absorber, region),
-                },
-                "metals": {
-                    "filename": self.paths.xmetal_fname(absorber, region),
-                },
-            }
-
-            args = DictUtils.merge_dicts(args, vega_args)
-
             filename = self.paths.fit_cross_fname(absorber, region)
-            self.write_ini(args, filename)
+            self.write_ini(vega_args, filename)
             ini_files.append(str(filename))
 
         # Now the main file
+        args = DictUtils.merge_dicts(
+            config,
+            {
+                "fits": {
+                    "extra args": {
+                        "vega_main": {
+                            "data sets": {
+                                "ini files": " ".join(ini_files),
+                            },
+                            "output": {"filename": self.paths.fit_out_fname()},
+                        }
+                    }
+                }
+            },
+        )
+        if "fiducial" not in args["fits"]["extra args"]["vega_main"] or (
+            args["fits"]["extra args"]["vega_main"]["fiducial"].get("filename", None)
+            is None
+        ):
+            shutil.copy(
+                files(resources).joinpath("fit_models/PlanckDR16.fits"),
+                self.paths.fit_main_fname().parent / "PlanckDR16.fits",
+            )
+
+            args = DictUtils.merge_dicts(
+                args,
+                {
+                    "fits": {
+                        "extra args": {
+                            "vega_main": {
+                                "fiducial": {
+                                    "filename": (
+                                        self.paths.fit_main_fname().parent
+                                        / "PlanckDR16.fits"
+                                    )
+                                }
+                            }
+                        }
+                    }
+                },
+            )
+
         vega_args = self.generate_extra_args(
-            config=config,
+            config=args,
             default_config=self.defaults,
             section="fits",
             extra_args=dict(),
             command="vega_main.py",  # The .py needed to make use of same function
         )
 
-        args = {
-            "data sets": {
-                "ini files": " ".join(ini_files),
-            },
-            "output": {"filename": self.paths.fit_out_fname()},
-        }
-
-        if "fiducial" not in args:
-            shutil.copy(
-                files(resources).joinpath("fit_models/PlanckDR16.fits"),
-                self.paths.fit_main_fname().parent / "PlanckDR16.fits",
-            )
-            args = DictUtils.merge_dicts(
-                args,
-                {
-                    "fiducial": {
-                        "filename": (
-                            self.paths.fit_main_fname().parent / "PlanckDR16.fits"
-                        )
-                    }
-                },
-            )
-
-        args = DictUtils.merge_dicts(args, vega_args)
-
         filename = self.paths.fit_main_fname()
-        self.write_ini(args, filename)
+        self.write_ini(vega_args, filename)
 
         ini_files.append(str(filename))
 
@@ -2654,7 +2689,7 @@ class Bookkeeper:
                             "qso_rad_strength": "",
                         }
                     },
-                    "vega main": {
+                    "vega_main": {
                         "parameters": {
                             "qso_rad_strength": "0",
                         }

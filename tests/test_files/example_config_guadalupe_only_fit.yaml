@@ -16,6 +16,8 @@ fits:
   delta extraction: dMdB20_2.mgii_r.0.0_0
   correlation run name: default
 
+  metals: False
+
   extra args:
     remove_vega_main:
       sample:
