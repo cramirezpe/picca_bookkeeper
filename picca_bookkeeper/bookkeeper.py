@@ -2465,7 +2465,12 @@ class Bookkeeper:
             command="vega_main.py",  # The .py needed to make use of same function
         )
 
-        args = {"output": {"filename": self.paths.fit_out_fname()}}
+        args = {
+            "data sets": {
+                "ini files": " ".join(ini_files),
+            },
+            "output": {"filename": self.paths.fit_out_fname()},
+        }
 
         if "fiducial" not in args:
             shutil.copy(
@@ -2501,7 +2506,7 @@ class Bookkeeper:
         )
 
         job_name = "vega_fit"
-        
+
         slurm_header_args = {
             "job-name": job_name,
             "output": str(self.paths.fits_path / f"logs/{job_name}-%j.out"),
