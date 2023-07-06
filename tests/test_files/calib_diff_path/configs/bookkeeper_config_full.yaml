@@ -18,7 +18,9 @@ delta extraction:
   bal: 0
   suffix: _reuse_calib
 
-  calibration data: dMdB20_2.mgii_r.0.0_0
+  calibration data:
+    step 1: /picca_bookkeeper/tests/test_files/output/guadalupe/main/afterburn_v0/dMdB20_2.mgii_r.0.0_0/results/calibration_1/Log/delta_attributes.fits.gz
+    step 2: /picca_bookkeeper/tests/test_files/output/guadalupe/main/afterburn_v0/dMdB20_2.mgii_r.0.0_0/results/calibration_2/Log/delta_attributes.fits.gz
   
 correlations:
   catalog tracer:

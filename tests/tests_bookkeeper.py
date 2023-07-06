@@ -360,7 +360,14 @@ class TestBookkeeper(unittest.TestCase):
         bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
         write_full_analysis(bookkeeper, calib=True, region="lyb", region2="lya")
-
+        bookkeeper.paths.deltas_log_path(None, calib_step=1).mkdir(
+            exist_ok=True, parents=True
+        )
+        bookkeeper.paths.deltas_log_path(None, calib_step=2).mkdir(
+            exist_ok=True, parents=True
+        )
+        bookkeeper.paths.delta_attributes_file(None, calib_step=1).touch()
+        bookkeeper.paths.delta_attributes_file(None, calib_step=2).touch()
         # self.replace_paths_bookkeeper_output(bookkeeper.paths)
 
         # Now main run:
@@ -384,7 +391,7 @@ class TestBookkeeper(unittest.TestCase):
 
         bookkeeper2 = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
-        write_full_analysis(bookkeeper2, calib=False, region="lyb", region2="lya")
+        write_full_analysis(bookkeeper2, calib=True, region="lyb", region2="lya")
 
         self.replace_paths_bookkeeper_output(bookkeeper2.paths)
         if "UPDATE_TESTS" in os.environ and os.environ["UPDATE_TESTS"] == "True":
