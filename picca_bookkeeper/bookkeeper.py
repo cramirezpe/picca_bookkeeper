@@ -6,6 +6,7 @@ import shutil
 import sys
 from pathlib import Path
 from typing import *
+import numpy as np
 
 import yaml
 from importlib_resources import files
@@ -385,6 +386,17 @@ class Bookkeeper:
                 "delta extraction",
                 "correlation run name",
                 "run name",
+                "auto correlations",
+                "cross correlations",
+                "bao",
+                "hcd",
+                "metals",
+                "sky",
+                "qso rad",
+                "rmin cf",
+                "rmax cf",
+                "rmin xcf",
+                "rmax xcf",
                 "extra args",
                 "slurm args",
             ],
@@ -2373,7 +2385,15 @@ class Bookkeeper:
 
         ini_files = []
 
-        for auto_correlation in auto_correlations:
+        config = self.generate_fit_configuration()
+
+        if self.config["fits"].get("auto correlations", None) is not None:
+            auto_correlations += self.config["fits"]["auto correlations"].split(" ")
+        if self.config["fits"].get("cross correlations", None) is not None:
+            cross_correlations += self.config["fits"]["cross correlations"].split(" ")
+
+        # Set because there can be repeated values.
+        for auto_correlation in set(auto_correlations):
             absorber, region, absorber2, region2 = auto_correlation.replace(
                 "-", "."
             ).split(".")
@@ -2383,7 +2403,7 @@ class Bookkeeper:
             absorber2 = self.validate_absorber(absorber2)
 
             vega_args = self.generate_extra_args(
-                config=self.config,
+                config=config,
                 default_config=self.defaults,
                 section="fits",
                 extra_args=dict(),
@@ -2414,13 +2434,14 @@ class Bookkeeper:
 
             ini_files.append(str(filename))
 
-        for cross_correlation in cross_correlations:
+        # Set because there can be repeated values.
+        for cross_correlation in set(cross_correlations):
             absorber, region = cross_correlation.split(".")
             region = self.validate_region(region)
             absorber = self.validate_absorber(absorber)
 
             vega_args = self.generate_extra_args(
-                config=self.config,
+                config=config,
                 default_config=self.defaults,
                 section="fits",
                 extra_args=dict(),
@@ -2446,7 +2467,7 @@ class Bookkeeper:
 
         # Now the main file
         vega_args = self.generate_extra_args(
-            config=self.config,
+            config=config,
             default_config=self.defaults,
             section="fits",
             extra_args=dict(),
@@ -2517,6 +2538,196 @@ class Bookkeeper:
             jobid_log_file=self.paths.fits_path / f"logs/jobids.log",
             wait_for=wait_for,
         )
+
+    def generate_fit_configuration(self):
+        """
+        Method to generate fit configuration args to be combined with input
+        yaml file
+        """
+        config = DictUtils.merge_dicts(
+            self.defaults,
+            self.config,
+        )
+
+        for field in "bao", "hcd", "metals", "sky", "qso rad":
+            if not isinstance(config["fits"][field], bool):
+                raise ValueError(f"Fit config {field} should be boolean.")
+
+        for field in "rmin cf", "rmax cf", "rmin xcf", "rmax xcf":
+            if not isinstance(config["fits"][field], (np.integer, type(None))):
+                raise ValueError(f"Fit config {field} should be integer.")
+
+        args = DictUtils.merge_dicts(
+            {
+                "vega_auto": {
+                    "data": {},
+                    "cuts": {},
+                    "model": {},
+                    "metals": {},
+                },
+                "vega_cross": {
+                    "data": {},
+                    "cuts": {},
+                    "model": {},
+                    "metals": {},
+                },
+                "vega_main": {
+                    "data sets": {},
+                    "cosmo-fit type": {},
+                    "fiducial": {},
+                    "control": {},
+                    "output": {},
+                    "Polychord": {},
+                    "sample": {},
+                    "parameters": {},
+                },
+            },
+            config["fits"]["extra args"],
+        )
+
+        if not config["fits"]["bao"]:
+            args = DictUtils.merge_dicts(
+                args,
+                {
+                    "remove_vega_main": {  # This removes fields
+                        "sample": {
+                            "ap": "",
+                            "at": "",
+                        }
+                    },
+                    "vega_main": {  # This adds/modifies fields
+                        "parameters": {
+                            "bao_amp": 0,
+                        }
+                    },
+                },
+            )
+
+        if not config["fits"]["hcd"]:
+            args = DictUtils.merge_dicts(
+                args,
+                {
+                    "remove_vega_main": {
+                        "sample": {
+                            "bias_hcd": "",
+                            "beta_hcd": "",
+                        }
+                    },
+                    "vega_auto": {
+                        "model": {
+                            "model-hcd": "None",
+                        }
+                    },
+                    "vega_cross": {
+                        "model": {
+                            "model-hcd": "None",
+                        }
+                    },
+                },
+            )
+
+        if not config["fits"]["metals"]:
+            args = DictUtils.merge_dicts(
+                args,
+                {
+                    "remove_vega_auto": {
+                        "metals": "",
+                    },
+                    "remove_vega_cross": {
+                        "metals": "",
+                    },
+                    "remove_vega_main": {
+                        "sample": {
+                            "bias_eta_SiII(1190)": "",
+                            "bias_eta_SiII(1193)": "",
+                            "bias_eta_SiII(1260)": "",
+                            "bias_eta_SiIII(1207)": "",
+                        }
+                    },
+                },
+            )
+
+        if not config["fits"]["sky"]:
+            args = DictUtils.merge_dicts(
+                args,
+                {
+                    "remove_vega_main": {
+                        "sample": {
+                            "desi_inst_sys_amp": "",
+                        }
+                    },
+                    "vega_main": {
+                        "parameters": {
+                            "desi_inst_sys_amp": "0",
+                        }
+                    },
+                },
+            )
+
+        if not config["fits"]["qso rad"]:
+            args = DictUtils.merge_dicts(
+                args,
+                {
+                    "remove_vega_main": {
+                        "sample": {
+                            "qso_rad_strength": "",
+                        }
+                    },
+                    "vega main": {
+                        "parameters": {
+                            "qso_rad_strength": "0",
+                        }
+                    },
+                },
+            )
+
+        if config["fits"]["rmin cf"] is not None:
+            args = DictUtils.merge_dicts(
+                args,
+                {
+                    "vega_auto": {
+                        "cuts": {
+                            "r-min": str(config["fits"]["rmin cf"]),
+                        }
+                    }
+                },
+            )
+        if config["fits"]["rmax cf"] is not None:
+            args = DictUtils.merge_dicts(
+                args,
+                {
+                    "vega_auto": {
+                        "cuts": {
+                            "r-max": str(config["fits"]["rmax cf"]),
+                        }
+                    }
+                },
+            )
+        if config["fits"]["rmin xcf"] is not None:
+            args = DictUtils.merge_dicts(
+                args,
+                {
+                    "vega_cross": {
+                        "cuts": {
+                            "r-min": str(config["fits"]["rmin xcf"]),
+                        }
+                    }
+                },
+            )
+        if config["fits"]["rmax xcf"] is not None:
+            args = DictUtils.merge_dicts(
+                args,
+                {
+                    "vega_cross": {
+                        "cuts": {
+                            "r-max": str(config["fits"]["rmax xcf"]),
+                        }
+                    }
+                },
+            )
+
+        config["fits"]["extra args"] = args
+        return config
 
 
 class PathBuilder:

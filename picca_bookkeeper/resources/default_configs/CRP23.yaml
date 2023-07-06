@@ -142,6 +142,19 @@ correlations:
 
 
 fits:
+  auto correlations:
+  cross correlations: 
+
+  bao: True
+  hcd: True
+  metals: True
+  sky: True
+  qso rad: True
+  rmin cf:
+  rmax cf: 
+  rmin xcf:
+  rmax xcf:
+
   extra args:
     vega_auto:
       data:

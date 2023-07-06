@@ -199,6 +199,20 @@ fits:
   # This is the user-friendly name for the fit run
   run name: default
 
+  auto correlations: lya.lya-lya.lya lya.lya-lya.lyb
+  cross correlations: lya.lya 
+
+  bao: True
+  hcd: True
+  metals: True
+  sky: True
+  qso rad: True
+  rmin cf:
+  rmax cf: 
+  rmin xcf:
+  rmax xcf:
+
+
   # To use same functions we call this extra_args although vega is used.
   extra args:
     vega_auto:

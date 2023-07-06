@@ -112,6 +112,17 @@ correlations:
       qos: regular
       time: '10:00:00'
 fits:
+  auto correlations:
+  cross correlations:
+  bao: true
+  hcd: true
+  metals: true
+  sky: true
+  qso rad: true
+  rmin cf:
+  rmax cf:
+  rmin xcf:
+  rmax xcf:
   extra args:
     vega_auto:
       data:
