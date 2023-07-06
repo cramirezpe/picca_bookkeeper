@@ -484,9 +484,11 @@ class Bookkeeper:
             args = copy.deepcopy(config["general"]["slurm args"])
         else:
             args = dict()
-        copied_args = copy.deepcopy(slurm_args)
-        config = copy.deepcopy(config[section])
-        defaults = copy.deepcopy(default_config[section])
+
+        config = DictUtils.merge_dicts(
+            default_config[section],
+            config[section],
+        )
 
         sections = ["general", command.split(".py")[0]]
 
@@ -500,18 +502,6 @@ class Bookkeeper:
             if region2 is not None:
                 sections[-1] = sections[-1] + region2
 
-        # We iterate over the sections from low to high priority
-        # overriding the previous set values if there is a coincidence
-        if "slurm args" in defaults.keys() and isinstance(defaults["slurm args"], dict):
-            for section in sections:
-                if section in defaults["slurm args"] and isinstance(
-                    defaults["slurm args"][section], dict
-                ):
-                    args = DictUtils.merge_dicts(args, defaults["slurm args"][section])
-
-        # We iterate over the sections from low to high priority
-        # overriding the previous set values if there is a coincidence
-        # Now with the values set by user
         if "slurm args" in config.keys() and isinstance(config["slurm args"], dict):
             for section in sections:
                 if section in config["slurm args"] and isinstance(
@@ -520,7 +510,7 @@ class Bookkeeper:
                     args = DictUtils.merge_dicts(args, config["slurm args"][section])
 
         # Copied args is the highest priority
-        return DictUtils.merge_dicts(args, copied_args)
+        return DictUtils.merge_dicts(args, slurm_args)
 
     def generate_extra_args(
         self,
@@ -548,9 +538,7 @@ class Bookkeeper:
             region2: For scripts where two regions are needed.
             absorber2: Second absorber to use for correlations.
         """
-        copied_args = copy.deepcopy(extra_args)
-        config = copy.deepcopy(config[section])
-        defaults = copy.deepcopy(default_config[section])
+        config = DictUtils.merge_dicts(default_config[section], config[section])
 
         sections = [command.split(".py")[0]]
 
@@ -565,13 +553,6 @@ class Bookkeeper:
                 sections[-1] = sections[-1] + region2
 
         args = dict()
-        if "extra args" in defaults.keys() and isinstance(defaults["extra args"], dict):
-            for section in sections:
-                if section in defaults["extra args"] and isinstance(
-                    defaults["extra args"][section], dict
-                ):
-                    args = DictUtils.merge_dicts(args, defaults["extra args"][section])
-
         if "extra args" in config.keys() and isinstance(config["extra args"], dict):
             for section in sections:
                 if section in config["extra args"] and isinstance(
@@ -589,7 +570,7 @@ class Bookkeeper:
                     )
 
         # Copied args is the highest priority
-        return DictUtils.merge_dicts(args, copied_args)
+        return DictUtils.merge_dicts(args, extra_args)
 
     def generate_system_arg(self, system) -> str:
         if system is None:
