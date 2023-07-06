@@ -60,6 +60,7 @@ def main(args=None):
 
     regions = np.unique(regions)
 
+    wait_for = list(np.array(args.wait_for).flatten())
     ########################################
     ## Running delta extraction for calibration
     ## and then all the deltas needed.
@@ -67,7 +68,7 @@ def main(args=None):
     if not args.no_deltas:
         if (str(continuum_type) not in ("raw", "True")) and bookkeeper.config[
             "delta extraction"
-        ]["calib"] != "0":
+        ]["calib"] != 0:
             calib_args = argparse.Namespace(
                 bookkeeper_config=args.bookkeeper_config,
                 region="lya",  # It doesn't really matter
@@ -80,9 +81,7 @@ def main(args=None):
                 log_level=args.log_level,
                 overwrite=args.overwrite,
             )
-            calib_jobid = run_delta_extraction(calib_args)
-        else:
-            calib_jobid = args.wait_for
+            wait_for.append(run_delta_extraction(calib_args))
 
         region_jobids = dict()
         for region in regions:
@@ -94,7 +93,7 @@ def main(args=None):
                 only_calibration=False,
                 skip_calibration=True,
                 only_write=args.only_write,
-                wait_for=calib_jobid,
+                wait_for=wait_for,
                 log_level=args.log_level,
                 overwrite=args.overwrite,
             )

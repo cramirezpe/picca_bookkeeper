@@ -29,9 +29,11 @@ def main(args=None):
     continuum_type = bookkeeper.config["delta extraction"]["prefix"]
 
     if args.only_calibration or (
-        (str(continuum_type) not in ("raw", "True"))
-        and bookkeeper.config["delta extraction"]["calib"] != "0"
-        and not args.skip_calibration
+        (
+            str(continuum_type) not in ("raw", "True")
+            and bookkeeper.config["delta extraction"]["calib"] != 0
+            and not args.skip_calibration
+        )
     ):
         logger.info("Adding calibration step(s).")
         calibration = bookkeeper.get_calibration_extraction_tasker(

@@ -235,10 +235,13 @@ class Bookkeeper:
                         f"{DictUtils.print_dict(comparison)}"
                     )
             # Copy full bookkeeper.
-            shutil.copyfile(
-                config_path,
-                self.paths.delta_config_file.parent / "bookkeeper_config_full.yaml",
-            )
+            try:
+                shutil.copyfile(
+                    config_path,
+                    self.paths.delta_config_file.parent / "bookkeeper_config_full.yaml",
+                )
+            except shutil.SameFileError:
+                pass
 
         if self.correlations is not None and config_type != "fits":
             config_corr = copy.deepcopy(self.config)
@@ -492,15 +495,16 @@ class Bookkeeper:
 
         sections = ["general", command.split(".py")[0]]
 
-        if absorber is not None:
-            sections.append(command.split(".py")[0] + f"_{absorber}")
-            if region is not None:
-                sections[-1] = sections[-1] + region
+        absorber = "" if absorber is None else absorber
+        absorber2 = "" if absorber2 is None else absorber2
+        region = "" if region is None else region
+        region2 = "" if region2 is None else region2
 
-        if absorber2 is not None:
-            sections[-1] = sections[-1] + f"_{absorber2}"
-            if region2 is not None:
-                sections[-1] = sections[-1] + region2
+        if region != "":
+            sections.append(command.split(".py")[0] + f"_{absorber}{region}")
+
+        if region2 != "":
+            sections[-1] += f"_{absorber2}{region2}"
 
         if "slurm args" in config.keys() and isinstance(config["slurm args"], dict):
             for section in sections:
@@ -542,15 +546,16 @@ class Bookkeeper:
 
         sections = [command.split(".py")[0]]
 
-        if absorber is not None:
-            sections.append(command.split(".py")[0] + f"_{absorber}")
-            if region is not None:
-                sections[-1] = sections[-1] + region
+        absorber = "" if absorber is None else absorber
+        absorber2 = "" if absorber2 is None else absorber2
+        region = "" if region is None else region
+        region2 = "" if region2 is None else region2
 
-        if absorber2 is not None:
-            sections[-1] = sections[-1] + f"_{absorber2}"
-            if region2 is not None:
-                sections[-1] = sections[-1] + region2
+        if region != "":
+            sections.append(command.split(".py")[0] + f"_{absorber}{region}")
+
+        if region2 != "":
+            sections[-1] += f"_{absorber2}{region2}"
 
         args = dict()
         if "extra args" in config.keys() and isinstance(config["extra args"], dict):

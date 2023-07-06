@@ -14,7 +14,11 @@ delta extraction:
         var lss mod: 7.5
     
     picca_delta_extraction_lya:
-      limit var lss: (0, 0.4)
+      data:
+        lambda max rest frame: 1205.0
+      expected flux:
+        limit var lss: (0, 0.4)
+
 
   slurm args:
     picca_convert_transmission:
