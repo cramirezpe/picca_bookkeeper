@@ -409,3 +409,18 @@ class ChainedTasker:
     @property
     def jobid(self):
         return self.taskers[-1].jobid
+
+
+class DummyTasker(Tasker):
+    """Tasker object that performs no action. Useful for when files
+    are copied and runs are not needed.
+    """
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def write_job(self):
+        pass
+
+    def send_job(self):
+        self.jobid = None
+        return None

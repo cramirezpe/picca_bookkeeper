@@ -18,7 +18,9 @@ delta extraction:
   bal: 0
   suffix: _reuse_calib
 
-  calibration data: dMdB20_2.mgii_r.0.0_0
+  calibration data:
+    step 1:
+    step 2:
   
 correlations:
   catalog tracer:

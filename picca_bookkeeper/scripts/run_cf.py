@@ -73,17 +73,10 @@ def main(args=None):
             wait_for=args.wait_for,
             overwrite=args.overwrite,
         )
-        if isinstance(metal, Tasker):
-            metal.write_job()
-            if not args.only_write:
-                metal.send_job()
-                metal_jobid = metal.jobid
-            else:
-                metal_jobid = None
-        else:
-            metal_jobid = None
-    else:
-        metal_jobid = None
+        metal.write_job()
+        if not args.only_write:
+            metal.send_job()
+            print(metal.jobid)
 
     cf_exp = bookkeeper.get_cf_exp_tasker(
         region=args.region,
@@ -100,7 +93,7 @@ def main(args=None):
     if not args.only_write:
         cf_exp.send_job()
         print(cf_exp.jobid)
-        return [metal_jobid, cf_exp.jobid]
+        return [metal.jobid, cf_exp.jobid]
     else:
         return
 

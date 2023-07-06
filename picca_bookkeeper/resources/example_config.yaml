@@ -81,11 +81,13 @@ delta extraction:
   bal: 0
   suffix: 0
 
-  # Insert here the name of the analysis using the format
-  # {prefix}_{calib}_{calib_region}.{dla}.{bal}_{suffix}, e.g: dMdB20_2.ciii.0.0_0
-  # in order to use calibration files from there.
-  # Leave empty to compute calibration deltas.
+  # Only if you want to re-use calibration data from a different analysis.
+  # Insert here the path of a delta-attributes.fits.gz file to use it as 
+  # calibration data for the current run..
   calibration data:
+    step 1:
+    step 2: # leave this empty if only 1 step calib.
+    
   # line masking to be applied in the continuum fitting process.
   mask file:
   # force DLA catalog (if not the one correspondent to the catalog above will be used)

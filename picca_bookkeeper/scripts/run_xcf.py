@@ -60,19 +60,10 @@ def main(args=None):
             wait_for=args.wait_for,
             overwrite=args.overwrite,
         )
-        # Only run metal if it has not been copied
-        # only if metal is a tasker instance
-        if isinstance(metal, Tasker):
-            metal.write_job()
-            if not args.only_write:
-                metal.send_job()
-                metal_jobid = metal.jobid
-            else:
-                metal_jobid = None
-        else:
-            metal_jobid = None
-    else:
-        metal_jobid = None
+        metal.write_job()
+        if not args.only_write:
+            metal.send_job()
+            print(metal.jobid)
 
     xcf_exp = bookkeeper.get_xcf_exp_tasker(
         region=args.region,
@@ -85,7 +76,7 @@ def main(args=None):
     if not args.only_write:
         xcf_exp.send_job()
         print(xcf_exp.jobid)
-        return [metal_jobid, xcf_exp.jobid]
+        return [metal.jobid, xcf_exp.jobid]
     else:
         return
 

@@ -372,7 +372,12 @@ class TestBookkeeper(unittest.TestCase):
         with open(THIS_DIR / "test_files" / "output" / "tmp.yaml", "r") as file:
             filedata = file.read()
 
-        # filedata = filedata.replace("calibration_directory", str(THIS_DIR / "test_files" / "output"))
+        filedata = filedata.replace(
+            "step 1:", f"step 1: {str(bookkeeper.paths.delta_attributes_file(None, 1))}"
+        )
+        filedata = filedata.replace(
+            "step 2:", f"step 2: {str(bookkeeper.paths.delta_attributes_file(None, 2))}"
+        )
 
         with open(THIS_DIR / "test_files" / "output" / "tmp.yaml", "w") as file:
             file.write(filedata)

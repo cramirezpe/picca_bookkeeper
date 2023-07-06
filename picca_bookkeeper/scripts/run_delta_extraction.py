@@ -6,6 +6,7 @@ import sys
 from pathlib import Path
 
 from picca_bookkeeper.bookkeeper import Bookkeeper
+from picca_bookkeeper.tasker import Tasker
 
 logger = logging.getLogger(__name__)
 

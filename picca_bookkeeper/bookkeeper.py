@@ -14,7 +14,7 @@ from yaml import SafeDumper
 
 from picca_bookkeeper import resources
 from picca_bookkeeper.dict_utils import DictUtils
-from picca_bookkeeper.tasker import ChainedTasker, Tasker, get_Tasker
+from picca_bookkeeper.tasker import ChainedTasker, Tasker, get_Tasker, DummyTasker
 
 logger = logging.getLogger(__name__)
 
@@ -189,23 +189,6 @@ class Bookkeeper:
             self.config["delta extraction"] = self.delta_extraction
 
         self.paths = PathBuilder(self.config)
-
-        # If the calibration is taken from another place, we should
-        # also load this other bookkeeper
-        if config_type == "deltas" and self.config["delta extraction"].get(
-            "calibration data", ""
-        ) not in ("", None):
-            try:
-                self.calibration = Bookkeeper(
-                    self.paths.run_path.parent
-                    / self.config["delta extraction"].get("calibration data")
-                )
-            except Exception as e:
-                raise Exception("Error loading calibration bookkeeper").with_traceback(
-                    e.__traceback__
-                )
-        else:
-            self.calibration = self
 
         if read_mode:
             # Next steps imply writting on bookkeeper destination
@@ -646,9 +629,7 @@ class Bookkeeper:
                             },
                             f"correction arguments {num_corrections - 1}": {
                                 "filename": str(
-                                    self.calibration.paths.delta_attributes_file(
-                                        None, calib_step=1
-                                    )
+                                    self.paths.delta_attributes_file(None, calib_step=1)
                                 ),
                             },
                         },
@@ -656,7 +637,10 @@ class Bookkeeper:
 
             # Actual run (no calibration)
             else:
-                if not self.calibration.paths.deltas_path(calib_step=2).is_dir():
+                if not self.paths.deltas_log_path(None, calib_step=2).is_dir():
+                    import pdb
+
+                    pdb.set_trace()
                     raise FileNotFoundError(
                         "Calibration folder does not exist. run get_calibration_tasker "
                         "before running deltas."
@@ -676,16 +660,12 @@ class Bookkeeper:
                         },
                         f"correction arguments {num_corrections - 2}": {
                             "filename": str(
-                                self.calibration.paths.delta_attributes_file(
-                                    None, calib_step=1
-                                )
+                                self.paths.delta_attributes_file(None, calib_step=1)
                             ),
                         },
                         f"correction arguments {num_corrections - 1}": {
                             "filename": str(
-                                self.calibration.paths.delta_attributes_file(
-                                    None, calib_step=2
-                                )
+                                self.paths.delta_attributes_file(None, calib_step=2)
                             ),
                         },
                     },
@@ -695,7 +675,7 @@ class Bookkeeper:
             # No special action for calibration steps,
             # only add extra actions for main run
             if calib_step is None:
-                if not self.paths.deltas_path(calib_step=1).is_dir():
+                if not self.paths.deltas_log_path(None, calib_step=1).is_dir():
                     raise FileNotFoundError(
                         "Calibration folder does not exist. run get_calibration_tasker "
                         "before running deltas."
@@ -713,9 +693,7 @@ class Bookkeeper:
                         },
                         f"correction arguments {num_corrections - 1}": {
                             "filename": str(
-                                self.calibration.paths.delta_attributes_file(
-                                    None, calib_step=1
-                                )
+                                self.paths.delta_attributes_file(None, calib_step=1)
                             ),
                         },
                     },
@@ -907,7 +885,7 @@ class Bookkeeper:
             and not overwrite
         ):
             raise FileExistsError(
-                "Destination files already exists, run with overwrite option"
+                "Destination files already exists, run with overwrite option "
                 "to continue",
                 self.paths.deltas_path(region),
             )
@@ -1021,16 +999,27 @@ class Bookkeeper:
             )
         region = self.validate_region(region)
 
+        # Check if output already there
         if (
-            self.paths.deltas_path(region).is_dir()
-            and any(self.paths.deltas_path(region).iterdir())
+            self.paths.delta_attributes_file(region, calib_step).is_file()
             and not overwrite
         ):
             raise FileExistsError(
-                "Destination files already exists, run with overwrite option"
+                "Destination file already exists, run with overwrite option "
                 "to continue",
-                self.paths.deltas_path(region),
+                self.paths.delta_attributes_file(region, calib_step),
             )
+
+        # Check if calibration data needs to be copied:
+        if calib_step is not None:
+            copied_attributes = self.paths.copied_delta_attributes(calib_step)
+            if copied_attributes is not None:
+                filename = self.paths.delta_attributes_file(None, calib_step)
+                filename.unlink(missing_ok=True)
+                filename.parent.mkdir(exist_ok=True, parents=True)
+                filename.symlink_to(copied_attributes)
+
+                return DummyTasker()
 
         command = "picca_delta_extraction.py"
 
@@ -1100,6 +1089,9 @@ class Bookkeeper:
 
         # create config for delta_extraction options
         self.paths.deltas_path(region, calib_step).mkdir(parents=True, exist_ok=True)
+        self.paths.deltas_log_path(region, calib_step).mkdir(
+            parents=True, exist_ok=True
+        )
         self.write_ini(deltas_config_dict, config_file)
 
         slurm_header_args = {
@@ -1279,7 +1271,7 @@ class Bookkeeper:
             and not overwrite
         ):
             raise FileExistsError(
-                "Destination file already exists, run with overwrite option"
+                "Destination file already exists, run with overwrite option "
                 "to continue",
                 self.paths.cf_fname(absorber, region, absorber2, region2),
             )
@@ -1427,7 +1419,7 @@ class Bookkeeper:
             and not overwrite
         ):
             raise FileExistsError(
-                "Destination file already exists, run with overwrite option"
+                "Destination file already exists, run with overwrite option "
                 "to continue",
                 self.paths.dmat_fname(absorber, region, absorber2, region2),
             )
@@ -1574,7 +1566,7 @@ class Bookkeeper:
             and not overwrite
         ):
             raise FileExistsError(
-                "Destination file already exists, run with overwrite option"
+                "Destination file already exists, run with overwrite option "
                 "to continue",
                 self.paths.exp_cf_fname(absorber, region, absorber2, region2),
             )
@@ -1714,7 +1706,7 @@ class Bookkeeper:
             and not overwrite
         ):
             raise FileExistsError(
-                "Destination file already exists, run with overwrite option"
+                "Destination file already exists, run with overwrite option "
                 "to continue",
                 self.paths.metal_fname(absorber, region, absorber2, region2),
             )
@@ -1726,9 +1718,11 @@ class Bookkeeper:
         )
         if copy_metal_matrix is not None:
             filename = self.paths.metal_fname(absorber, region, absorber2, region2)
+            filename.unlink(missing_ok=True)
             filename.parent.mkdir(exist_ok=True, parents=True)
             filename.symlink_to(copy_metal_matrix)
-            return
+
+            return DummyTasker()
 
         command = "picca_metal_dmat.py"
 
@@ -1856,7 +1850,7 @@ class Bookkeeper:
 
         if self.paths.xcf_fname(absorber, region).is_file() and not overwrite:
             raise FileExistsError(
-                "Destination file already exists, run with overwrite option"
+                "Destination file already exists, run with overwrite option "
                 "to continue",
                 self.paths.xcf_fname(absorber, region),
             )
@@ -1982,7 +1976,7 @@ class Bookkeeper:
 
         if self.paths.xdmat_fname(absorber, region).is_file() and not overwrite:
             raise FileExistsError(
-                "Destination file already exists, run with overwrite option"
+                "Destination file already exists, run with overwrite option "
                 "to continue",
                 self.paths.xdmat_fname(absorber, region),
             )
@@ -2110,7 +2104,7 @@ class Bookkeeper:
 
         if self.paths.exp_xcf_fname(absorber, region).is_file() and not overwrite:
             raise FileExistsError(
-                "Destination file already exists, run with overwrite option"
+                "Destination file already exists, run with overwrite option "
                 "to continue",
                 self.paths.exp_xcf_fname(absorber, region),
             )
@@ -2223,7 +2217,7 @@ class Bookkeeper:
 
         if self.paths.xmetal_fname(absorber, region).is_file() and not overwrite:
             raise FileExistsError(
-                "Destination file already exists, run with overwrite option"
+                "Destination file already exists, run with overwrite option "
                 "to continue",
                 self.paths.xmetal_fname(absorber, region),
             )
@@ -2231,9 +2225,11 @@ class Bookkeeper:
         copy_metal_matrix = self.paths.copied_xmetal_matrix(absorber, region)
         if copy_metal_matrix is not None:
             filename = self.paths.xmetal_fname(absorber, region)
+            filename.unlink(missing_ok=True)
             filename.parent.mkdir(exist_ok=True, parents=True)
             filename.symlink_to(copy_metal_matrix)
-            return
+
+            return DummyTasker()
 
         if self.defaults_diff != {}:
             raise ValueError(
@@ -2370,7 +2366,7 @@ class Bookkeeper:
 
         if self.paths.fit_out_fname().is_file() and not overwrite:
             raise FileExistsError(
-                "Destination file already exists, run with overwrite option"
+                "Destination file already exists, run with overwrite option "
                 "to continue",
                 self.paths.fit_main_fname(),
             )
@@ -2935,6 +2931,37 @@ class PathBuilder:
             / "delta_attributes.fits.gz"
         )
 
+    def copied_delta_attributes(self, step: int) -> Union[Path, None]:
+        """Method to get path to delta attributes for calibration if it
+        appears as the one to be read in the bookkeeper (instead of computing
+        it).
+
+        Args:
+            step: Current calibration step.
+        """
+        calibration_data = self.config["delta extraction"].get("calibration data", None)
+
+        if calibration_data is None:
+            attributes = None
+        else:
+            attributes = calibration_data.get(f"step {step}", None)
+
+        if attributes is not None:
+            if not Path(attributes).is_file():
+                raise FileNotFoundError(
+                    f"calibration step: {step}: Invalid attributes file provided."
+                )
+            logger.info(
+                f"calibration step {step}: "
+                f"Using attributes from file:\n\t{str(attributes)}"
+            )
+        else:
+            logger.info(
+                f"calibration step {step}: "
+                f"No attributes file provided, it will be computed."
+            )
+        return attributes
+
     def cf_fname(
         self,
         absorber: str,
@@ -3062,8 +3089,10 @@ class PathBuilder:
 
         name = f"{absorber}{region}_{absorber2}{region2}"
         if matrix is not None:
-            if not Path(matrix).is_file:
-                raise ValueError(f"{name}: Invalid metal matrix provided", matrix)
+            if not Path(matrix).is_file():
+                raise FileNotFoundError(
+                    f"{name}: Invalid metal matrix provided", matrix
+                )
             logger.info(f"{name}: Using metal matrix from file:\n\t{str(matrix)}")
         else:
             logger.info(f"{name}: No metal matrix provided, it will be computed.")
@@ -3153,8 +3182,10 @@ class PathBuilder:
 
         name = f"{absorber}{region}"
         if matrix is not None:
-            if not Path(matrix).is_file:
-                raise ValueError(f"{name}: Invalid metal matrix provided", matrix)
+            if not Path(matrix).is_file():
+                raise FileNotFoundError(
+                    f"{name}: Invalid metal matrix provided", matrix
+                )
             logger.info(f"{name}: Using xmetal matrix from file:\n\t{str(matrix)}")
         else:
             logger.info(f"{name}: No xmetal matrix provided, it will be computed.")
