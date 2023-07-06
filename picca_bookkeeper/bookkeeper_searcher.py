@@ -39,10 +39,17 @@ def get_bookkeeper_differences(
                 )
             )
 
+    valid_analyses = []
+    for analysis in analyses:
+        if analysis.config_type == analysis.config_type_file:
+            valid_analyses.append(analysis)
+
     show_diffs(
-        [analysis.config for analysis in analyses],
+        [analysis.config for analysis in valid_analyses],
         name_keys=Config.first_els,
-        name_values=np.array([analysis.first_els_values for analysis in analyses]),
+        name_values=np.array(
+            [analysis.first_els_values for analysis in valid_analyses]
+        ),
         remove_identical=remove_identical,
         transpose=transpose,
         sort_by_value=sort_by_value,
@@ -111,6 +118,9 @@ def show_diffs(
         rows.append(row)
     rows = np.array(rows)
 
+    if rows.size == 0:
+        # No data in plot, then skip
+        return
     if remove_identical:
         mask = ~np.all(rows == rows[0], axis=0)
         keys = keys[mask]
@@ -119,11 +129,11 @@ def show_diffs(
             new_rows.append(row[mask])
 
         rows = np.array(new_rows)
+        if rows.size == 0:
+            # No data in plot, then skip
+            return
     else:
         mask = np.ones_like(keys, dtype=bool)
-    if rows.size == 0:
-        # No data in plot, then skip
-        return
 
     rows = np.concatenate((name_values, rows), axis=1)
     keys = np.concatenate((name_keys, keys))
@@ -169,17 +179,18 @@ class ConfigReader:
         # Read yaml file
         self.read_config()
 
-        # Remove unneeded sections
-        self.clean_config()
+        if self.config_type_file == self.config_type:
+            # Remove unneeded sections
+            self.clean_config()
 
-        # Saving fields with run names
-        self.save_key_fields()
+            # Saving fields with run names
+            self.save_key_fields()
 
-        self.data = None
+            self.data = None
 
     @property
     def name(self) -> str:
-        return self.path.parent.parent.name
+        return self.path.resolve().parent.parent.name
 
     def read_defaults(self):
         """Method to read bookkeeper defaults"""
@@ -194,6 +205,13 @@ class ConfigReader:
         with open(self.path) as file:
             self.config = yaml.safe_load(file)
 
+        if "fits" in self.config:
+            self.config_type_file = "fits"
+        if "correlations" in self.config:
+            self.config_type_file = "correlations"
+        if "delta extraction" in self.config:
+            self.config_type_file = "deltas"
+
         self.config = DictUtils.merge_dicts(
             self.defaults,
             DictUtils.remove_empty(self.config),
@@ -202,6 +220,7 @@ class ConfigReader:
 
 class DeltaConfigReader(ConfigReader):
     first_els = np.array(["delta run"])
+    config_type = "deltas"
 
     def clean_config(self):
         """Method to remove unnecessary sections from config file"""
@@ -221,11 +240,12 @@ class DeltaConfigReader(ConfigReader):
 
     @property
     def defaults_file(self) -> Path:
-        return self.path.parent / "defaults.yaml"
+        return self.path.resolve().parent / "defaults.yaml"
 
 
 class CorrelationConfigReader(ConfigReader):
     first_els = np.array(["delta run", "correlation run"])
+    config_type = "correlations"
 
     def clean_config(self):
         """Method to remove unnecessary sections from config file"""
@@ -236,17 +256,22 @@ class CorrelationConfigReader(ConfigReader):
 
     def save_key_fields(self):
         run_name = self.name
-        delta_extraction = self.path.parent.parent.parent.parent.name
+        delta_extraction = self.path.resolve().parent.parent.parent.parent.name
 
         self.first_els_values = np.array([delta_extraction, run_name])
 
     @property
     def defaults_file(self) -> Path:
-        return self.path.parent.parent.parent.parent / "configs" / "defaults.yaml"
+        return (
+            self.path.resolve().parent.parent.parent.parent
+            / "configs"
+            / "defaults.yaml"
+        )
 
 
 class FitConfigReader(ConfigReader):
     first_els = np.array(["delta run", "correlation run", "fit run"])
+    config_type = "fits"
 
     def clean_config(self):
         """Method to remove unnecessary sections from config file"""
@@ -258,8 +283,10 @@ class FitConfigReader(ConfigReader):
 
     def save_key_fields(self):
         run_name = self.name
-        correlation_run = self.path.parent.parent.parent.parent.name
-        delta_extraction = self.path.parent.parent.parent.parent.parent.parent.name
+        correlation_run = self.path.resolve().parent.parent.parent.parent.name
+        delta_extraction = (
+            self.path.resolve().parent.parent.parent.parent.parent.parent.name
+        )
 
         self.first_els = np.array(
             [
@@ -273,7 +300,7 @@ class FitConfigReader(ConfigReader):
     @property
     def defaults_file(self) -> Path:
         return (
-            self.path.parent.parent.parent.parent.parent.parent
+            self.path.resolve().parent.parent.parent.parent.parent.parent
             / "configs"
             / "defaults.yaml"
         )
