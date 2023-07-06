@@ -1727,10 +1727,7 @@ class Bookkeeper:
         if copy_metal_matrix is not None:
             filename = self.paths.metal_fname(absorber, region, absorber2, region2)
             filename.parent.mkdir(exist_ok=True, parents=True)
-            shutil.copy(
-                copy_metal_matrix,
-                filename,
-            )
+            filename.symlink_to(copy_metal_matrix)
             return
 
         command = "picca_metal_dmat.py"
@@ -2235,10 +2232,7 @@ class Bookkeeper:
         if copy_metal_matrix is not None:
             filename = self.paths.xmetal_fname(absorber, region)
             filename.parent.mkdir(exist_ok=True, parents=True)
-            shutil.copy(
-                copy_metal_matrix,
-                filename,
-            )
+            filename.symlink_to(copy_metal_matrix)
             return
 
         if self.defaults_diff != {}:
