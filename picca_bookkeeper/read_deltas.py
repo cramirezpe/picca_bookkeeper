@@ -40,17 +40,17 @@ class ReadDeltas:
 
     @property
     def config_file(self):
-        return self.bookkeeper_path / "deltas" / self.region / ".config.ini"
+        return self.bookkeeper_path / "results" / self.region / ".config.ini"
 
     @property
     def deltas_path(self):
-        return self.bookkeeper_path / "deltas" / self.region / "Delta"
+        return self.bookkeeper_path / "results" / self.region / "Delta"
 
     @property
     def attributes_file(self):
         return (
             self.bookkeeper_path
-            / "deltas"
+            / "results"
             / self.region
             / "Log"
             / "delta_attributes.fits.gz"
