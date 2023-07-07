@@ -113,7 +113,7 @@ def get_args():
     )
 
     parser.add_argument(
-        "--skip_calibration",
+        "--skip-calibration",
         action="store_true",
         help="Skip calibration step if already computed.",
     )
