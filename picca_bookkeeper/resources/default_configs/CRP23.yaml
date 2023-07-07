@@ -126,7 +126,7 @@ correlations:
 
     picca_export:
       qos: regular
-      time: "00:10:00"
+      time: "00:20:00"
 
     picca_metal_dmat:
       qos: regular
