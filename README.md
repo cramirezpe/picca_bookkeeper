@@ -103,7 +103,6 @@ There are multiple scripts associated with the package that are installed with t
 - ``picca_bookkeeper_run_cf`` and ``picca_bookkeeper_run_xcf``: Can be used to run correlations.
 - ``picca_bookkeeper_run_full_analysis``: Can be used to run the full analysis.
 - ``picca_bookkeeper_run_fit``: Run fit.
-- ``picca_bookkeeper_generate_fit_config``: Useful script to generate a valid bookkeeper config file for fits.
 
 For more information on how to run each of them use the ``--help`` command. (the scripts can be run directly from shell, e.g. ``picca_bookkeeper_run_full_analysis --help``.).
 
@@ -126,28 +125,15 @@ picca_bookkeeper_run_full_analysis config1.yaml --auto-correlations lya.lya-lya.
 We can collect the jobid from the deltas steps (number returned in terminal), and use it for the next correlation measurements to wait for them:
 ```
 # We don't need to rerun deltas
-picca_bookkeeper_run_full_analysis config2.yaml --auto-correlations lya.lya-lya.lya lya.lya-lya.lyb --cross-correlations lya.lya lya.lyb --no-deltas --no-fits --wait-for {jobidlya} {jobidlyb}
+picca_bookkeeper_run_full_analysis config2.yaml --auto-correlations lya.lya-lya.lya lya.lya-lya.lyb --cross-correlations lya.lya lya.lyb --no-deltas --no-fits --wait-for {delta-lya-jobid} {delta-lyb-jobid}
 ```
 
 ## Run full analysis with modified fits
-Generic custom fits can be created by using the script ``picca_bookkeeper_generate_fit_config`` in the following way, assuming a valid ``config.yaml`` is available (fits section not needed in the file):
+The same idea as for the correlations can be applied to generate two different fits. First we generate the full analysis:
 ``` bash
-picca_bookkeeper_generate_fit_config config.yaml --run-name nobao_metal --out-config tmp.yaml --no-bao --no-metal
-
-picca_bookkeeper_run_full_analysis tmp.yaml --auto-correlations lya.lya-lya.lya lya.lya-lya.lyb --cross-correlations lya.lya lya.lyb
+picca_bookkeeper_run_full_analysis config1.yaml --auto-correlations lya.lya-lya.lya lya.lya-lya.lyb --cross-correlations lya.lya lya.lyb 
 ```
-
-## Run full analysis with 2 different fit options:
-First, we run the full analysis with the default fits configuration:
-``` bash
-picca_bookkeeper_run_full_analysis config.yaml --auto-correlations lya.lya-lya.lya lya.lya-lya.lyb --cross-correlations lya.lya lya.lyb 
+and then we generate only the second fits
+```bash
+picca_bookkeeper_run_full_analysis --auto-correlations lya.lya-lya.lya lya.lya-lya.lyb --cross-correlations lya.lya lya.lyb --no-deltas --no-correlations --waitfor {auto-export-jobid} {auto-metal-jobid} {cross-export-jobid} {cross-metal-jobid}
 ```
-
-Then we recycle the same config file to generate a new fit config file, and run the new fit.
-``` bash
-picca_bookkeeper_generate_fit_config config.yaml --run-name nobao_metal --out-config tmp.yaml --no-bao --no-metal
-
-# we only need to run the fit
-picca_bookkeeper_run_fit tmp.yaml --auto-correlations lya.lya-lya.lya lya.lya-lya.lyb --cross-correlations lya.lya lya.lyb
-```
-

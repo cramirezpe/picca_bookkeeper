@@ -1,0 +1,101 @@
+general:
+  #python environment to be used when running jobs
+  #something that would be activated as:
+  # source activate picca
+  conda environment: picca
+  
+  # default system to run bookkeeper on
+  # slurm_cori: slurm for cori
+  # slurm_perlmutter: slurm for perlmutter
+  # bash: run on terminal (login nodes at NERSC)
+  system: slurm_perlmutter
+
+  # general slurm args, e.g. mail options
+  slurm args:
+    mail-type: fail
+    mail-user: user@host.com
+
+data:
+  # Parent path of the bookkeeper.
+  bookkeeper dir: /blabla
+
+  # Hardcode the healpix data location, by default it will be set
+  # according to the release, e.g. for everest:
+  # /global/cfs/cdirs/desi/spectro/redux/everest/healpix/
+  healpix data:
+
+  # The structure of folders and sub-folders is the following:
+  # {bookkeeper dir}/{release}/{survey}/{qso_cat}
+  # where:
+  #   - release (everest, fuji): specifies the version of the pipeline used.
+  #   - survey (sv1, sv2, sv3, sv, all, main): specifies the survey (or 
+  #           combination of surveys) used.
+  #   - qso_cat (redrock_v0, redrock_v1, afterburner_v0, etc): specifiec the
+  #           quasar catalog used (containing BAL information).
+  release: guadalupe
+  survey: main
+  # Catalog could be a name (and therefore will be used the bookkeeper one)
+  # or could be a full path to a catalog
+  catalog: afterburn_v0
+
+
+correlations:
+  # Name of delta analysis available under bookkeeper path and data values
+  # using the format # {prefix}_{calib}.{calib_region}.{dla}.{bal}_{suffix}, 
+  # e.g: dMdB20_2.ciii.0.0_0
+  # It will be used to read deltas from it
+  delta extraction:
+
+  # This is the user-friendly name for the correlation run+
+  run name: default
+
+  # catalog_tracer could be set up to use a different catalog for cross-correlations
+  # by default will use the previous one for all the analyses.
+  catalog tracer: 
+
+  # copy metal matrices from a different place.
+  # For auto-, one should provide the two absorbers and regions
+  metal matrices: 
+    # Use all to use same matrix for all analyses
+    all: 
+    # or specify regions/absorbers
+    lyalya_lyalya: /global/cfs/cdirs/desicollab/users/cgordon/Y1/bookkeeper_test/iron/main/QSO_cat_iron_main_dark_healpix_v0/dMdB20_2.ciii.1.2_0/correlations/default/correlations/lyalya_lyalya/metal.fits.gz 
+    lyalya_lyalyb: /global/cfs/cdirs/desicollab/users/cgordon/Y1/bookkeeper_test/iron/main/QSO_cat_iron_main_dark_healpix_v0/dMdB20_2.ciii.1.2_0/correlations/default/correlations/lyalya_lyalyb/metal.fits.gz 
+
+  xmetal matrices:
+    all:
+    # For cross-, only one absorber/region is needed.
+    lyalya: /global/cfs/cdirs/desicollab/users/cgordon/Y1/bookkeeper_test/iron/main/QSO_cat_iron_main_dark_healpix_v0/dMdB20_2.ciii.1.2_0/correlations/default/correlations/lyalya_qso/xmetal.fits.gz
+    lyalyb: /global/cfs/cdirs/desicollab/users/cgordon/Y1/bookkeeper_test/iron/main/QSO_cat_iron_main_dark_healpix_v0/dMdB20_2.ciii.1.2_0/correlations/default/correlations/lyalyb_qso/xmetal.fits.gz
+
+
+  extra args:
+    picca_cf:
+      nside: 16
+    # no-project: "" # use empty string for action args like no-project.
+
+    # To affect an specific region use the following format
+    # remember fo follow the region names in picca_bookkeeper.Bookkeeper.forest_regions
+    # The values set here will overlap the ones defined in picca_cf, so both will be applied
+    picca_cf_lyalya_lyalya:
+
+    # lyalyb: Lyman alpha in the lyman beta forest.
+    picca_cf_lyalya_lyalyb:
+
+    picca_xcf:
+
+    # For the cross we se lyalya format.
+    picca_xcf_lyalya:
+
+    picca_dmat:
+
+    picca_xdmat:
+
+    picca_metal_dmat:
+
+    picca_metal_xdmat:
+
+    picca_export:
+
+  slurm args:
+    general: 
