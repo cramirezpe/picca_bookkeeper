@@ -192,8 +192,8 @@ fits:
         tracer2: LYA
 
       metals:
-        in tracer1: SiII(1260) SiIII(1207) SiII(1193) SiII(1190) CIV(eff)
-        in tracer2: SiII(1260) SiIII(1207) SiII(1193) SiII(1190) CIV(eff)
+        in tracer1: SiII(1260) SiIII(1207) SiII(1193) SiII(1190)
+        in tracer2: SiII(1260) SiIII(1207) SiII(1193) SiII(1190)
 
     vega_auto_lyalya_lyalyb:
       data:
@@ -202,12 +202,9 @@ fits:
         tracer2: LYB
         
       metals:
-        in tracer1: SiII(1260) SiIII(1207) SiII(1193) SiII(1190) CIV(eff)
-        in tracer2: SiII(1260) SiIII(1207) SiII(1193) SiII(1190) CIV(eff)
+        in tracer1: SiII(1260) SiIII(1207) SiII(1193) SiII(1190)
+        in tracer2: SiII(1260) SiIII(1207) SiII(1193) SiII(1190)
       
-      parameters:
-        per binsize lyaxlyb: 4
-        per binsize lyaxlyb: 4
 
     vega_cross:
       data:
@@ -243,7 +240,7 @@ fits:
         tracer2: LYA
         
       metals:
-        in tracer2: SiII(1260) SiIII(1207) SiII(1193) SiII(1190) CIV(eff)
+        in tracer2: SiII(1260) SiIII(1207) SiII(1193) SiII(1190)
 
     vega_cross_lyalyb:
       data:
@@ -251,7 +248,7 @@ fits:
         tracer2: LYA
       
       metals:
-        in tracer2:  SiII(1260) SiIII(1207) SiII(1193) SiII(1190) CIV(eff)
+        in tracer2:  SiII(1260) SiIII(1207) SiII(1193) SiII(1190)
 
     vega_main:
       data sets:
@@ -293,6 +290,9 @@ fits:
         bias_eta_SiII(1190): True
         qso_rad_strength: True
         desi_inst_sys_amp: 0 3e-3 3e-4 1e-4
+
+      priors:
+        beta_hcd: gaussian 0.5 0.09
 
       parameters:
         ap: 1.0
