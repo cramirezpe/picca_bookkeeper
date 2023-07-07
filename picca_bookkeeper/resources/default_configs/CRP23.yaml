@@ -57,7 +57,7 @@ correlations:
 
     picca_metal_dmat:
       nproc: 128
-      rej: 0.995
+      rej: 0.999
       abs-igm: "SiII(1260) SiIII(1207) SiII(1193) SiII(1190)"
       rp-min: 0
       rp-max: 300
@@ -104,7 +104,7 @@ correlations:
     picca_metal_xdmat:
       mode: "desi_healpix"
       nproc: 128
-      rej: 0.995
+      rej: 0.999
       abs-igm: "SiII(1260) SiIII(1207) SiII(1193) SiII(1190)"
       rp-min: -300
       rp-max: 300
