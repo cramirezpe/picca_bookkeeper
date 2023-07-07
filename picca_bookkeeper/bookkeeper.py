@@ -2568,8 +2568,11 @@ class Bookkeeper:
                 raise ValueError(f"Fit config {field} should be boolean.")
 
         for field in "rmin cf", "rmax cf", "rmin xcf", "rmax xcf":
-            if not isinstance(config["fits"][field], (np.integer, type(None))):
-                raise ValueError(f"Fit config {field} should be integer.")
+            if not isinstance(config["fits"][field], (np.integer, type(None), int)):
+                raise ValueError(
+                    f"Fit config {field} should be integer. "
+                    f"Type: {type(config['fits'][field])}"
+                )
 
         args = DictUtils.merge_dicts(
             {
