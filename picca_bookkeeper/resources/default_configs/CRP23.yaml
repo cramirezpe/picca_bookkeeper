@@ -199,7 +199,7 @@ fits:
       data:
         name: lyaxlyb
         tracer1: LYA
-        tracer2: LYB
+        tracer2: LYA
         
       metals:
         in tracer1: SiII(1260) SiIII(1207) SiII(1193) SiII(1190)

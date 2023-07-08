@@ -232,7 +232,8 @@ class Bookkeeper:
                         "delta extraction section of config file should match delta "
                         "extraction section from file already in the bookkeeper. "
                         "Unmatching items:\n\n"
-                        f"{DictUtils.print_dict(comparison)}"
+                        f"{DictUtils.print_dict(comparison)}\n\n"
+                        f"Remove config file to overwrite {self.paths.delta_config_file}"
                     )
             # Copy full bookkeeper.
             try:
@@ -273,7 +274,8 @@ class Bookkeeper:
                     raise ValueError(
                         "correlations section of config file should match correlation section "
                         "from file already in the bookkeeper. Unmatching items:\n\n"
-                        f"{DictUtils.print_dict(comparison)}"
+                        f"{DictUtils.print_dict(comparison)}\n\n"
+                        f"Remove config file to overwrite {self.paths.correlation_config_file}"
                     )
         if self.fits is not None:
             config_fit = copy.deepcopy(self.config)
@@ -306,7 +308,8 @@ class Bookkeeper:
                     raise ValueError(
                         "fits section of config file should match fits section "
                         "from file already in the bookkeeper. Unmatching items:\n\n"
-                        f"{DictUtils.print_dict(comparison)}"
+                        f"{DictUtils.print_dict(comparison)}\n\n"
+                        f"Remove config file to overwrite {self.paths.fit_config_file}"
                     )
 
         # Read defaults and check if they have changed.
@@ -2632,12 +2635,12 @@ class Bookkeeper:
                     },
                     "vega_auto": {
                         "model": {
-                            "model-hcd": "None",
+                            "model-hcd": "",
                         }
                     },
                     "vega_cross": {
                         "model": {
-                            "model-hcd": "None",
+                            "model-hcd": "",
                         }
                     },
                 },
