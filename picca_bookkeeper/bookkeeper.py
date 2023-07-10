@@ -491,10 +491,8 @@ class Bookkeeper:
         else:
             args = dict()
 
-        config = DictUtils.merge_dicts(
-            default_config[section],
-            config[section],
-        )
+        config = copy.deepcopy(config[section])
+        default_config = copy.deepcopy(default_config[section])
 
         sections = ["general", command.split(".py")[0]]
 
@@ -509,6 +507,13 @@ class Bookkeeper:
         if region2 != "":
             sections[-1] += f"_{absorber2}{region2}"
 
+        if "slurm args" in default_config.keys() and isinstance(default_config["slurm args"], dict):
+            for section in sections:
+                if section in default_config["slurm args"] and isinstance(
+                    default_config["slurm args"][section], dict
+                ):
+                    args = DictUtils.merge_dicts(args, default_config["slurm args"][section])
+
         if "slurm args" in config.keys() and isinstance(config["slurm args"], dict):
             for section in sections:
                 if section in config["slurm args"] and isinstance(
@@ -516,8 +521,11 @@ class Bookkeeper:
                 ):
                     args = DictUtils.merge_dicts(args, config["slurm args"][section])
 
-        # Copied args is the highest priority
-        return DictUtils.merge_dicts(args, slurm_args)
+        for section in sections:
+            if section in slurm_args and isinstance(slurm_args[section], dict):
+                args = DictUtils.merge_dicts(args, slurm_args[section])
+
+        return args
 
     def generate_extra_args(
         self,
@@ -545,7 +553,8 @@ class Bookkeeper:
             region2: For scripts where two regions are needed.
             absorber2: Second absorber to use for correlations.
         """
-        config = DictUtils.merge_dicts(default_config[section], config[section])
+        config = copy.deepcopy(config[section])
+        default_config = copy.deepcopy(default_config[section])
 
         sections = [command.split(".py")[0]]
 
@@ -561,6 +570,13 @@ class Bookkeeper:
             sections[-1] += f"_{absorber2}{region2}"
 
         args = dict()
+        if "extra args" in default_config.keys() and isinstance(default_config["extra args"], dict):
+            for section in sections:
+                if section in default_config["extra args"] and isinstance(
+                    default_config["extra args"][section], dict
+                ):
+                    args = DictUtils.merge_dicts(args, default_config["extra args"][section])
+
         if "extra args" in config.keys() and isinstance(config["extra args"], dict):
             for section in sections:
                 if section in config["extra args"] and isinstance(
@@ -577,8 +593,16 @@ class Bookkeeper:
                         args, config["extra args"]["remove_" + section]
                     )
 
-        # Copied args is the highest priority
-        return DictUtils.merge_dicts(args, extra_args)
+        for section in sections:
+            if section in extra_args and isinstance(extra_args[section], dict):
+                args = DictUtils.merge_dicts(args, extra_args[section])
+
+            if "remove_" + section in extra_args and isinstance(
+                extra_args["remove_" + section], dict
+            ):
+                args = DictUtils.remove_matching(args, extra_args["remove_" + section])
+
+        return args
 
     def generate_system_arg(self, system) -> str:
         if system is None:
