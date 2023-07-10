@@ -250,7 +250,7 @@ class Bookkeeper:
             config_corr["correlations"]["delta extraction"] = self.paths.continuum_tag
 
             config_corr.pop("delta extraction")
-            config_corr.po("fits", None)
+            config_corr.pop("fits", None)
 
             if not self.paths.correlation_config_file.is_file():
                 self.write_bookkeeper(config_corr, self.paths.correlation_config_file)
