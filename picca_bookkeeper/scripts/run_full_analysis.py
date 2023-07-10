@@ -36,8 +36,12 @@ def main(args=None):
     ## Identifying needed runs from names
     ########################################
     regions = []
+
     autos = []
-    for auto in args.auto_correlations:
+    auto_correlations = args.auto_correlations
+    if bookkeeper.config.get("fits", dict()).get("auto correlations", None) is not None:
+        auto_correlations += bookkeeper.config["fits"]["auto correlations"].split(" ")
+    for auto in auto_correlations:
         absorber, region, absorber2, region2 = auto.replace("-", ".").split(".")
 
         region = bookkeeper.validate_region(region)
@@ -50,7 +54,10 @@ def main(args=None):
         regions.append(region2)
 
     crosses = []
-    for cross in args.cross_correlations:
+    cross_correlations = args.cross_correlations
+    if bookkeeper.config.get("fits", dict()).get("cross correlations", None) is not None:
+        cross_correlations += bookkeeper.config["fits"]["cross correlations"].split(" ")
+    for cross in cross_correlations:
         absorber, region = cross.split(".")
         region = bookkeeper.validate_region(region)
         absorber = bookkeeper.validate_absorber(absorber)
