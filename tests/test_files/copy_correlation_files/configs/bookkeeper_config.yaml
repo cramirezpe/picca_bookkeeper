@@ -1,13 +1,15 @@
 general:
   conda environment: picca
-  system: slurm_cori
 data:
   bookkeeper dir: /picca_bookkeeper/tests/test_files/output
   healpix data:
   release: guadalupe
   survey: main
   catalog: afterburn_v0
-correlations:
-  delta extraction: dMdB20_2.mgii_r.0.0_0
-  run name: default
-  catalog tracer: /picca_bookkeeper/tests/test_files/dummy_tracer_catalog.fits
+delta extraction:
+  prefix: dMdB20
+  calib: 2
+  calib region: mgii_r
+  dla: 0
+  bal: 0
+  suffix: copy_corrs

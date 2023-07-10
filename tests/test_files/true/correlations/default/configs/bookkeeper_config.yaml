@@ -10,5 +10,3 @@ correlations:
   delta extraction: True_0.0.0.0_0
   run name: default
   catalog tracer:
-fits:
-  run name: default

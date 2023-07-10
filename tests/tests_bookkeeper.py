@@ -34,7 +34,9 @@ def mock_run(command, shell, capture_output):
     return Out()
 
 
-def write_full_analysis(bookkeeper, calib=False, region="lya", region2=None):
+def write_full_analysis(
+    bookkeeper, calib=False, region="lya", region2=None, xregion=None
+):
     if calib:
         calib = bookkeeper.get_calibration_extraction_tasker()
         calib.write_job()
@@ -60,8 +62,10 @@ def write_full_analysis(bookkeeper, calib=False, region="lya", region2=None):
         wait_for=wait_for,
     )
 
+    if xregion is None:
+        xregion = region
     xcf = bookkeeper.get_xcf_tasker(
-        region=region,
+        region=xregion,
         wait_for=wait_for,
     )
 
@@ -72,7 +76,7 @@ def write_full_analysis(bookkeeper, calib=False, region="lya", region2=None):
     )
 
     xdmat = bookkeeper.get_xdmat_tasker(
-        region=region,
+        region=xregion,
         wait_for=wait_for,
     )
 
@@ -83,7 +87,7 @@ def write_full_analysis(bookkeeper, calib=False, region="lya", region2=None):
     )
 
     xmetal = bookkeeper.get_xmetal_tasker(
-        region=region,
+        region=xregion,
         wait_for=wait_for,
     )
 
@@ -392,6 +396,111 @@ class TestBookkeeper(unittest.TestCase):
         bookkeeper2 = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
         write_full_analysis(bookkeeper2, calib=True, region="lyb", region2="lya")
+
+        self.replace_paths_bookkeeper_output(bookkeeper2.paths)
+        if "UPDATE_TESTS" in os.environ and os.environ["UPDATE_TESTS"] == "True":
+            self.update_test_output(test_files, bookkeeper2.paths.run_path)
+        self.compare_bookkeeper_output(test_files, bookkeeper2.paths.run_path)
+
+    @patch("picca_bookkeeper.tasker.run", side_effect=mock_run)
+    @patch(
+        "picca_bookkeeper.bookkeeper.get_quasar_catalog",
+        side_effect=mock_get_3d_catalog,
+    )
+    def test_example_copy_files(self, mock_func_1, mock_func_2):
+        copy_config_substitute(self.files_path / "example_config_guadalupe.yaml")
+        test_files = THIS_DIR / "test_files" / "copy_correlation_files"
+        bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
+
+        write_full_analysis(
+            bookkeeper, calib=True, region="lya", region2="lyb", xregion="lyb"
+        )
+        bookkeeper.paths.deltas_log_path(None, calib_step=1).mkdir(
+            exist_ok=True, parents=True
+        )
+
+        absorber = "lya"
+        region = "lya"
+        absorber2 = "lya"
+        region2 = "lyb"
+        bookkeeper.paths.cf_fname(absorber, region, absorber2, region2).parent.mkdir(
+            exist_ok=True, parents=True
+        )
+        bookkeeper.paths.cf_fname(absorber, region, absorber2, region2).write_text(
+            "auto"
+        )
+        bookkeeper.paths.dmat_fname(absorber, region, absorber2, region2).write_text(
+            "dmat"
+        )
+        bookkeeper.paths.metal_fname(absorber, region, absorber2, region2).write_text(
+            "metal"
+        )
+
+        bookkeeper.paths.xcf_fname(absorber, region).parent.mkdir(
+            exist_ok=True, parents=True
+        )
+        bookkeeper.paths.xcf_fname(absorber, region2).write_text("cross")
+        bookkeeper.paths.xdmat_fname(absorber, region2).write_text("xdmat")
+        bookkeeper.paths.xmetal_fname(absorber, region2).write_text("xmetal")
+
+        copy_config_substitute(
+            self.files_path / "example_config_guadalupe_calib_copy_corrs.yaml"
+        )
+
+        with open(THIS_DIR / "test_files" / "output" / "tmp.yaml", "r") as file:
+            filedata = file.read()
+
+        filedata = filedata.replace(
+            "cflyalya_lyalyb:",
+            f"lyalya_lyalyb: {str(bookkeeper.paths.cf_fname(absorber, region, absorber2, region2))}",
+        )
+        filedata = filedata.replace(
+            "xcflyalyb:", f"lyalyb: {str(bookkeeper.paths.xcf_fname(absorber, region2))}"
+        )
+        filedata = filedata.replace(
+            "dmatlyalya_lyalyb:",
+            f"lyalya_lyalyb: {str(bookkeeper.paths.dmat_fname(absorber, region, absorber2, region2))}",
+        )
+        filedata = filedata.replace(
+            "xdmatlyalyb:",
+            f"lyalyb: {str(bookkeeper.paths.xdmat_fname(absorber, region2))}",
+        )
+        filedata = filedata.replace(
+            "metallyalya_lyalyb:",
+            f"lyalya_lyalyb: {str(bookkeeper.paths.metal_fname(absorber, region, absorber2, region2))}",
+        )
+        filedata = filedata.replace(
+            "xmetallyalyb:",
+            f"lyalyb: {str(bookkeeper.paths.xmetal_fname(absorber, region2))}",
+        )
+
+        with open(THIS_DIR / "test_files" / "output" / "tmp.yaml", "w") as file:
+            file.write(filedata)
+
+        bookkeeper2 = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
+
+        write_full_analysis(bookkeeper2, calib=True, region="lya", region2="lyb", xregion="lyb")
+
+        assert (
+            bookkeeper2.paths.cf_fname(absorber, region, absorber2, region2).read_text()
+            == "auto"
+        )
+        assert (
+            bookkeeper2.paths.dmat_fname(
+                absorber, region, absorber2, region2
+            ).read_text()
+            == "dmat"
+        )
+        assert (
+            bookkeeper2.paths.metal_fname(
+                absorber, region, absorber2, region2
+            ).read_text()
+            == "metal"
+        )
+
+        assert bookkeeper2.paths.xcf_fname(absorber, region2).read_text() == "cross"
+        assert bookkeeper2.paths.xdmat_fname(absorber, region2).read_text() == "xdmat"
+        assert bookkeeper2.paths.xmetal_fname(absorber, region2).read_text() == "xmetal"
 
         self.replace_paths_bookkeeper_output(bookkeeper2.paths)
         if "UPDATE_TESTS" in os.environ and os.environ["UPDATE_TESTS"] == "True":

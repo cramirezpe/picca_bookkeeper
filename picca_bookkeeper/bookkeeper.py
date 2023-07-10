@@ -384,6 +384,10 @@ class Bookkeeper:
                 "delta extraction",
                 "run name",
                 "catalog tracer",
+                "cf files",
+                "xcf files",
+                "distortion matrices",
+                "xdistortion matrices",
                 "metal matrices",
                 "xmetal matrices",
                 "extra args",
@@ -1301,6 +1305,17 @@ class Bookkeeper:
                 self.paths.cf_fname(absorber, region, absorber2, region2),
             )
 
+        copy_cf_file = self.paths.copied_correlation_file(
+            "cf files", absorber, region, absorber2, region2
+        )
+        if copy_cf_file is not None:
+            filename = self.paths.cf_fname(absorber, region, absorber2, region2)
+            filename.unlink(missing_ok=True)
+            filename.parent.mkdir(exist_ok=True, parents=True)
+            filename.symlink_to(copy_cf_file)
+
+            return DummyTasker()
+
         command = "picca_cf.py"
 
         updated_extra_args = self.generate_extra_args(
@@ -1448,6 +1463,17 @@ class Bookkeeper:
                 "to continue",
                 self.paths.dmat_fname(absorber, region, absorber2, region2),
             )
+
+        copy_dmat_file = self.paths.copied_correlation_file(
+            "distortion matrices", absorber, region, absorber2, region2
+        )
+        if copy_dmat_file is not None:
+            filename = self.paths.dmat_fname(absorber, region, absorber2, region2)
+            filename.unlink(missing_ok=True)
+            filename.parent.mkdir(exist_ok=True, parents=True)
+            filename.symlink_to(copy_dmat_file)
+
+            return DummyTasker()
 
         command = "picca_dmat.py"
 
@@ -1738,8 +1764,8 @@ class Bookkeeper:
 
         # If metal matrices are provided, we just copy them into the bookkeeper
         # as if they were computed.
-        copy_metal_matrix = self.paths.copied_metal_matrix(
-            absorber, region, absorber2, region2
+        copy_metal_matrix = self.paths.copied_correlation_file(
+            "metal matrices", absorber, region, absorber2, region2
         )
         if copy_metal_matrix is not None:
             filename = self.paths.metal_fname(absorber, region, absorber2, region2)
@@ -1880,6 +1906,17 @@ class Bookkeeper:
                 self.paths.xcf_fname(absorber, region),
             )
 
+        copy_xcf_file = self.paths.copied_correlation_file(
+            "xcf files", absorber, region, None, None
+        )
+        if copy_xcf_file is not None:
+            filename = self.paths.xcf_fname(absorber, region)
+            filename.unlink(missing_ok=True)
+            filename.parent.mkdir(exist_ok=True, parents=True)
+            filename.symlink_to(copy_xcf_file)
+
+            return DummyTasker()
+
         command = "picca_xcf.py"
 
         updated_extra_args = self.generate_extra_args(
@@ -2005,6 +2042,17 @@ class Bookkeeper:
                 "to continue",
                 self.paths.xdmat_fname(absorber, region),
             )
+
+        copy_xdmat_file = self.paths.copied_correlation_file(
+            "xdistortion matrices", absorber, region, None, None
+        )
+        if copy_xdmat_file is not None:
+            filename = self.paths.xdmat_fname(absorber, region)
+            filename.unlink(missing_ok=True)
+            filename.parent.mkdir(exist_ok=True, parents=True)
+            filename.symlink_to(copy_xdmat_file)
+
+            return DummyTasker()
 
         command = "picca_xdmat.py"
 
@@ -2247,7 +2295,9 @@ class Bookkeeper:
                 self.paths.xmetal_fname(absorber, region),
             )
 
-        copy_metal_matrix = self.paths.copied_xmetal_matrix(absorber, region)
+        copy_metal_matrix = self.paths.copied_correlation_file(
+            "xmetal matrices", absorber, region, None, None
+        )
         if copy_metal_matrix is not None:
             filename = self.paths.xmetal_fname(absorber, region)
             filename.unlink(missing_ok=True)
@@ -3237,6 +3287,36 @@ class PathBuilder:
             )
         return attributes
 
+    def copied_correlation_file(self, subsection, absorber, region, absorber2, region2):
+        """Method to get a correlation file to copy given in the bookkeeper config
+
+        Args:
+            region: Region where the correlation is computed.
+            region2: Second region used (if cross-correlation).
+            absorber: First absorber
+            absorber2: Second absorber
+
+        Returns:
+            Path: Path to file
+        """
+        if absorber2 is None:
+            name = f"{absorber}{region}"
+        else:
+            name = f"{absorber}{region}_{absorber2}{region2}"
+
+        file = self.config["correlations"].get(subsection, dict()).get(name, None)
+
+        if file is not None:
+            if not Path(file).is_file():
+                raise FileNotFoundError(
+                    f"{name}: Invalid file provided in config", file
+                )
+            logger.info(f"{name}: Using from file:\n\t{str(file)}")
+        else:
+            logger.info(f"{name}: No file provided to copy, it will be computed.")
+
+        return file
+
     def cf_fname(
         self,
         absorber: str,
@@ -3332,48 +3412,6 @@ class PathBuilder:
         cor_file = self.cf_fname(absorber, region, absorber2, region2)
         return cor_file.parent / f"cf_exp.fits.gz"
 
-    def copied_metal_matrix(
-        self,
-        absorber: str,
-        region: str,
-        absorber2: str = None,
-        region2: str = None,
-    ) -> Union[Path, None]:
-        """Method to get path to metal matrix if it appears in the bookkeeper config.
-
-        Args:
-            region: Region where the correlation is computed.
-            region2: Second region used (if cross-correlation).
-            absorber: First absorber
-            absorber2: Second absorber
-
-        Returns:
-            Path: Path to metal matrix
-        """
-        metal_matrices = self.config["correlations"].get("metal matrices", None)
-
-        if metal_matrices is None:
-            matrix = None
-        else:
-            matrix = metal_matrices.get(
-                f"{absorber}{region}_{absorber2}{region2}", None
-            )
-
-            if matrix is None:
-                matrix = metal_matrices.get("all", None)
-
-        name = f"{absorber}{region}_{absorber2}{region2}"
-        if matrix is not None:
-            if not Path(matrix).is_file():
-                raise FileNotFoundError(
-                    f"{name}: Invalid metal matrix provided", matrix
-                )
-            logger.info(f"{name}: Using metal matrix from file:\n\t{str(matrix)}")
-        else:
-            logger.info(f"{name}: No metal matrix provided, it will be computed.")
-
-        return matrix
-
     def xcf_fname(self, absorber: str, region: str) -> Path:
         """Method to get the path to a forest-quasar correlation export file.
 
@@ -3429,43 +3467,6 @@ class PathBuilder:
         """
         cor_file = self.xcf_fname(absorber, region)
         return cor_file.parent / f"xcf_exp.fits.gz"
-
-    def copied_xmetal_matrix(self, absorber: str, region: str) -> Union[Path, None]:
-        """Method to get path to xmetal matrix if it appears in the bookkeeper config.
-
-        Args:
-            absorber: First absorber
-            region: region of the forest used
-
-        Returns:
-            Path: Path to metal matrix
-        """
-        metal_matrices = self.config["correlations"].get("metal matrices", None)
-
-        matrix = (
-            self.config["correlations"]
-            .get("xmetal matrices", dict())
-            .get(f"{absorber}{region}", None)
-        )
-        if matrix is None:
-            # If no specific metal matrix, use all (or None if not)
-            matrix = (
-                self.config["correlations"]
-                .get("xmetal matrices", dict())
-                .get("all", None)
-            )
-
-        name = f"{absorber}{region}"
-        if matrix is not None:
-            if not Path(matrix).is_file():
-                raise FileNotFoundError(
-                    f"{name}: Invalid metal matrix provided", matrix
-                )
-            logger.info(f"{name}: Using xmetal matrix from file:\n\t{str(matrix)}")
-        else:
-            logger.info(f"{name}: No xmetal matrix provided, it will be computed.")
-
-        return matrix
 
     def fit_auto_fname(
         self,

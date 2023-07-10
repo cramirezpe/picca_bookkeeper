@@ -10,5 +10,3 @@ correlations:
   delta extraction: dMdB20_2.mgii_r.0.0__reuse_calib
   run name: default
   catalog tracer:
-fits:
-  run name: default

@@ -139,20 +139,39 @@ correlations:
   # by default will use the previous one for all the analyses.
   catalog tracer: 
 
+  # copy correlation measurements from a different place.
+  # For auto-, one should provide the two absorbers and regions
+  cf files:
+    #lyalya_lyalya: /global/cfs/cdirs/desicollab/users/cramirez/iron-analyses/iron/main/QSO_cat_iron_main_dark_healpix_v0/CRP23_1.ciii.1.2_0/correlations/default/results/lyalya_lyalya/cf.fits.gz
+  
+  # For cross-, only one absorber-region is needed
+  xcf files:
+    #lyalya: /global/cfs/cdirs/desicollab/users/cramirez/iron-analyses/iron/main/QSO_cat_iron_main_dark_healpix_v0/CRP23_1.ciii.1.2_0/correlations/default/results/qso_lyalya/xcf.fits.gz
+
+  # copy distortion measurements from a different place
+  # For auto-, one should provide the two absorbers and regions
+  distortion matrices:
+    #lyalya_lyalya: /global/cfs/cdirs/desicollab/users/cramirez/iron-analyses/iron/main/QSO_cat_iron_main_dark_healpix_v0/CRP23_1.ciii.1.2_0/correlations/default/results/lyalya_lyalya/dmat.fits.gz
+
+  # For cross-, only one absorber/region is needed.
+  xdistortion matrices:
+    #lyalya: /global/cfs/cdirs/desicollab/users/cramirez/iron-analyses/iron/main/QSO_cat_iron_main_dark_healpix_v0/CRP23_1.ciii.1.2_0/correlations/default/results/qso_lyalya/xdmat.fits.gz
+  
+
   # copy metal matrices from a different place.
   # For auto-, one should provide the two absorbers and regions
   metal matrices: 
     # Use all to use same matrix for all analyses
     all: 
     # or specify regions/absorbers
-    lyalya_lyalya: /global/cfs/cdirs/desicollab/users/cgordon/Y1/bookkeeper_test/iron/main/QSO_cat_iron_main_dark_healpix_v0/dMdB20_2.ciii.1.2_0/correlations/default/correlations/lyalya_lyalya/metal.fits.gz 
-    lyalya_lyalyb: /global/cfs/cdirs/desicollab/users/cgordon/Y1/bookkeeper_test/iron/main/QSO_cat_iron_main_dark_healpix_v0/dMdB20_2.ciii.1.2_0/correlations/default/correlations/lyalya_lyalyb/metal.fits.gz 
+    lyalya_lyalya: /global/cfs/cdirs/desicollab/users/cramirez/iron-analyses/iron/main/QSO_cat_iron_main_dark_healpix_v0/CRP23_1.ciii.1.2_0/correlations/default/results/lyalya_lyalya/metal.fits.gz 
+    lyalya_lyalyb: /global/cfs/cdirs/desicollab/users/cramirez/iron-analyses/iron/main/QSO_cat_iron_main_dark_healpix_v0/CRP23_1.ciii.1.2_0/correlations/default/results/lyalya_lyalyb/metal.fits.gz 
 
   xmetal matrices:
     all:
     # For cross-, only one absorber/region is needed.
-    lyalya: /global/cfs/cdirs/desicollab/users/cgordon/Y1/bookkeeper_test/iron/main/QSO_cat_iron_main_dark_healpix_v0/dMdB20_2.ciii.1.2_0/correlations/default/correlations/lyalya_qso/xmetal.fits.gz
-    lyalyb: /global/cfs/cdirs/desicollab/users/cgordon/Y1/bookkeeper_test/iron/main/QSO_cat_iron_main_dark_healpix_v0/dMdB20_2.ciii.1.2_0/correlations/default/correlations/lyalyb_qso/xmetal.fits.gz
+    lyalya: /global/cfs/cdirs/desicollab/users/cramirez/iron-analyses/iron/main/QSO_cat_iron_main_dark_healpix_v0/CRP23_1.ciii.1.2_0/correlations/default/results/lyalya_qso/xmetal.fits.gz
+    lyalyb: /global/cfs/cdirs/desicollab/users/cramirez/iron-analyses/iron/main/QSO_cat_iron_main_dark_healpix_v0/CRP23_1.ciii.1.2_0/correlations/default/results/lyalyb_qso/xmetal.fits.gz
 
 
   extra args:

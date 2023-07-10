@@ -1,0 +1,45 @@
+general:
+  conda environment: picca
+  
+data:
+  bookkeeper dir: results_directory
+  
+  healpix data:
+  release: guadalupe
+  survey: main
+  catalog: afterburn_v0
+   
+  
+delta extraction:
+  prefix: dMdB20
+  calib: 2
+  calib region: mgii_r
+  dla: 0
+  bal: 0
+  suffix: copy_corrs
+
+  
+correlations:
+  catalog tracer:
+  run name: default
+
+  cf files:
+    cflyalya_lyalyb:
+
+  xcf files:
+    xcflyalyb:
+
+  distortion matrices:
+    dmatlyalya_lyalyb:
+
+  xdistortion matrices: 
+    xdmatlyalyb:
+
+  metal matrices:
+    metallyalya_lyalyb:
+
+  xmetal matrices:
+    xmetallyalyb:
+
+fits:
+  run name: default

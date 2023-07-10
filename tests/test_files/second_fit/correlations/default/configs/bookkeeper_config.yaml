@@ -10,10 +10,3 @@ correlations:
   delta extraction: dMdB20_2.mgii_r.0.0_0
   run name: default
   catalog tracer:
-fits:
-  delta extraction: dMdB20_2.mgii_r.0.0_0
-  run name: default
-  extra args:
-    vega_cross:
-      data:
-        tracer: QSA
