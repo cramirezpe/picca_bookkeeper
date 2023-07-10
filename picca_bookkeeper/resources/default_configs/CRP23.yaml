@@ -68,6 +68,12 @@ correlations:
       rebin-factor: 3
       z-max-sources: 3.79
 
+    picca_metal_dmat_lyalyb_lyalya:
+      abs-igm: "SiII(1260) SiIII(1207) SiII(1193) SiII(1190) CIV(eff)"
+    
+    picca_metal_dmat_lyalya_lyalyb:
+      abs-igm: "SiII(1260) SiIII(1207) SiII(1193) SiII(1190) CIV(eff)"
+
     picca_xcf:
       mode: desi_healpix
       nproc: 128
@@ -178,8 +184,6 @@ fits:
 
       metals:
         z evol: bias_vs_z_std
-        in tracer1: SiII(1260) SiIII(1207) SiII(1193) SiII(1190)
-        in tracer2: SiII(1260) SiIII(1207) SiII(1193) SiII(1190)
 
     vega_auto_lyalya_lyalya:
       data:
@@ -187,11 +191,20 @@ fits:
         tracer1: LYA
         tracer2: LYA
 
+      metals:
+        in tracer1: SiII(1260) SiIII(1207) SiII(1193) SiII(1190)
+        in tracer2: SiII(1260) SiIII(1207) SiII(1193) SiII(1190)
+
     vega_auto_lyalya_lyalyb:
       data:
         name: lyaxlyb
         tracer1: LYA
         tracer2: LYA
+        
+      metals:
+        in tracer1: SiII(1260) SiIII(1207) SiII(1193) SiII(1190)
+        in tracer2: SiII(1260) SiIII(1207) SiII(1193) SiII(1190)
+      
 
     vega_cross:
       data:
@@ -220,16 +233,22 @@ fits:
       metals:
         z evol: bias_vs_z_std
         velocity dispersion: lorentz
-        in tracer2: SiII(1260) SiIII(1207) SiII(1193) SiII(1190)
         
     vega_cross_lyalya:
       data:
         name: qsoxlya
-        tracer2: LYA        
+        tracer2: LYA
+        
+      metals:
+        in tracer2: SiII(1260) SiIII(1207) SiII(1193) SiII(1190)
+
     vega_cross_lyalyb:
       data:
         name: qsoxlyb
         tracer2: LYA
+      
+      metals:
+        in tracer2:  SiII(1260) SiIII(1207) SiII(1193) SiII(1190)
 
     vega_main:
       data sets:
