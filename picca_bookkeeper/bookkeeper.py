@@ -250,6 +250,7 @@ class Bookkeeper:
             config_corr["correlations"]["delta extraction"] = self.paths.continuum_tag
 
             config_corr.pop("delta extraction")
+            config_corr.po("fits", None)
 
             if not self.paths.correlation_config_file.is_file():
                 self.write_bookkeeper(config_corr, self.paths.correlation_config_file)
@@ -507,12 +508,16 @@ class Bookkeeper:
         if region2 != "":
             sections[-1] += f"_{absorber2}{region2}"
 
-        if "slurm args" in default_config.keys() and isinstance(default_config["slurm args"], dict):
+        if "slurm args" in default_config.keys() and isinstance(
+            default_config["slurm args"], dict
+        ):
             for section in sections:
                 if section in default_config["slurm args"] and isinstance(
                     default_config["slurm args"][section], dict
                 ):
-                    args = DictUtils.merge_dicts(args, default_config["slurm args"][section])
+                    args = DictUtils.merge_dicts(
+                        args, default_config["slurm args"][section]
+                    )
 
         if "slurm args" in config.keys() and isinstance(config["slurm args"], dict):
             for section in sections:
@@ -570,12 +575,16 @@ class Bookkeeper:
             sections[-1] += f"_{absorber2}{region2}"
 
         args = dict()
-        if "extra args" in default_config.keys() and isinstance(default_config["extra args"], dict):
+        if "extra args" in default_config.keys() and isinstance(
+            default_config["extra args"], dict
+        ):
             for section in sections:
                 if section in default_config["extra args"] and isinstance(
                     default_config["extra args"][section], dict
                 ):
-                    args = DictUtils.merge_dicts(args, default_config["extra args"][section])
+                    args = DictUtils.merge_dicts(
+                        args, default_config["extra args"][section]
+                    )
 
         if "extra args" in config.keys() and isinstance(config["extra args"], dict):
             for section in sections:
@@ -2586,7 +2595,20 @@ class Bookkeeper:
         yaml file
         """
         config = DictUtils.merge_dicts(
-            self.defaults,
+            {
+                "fits": {
+                    "bao": self.defaults["fits"]["bao"],
+                    "hcd": self.defaults["fits"]["hcd"],
+                    "metals": self.defaults["fits"]["metals"],
+                    "sky": self.defaults["fits"]["sky"],
+                    "qso rad": self.defaults["fits"]["qso rad"],
+                    "rmin cf": self.defaults["fits"]["rmin cf"],
+                    "rmax cf": self.defaults["fits"]["rmax cf"],
+                    "rmin xcf": self.defaults["fits"]["rmin xcf"],
+                    "rmax xcf": self.defaults["fits"]["rmax xcf"],
+                    "extra args": {},
+                },
+            },
             self.config,
         )
 
