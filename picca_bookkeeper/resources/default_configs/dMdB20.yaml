@@ -12,7 +12,8 @@ delta extraction:
         type: Dr16ExpectedFlux
     
     picca_delta_extraction_lya:
-      limit var lss: (0, 0.4)
+      expected flux:
+        limit var lss: (0, 0.4)
 
   slurm args:
     picca_convert_transmission:

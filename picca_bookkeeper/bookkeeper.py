@@ -2633,12 +2633,12 @@ class Bookkeeper:
                             "beta_hcd": "",
                         }
                     },
-                    "vega_auto": {
+                    "remove_vega_auto": {
                         "model": {
                             "model-hcd": "",
                         }
                     },
-                    "vega_cross": {
+                    "remove_vega_cross": {
                         "model": {
                             "model-hcd": "",
                         }
