@@ -12,10 +12,12 @@ import numpy as np
 
 class CorrelationPlots:
     @staticmethod
-    def plot_cf(
+    def cf(
         bookkeeper: Bookkeeper,
         region: str = "lya",
         region2: str = None,
+        absorber: str = "lya",
+        absorber2: str = None,
         mumin: float = 0,
         mumax: float = 1,
         ax: matplotlib.axes._axes.Axes = None,
@@ -48,7 +50,7 @@ class CorrelationPlots:
         if output_prefix is not None:
             output_prefix = Path(output_prefix)
 
-        with fitsio.FITS(bookkeeper.output.get_exp_cf_fname(region, region2)) as ffile:
+        with fitsio.FITS(bookkeeper.paths.exp_cf_fname(absorber, region, absorber2, region2)) as ffile:
             try:
                 da = ffile["COR"]["DA"][:]
             except ValueError:
@@ -126,7 +128,8 @@ class CorrelationPlots:
     @staticmethod
     def xcf(
         bookkeeper: Bookkeeper,
-        region: str,
+        region: str= "lya",
+        absorber: str = "lya",
         mumin: float = 0,
         mumax: float = 1,
         ax: matplotlib.axes._axes.Axes = None,
@@ -159,7 +162,7 @@ class CorrelationPlots:
         if output_prefix is not None:
             output_prefix = Path(output_prefix)
 
-        with fitsio.FITS(bookkeeper.output.get_exp_xcf_fname(region)) as ffile:
+        with fitsio.FITS(bookkeeper.paths.exp_xcf_fname(absorber, region)) as ffile:
             try:
                 da = ffile["COR"]["DA"][:]
             except ValueError:
@@ -241,6 +244,8 @@ class CorrelationPlots:
         region: str,
         labels: List[str] = None,
         region2: str = None,
+        absorber: str = "lya",
+        absorber2: str = None,
         mumin: float = 0,
         mumax: float = 1,
         ax: matplotlib.axes._axes.Axes = None,
@@ -309,10 +314,12 @@ class CorrelationPlots:
             )
 
     @staticmethod
-    def plot_cf_errorbarsize(
+    def cf_errorbarsize(
         bookkeeper,
         region,
         region2=None,
+        absorber: str = "lya",
+        absorber2: str = None,
         mumin=0,
         mumax=1,
         r_factor=2,
@@ -344,7 +351,7 @@ class CorrelationPlots:
         if output_prefix is not None:
             output_prefix = Path(output_prefix)
 
-        with fitsio.FITS(bookkeeper.output.get_exp_cf_fname(region, region2)) as ffile:
+        with fitsio.FITS(bookkeeper.paths.exp_cf_fname(absorber, region, absorber2, region2)) as ffile:
             try:
                 da = ffile["COR"]["DA"][:]
             except ValueError:
@@ -413,6 +420,7 @@ class CorrelationPlots:
     def xcf_errorbarsize(
         bookkeeper: Bookkeeper,
         region: str,
+        absorber: str = "lya",
         mumin: float = 0,
         mumax: float = 1,
         r_factor: int = 2,
@@ -443,7 +451,7 @@ class CorrelationPlots:
         if output_prefix is not None:
             output_prefix = Path(output_prefix)
 
-        with fitsio.FITS(bookkeeper.output.get_exp_xcf_fname(region)) as ffile:
+        with fitsio.FITS(bookkeeper.paths.exp_xcf_fname(absorber, region)) as ffile:
             try:
                 da = ffile["COR"]["DA"][:]
             except ValueError:
@@ -515,6 +523,8 @@ class CorrelationPlots:
         region: str,
         labels: List[str] = None,
         region2: str = None,
+        absorber: str = "lya",
+        absorber2: str = None,
         mumin: float = 0,
         mumax: float = 1,
         ax: matplotlib.axes._axes.Axes = None,
@@ -581,10 +591,12 @@ class CorrelationPlots:
             )
 
     @staticmethod
-    def plot_cf_map(
+    def cf_map(
         bookkeeper: Bookkeeper,
         region: str='lya',
         region2: str=None,
+        absorber: str = "lya",
+        absorber2: str = None,
         r_factor: int = 2,
         vmin=-0.04,
         vmax=0.04,
@@ -617,7 +629,7 @@ class CorrelationPlots:
         if output_prefix is not None:
             output_prefix = Path(output_prefix)
 
-        with fitsio.FITS(bookkeeper.output.get_exp_cf_fname(region, region2)) as ffile:
+        with fitsio.FITS(bookkeeper.paths.exp_cf_fname(absorber, region, absorber2, region2)) as ffile:
             try:
                 da = ffile["COR"]["DA"][:]
             except ValueError:
@@ -683,9 +695,11 @@ class CorrelationPlots:
             )
         
     @staticmethod
-    def plot_xcf_map(
+    def xcf_map(
         bookkeeper: Bookkeeper,
         region: str='lya',
+        absorber: str = "lya",
+        absorber2: str = None,
         r_factor: int = 2,
         vmin=-0.04,
         vmax=0.04,
@@ -717,7 +731,7 @@ class CorrelationPlots:
         if output_prefix is not None:
             output_prefix = Path(output_prefix)
 
-        with fitsio.FITS(bookkeeper.output.get_exp_xcf_fname(region)) as ffile:
+        with fitsio.FITS(bookkeeper.paths.exp_xcf_fname(absorber, region)) as ffile:
             try:
                 da = ffile["COR"]["DA"][:]
             except ValueError:

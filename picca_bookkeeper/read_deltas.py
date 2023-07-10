@@ -15,9 +15,15 @@ from picca_bookkeeper.utils import compute_cont, get_spectra_from_los_id
 from picca_bookkeeper.bookkeeper import Bookkeeper
 
 class ReadDeltas:
-    def __init__(self, bookkeeper_path, region, blind=False, label=None):
+    def __init__(self, bookkeeper: Bookkeeper, region: str=None, calib_step: int=None, blind: bool=False, label: str=None):
         self.region = region
-        self.bookkeeper_path = Path(bookkeeper_path)
+        self.calib_step = calib_step
+
+        if isinstance(bookkeeper, Bookkeeper):
+            self.bookkeeper = bookkeeper
+        else:
+            self.bookkeeper = Bookkeeper(bookkeeper)
+
         self.blind = blind
         self.set_var_lss_mod()
         self.define_lambda_arrays()
@@ -28,32 +34,37 @@ class ReadDeltas:
         return self.label
 
     @property
-    def config_file_in(self):
+    def config_file(self):
         if self.region == "calibration_1":
+            return self.bookkeeper.paths.deltas_path(self.region, "calibration_1")
+        else:
+            return self.bookkeeper.paths.deltas_path(self.region).parent / ""
+        
+    @property
+    def config_file_in(self):
+        if self.calib_step is not None:
             return (
-                self.bookkeeper_path
+                self.bookkeeper.paths.run_path
                 / "configs"
-                / "delta_extraction_ciii_calib_step_1.ini"
+                / f"delta_extraction_{self.region}_calib_step_{self.calib_step}.ini"
             )
         else:
-            return self.bookkeeper_path / "configs" / "delta_extraction_lya.ini"
+            return self.bookkeeper.patsh.run_path / "configs" / f"udelta_extraction_{self.region}.ini"
 
     @property
     def config_file(self):
-        return self.bookkeeper_path / "results" / self.region / ".config.ini"
+        return self.deltas_path.parent / ".config.ini"
 
     @property
     def deltas_path(self):
-        return self.bookkeeper_path / "results" / self.region / "Delta"
+        return self.bookkeeper.paths.deltas_path(
+            region=self.region, calib_step=self.calib_step
+        )
 
     @property
     def attributes_file(self):
-        return (
-            self.bookkeeper_path
-            / "results"
-            / self.region
-            / "Log"
-            / "delta_attributes.fits.gz"
+        return self.bookkeeper.paths.delta_attributes_file(
+            region=self.region, calib_step=self.calib_step
         )
 
     def set_var_lss_mod(self):
@@ -302,25 +313,32 @@ class ReadDeltasNoBookkeeper(ReadDeltas):
 class Plots:
     @staticmethod
     def eta(
-        hdul: fitsio.fitslib.FITS,
+        bookkeeper: Bookkeeper = None,
+        region: str = None,
+        calib_step: int = None,
+        attributes_file: Union[Path, str] = None,
         ax: matplotlib.axes._axes.Axes = None,
         plot_kwargs: Dict = dict(),
     ):
         if ax is None:
             fig, ax = plt.subplots()
 
-        if "VAR_FUNC" in hdul:
-            card = "VAR_FUNC"
-        else:
-            card = "WEIGHT"
+        if attributes_file is None:
+            attributes_file = bookkeeper.paths.delta_attributes_file(region=region, calib_step=calib_step)
 
-        wave = 10 ** hdul[card]["LOGLAM"].read()
-        eta = hdul[card]["ETA"].read()
-        ax.plot(
-            wave,
-            eta,
-            **plot_kwargs,
-        )
+        with fitsio.FITS(attributes_file) as hdul:
+            if "VAR_FUNC" in hdul:
+                card = "VAR_FUNC"
+            else:
+                card = "WEIGHT"
+
+            wave = 10 ** hdul[card]["LOGLAM"].read()
+            eta = hdul[card]["ETA"].read()
+            ax.plot(
+                wave,
+                eta,
+                **plot_kwargs,
+            )
 
         ax.set_xlabel(r"$\lambda \, [\AA]$")
         ax.set_ylabel(r"$\eta$")
@@ -329,21 +347,28 @@ class Plots:
 
     @staticmethod
     def var_lss(
-        hdul: fitsio.fitslib.FITS,
+        bookkeeper: Bookkeeper = None,
+        region: str = None,
+        calib_step: int = None,
+        attributes_file: Union[Path, str] = None,
         ax: matplotlib.axes._axes.Axes = None,
         plot_kwargs: Dict = dict(),
     ):
         if ax is None:
             fig, ax = plt.subplots()
 
-        if "VAR_FUNC" in hdul:
-            card = "VAR_FUNC"
-        else:
-            card = "WEIGHT"
+        if attributes_file is None:
+            attributes_file = bookkeeper.paths.delta_attributes_file(region=region, calib_step=calib_step)
 
-            
-        wave = 10 ** hdul[card]["LOGLAM"].read()
-        var_lss = hdul[card]["VAR_LSS"].read()
+        with fitsio.FITS(attributes_file) as hdul:
+            if "VAR_FUNC" in hdul:
+                card = "VAR_FUNC"
+            else:
+                card = "WEIGHT"
+
+                
+            wave = 10 ** hdul[card]["LOGLAM"].read()
+            var_lss = hdul[card]["VAR_LSS"].read()
 
         ax.plot(
             wave, 
@@ -358,20 +383,27 @@ class Plots:
 
     @staticmethod
     def fudge(
-        hdul: fitsio.fitslib.FITS,
+        bookkeeper: Bookkeeper = None,
+        region: str = None,
+        calib_step: int = None,
+        attributes_file: Union[Path, str] = None,
         ax: matplotlib.axes._axes.Axes = None,
         plot_kwargs: Dict = dict(),
     ):
         if ax is None:
             fig, ax = plt.subplots()
 
-        if "VAR_FUNC" in hdul:
-            card = "VAR_FUNC"
-        else:
-            card = "WEIGHT"
+        if attributes_file is None:
+            attributes_file = bookkeeper.paths.delta_attributes_file(region=region, calib_step=calib_step)
 
-        lambda_ = 10 ** hdul[card]["LOGLAM"].read()
-        fudge = hdul[card]["FUDGE"].read()
+        with fitsio.FITS(attributes_file) as hdul:
+            if "VAR_FUNC" in hdul:
+                card = "VAR_FUNC"
+            else:
+                card = "WEIGHT"
+
+            lambda_ = 10 ** hdul[card]["LOGLAM"].read()
+            fudge = hdul[card]["FUDGE"].read()
         
         ax.plot(
             lambda_,
@@ -386,7 +418,10 @@ class Plots:
 
     @staticmethod
     def stack(
-        hdul: fitsio.fitslib.FITS,
+        bookkeeper: Bookkeeper = None,
+        region: str = None,
+        calib_step: int = None,
+        attributes_file: Union[Path, str] = None,
         rebin: float = None,
         ax: matplotlib.axes.Axes = None,
         plot_kwargs: Dict = dict(),
@@ -396,11 +431,15 @@ class Plots:
         if ax is None:
             fig, ax = plt.subplots()
 
-        lambda_ = 10 ** hdul["STACK_DELTAS"]["loglam"].read()
-        stack = hdul["STACK_DELTAS"]["stack"].read()
+        if attributes_file is None:
+            attributes_file = bookkeeper.paths.delta_attributes_file(region=region, calib_step=calib_step)
 
-        if use_weights:
-            weights = hdul["STACK_DELTAS"]["weight"].read()
+        with fitsio.FITS(attributes_file) as hdul:
+            lambda_ = 10 ** hdul["STACK_DELTAS"]["loglam"].read()
+            stack = hdul["STACK_DELTAS"]["stack"].read()
+
+            if use_weights:
+                weights = hdul["STACK_DELTAS"]["weight"].read()
 
         if rebin is not None:
             # Repeat last values till having a number of data multiple of rebin.
@@ -431,15 +470,23 @@ class Plots:
 
     @staticmethod
     def num_pixels(
-        hdul: fitsio.fitslib.FITS,
+        bookkeeper: Bookkeeper = None,
+        region: str = None,
+        calib_step: int = None,
+        attributes_file: Union[Path, str] = None,
         ax: matplotlib.axes.Axes = None,
         plot_kwargs: Dict = dict(),
     ):
         if ax is None:
             fig, ax = plt.subplots()
 
-        lambda_ = 10 ** hdul["VAR_FUNC"]["loglam"].read()
-        num_pixels = hdul["VAR_FUNC"]["num_pixels"].read()
+        if attributes_file is None:
+            attributes_file = bookkeeper.paths.delta_attributes_file(region=region, calib_step=calib_step)
+       
+        with fitsio.FITS(attributes_file) as hdul:
+            lambda_ = 10 ** hdul["VAR_FUNC"]["loglam"].read()
+            num_pixels = hdul["VAR_FUNC"]["num_pixels"].read()
+
         ax.plot(
             lambda_,
             num_pixels,
@@ -452,33 +499,52 @@ class Plots:
     
     @staticmethod
     def valid_fit(
-        hdul: fitsio.fitslib.FITS,
+        bookkeeper: Bookkeeper = None,
+        region: str = None,
+        calib_step: int = None,
+        attributes_file: Union[Path, str] = None,
         ax: matplotlib.axes.Axes = None,
         plot_kwargs: Dict = dict(),
     ):
         if ax is None:
             fig, ax = plt.subplots()
 
-        ax.plot(
-            10 ** hdul["VAR_FUNC"]["loglam"].read(),
-            hdul["VAR_FUNC"]["valid_fit"].read(),
-            **plot_kwargs,
-        )
+        if attributes_file is None:
+            attributes_file = bookkeeper.paths.delta_attributes_file(region=region, calib_step=calib_step)
+
+        with fitsio.FITS(attributes_file) as hdul:
+            ax.plot(
+                10 ** hdul["VAR_FUNC"]["loglam"].read(),
+                hdul["VAR_FUNC"]["valid_fit"].read(),
+                **plot_kwargs,
+            )
 
     @staticmethod
     def mean_cont(
-        hdul: fitsio.fitslib.FITS,
+        bookkeeper: Bookkeeper = None,
+        region: str = None,
+        calib_step: int = None,
+        attributes_file: Union[Path, str] = None,
         ax: matplotlib.axes.Axes = None,
         plot_kwargs: Dict = dict(),
     ):
         if ax is None:
             fig, ax = plt.subplots()
 
+        if attributes_file is None:
+            attributes_file = bookkeeper.paths.delta_attributes_file(region=region, calib_step=calib_step)
+
+        with fitsio.FITS(attributes_file) as hdul:
+            wave = 10 ** hdul["CONT"]["loglam_rest"].read()
+            mean_cont = hdul["CONT"]["mean_cont"].read()
+        
         ax.plot(
-            10 ** hdul["CONT"]["loglam_rest"].read(),
-            hdul["CONT"]["mean_cont"].read(),
+            wave, 
+            mean_cont,
             **plot_kwargs,
         )
+    
+        return wave, mean_cont
 
     @staticmethod
     def line_masking(
