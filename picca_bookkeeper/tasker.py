@@ -120,30 +120,26 @@ class Tasker:
                         f"jobid not defined for wait_for input. Have you send any script with this object?"
                     ).with_traceback(e.__traceback__)
         else:
+            # Reshape into one dimension the list of wait fors
+            # Remove None values
+            # Also remove dummy taskers which are Nones anyway.
             self.wait_for = list(np.array(self.wait_for).reshape(-1))
-            if isinstance(self.wait_for[0], (int, np.integer)):
-                self.wait_for = [x for x in self.wait_for if x is not None]
-                self.wait_for_ids = list(self.wait_for)
-            elif self.wait_for[0] == None:
-                self.wait_for = [x for x in self.wait_for if x is not None]
-                if len(self.wait_for) == 0:
-                    self.wait_for = None
-                    self.wait_for_ids = None
+
+            self.wait_for_ids = []
+            for x in self.wait_for:
+                if isinstance(x, Tasker):
+                    try:
+                        self.wait_for_ids.append(x.jobid)
+                    except AttributeError as e:
+                        raise Exception(
+                            f"jobid not defiend for some of the wait_for. Have you send any script with each of the wait_for objects?"
+                        ).with_traceback(e.__traceback__)
                 else:
-                    self.wait_for_ids = list(self.wait_for)
-            elif isinstance(self.wait_for[0], Tasker) or isinstance(
-                self.wait_for[0], ChainedTasker
-            ):
-                try:
-                    self.wait_for_ids = [x.jobid for x in self.wait_for]
-                except AttributeError as e:
-                    raise Exception(
-                        f"jobid not defiend for some of the wait_for. Have you send any script with each of the wait_for objects?"
-                    ).with_traceback(e.__traceback__)
-            else:
-                raise TypeError(
-                    f"Only types supported by wait_for are int, Tasker, list of int or list of Tasker: {type(self.wait_for)}"
-                )
+                    self.wait_for_ids.append(x)
+
+            self.wait_for_ids = list(filter(lambda x: x is not None, self.wait_for_ids))
+            if len(self.wait_for_ids) == 0:
+                self.wait_for_ids = None
 
     def _make_command(self):
         """Method to generate a command with args
@@ -415,6 +411,7 @@ class DummyTasker(Tasker):
     """Tasker object that performs no action. Useful for when files
     are copied and runs are not needed.
     """
+
     def __init__(self, *args, **kwargs):
         pass
 

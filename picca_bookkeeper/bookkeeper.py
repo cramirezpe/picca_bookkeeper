@@ -3291,6 +3291,7 @@ class PathBuilder:
         """Method to get a correlation file to copy given in the bookkeeper config
 
         Args:
+            subsection: Subsection of config file to read
             region: Region where the correlation is computed.
             region2: Second region used (if cross-correlation).
             absorber: First absorber
@@ -3309,11 +3310,13 @@ class PathBuilder:
         if file is not None:
             if not Path(file).is_file():
                 raise FileNotFoundError(
-                    f"{name}: Invalid file provided in config", file
+                    f"{subsection} {name}: Invalid file provided in config", file
                 )
-            logger.info(f"{name}: Using from file:\n\t{str(file)}")
+            logger.info(f"{subsection} {name}: Using from file:\n\t{str(file)}")
         else:
-            logger.info(f"{name}: No file provided to copy, it will be computed.")
+            logger.info(
+                f"{subsection} {name}: No file provided to copy, it will be computed."
+            )
 
         return file
 
