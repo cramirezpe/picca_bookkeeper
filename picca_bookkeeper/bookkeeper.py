@@ -1033,14 +1033,15 @@ class Bookkeeper:
 
         # Check if output already there
         if self.paths.delta_attributes_file(region, calib_step).is_file():
-            if not overwrite:
+            if skip_sent:
+                return DummyTasker()
+            elif not overwrite:
                 raise FileExistsError(
                     "Destination file already exists, run with overwrite option "
                     "to continue",
                     self.paths.delta_attributes_file(region, calib_step),
                 )
-            elif skip_sent:
-                return DummyTasker()
+                
 
         # Check if calibration data needs to be copied:
         if calib_step is not None:
@@ -1312,14 +1313,14 @@ class Bookkeeper:
         absorber = self.validate_absorber(absorber)
 
         if self.paths.cf_fname(absorber, region, absorber2, region2).is_file():
-            if not overwrite:
+            if skip_sent:
+                return DummyTasker()
+            elif not overwrite:
                 raise FileExistsError(
                     "Destination file already exists, run with overwrite option "
                     "to continue",
                     self.paths.cf_fname(absorber, region, absorber2, region2),
                 )
-            elif skip_sent:
-                return DummyTasker()
 
         copy_cf_file = self.paths.copied_correlation_file(
             "cf files", absorber, region, absorber2, region2
@@ -1476,14 +1477,14 @@ class Bookkeeper:
         absorber = self.validate_absorber(absorber)
 
         if self.paths.dmat_fname(absorber, region, absorber2, region2).is_file():
-            if not overwrite:
+            if skip_sent:
+                return DummyTasker()
+            elif not overwrite:
                 raise FileExistsError(
                     "Destination file already exists, run with overwrite option "
                     "to continue",
                     self.paths.dmat_fname(absorber, region, absorber2, region2),
                 )
-            elif skip_sent:
-                return DummyTasker()
 
         copy_dmat_file = self.paths.copied_correlation_file(
             "distortion matrices", absorber, region, absorber2, region2
@@ -1639,14 +1640,14 @@ class Bookkeeper:
         absorber = self.validate_absorber(absorber)
 
         if self.paths.exp_cf_fname(absorber, region, absorber2, region2).is_file():
-            if not overwrite:
+            if skip_sent:
+                return DummyTasker()
+            elif not overwrite:
                 raise FileExistsError(
                     "Destination file already exists, run with overwrite option "
                     "to continue",
                     self.paths.exp_cf_fname(absorber, region, absorber2, region2),
                 )
-            elif skip_sent:
-                return DummyTasker()
 
         command = "picca_export.py"
 
@@ -1788,14 +1789,14 @@ class Bookkeeper:
         absorber = self.validate_absorber(absorber)
 
         if self.paths.metal_fname(absorber, region, absorber2, region2).is_file():
-            if not overwrite:
+            if skip_sent:
+                return DummyTasker()
+            elif not overwrite:
                 raise FileExistsError(
                     "Destination file already exists, run with overwrite option "
                     "to continue",
                     self.paths.metal_fname(absorber, region, absorber2, region2),
                 )
-            elif skip_sent:
-                return DummyTasker()
 
         # If metal matrices are provided, we just copy them into the bookkeeper
         # as if they were computed.
@@ -1940,14 +1941,14 @@ class Bookkeeper:
         absorber = self.validate_absorber(absorber)
 
         if self.paths.xcf_fname(absorber, region).is_file():
-            if not overwrite:
+            if skip_sent:
+                return DummyTasker()
+            elif not overwrite:
                 raise FileExistsError(
                     "Destination file already exists, run with overwrite option "
                     "to continue",
                     self.paths.xcf_fname(absorber, region),
                 )
-            elif skip_sent:
-                return DummyTasker()
 
         copy_xcf_file = self.paths.copied_correlation_file(
             "xcf files", absorber, region, None, None
@@ -2085,14 +2086,14 @@ class Bookkeeper:
         absorber = self.validate_absorber(absorber)
 
         if self.paths.xdmat_fname(absorber, region).is_file():
-            if not overwrite:
+            if skip_sent:
+                return DummyTasker()
+            elif not overwrite:
                 raise FileExistsError(
                     "Destination file already exists, run with overwrite option "
                     "to continue",
                     self.paths.xdmat_fname(absorber, region),
                 )
-            elif skip_sent:
-                return DummyTasker()
 
         copy_xdmat_file = self.paths.copied_correlation_file(
             "xdistortion matrices", absorber, region, None, None
@@ -2232,14 +2233,14 @@ class Bookkeeper:
         absorber = self.validate_absorber(absorber)
 
         if self.paths.exp_xcf_fname(absorber, region).is_file():
-            if not overwrite:
+            if skip_sent:
+                return DummyTasker()
+            elif not overwrite:
                 raise FileExistsError(
                     "Destination file already exists, run with overwrite option "
                     "to continue",
                     self.paths.exp_xcf_fname(absorber, region),
                 )
-            elif skip_sent:
-                return DummyTasker()
 
         command = "picca_export.py"
 
@@ -2357,14 +2358,14 @@ class Bookkeeper:
         absorber = self.validate_absorber(absorber)
 
         if self.paths.xmetal_fname(absorber, region).is_file():
-            if not overwrite:
+            if skip_sent:
+                return DummyTasker()
+            elif not overwrite:
                 raise FileExistsError(
                     "Destination file already exists, run with overwrite option "
                     "to continue",
                     self.paths.xmetal_fname(absorber, region),
                 )
-            elif skip_sent:
-                return DummyTasker()
 
         copy_metal_matrix = self.paths.copied_correlation_file(
             "xmetal matrices", absorber, region, None, None
