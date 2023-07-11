@@ -991,6 +991,7 @@ class Bookkeeper:
         extra_args: Dict = dict(),
         calib_step: int = None,
         overwrite: bool = False,
+        skip_sent: bool = False,
     ) -> Tasker:
         """Method to get a Tasker object to run delta extraction with picca.
 
@@ -1014,6 +1015,8 @@ class Bookkeeper:
                 {'num masks': {'masks': value}}.
             calib_step: Calibration step. Default: None, no calibration
             overwrite: Overwrite files in destination.
+            skip_sent: Skip this and return a DummyTasker if the run
+                was already sent before.
 
         Returns:
             Tasker: Tasker object to run delta extraction.
@@ -1029,15 +1032,15 @@ class Bookkeeper:
         region = self.validate_region(region)
 
         # Check if output already there
-        if (
-            self.paths.delta_attributes_file(region, calib_step).is_file()
-            and not overwrite
-        ):
-            raise FileExistsError(
-                "Destination file already exists, run with overwrite option "
-                "to continue",
-                self.paths.delta_attributes_file(region, calib_step),
-            )
+        if self.paths.delta_attributes_file(region, calib_step).is_file():
+            if not overwrite:
+                raise FileExistsError(
+                    "Destination file already exists, run with overwrite option "
+                    "to continue",
+                    self.paths.delta_attributes_file(region, calib_step),
+                )
+            elif skip_sent:
+                return DummyTasker()
 
         # Check if calibration data needs to be copied:
         if calib_step is not None:
@@ -1139,6 +1142,10 @@ class Bookkeeper:
             )
             deltas_config_dict.get("data").update({"max num spec": 1000})
 
+        # Touching output file.
+        # to allow skipping afterwards
+        self.paths.delta_attributes_file(region, calib_step).touch()
+
         return get_Tasker(
             updated_system,
             command=command,
@@ -1159,6 +1166,7 @@ class Bookkeeper:
         slurm_header_extra_args: Dict = dict(),
         extra_args: Dict = dict(),
         overwrite: bool = False,
+        skip_sent: bool = False,
     ) -> Tasker:
         """Method to get a Tasker object to run calibration with picca delta
         extraction method.
@@ -1180,6 +1188,8 @@ class Bookkeeper:
                 {'argument_name', 'argument_value'}. Use {'argument_name': ''}
                 if a action-like option is used.
             overwrite: Overwrite files in destination.
+            skip_sent: Skip this and return a DummyTasker if the run
+                was already sent before.
 
         Returns:
             Tasker: Tasker object to run delta extraction for calibration.
@@ -1206,6 +1216,7 @@ class Bookkeeper:
                     extra_args=extra_args,
                     calib_step=1,
                     overwrite=overwrite,
+                    skip_sent=skip_sent,
                 )
             )
             steps.append(
@@ -1218,6 +1229,7 @@ class Bookkeeper:
                     extra_args=extra_args,
                     calib_step=2,
                     overwrite=overwrite,
+                    skip_sent=skip_sent,
                 )
             )
         elif self.config["delta extraction"]["calib"] in (1, 10):
@@ -1231,6 +1243,7 @@ class Bookkeeper:
                     extra_args=extra_args,
                     calib_step=1,
                     overwrite=overwrite,
+                    skip_sent=skip_sent,
                 ),
             )
         else:
@@ -1250,6 +1263,7 @@ class Bookkeeper:
         slurm_header_extra_args: Dict = dict(),
         extra_args: Dict = dict(),
         overwrite: bool = False,
+        skip_sent: bool = False,
     ) -> Tasker:
         """Method to get a Tasker object to run forest-forest correlations with picca.
 
@@ -1275,6 +1289,8 @@ class Bookkeeper:
                 {'argument_name', 'argument_value'}. Use {'argument_name': ''}
                 if a action-like option is used.
             overwrite: Overwrite files in destination.
+            skip_sent: Skip this and return a DummyTasker if the run
+                was already sent before.
 
         Returns:
             Tasker: Tasker object to run forest-forest correlation.
@@ -1295,15 +1311,15 @@ class Bookkeeper:
         absorber2 = self.validate_absorber(absorber2)
         absorber = self.validate_absorber(absorber)
 
-        if (
-            self.paths.cf_fname(absorber, region, absorber2, region2).is_file()
-            and not overwrite
-        ):
-            raise FileExistsError(
-                "Destination file already exists, run with overwrite option "
-                "to continue",
-                self.paths.cf_fname(absorber, region, absorber2, region2),
-            )
+        if self.paths.cf_fname(absorber, region, absorber2, region2).is_file():
+            if not overwrite:
+                raise FileExistsError(
+                    "Destination file already exists, run with overwrite option "
+                    "to continue",
+                    self.paths.cf_fname(absorber, region, absorber2, region2),
+                )
+            elif skip_sent:
+                return DummyTasker()
 
         copy_cf_file = self.paths.copied_correlation_file(
             "cf files", absorber, region, absorber2, region2
@@ -1383,6 +1399,8 @@ class Bookkeeper:
         self.paths.cf_fname(absorber, region, absorber2, region2).parent.mkdir(
             exist_ok=True, parents=True
         )
+        # Touching output file to allow skipping afterwards.
+        self.paths.cf_fname(absorber, region, absorber2, region2).touch()
 
         return get_Tasker(
             updated_system,
@@ -1408,6 +1426,7 @@ class Bookkeeper:
         slurm_header_extra_args: Dict = dict(),
         extra_args: Dict = dict(),
         overwrite: bool = False,
+        skip_sent: bool = False,
     ) -> Tasker:
         """Method to get a Tasker object to run forest-forest distortion matrix
         measurements with picca.
@@ -1434,6 +1453,8 @@ class Bookkeeper:
                 {'argument_name', 'argument_value'}. Use {'argument_name': ''}
                 if a action-like option is used.
             overwrite: Overwrite files in destination.
+            skip_sent: Skip this and return a DummyTasker if the run
+                was already sent before.
 
         Returns:
             Tasker: Tasker object to run forest-forest correlation.
@@ -1454,15 +1475,15 @@ class Bookkeeper:
         absorber2 = self.validate_absorber(absorber2)
         absorber = self.validate_absorber(absorber)
 
-        if (
-            self.paths.dmat_fname(absorber, region, absorber2, region2).is_file()
-            and not overwrite
-        ):
-            raise FileExistsError(
-                "Destination file already exists, run with overwrite option "
-                "to continue",
-                self.paths.dmat_fname(absorber, region, absorber2, region2),
-            )
+        if self.paths.dmat_fname(absorber, region, absorber2, region2).is_file():
+            if not overwrite:
+                raise FileExistsError(
+                    "Destination file already exists, run with overwrite option "
+                    "to continue",
+                    self.paths.dmat_fname(absorber, region, absorber2, region2),
+                )
+            elif skip_sent:
+                return DummyTasker()
 
         copy_dmat_file = self.paths.copied_correlation_file(
             "distortion matrices", absorber, region, absorber2, region2
@@ -1541,6 +1562,8 @@ class Bookkeeper:
             exist_ok=True,
             parents=True,
         )
+        # touching output file to allow skipping afterwards
+        self.paths.dmat_fname(absorber, region, absorber2, region2).touch()
 
         return get_Tasker(
             updated_system,
@@ -1566,6 +1589,7 @@ class Bookkeeper:
         extra_args: Dict = dict(),
         no_dmat: bool = False,
         overwrite: bool = False,
+        skip_sent: bool = False,
     ) -> Tasker:
         """Method to get a Tasker object to run forest-forest correlation export with
          picca.
@@ -1592,6 +1616,8 @@ class Bookkeeper:
                 if a action-like option is used.
             no_dmat: Do not use distortion matrix.
             overwrite: Overwrite files in destination.
+            skip_sent: Skip this and return a DummyTasker if the run
+                was already sent before.
 
         Returns:
             Tasker: Tasker object to run forest-forest correlation.
@@ -1612,15 +1638,15 @@ class Bookkeeper:
         absorber2 = self.validate_absorber(absorber2)
         absorber = self.validate_absorber(absorber)
 
-        if (
-            self.paths.exp_cf_fname(absorber, region, absorber2, region2).is_file()
-            and not overwrite
-        ):
-            raise FileExistsError(
-                "Destination file already exists, run with overwrite option "
-                "to continue",
-                self.paths.exp_cf_fname(absorber, region, absorber2, region2),
-            )
+        if self.paths.exp_cf_fname(absorber, region, absorber2, region2).is_file():
+            if not overwrite:
+                raise FileExistsError(
+                    "Destination file already exists, run with overwrite option "
+                    "to continue",
+                    self.paths.exp_cf_fname(absorber, region, absorber2, region2),
+                )
+            elif skip_sent:
+                return DummyTasker()
 
         command = "picca_export.py"
 
@@ -1681,6 +1707,12 @@ class Bookkeeper:
             "HDF5_USE_FILE_LOCKING": "FALSE",
         }
 
+        # touching output file to allow skipping afterwards
+        self.paths.exp_cf_fname(absorber, region, absorber2, region2).mkdir(
+            exist_ok=True, parents=True
+        )
+        self.paths.exp_cf_fname(absorber, region, absorber2, region2).touch()
+
         return get_Tasker(
             updated_system,
             command=command,
@@ -1706,6 +1738,7 @@ class Bookkeeper:
         slurm_header_extra_args: Dict = dict(),
         extra_args: Dict = dict(),
         overwrite: bool = False,
+        skip_sent: bool = False,
     ) -> Tasker:
         """Method to get a Tasker object to run forest-forest metal distortion matrix
         measurements with picca.
@@ -1732,6 +1765,8 @@ class Bookkeeper:
                 {'argument_name', 'argument_value'}. Use {'argument_name': ''}
                 if a action-like option is used.
             overwrite: Overwrite files in destination.
+            skip_sent: Skip this and return a DummyTasker if the run
+                was already sent before.
 
         Returns:
             Tasker: Tasker object to run forest-forest correlation.
@@ -1752,15 +1787,15 @@ class Bookkeeper:
         absorber2 = self.validate_absorber(absorber2)
         absorber = self.validate_absorber(absorber)
 
-        if (
-            self.paths.metal_fname(absorber, region, absorber2, region2).is_file()
-            and not overwrite
-        ):
-            raise FileExistsError(
-                "Destination file already exists, run with overwrite option "
-                "to continue",
-                self.paths.metal_fname(absorber, region, absorber2, region2),
-            )
+        if self.paths.metal_fname(absorber, region, absorber2, region2).is_file():
+            if not overwrite:
+                raise FileExistsError(
+                    "Destination file already exists, run with overwrite option "
+                    "to continue",
+                    self.paths.metal_fname(absorber, region, absorber2, region2),
+                )
+            elif skip_sent:
+                return DummyTasker()
 
         # If metal matrices are provided, we just copy them into the bookkeeper
         # as if they were computed.
@@ -1840,6 +1875,8 @@ class Bookkeeper:
         self.paths.metal_fname(absorber, region, absorber2, region2).parent.mkdir(
             exist_ok=True, parents=True
         )
+        # touching output file to allow skipping afterwards
+        self.paths.metal_fname(absorber, region, absorber2, region2).touch()
 
         return get_Tasker(
             updated_system,
@@ -1863,6 +1900,7 @@ class Bookkeeper:
         slurm_header_extra_args: Dict = dict(),
         extra_args: Dict = dict(),
         overwrite: bool = False,
+        skip_sent: bool = False,
     ) -> Tasker:
         """Method to get a Tasker object to run forest-quasar correlations with picca.
 
@@ -1884,6 +1922,8 @@ class Bookkeeper:
                 {'argument_name', 'argument_value'}. Use {'argument_name': ''}
                 if a action-like option is used.
             overwrite: Overwrite files in destination.
+            skip_sent: Skip this and return a DummyTasker if the run
+                was already sent before.
 
         Returns:
             Tasker: Tasker object to run forest-forest correlation.
@@ -1899,12 +1939,15 @@ class Bookkeeper:
         region = self.validate_region(region)
         absorber = self.validate_absorber(absorber)
 
-        if self.paths.xcf_fname(absorber, region).is_file() and not overwrite:
-            raise FileExistsError(
-                "Destination file already exists, run with overwrite option "
-                "to continue",
-                self.paths.xcf_fname(absorber, region),
-            )
+        if self.paths.xcf_fname(absorber, region).is_file():
+            if not overwrite:
+                raise FileExistsError(
+                    "Destination file already exists, run with overwrite option "
+                    "to continue",
+                    self.paths.xcf_fname(absorber, region),
+                )
+            elif skip_sent:
+                return DummyTasker()
 
         copy_xcf_file = self.paths.copied_correlation_file(
             "xcf files", absorber, region, None, None
@@ -1975,6 +2018,8 @@ class Bookkeeper:
             )
 
         self.paths.xcf_fname(absorber, region).parent.mkdir(exist_ok=True, parents=True)
+        # touching output file to allow skipping afterwards
+        self.paths.xcf_fname(absorber, region).touch()
 
         return get_Tasker(
             updated_system,
@@ -1998,6 +2043,7 @@ class Bookkeeper:
         slurm_header_extra_args: Dict = dict(),
         extra_args: Dict = dict(),
         overwrite: bool = False,
+        skip_sent: bool = False,
     ) -> Tasker:
         """Method to get a Tasker object to run forest-quasar distortion matrix
         measurements with picca.
@@ -2021,6 +2067,8 @@ class Bookkeeper:
                 Use a dictionary with the format {'argument_name', 'argument_value'}.
                 Use {'argument_name': ''} if a action-like option is used.
             overwrite: Overwrite files in destination.
+            skip_sent: Skip this and return a DummyTasker if the run
+                was already sent before.
 
         Returns:
             Tasker: Tasker object to run forest-quasar distortion matrix.
@@ -2036,12 +2084,15 @@ class Bookkeeper:
         region = self.validate_region(region)
         absorber = self.validate_absorber(absorber)
 
-        if self.paths.xdmat_fname(absorber, region).is_file() and not overwrite:
-            raise FileExistsError(
-                "Destination file already exists, run with overwrite option "
-                "to continue",
-                self.paths.xdmat_fname(absorber, region),
-            )
+        if self.paths.xdmat_fname(absorber, region).is_file():
+            if not overwrite:
+                raise FileExistsError(
+                    "Destination file already exists, run with overwrite option "
+                    "to continue",
+                    self.paths.xdmat_fname(absorber, region),
+                )
+            elif skip_sent:
+                return DummyTasker()
 
         copy_xdmat_file = self.paths.copied_correlation_file(
             "xdistortion matrices", absorber, region, None, None
@@ -2113,6 +2164,8 @@ class Bookkeeper:
         self.paths.xdmat_fname(absorber, region).parent.mkdir(
             exist_ok=True, parents=True
         )
+        # touching output file to allow skipping afterwards
+        self.paths.xdmat_fname(absorber, region).touch()
 
         return get_Tasker(
             updated_system,
@@ -2137,6 +2190,7 @@ class Bookkeeper:
         extra_args: Dict = dict(),
         no_dmat: bool = False,
         overwrite: bool = False,
+        skip_sent: bool = False,
     ) -> Tasker:
         """Method to get a Tasker object to run forest-quasar correlation export with
         picca.
@@ -2160,6 +2214,8 @@ class Bookkeeper:
                 if a action-like option is used.
             no_dmat: Do not use disortion matrix
             overwrite: Overwrite files in destination.
+            skip_sent: Skip this and return a DummyTasker if the run
+                was already sent before.
 
         Returns:
             Tasker: Tasker object to run forest-forest correlation.
@@ -2175,12 +2231,15 @@ class Bookkeeper:
         region = self.validate_region(region)
         absorber = self.validate_absorber(absorber)
 
-        if self.paths.exp_xcf_fname(absorber, region).is_file() and not overwrite:
-            raise FileExistsError(
-                "Destination file already exists, run with overwrite option "
-                "to continue",
-                self.paths.exp_xcf_fname(absorber, region),
-            )
+        if self.paths.exp_xcf_fname(absorber, region).is_file():
+            if not overwrite:
+                raise FileExistsError(
+                    "Destination file already exists, run with overwrite option "
+                    "to continue",
+                    self.paths.exp_xcf_fname(absorber, region),
+                )
+            elif skip_sent:
+                return DummyTasker()
 
         command = "picca_export.py"
 
@@ -2236,6 +2295,12 @@ class Bookkeeper:
             "HDF5_USE_FILE_LOCKING": "FALSE",
         }
 
+        self.paths.exp_xcf_fname(absorber, region).parent.mkdir(
+            exist_ok=True, parents=True
+        )
+        # touching output file to allow skipping afterwards
+        self.paths.exp_xcf_fname(absorber, region).touch()
+
         return get_Tasker(
             updated_system,
             command=command,
@@ -2259,6 +2324,7 @@ class Bookkeeper:
         slurm_header_extra_args: Dict = dict(),
         extra_args: Dict = dict(),
         overwrite: bool = False,
+        skip_sent: bool = False,
     ) -> Tasker:
         """Method to get a Tasker object to run forest-quasar metal distortion matrix
         measurements with picca.
@@ -2281,6 +2347,8 @@ class Bookkeeper:
                 {'argument_name', 'argument_value'}. Use {'argument_name': ''}
                 if a action-like option is used.
             overwrite: Overwrite files in destination.
+            skip_sent: Skip this and return a DummyTasker if the run
+                was already sent before.
 
         Returns:
             Tasker: Tasker object to run forest-forest correlation.
@@ -2288,12 +2356,15 @@ class Bookkeeper:
         region = self.validate_region(region)
         absorber = self.validate_absorber(absorber)
 
-        if self.paths.xmetal_fname(absorber, region).is_file() and not overwrite:
-            raise FileExistsError(
-                "Destination file already exists, run with overwrite option "
-                "to continue",
-                self.paths.xmetal_fname(absorber, region),
-            )
+        if self.paths.xmetal_fname(absorber, region).is_file():
+            if not overwrite:
+                raise FileExistsError(
+                    "Destination file already exists, run with overwrite option "
+                    "to continue",
+                    self.paths.xmetal_fname(absorber, region),
+                )
+            elif skip_sent:
+                return DummyTasker()
 
         copy_metal_matrix = self.paths.copied_correlation_file(
             "xmetal matrices", absorber, region, None, None
@@ -2379,6 +2450,8 @@ class Bookkeeper:
         self.paths.xmetal_fname(absorber, region).parent.mkdir(
             exist_ok=True, parents=True
         )
+        # touching output file to allow skipping afterwards
+        self.paths.xmetal_fname(absorber, region).touch()
 
         return get_Tasker(
             updated_system,

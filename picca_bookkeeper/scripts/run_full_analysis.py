@@ -87,6 +87,7 @@ def main(args=None):
                 wait_for=args.wait_for,
                 log_level=args.log_level,
                 overwrite=args.overwrite,
+                skip_sent=args.skip_sent,
             )
             wait_for.append(run_delta_extraction(calib_args))
 
@@ -103,6 +104,7 @@ def main(args=None):
                 wait_for=wait_for,
                 log_level=args.log_level,
                 overwrite=args.overwrite,
+                skip_sent=args.skip_sent,
             )
             region_jobids[region] = run_delta_extraction(region_args)
     else:
@@ -136,6 +138,7 @@ def main(args=None):
                 wait_for=wait_for,
                 log_level=args.log_level,
                 overwrite=args.overwrite,
+                skip_sent=args.skip_sent,
             )
             correlation_jobids.append(run_cf(auto_args))
 
@@ -154,6 +157,7 @@ def main(args=None):
                 wait_for=region_jobids[region],
                 log_level=args.log_level,
                 overwrite=args.overwrite,
+                skip_sent=args.skip_sent,
             )
 
             correlation_jobids.append(run_xcf(cross_args))
@@ -176,6 +180,7 @@ def main(args=None):
             wait_for=correlation_jobids,
             log_level=args.log_level,
             overwrite=args.overwrite,
+            skip_sent=args.skip_sent,
         )
         fit_jobid = run_fit(fit_args)
     else:
@@ -201,6 +206,10 @@ def get_args():
         "--overwrite-config",
         action="store_true",
         help="Force overwrite bookkeeper config.",
+    )
+
+    parser.add_argument(
+        "--skip-sent", action="store_true", help="Skip runs that were already sent."
     )
 
     parser.add_argument(

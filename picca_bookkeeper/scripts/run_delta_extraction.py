@@ -41,6 +41,7 @@ def main(args=None):
             debug=args.debug,
             wait_for=args.wait_for,
             overwrite=args.overwrite,
+            skip_sent=args.skip_sent,
         )
         calibration.write_job()
         if not args.only_write:
@@ -69,6 +70,7 @@ def main(args=None):
         debug=args.debug,
         wait_for=wait_for,
         overwrite=args.overwrite,
+        skip_sent=args.skip_sent,
     )
     deltas.write_job()
     if args.only_write:
@@ -99,6 +101,10 @@ def get_args():
         "--overwrite-config",
         action="store_true",
         help="Force overwrite bookkeeper config.",
+    )
+
+    parser.add_argument(
+        "--skip-sent", action="store_true", help="Skip runs that were already sent."
     )
 
     parser.add_argument(

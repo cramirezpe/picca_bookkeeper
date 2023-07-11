@@ -39,6 +39,7 @@ def main(args=None):
         debug=args.debug,
         wait_for=args.wait_for,
         overwrite=args.overwrite,
+        skip_sent=args.skip_sent,
     )
     cf.write_job()
     if not args.only_write:
@@ -56,6 +57,7 @@ def main(args=None):
             wait_for=args.wait_for,
             debug=args.debug,
             overwrite=args.overwrite,
+            skip_sent=args.skip_sent,
         )
         dmat.write_job()
         if not args.only_write:
@@ -72,6 +74,7 @@ def main(args=None):
             debug=args.debug,
             wait_for=args.wait_for,
             overwrite=args.overwrite,
+            skip_sent=args.skip_sent,
         )
         metal.write_job()
         if not args.only_write:
@@ -87,6 +90,7 @@ def main(args=None):
         wait_for=wait_for,
         no_dmat=args.no_dmat,
         overwrite=args.overwrite,
+        skip_sent=args.skip_sent,
     )
 
     cf_exp.write_job()
@@ -112,6 +116,10 @@ def get_args():
         "--overwrite-config",
         action="store_true",
         help="Force overwrite bookkeeper config.",
+    )
+
+    parser.add_argument(
+        "--skip-sent", action="store_true", help="Skip runs that were already sent."
     )
 
     parser.add_argument(
