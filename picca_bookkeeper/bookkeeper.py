@@ -1709,7 +1709,7 @@ class Bookkeeper:
         }
 
         # touching output file to allow skipping afterwards
-        self.paths.exp_cf_fname(absorber, region, absorber2, region2).mkdir(
+        self.paths.exp_cf_fname(absorber, region, absorber2, region2).parent.mkdir(
             exist_ok=True, parents=True
         )
         self.paths.exp_cf_fname(absorber, region, absorber2, region2).touch()
