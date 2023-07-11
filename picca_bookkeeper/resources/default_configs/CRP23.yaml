@@ -69,10 +69,10 @@ correlations:
       z-max-sources: 3.79
 
     picca_metal_dmat_lyalyb_lyalya:
-      abs-igm: "SiII(1260) SiIII(1207) SiII(1193) SiII(1190) CIV(eff)"
+      abs-igm: "SiII(1260) SiIII(1207) SiII(1193) SiII(1190)"
     
     picca_metal_dmat_lyalya_lyalyb:
-      abs-igm: "SiII(1260) SiIII(1207) SiII(1193) SiII(1190) CIV(eff)"
+      abs-igm: "SiII(1260) SiIII(1207) SiII(1193) SiII(1190)"
 
     picca_xcf:
       mode: desi_healpix
@@ -146,8 +146,8 @@ correlations:
 
 
 fits:
-  auto correlations:
-  cross correlations: 
+  auto correlations: lya.lya-lya.lya lya.lya-lya.lyb
+  cross correlations: lya.lya lya.lyb
 
   bao: True
   hcd: True

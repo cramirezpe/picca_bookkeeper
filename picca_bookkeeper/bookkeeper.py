@@ -1030,10 +1030,17 @@ class Bookkeeper:
                 f"{DictUtils.print_dict(self.defaults_diff)}"
             )
         region = self.validate_region(region)
+        job_name = f"delta_extraction_{region}"
+        if calib_step is not None:
+            job_name += "_calib_step_" + str(calib_step)
 
         # Check if output already there
         if self.paths.delta_attributes_file(region, calib_step).is_file():
             if skip_sent:
+                logger.info(
+                    f"{job_name}: skipping already run:\n\t"
+                    f"{str(self.paths.delta_attributes_file(region, calib_step))}"
+                )
                 return DummyTasker()
             elif not overwrite:
                 raise FileExistsError(
@@ -1041,7 +1048,6 @@ class Bookkeeper:
                     "to continue",
                     self.paths.delta_attributes_file(region, calib_step),
                 )
-                
 
         # Check if calibration data needs to be copied:
         if calib_step is not None:
@@ -1074,9 +1080,6 @@ class Bookkeeper:
         )
         updated_system = self.generate_system_arg(system)
 
-        job_name = f"delta_extraction_{region}"
-        if calib_step is not None:
-            job_name += "_calib_step_" + str(calib_step)
         config_file = self.paths.run_path / f"configs/{job_name}.ini"
 
         deltas_config_dict = DictUtils.merge_dicts(
@@ -1312,8 +1315,14 @@ class Bookkeeper:
         absorber2 = self.validate_absorber(absorber2)
         absorber = self.validate_absorber(absorber)
 
+        job_name = f"cf_{absorber}{region}_{absorber2}{region2}"
+
         if self.paths.cf_fname(absorber, region, absorber2, region2).is_file():
             if skip_sent:
+                logger.info(
+                    f"{job_name}: skipping already run:\n\t"
+                    f"{str(self.paths.cf_fname(absorber, region, absorber2, region2))}"
+                )
                 return DummyTasker()
             elif not overwrite:
                 raise FileExistsError(
@@ -1358,8 +1367,6 @@ class Bookkeeper:
             absorber2=absorber2,
         )
         updated_system = self.generate_system_arg(system)
-
-        job_name = f"cf_{absorber}{region}_{absorber2}{region2}"
 
         slurm_header_args = {
             "job-name": job_name,
@@ -1476,8 +1483,14 @@ class Bookkeeper:
         absorber2 = self.validate_absorber(absorber2)
         absorber = self.validate_absorber(absorber)
 
+        job_name = f"dmat_{absorber}{region}_{absorber2}{region2}"
+
         if self.paths.dmat_fname(absorber, region, absorber2, region2).is_file():
             if skip_sent:
+                logger.info(
+                    f"{job_name}: skipping already run:\n\t"
+                    f"{str(self.paths.dmat_fname(absorber, region, absorber2, region2))}"
+                )
                 return DummyTasker()
             elif not overwrite:
                 raise FileExistsError(
@@ -1522,8 +1535,6 @@ class Bookkeeper:
             absorber2=absorber2,
         )
         updated_system = self.generate_system_arg(system)
-
-        job_name = f"dmat_{absorber}{region}_{absorber2}{region2}"
 
         slurm_header_args = {
             "job-name": job_name,
@@ -1639,8 +1650,14 @@ class Bookkeeper:
         absorber2 = self.validate_absorber(absorber2)
         absorber = self.validate_absorber(absorber)
 
+        job_name = f"cf_exp_{absorber}{region}_{absorber2}{region2}"
+
         if self.paths.exp_cf_fname(absorber, region, absorber2, region2).is_file():
             if skip_sent:
+                logger.info(
+                    f"{job_name}: skipping already run:\n\t"
+                    f"{str(self.paths.exp_cf_fname(absorber, region, absorber2, region2))}"
+                )
                 return DummyTasker()
             elif not overwrite:
                 raise FileExistsError(
@@ -1674,8 +1691,6 @@ class Bookkeeper:
             absorber2=absorber2,
         )
         updated_system = self.generate_system_arg(system)
-
-        job_name = f"cf_exp_{absorber}{region}_{absorber2}{region2}"
 
         slurm_header_args = {
             "job-name": job_name,
@@ -1788,8 +1803,14 @@ class Bookkeeper:
         absorber2 = self.validate_absorber(absorber2)
         absorber = self.validate_absorber(absorber)
 
+        job_name = f"metal_{absorber}{region}_{absorber2}{region2}"
+
         if self.paths.metal_fname(absorber, region, absorber2, region2).is_file():
             if skip_sent:
+                logger.info(
+                    f"{job_name}: skipping already run:\n\t"
+                    f"{str(self.paths.metal_fname(absorber, region, absorber2, region2))}"
+                )
                 return DummyTasker()
             elif not overwrite:
                 raise FileExistsError(
@@ -1836,8 +1857,6 @@ class Bookkeeper:
             absorber2=absorber2,
         )
         updated_system = self.generate_system_arg(system)
-
-        job_name = f"metal_{absorber}{region}_{absorber2}{region2}"
 
         slurm_header_args = {
             "job-name": job_name,
@@ -1940,8 +1959,14 @@ class Bookkeeper:
         region = self.validate_region(region)
         absorber = self.validate_absorber(absorber)
 
+        job_name = f"xcf_{absorber}{region}"
+
         if self.paths.xcf_fname(absorber, region).is_file():
             if skip_sent:
+                logger.info(
+                    f"{job_name}: skipping already run:\n\t"
+                    f"{str(self.paths.xcf_fname(absorber, region))}"
+                )
                 return DummyTasker()
             elif not overwrite:
                 raise FileExistsError(
@@ -1982,8 +2007,6 @@ class Bookkeeper:
             absorber=absorber,
         )
         updated_system = self.generate_system_arg(system)
-
-        job_name = f"xcf_{absorber}{region}"
 
         slurm_header_args = {
             "job-name": job_name,
@@ -2085,8 +2108,14 @@ class Bookkeeper:
         region = self.validate_region(region)
         absorber = self.validate_absorber(absorber)
 
+        job_name = f"xdmat_{absorber}{region}"
+
         if self.paths.xdmat_fname(absorber, region).is_file():
             if skip_sent:
+                logger.info(
+                    f"{job_name}: skipping already run:\n\t"
+                    f"{str(self.paths.xdmat_fname(absorber, region))}"
+                )
                 return DummyTasker()
             elif not overwrite:
                 raise FileExistsError(
@@ -2127,8 +2156,6 @@ class Bookkeeper:
             absorber=absorber,
         )
         updated_system = self.generate_system_arg(system)
-
-        job_name = f"xdmat_{absorber}{region}"
 
         slurm_header_args = {
             "job-name": job_name,
@@ -2231,9 +2258,14 @@ class Bookkeeper:
             )
         region = self.validate_region(region)
         absorber = self.validate_absorber(absorber)
+        job_name = f"xcf_exp_{absorber}{region}"
 
         if self.paths.exp_xcf_fname(absorber, region).is_file():
             if skip_sent:
+                logger.info(
+                    f"{job_name}: skipping already run:\n\t"
+                    f"{str(self.paths.exp_xcf_fname(absorber, region))}"
+                )
                 return DummyTasker()
             elif not overwrite:
                 raise FileExistsError(
@@ -2263,8 +2295,6 @@ class Bookkeeper:
             absorber=absorber,
         )
         updated_system = self.generate_system_arg(system)
-
-        job_name = f"xcf_exp_{absorber}{region}"
 
         slurm_header_args = {
             "job-name": job_name,
@@ -2356,9 +2386,14 @@ class Bookkeeper:
         """
         region = self.validate_region(region)
         absorber = self.validate_absorber(absorber)
+        job_name = f"xmetal_{absorber}{region}"
 
         if self.paths.xmetal_fname(absorber, region).is_file():
             if skip_sent:
+                logger.info(
+                    f"{job_name}: skipping already run:\n\t"
+                    f"{str(self.paths.xmetal_fname(absorber, region))}"
+                )
                 return DummyTasker()
             elif not overwrite:
                 raise FileExistsError(
@@ -2408,8 +2443,6 @@ class Bookkeeper:
             absorber=absorber,
         )
         updated_system = self.generate_system_arg(system)
-
-        job_name = f"xmetal_{absorber}{region}"
 
         slurm_header_args = {
             "job-name": job_name,
@@ -2721,6 +2754,8 @@ class Bookkeeper:
         config = DictUtils.merge_dicts(
             {
                 "fits": {
+                    "auto correlations": self.defaults["fits"]["auto correlations"],
+                    "cross correlations": self.defaults["fits"]["cross correlations"],
                     "bao": self.defaults["fits"]["bao"],
                     "hcd": self.defaults["fits"]["hcd"],
                     "metals": self.defaults["fits"]["metals"],
