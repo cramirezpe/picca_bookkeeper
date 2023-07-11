@@ -21,10 +21,13 @@ def select_table(table: astropy.table.table.Table, selection: int = 2):
     logger.info("Start selecting on conf./SNR")
 
     if selection == 2:
-        conf_min = np.minimum(
-            table["CNN_DLA_CONFIDENCE"],
-            table["GP_DLA_CONFIDENCE"],
-        )
+        if "CNN_DLA_CONFIDENCE" in table.keys() and "GP_DLA_CONFIDENCE" in table.keys():
+            conf_min = np.minimum(
+                table["CNN_DLA_CONFIDENCE"],
+                table["GP_DLA_CONFIDENCE"],
+            )
+        else:
+            conf_min = table["DLA_CONFIDENCE"]
 
         msk = table["ABSORBER_TYPE"] == "DLA"
         msk &= conf_min > 0.5
