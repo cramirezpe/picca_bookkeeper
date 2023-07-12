@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 
 from picca_bookkeeper.bookkeeper import Bookkeeper
-from picca_bookkeeper.tasker import Tasker
+from picca_bookkeeper.tasker import Tasker, DummyTasker
 
 logger = logging.getLogger(__name__)
 
@@ -80,6 +80,9 @@ def main(args=None):
         if not args.only_write:
             metal.send_job()
             print(metal.jobid)
+    else:
+        metal = DummyTasker()
+
 
     cf_exp = bookkeeper.get_cf_exp_tasker(
         region=args.region,

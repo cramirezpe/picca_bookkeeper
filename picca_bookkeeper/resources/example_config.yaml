@@ -35,6 +35,8 @@ data:
   release: guadalupe
   survey: main
   # Catalog could be a name (and therefore will be used the bookkeeper one)
+  # available catalogs are available under 
+  # /global/cfs/cdirs/desicollab/users/cramirez/Continuum_fitting_Y1/catalogs
   # or could be a full path to a catalog
   catalog: afterburn_v0
 
@@ -60,6 +62,7 @@ delta extraction:
   #         0 if no calibration is used.
   #
   #   - dla (0, 1, 2, etc): integer identifying the version of DLA masking used
+  #       (available options under /global/cfs/cdirs/desicollab/users/cramirez/Continuum_fitting_Y1/catalogs)
   #       - 0: no DLA masking.
   #       - 1: First version of DLA catalog.
   #       - N: Nth version of DLA catalog. 
@@ -170,8 +173,8 @@ correlations:
   xmetal matrices:
     all:
     # For cross-, only one absorber/region is needed.
-    lyalya: /global/cfs/cdirs/desicollab/users/cramirez/iron-analyses/iron/main/QSO_cat_iron_main_dark_healpix_v0/CRP23_1.ciii.1.2_0/correlations/default/results/lyalya_qso/xmetal.fits.gz
-    lyalyb: /global/cfs/cdirs/desicollab/users/cramirez/iron-analyses/iron/main/QSO_cat_iron_main_dark_healpix_v0/CRP23_1.ciii.1.2_0/correlations/default/results/lyalyb_qso/xmetal.fits.gz
+    lyalya: /global/cfs/cdirs/desicollab/users/cramirez/iron-analyses/iron/main/QSO_cat_iron_main_dark_healpix_v0/CRP23_1.ciii.1.2_0/correlations/default/results/qso_lyalya/xmetal.fits.gz
+    lyalyb: /global/cfs/cdirs/desicollab/users/cramirez/iron-analyses/iron/main/QSO_cat_iron_main_dark_healpix_v0/CRP23_1.ciii.1.2_0/correlations/default/results/qso_lyalyb/xmetal.fits.gz
 
 
   extra args:
