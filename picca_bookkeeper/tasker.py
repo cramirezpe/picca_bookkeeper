@@ -318,7 +318,7 @@ class SlurmPerlmutterTasker(SlurmTasker):
     default_srun_options = {
         "nodes": 1,  # N
         "ntasks": 1,  # n
-        "cpus-per-task": 128,  # c
+        "cpus-per-task": 256,  # c
     }
 
 
