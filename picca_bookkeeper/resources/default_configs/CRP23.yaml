@@ -340,4 +340,8 @@ fits:
 
          
 
-      
+  slurm args:
+    run_vega:
+      qos: shared
+      ntasks: 1
+      cpus-per-task: 8
