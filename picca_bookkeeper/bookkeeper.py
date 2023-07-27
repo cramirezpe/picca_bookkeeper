@@ -1389,6 +1389,7 @@ class Bookkeeper:
 
         if "v9." in self.config["data"]["release"]:
             args["mode"] = "desi_mocks"
+            args["no-project"] = ""
 
         if region2 != region:
             args["in-dir2"] = str(self.paths.deltas_path(region2))
@@ -1557,6 +1558,7 @@ class Bookkeeper:
 
         if "v9." in self.config["data"]["release"]:
             args["mode"] = "desi_mocks"
+            args["no-project"] = ""
 
         if region2 != region:
             args["in-dir2"] = str(self.paths.deltas_path(region2))
@@ -2029,6 +2031,8 @@ class Bookkeeper:
 
         if "v9." in self.config["data"]["release"]:
             args["mode"] = "desi_mocks"
+            args["no-project"] = ""
+            args["no-remove-mean-lambda-obs"] = ""
 
         args = DictUtils.merge_dicts(args, updated_extra_args)
 
