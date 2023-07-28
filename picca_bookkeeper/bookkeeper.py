@@ -235,14 +235,6 @@ class Bookkeeper:
                         f"{DictUtils.print_dict(comparison)}\n\n"
                         f"Remove config file to overwrite {self.paths.delta_config_file}"
                     )
-            # Copy full bookkeeper.
-            try:
-                shutil.copyfile(
-                    config_path,
-                    self.paths.delta_config_file.parent / "bookkeeper_config_full.yaml",
-                )
-            except shutil.SameFileError:
-                pass
 
         if self.correlations is not None and config_type != "fits":
             config_corr = copy.deepcopy(self.config)
