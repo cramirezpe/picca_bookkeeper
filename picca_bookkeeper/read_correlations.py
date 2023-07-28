@@ -18,11 +18,12 @@ class CorrelationPlots:
         region2: str = None,
         absorber: str = "lya",
         absorber2: str = None,
+        correlation_file: Union[Path, str] = "",
         mumin: float = 0,
         mumax: float = 1,
         ax: matplotlib.axes._axes.Axes = None,
         r_factor: int = 2,
-        errorbar_kwargs: Dict = dict(),
+        plot_kwargs: Dict = dict(),
         just_return_values: bool = False,
         output_prefix: Union[Path, str] = None,
         save_data: bool = False,
@@ -34,14 +35,17 @@ class CorrelationPlots:
 
         Arguments:
         ----------
-
-        bookkeeper: Bookkeeper object to use for collect data.
-        region: region to compute correlations from.
-        region2: region to compute correlations from if multiple regions have been used.
+        bookkeeper: bookkeeper object to use for collect data.
+        region: region to use.
+        region2: if set use different second region.
+        absorber: absorber to use.
+        absorber2: if set use different second absorber.
+        correlation_file: Provide path to correlation file alternatively.
         mumin: wedge min value.
         mumax: wedge max value.
         ax: axis where to draw the plot, if None, it'll be created.
         r_factor: exponential factor to apply to distance r.
+        plot_kwargs: extra kwargs to sent to the plotting function.
         output_prefix: Save the plot under this file structure (Default: None, plot not saved)
         save_data: Save the data into a npz file under the output_prefix file structure. (Default: False).
         save_plot: Save the plot into a png file. (Default: False).
@@ -50,7 +54,12 @@ class CorrelationPlots:
         if output_prefix is not None:
             output_prefix = Path(output_prefix)
 
-        with fitsio.FITS(bookkeeper.paths.exp_cf_fname(absorber, region, absorber2, region2)) as ffile:
+        if not Path(correlation_file).is_file():
+            correlation_file = bookkeeper.paths.exp_cf_fname(
+                absorber, region, absorber2, region2
+            )        
+
+        with fitsio.FITS(correlation_file) as ffile:
             try:
                 da = ffile["COR"]["DA"][:]
             except ValueError:
@@ -91,7 +100,7 @@ class CorrelationPlots:
             data_wedge[0],
             r_coef * data_wedge[1],
             yerr=r_coef * sp.sqrt(sp.diag(data_wedge[2])),
-            **errorbar_kwargs,
+            **plot_kwargs,
         )
         ax.grid()
         ax.set_xlabel(r"$r \, [\mathrm{Mpc \, h^{-1}}]$")
@@ -124,6 +133,22 @@ class CorrelationPlots:
             r_coef * data_wedge[1],
             r_coef * sp.sqrt(sp.diag(data_wedge[2])),
         )
+    
+    @staticmethod
+    def compare_cf(
+        bookkeeper: Bookkeeper,
+        bookkeeper2: Bookkeeper,
+        region: str= "lya",
+        absorber: str = "lya",
+        mumin: float = 0,
+        mumax: float = 1,
+        correlation_file: Union[Path, str] = "",
+        correlation_file2: Union[Path, str] = "",
+        ax: matplotlib.axes._axes.Axes = None,
+        r_factor: int = 2,
+        plot_kwargs: Dict = dict(),
+    ):
+        fig, axs = plt.subplots(3, 1, sharex=True, gridspec_kw={"height_ratios": [3, 2, 2]})
 
     @staticmethod
     def xcf(
@@ -132,9 +157,10 @@ class CorrelationPlots:
         absorber: str = "lya",
         mumin: float = 0,
         mumax: float = 1,
+        correlation_file: Union[Path, str] = None,
         ax: matplotlib.axes._axes.Axes = None,
         r_factor: int = 2,
-        errorbar_kwargs: Dict = dict(),
+        plot_kwargs: Dict = dict(),
         just_return_values: bool = False,
         output_prefix: Union[Path, str] = None,
         save_data: bool = False,
@@ -146,14 +172,15 @@ class CorrelationPlots:
 
         Arguments:
         ----------
-
-        bookkeeper: Bookkeeper object to use for collect data.
-        region: region to compute correlations from.
-        region2: region to compute correlations from if multiple regions have been used.
+        bookkeeper: bookkeeper object to use for collect data.
+        region: region to use.
+        absorber: absorber to use.
+        correlation_file: Provide path to correlation file alternatively.
         mumin: wedge min value.
         mumax: wedge max value.
         ax: axis where to draw the plot, if None, it'll be created.
         r_factor: exponential factor to apply to distance r.
+        plot_kwargs: extra kwargs to sent to the plotting function.
         output_prefix: Save the plot under this file structure (Default: None, plot not saved)
         save_data: Save the data into a npz file under the output_prefix file structure. (Default: False).
         save_plot: Save the plot into a png file. (Default: False).
@@ -204,7 +231,7 @@ class CorrelationPlots:
             data_wedge[0],
             r_coef * data_wedge[1],
             yerr=r_coef * sp.sqrt(sp.diag(data_wedge[2])),
-            **errorbar_kwargs,
+            **plot_kwargs,
         )
         ax.grid()
         ax.set_xlabel(r"$r \, [\mathrm{Mpc \, h^{-1}}]$")
@@ -238,80 +265,80 @@ class CorrelationPlots:
             r_coef * sp.sqrt(sp.diag(data_wedge[2])),
         )
 
-    @staticmethod
-    def multiple_cf(
-        bookkeepers: List[Bookkeeper],
-        region: str,
-        labels: List[str] = None,
-        region2: str = None,
-        absorber: str = "lya",
-        absorber2: str = None,
-        mumin: float = 0,
-        mumax: float = 1,
-        ax: matplotlib.axes._axes.Axes = None,
-        r_factor: int = 2,
-        errorbar_kwargs: Dict = dict(),
-        just_return_values: bool = False,
-        output_prefix: Union[Path, str] = None,
-        save_data: bool = False,
-        save_plot: bool = False,
-        save_dict: Dict = None,
-    ):
-        """
-        Plotting correlation function in defined wedge.
+    # @staticmethod
+    # def multiple_cf(
+    #     bookkeepers: List[Bookkeeper],
+    #     region: str,
+    #     labels: List[str] = None,
+    #     region2: str = None,
+    #     absorber: str = "lya",
+    #     absorber2: str = None,
+    #     correlation_file: Union[Path, str] = None,
+    #     mumin: float = 0,
+    #     mumax: float = 1,
+    #     ax: matplotlib.axes._axes.Axes = None,
+    #     r_factor: int = 2,
+    #     plot_kwargs: Dict = dict(),
+    #     just_return_values: bool = False,
+    #     output_prefix: Union[Path, str] = None,
+    #     save_data: bool = False,
+    #     save_plot: bool = False,
+    #     save_dict: Dict = None,
+    # ):
+    #     """
+    #     Plotting correlation function in defined wedge.
 
-        Arguments:
-        ----------
+    #     Arguments:
+    #     ----------
+    #     bookkeepers: Bookkeepers object to use for collecting data.
+    #     region: region to compute correlations from.
+    #     labels: Labels to use for the different bookkeeper realizations.
+    #     region2: region to compute correlations from if multiple regions have been used.
+    #     mumin: wedge min value.
+    #     mumax: wedge max value.
+    #     ax: axis where to draw the plot, if None, it'll be created.
+    #     r_factor: exponential factor to apply to distance r.
+    #     output_prefix: Save the plot under this file structure (Default: None, plot not saved)
+    #     save_data: Save the data into a npz file under the output_prefix file structure. (Default: False).
+    #     save_plot: Save the plot into a png file. (Default: False).
+    #     save_dict: Extra information to save in the npz file if save_data option is True. (Default: Empty dict)
+    #     """
+    #     if (save_data or save_plot) and output_prefix is None:
+    #         raise ValueError("Set output_prefix in order to save data.")
+    #     if save_data:
+    #         data_dict = {}
+    #     if ax is None:
+    #         fig, ax = plt.subplots()
 
-        bookkeepers: Bookkeepers object to use for collecting data.
-        region: region to compute correlations from.
-        labels: Labels to use for the different bookkeeper realizations.
-        region2: region to compute correlations from if multiple regions have been used.
-        mumin: wedge min value.
-        mumax: wedge max value.
-        ax: axis where to draw the plot, if None, it'll be created.
-        r_factor: exponential factor to apply to distance r.
-        output_prefix: Save the plot under this file structure (Default: None, plot not saved)
-        save_data: Save the data into a npz file under the output_prefix file structure. (Default: False).
-        save_plot: Save the plot into a png file. (Default: False).
-        save_dict: Extra information to save in the npz file if save_data option is True. (Default: Empty dict)
-        """
-        if (save_data or save_plot) and output_prefix is None:
-            raise ValueError("Set output_prefix in order to save data.")
-        if save_data:
-            data_dict = {}
-        if ax is None:
-            fig, ax = plt.subplots()
+    #     for bookkeeper, label in zip(bookkeepers, labels):
+    #         values = CorrelationPlots.plot_cf(
+    #             bookkeeper=bookkeeper,
+    #             region=region,
+    #             region2=region2,
+    #             mumin=mumin,
+    #             mumax=mumax,
+    #             plot_kwargs={**plot_kwargs, **dict(label=label)},
+    #             ax=ax,
+    #             r_factor=r_factor,
+    #         )
 
-        for bookkeeper, label in zip(bookkeepers, labels):
-            values = CorrelationPlots.plot_cf(
-                bookkeeper=bookkeeper,
-                region=region,
-                region2=region2,
-                mumin=mumin,
-                mumax=mumax,
-                errorbar_kwargs={**errorbar_kwargs, **dict(label=label)},
-                ax=ax,
-                r_factor=r_factor,
-            )
+    #         if save_data:
+    #             data_dict[f"{label}_r"] = values[0]
+    #             data_dict[f"{label}_values"] = values[1]
+    #             data_dict[f"{label}_errors"] = values[2]
+    #             data_dict[f"{label}_nb"] = values[3]
 
-            if save_data:
-                data_dict[f"{label}_r"] = values[0]
-                data_dict[f"{label}_values"] = values[1]
-                data_dict[f"{label}_errors"] = values[2]
-                data_dict[f"{label}_nb"] = values[3]
-
-        ax.legend()
-        plt.tight_layout()
-        if save_plot:
-            plt.savefig(
-                output_prefix.parent / (output_prefix.name + "-multiple_cf.png"),
-            )
-        if save_data:
-            np.savez(
-                output_prefix.parent / (output_prefix.name + "-multiple_cf.npz"),
-                **{**save_dict, **data_dict},
-            )
+    #     ax.legend()
+    #     plt.tight_layout()
+    #     if save_plot:
+    #         plt.savefig(
+    #             output_prefix.parent / (output_prefix.name + "-multiple_cf.png"),
+    #         )
+    #     if save_data:
+    #         np.savez(
+    #             output_prefix.parent / (output_prefix.name + "-multiple_cf.npz"),
+    #             **{**save_dict, **data_dict},
+    #         )
 
     @staticmethod
     def cf_errorbarsize(
@@ -320,6 +347,7 @@ class CorrelationPlots:
         region2=None,
         absorber: str = "lya",
         absorber2: str = None,
+        correlation_file: Union[Path, str] = None,
         mumin=0,
         mumax=1,
         r_factor=2,
@@ -336,13 +364,17 @@ class CorrelationPlots:
 
         Arguments:
         ----------
-        bookkeeper: Bookkeeper object to use for collect data.
-        region: region to compute correlations from.
-        region2: region to compute correlations from if multiple regions have been used.
+        bookkeeper: bookkeeper object to use for collect data.
+        region: region to use.
+        region2: if set use different second region.
+        absorber: absorber to use.
+        absorber2: if set use different second absorber.
+        correlation_file: Provide path to correlation file alternatively.
         mumin: wedge min value.
         mumax: wedge max value.
         ax: axis where to draw the plot, if None, it'll be created.
         r_factor: exponential factor to apply to distance r.
+        plot_kwargs: extra kwargs to sent to the plotting function.
         output_prefix: Save the plot under this file structure (Default: None, plot not saved)
         save_data: Save the data into a npz file under the output_prefix file structure. (Default: False).
         save_plot: Save the plot into a png file. (Default: False).
@@ -421,6 +453,7 @@ class CorrelationPlots:
         bookkeeper: Bookkeeper,
         region: str,
         absorber: str = "lya",
+        correlation_file: Union[Path, str] = None,
         mumin: float = 0,
         mumax: float = 1,
         r_factor: int = 2,
@@ -437,12 +470,15 @@ class CorrelationPlots:
 
         Arguments:
         ----------
-        bookkeeper: Bookkeeper object to use for collect data.
-        region: region to compute correlations from.
+        bookkeeper: bookkeeper object to use for collect data.
+        region: region to use.
+        absorber: absorber to use.
+        correlation_file: Provide path to correlation file alternatively.
         mumin: wedge min value.
         mumax: wedge max value.
         ax: axis where to draw the plot, if None, it'll be created.
         r_factor: exponential factor to apply to distance r.
+        plot_kwargs: extra kwargs to sent to the plotting function.
         output_prefix: Save the plot under this file structure (Default: None, plot not saved)
         save_data: Save the data into a npz file under the output_prefix file structure. (Default: False).
         save_plot: Save the plot into a png file. (Default: False).
@@ -517,78 +553,79 @@ class CorrelationPlots:
 
         return data_wedge[0], r_coef * sp.sqrt(sp.diag(data_wedge[2]))
 
-    @staticmethod
-    def multiple_cf_errorbarsize(
-        bookkeepers: List[Bookkeeper],
-        region: str,
-        labels: List[str] = None,
-        region2: str = None,
-        absorber: str = "lya",
-        absorber2: str = None,
-        mumin: float = 0,
-        mumax: float = 1,
-        ax: matplotlib.axes._axes.Axes = None,
-        r_factor: int = 2,
-        plot_kwargs: Dict = dict(),
-        just_return_values: bool = False,
-        output_prefix: Union[Path, str] = None,
-        save_data: bool = False,
-        save_plot: bool = False,
-        save_dict: Dict = None,
-    ):
-        """
-        Plotting correlation function errors in defined wedge.
+    # @staticmethod
+    # def multiple_cf_errorbarsize(
+    #     bookkeepers: List[Bookkeeper],
+    #     region: str,
+    #     labels: List[str] = None,
+    #     region2: str = None,
+    #     absorber: str = "lya",
+    #     absorber2: str = None,
+    #     correlation_file: Union[Path, str] = None,
+    #     mumin: float = 0,
+    #     mumax: float = 1,
+    #     ax: matplotlib.axes._axes.Axes = None,
+    #     r_factor: int = 2,
+    #     plot_kwargs: Dict = dict(),
+    #     just_return_values: bool = False,
+    #     output_prefix: Union[Path, str] = None,
+    #     save_data: bool = False,
+    #     save_plot: bool = False,
+    #     save_dict: Dict = None,
+    # ):
+    #     """
+    #     Plotting correlation function errors in defined wedge.
 
-        Arguments:
-        ----------
+    #     Arguments:
+    #     ----------
 
-        bookkeepers: Bookkeepers object to use for collecting data.
-        region: region to compute correlations from.
-        labels: Labels to use for the different bookkeeper realizations.
-        region2: region to compute correlations from if multiple regions have been used.
-        mumin: wedge min value.
-        mumax: wedge max value.
-        ax: axis where to draw the plot, if None, it'll be created.
-        r_factor: exponential factor to apply to distance r.
-        output_prefix: Save the plot under this file structure (Default: None, plot not saved)
-        save_data: Save the data into a npz file under the output_prefix file structure. (Default: False).
-        save_plot: Save the plot into a png file. (Default: False).
-        save_dict: Extra information to save in the npz file if save_data option is True. (Default: Empty dict)
-        """
-        if (save_data or save_plot) and output_prefix is None:
-            raise ValueError("Set output_prefix in order to save data.")
-        if save_data:
-            data_dict = {}
-        if ax is None:
-            fig, ax = plt.subplots()
+    #     bookkeepers: Bookkeepers object to use for collecting data.
+    #     region: region to compute correlations from.
+    #     labels: Labels to use for the different bookkeeper realizations.
+    #     region2: region to compute correlations from if multiple regions have been used.
+    #     mumin: wedge min value.
+    #     mumax: wedge max value.
+    #     ax: axis where to draw the plot, if None, it'll be created.
+    #     r_factor: exponential factor to apply to distance r.
+    #     output_prefix: Save the plot under this file structure (Default: None, plot not saved)
+    #     save_data: Save the data into a npz file under the output_prefix file structure. (Default: False).
+    #     save_plot: Save the plot into a png file. (Default: False).
+    #     save_dict: Extra information to save in the npz file if save_data option is True. (Default: Empty dict)
+    #     """
+    #     if (save_data or save_plot) and output_prefix is None:
+    #         raise ValueError("Set output_prefix in order to save data.")
+    #     if save_data:
+    #         data_dict = {}
+    #     if ax is None:
+    #         fig, ax = plt.subplots()
 
-        for bookkeeper, label in zip(bookkeepers, labels):
-            values = CorrelationPlots.plot_cf_errorbarsize(
-                bookkeeper=bookkeeper,
-                region=region,
-                region2=region2,
-                mumin=mumin,
-                mumax=mumax,
-                ax=ax,
-                r_factor=r_factor,
-                plot_kwargs={**plot_kwargs, **dict(label=label)},
-            )
+    #     for bookkeeper, label in zip(bookkeepers, labels):
+    #         values = CorrelationPlots.plot_cf_errorbarsize(
+    #             bookkeeper=bookkeeper,
+    #             region=region,
+    #             region2=region2,
+    #             mumin=mumin,
+    #             mumax=mumax,
+    #             ax=ax,
+    #             r_factor=r_factor,
+    #             plot_kwargs={**plot_kwargs, **dict(label=label)},
+    #         )
 
-            if save_data:
-                data_dict[f"{label}_r"] = values[0]
-                data_dict[f"{label}_errors"] = values[1]
+    #         if save_data:
+    #             data_dict[f"{label}_r"] = values[0]
+    #             data_dict[f"{label}_errors"] = values[1]
 
-        ax.legend()
-        plt.tight_layout()
-        if save_plot:
-            plt.savefig(
-                output_prefix.parent / (output_prefix.name + "-multiple_cf.png"),
-            )
-        if save_data:
-            np.savez(
-                output_prefix.parent / (output_prefix.name + "-multiple_cf.npz"),
-                **{**save_dict, **data_dict},
-            )
+    #     ax.legend()
+    #     plt.tight_layout()
+    #     if save_plot:
+    #         plt.savefig(
+    #             output_prefix.parent / (output_prefix.name + "-multiple_cf.png"),
+    #         )
+    #     if save_data:
+    #         np.savez(
+    #             output_prefix.parent / (output_prefix.name + "-multiple_cf.npz"),
+    #             **{**save_dict, **data_dict},
+    #         )
 
     @staticmethod
     def cf_map(
@@ -597,14 +634,13 @@ class CorrelationPlots:
         region2: str=None,
         absorber: str = "lya",
         absorber2: str = None,
+        correlation_file: Union[Path, str] = None,
         r_factor: int = 2,
         vmin=-0.04,
         vmax=0.04,
         fig=None,
         ax: matplotlib.axes.Axes = None,
-        imshow_kwargs: Dict = dict(),
         plot_kwargs: Dict = dict(),
-        plot_bar_kwargs: Dict = dict(),
         just_return_values: bool = False,
         output_prefix: Union[Path, str] = None,
         save_data: bool = False,
@@ -616,11 +652,18 @@ class CorrelationPlots:
 
         Arguments:
         ----------
-        bookkeeper: Bookkeeper object to use for collect data.
-        region: region to compute correlations from.
-        region2: region to compute correlations from if multiple regions have been used.
+        bookkeeper: bookkeeper object to use for collect data.
+        region: region to use.
+        region2: if set use different second region.
+        absorber: absorber to use.
+        absorber2: if set use different second absorber.
+        correlation_file: Provide path to correlation file alternatively.
         r_factor: exponential factor to apply to distance r.
+        vmin: min third axis for the colormap.
+        vmax: max third axis for the colormap.
+        fig: matplotlib figure to make the plot in.
         ax: axis where to draw the plot, if None, it'll be created.
+        plot_kwargs: extra kwargs to sent to the plotting function.
         output_prefix: Save the plot under this file structure (Default: None, plot not saved)
         save_data: Save the data into a npz file under the output_prefix file structure. (Default: False).
         save_plot: Save the plot into a png file. (Default: False).
@@ -669,7 +712,7 @@ class CorrelationPlots:
             interpolation="nearest",
             cmap="seismic",
             **{
-                **imshow_kwargs,
+                **plot_kwargs,
                 **dict(vmin=-0.04, vmax=0.04),
             },
         )
@@ -700,14 +743,13 @@ class CorrelationPlots:
         region: str='lya',
         absorber: str = "lya",
         absorber2: str = None,
+        correlation_file: Union[Path, str] = None,
         r_factor: int = 2,
         vmin=-0.04,
         vmax=0.04,
         fig=None,
         ax: matplotlib.axes.Axes = None,
-        imshow_kwargs: Dict = dict(),
         plot_kwargs: Dict = dict(),
-        plot_bar_kwargs: Dict = dict(),
         just_return_values: bool = False,
         output_prefix: Union[Path, str] = None,
         save_data: bool = False,
@@ -771,7 +813,7 @@ class CorrelationPlots:
             interpolation="nearest",
             cmap="seismic",
             **{
-                **imshow_kwargs,
+                **plot_kwargs,
                 **dict(vmin=-0.4, vmax=0.4),
             },
         )
