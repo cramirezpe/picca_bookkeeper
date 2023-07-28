@@ -109,12 +109,12 @@ For more information on how to run each of them use the ``--help`` command. (the
 # Examples
 ## Run full analysis
 ``` bash
-picca_bookkeeper_run_full_analysis config.yaml --auto-correlations lya.lya-lya.lya lya.lya-lya.lyb --cross-correlations lya.lya lya.lyb 
+picca_bookkeeper_run_full_analysis config.yaml
 ```
 
-## Run full analysis if deltas were already computed (skipping them)
+## Run full analysis if some steps where already computed (skipping them)
 ``` bash
-picca_bookkeeper_run_full_analysis config.yaml --auto-correlations lya.lya-lya.lya lya.lya-lya.lyb --cross-correlations lya.lya lya.lyb --no-deltas
+picca_bookkeeper_run_full_analysis config.yaml --skip-sent
 ```
 
 ## Run two different correlations 
@@ -122,18 +122,20 @@ If one wants to run two different correlation measurements for the same set of d
 ```bash
 picca_bookkeeper_run_full_analysis config1.yaml --auto-correlations lya.lya-lya.lya lya.lya-lya.lyb --cross-correlations lya.lya lya.lyb --no-fits
 ```
+(here we wanted to skip fits, so we need to define the auto- and cross- correlations to compute).
+
 We can collect the jobid from the deltas steps (number returned in terminal), and use it for the next correlation measurements to wait for them:
 ```
 # We don't need to rerun deltas
-picca_bookkeeper_run_full_analysis config2.yaml --auto-correlations lya.lya-lya.lya lya.lya-lya.lyb --cross-correlations lya.lya lya.lyb --no-deltas --no-fits --wait-for {delta-lya-jobid} {delta-lyb-jobid}
+picca_bookkeeper_run_full_analysis config2.yaml --auto-correlations lya.lya-lya.lya lya.lya-lya.lyb --cross-correlations lya.lya lya.lyb --skip-sent --no-fits --wait-for {delta-lya-jobid} {delta-lyb-jobid}
 ```
 
 ## Run full analysis with modified fits
 The same idea as for the correlations can be applied to generate two different fits. First we generate the full analysis:
 ``` bash
-picca_bookkeeper_run_full_analysis config1.yaml --auto-correlations lya.lya-lya.lya lya.lya-lya.lyb --cross-correlations lya.lya lya.lyb 
+picca_bookkeeper_run_full_analysis config1.yaml
 ```
 and then we generate only the second fits
 ```bash
-picca_bookkeeper_run_full_analysis --auto-correlations lya.lya-lya.lya lya.lya-lya.lyb --cross-correlations lya.lya lya.lyb --no-deltas --no-correlations --waitfor {auto-export-jobid} {auto-metal-jobid} {cross-export-jobid} {cross-metal-jobid}
+picca_bookkeeper_run_full_analysis --no-deltas --no-correlations --waitfor {auto-export-jobid} {auto-metal-jobid} {cross-export-jobid} {cross-metal-jobid}
 ```
