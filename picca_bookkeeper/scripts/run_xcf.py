@@ -42,11 +42,6 @@ def main(args=None):
             f"{args.absorber}{args.region}_qso: "
             f"{xcf.jobid}"
         )
-        wait_for = [
-            xcf,
-        ]
-    else:
-        wait_for = None
 
     if not args.no_dmat:
         xdmat = bookkeeper.get_xdmat_tasker(
@@ -64,7 +59,6 @@ def main(args=None):
                 f"{args.absorber}{args.region}_qso: "
                 f"{xdmat.jobid}"
             )
-            wait_for.append(xdmat)
 
     if not args.no_metal:
         metal = bookkeeper.get_xmetal_tasker(
@@ -83,13 +77,12 @@ def main(args=None):
                 f"{args.absorber}{args.region}_qso: "
                 f"{metal.jobid}"
             )
-            wait_for.append(metal)
     else:
         metal = DummyTasker()
 
     xcf_exp = bookkeeper.get_xcf_exp_tasker(
         region=args.region,
-        wait_for=xcf,
+        wait_for=args.wait_for,
         overwrite=args.overwrite,
         skip_sent=args.skip_sent,
     )
@@ -102,8 +95,6 @@ def main(args=None):
             f"{args.absorber}{args.region}_qso: "
             f"{xcf_exp.jobid}"
         )
-        wait_for.append(xcf_exp)
-        return wait_for
     else:
         return
 

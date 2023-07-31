@@ -2,19 +2,21 @@ import logging
 import os
 import sys
 import textwrap
+
 from pathlib import Path
 from subprocess import run
+from typing import *
 
 import numpy as np
 
 logger = logging.getLogger(__name__)
 
 
-def get_Tasker(system, *args, **kwargs):
+def get_Tasker(system: str, *args, **kwargs):
     """Function to get a Tasker object for a given system.
 
     Args:
-        system (str): Shell the Tasker will use. 'slurm_cori' to use
+        system : Shell the Tasker will use. 'slurm_cori' to use
             slurm scripts on cori, slurm_perlmutter' to use slurm scripts
             on perlmutter, 'bash' to run it in login nodes or computer shell.
         *args: Will be sent to the Tasker constructor.
@@ -47,14 +49,20 @@ class Tasker:
     """Object to write and run jobs.
 
     Attributes:
-        slurm_header_args (dict): Header options to write if slurm tasker is selected. Use a dictionary with the format {'option_name': 'option_value'}
+        slurm_header_args (dict): Header options to write if slurm tasker is selected. 
+            Use a dictionary with the format {'option_name': 'option_value'}
         command (str): Command to be run in the job.
         command_args (str): Arguments to the command.
         environment (str): Conda/python environment to load before running the command.
-        environmental_variables (dict): Environmental variables to set before running the job. Format: {'environmental_variable': 'value'}.
+        environmental_variables (dict): Environmental variables to set before running the job. 
+            Format: {'environmental_variable': 'value'}.
         srun_options (str): If slurm tasker selected. Options for the srun command.
         run_file (Path): Location of the job file.
-        wait_for (Tasker or str): If slurm tasker selected. Tasker to wait for before running (if Tasker) or jobid of the task to wait (if str).
+        wait_for (Tasker or str): If slurm tasker selected. Tasker to wait for before 
+            running (if Tasker) or jobid of the task to wait (if str).
+        in_files: Input files that must exists or contain a jobid in order for the 
+            job to be launched.
+        out_file: Out file that will be write by the job (to add jobid if available).
     """
 
     default_srun_options = dict()
@@ -62,15 +70,17 @@ class Tasker:
 
     def __init__(
         self,
-        command,
-        command_args,
-        slurm_header_args,
-        srun_options,
-        environment,
-        run_file,
-        wait_for,
+        command: str,
+        command_args: str,
+        slurm_header_args: Dict,
+        srun_options: str,
+        environment: str,
+        run_file: Union[Path, str],
+        wait_for: Union[Self, int]=None,
         environmental_variables=dict(),
         jobid_log_file=None,
+        in_files: Union[List[Path], List[str]] = [],
+        out_file: Union[Path, str]=None,
     ):
         """
         Args:
@@ -83,6 +93,9 @@ class Tasker:
             wait_for (Tasker or int, optional): In NERSC, wait for a given job to finish before running the current one. Could be a  Tasker object or a slurm jobid (int). (Default: None, won't wait for anything).
             environmental_variables (dict, optional): Environmental variables to set before running the job. Format: {'environmental_variable': 'value'}. Default: No environmental variables defined.
             jobid_log_file (Path): Location of log file where to include jobids of runs.
+            in_files: Input files that must exists or contain a jobid in order for the 
+            job to be launched.
+            out_file: Out file that will be write by the job (to add jobid if available).
         """
         self.slurm_header_args = {**self.default_header, **slurm_header_args}
 
@@ -102,44 +115,42 @@ class Tasker:
         self.run_file = Path(run_file)
         self.wait_for = wait_for
         self.jobid_log_file = jobid_log_file
+        self.in_files = in_files
+        self.out_file = out_file
 
     def get_wait_for_ids(self):
         """Method to standardise wait_for Taskers or ids, in such a way that can be easily used afterwards."""
-        if self.wait_for is None:
-            self.wait_for_ids = None
-        if np.ndim(self.wait_for) == 0:
-            if isinstance(self.wait_for, (int, np.integer)):
-                self.wait_for_ids = [self.wait_for]
-            elif isinstance(self.wait_for, Tasker) or isinstance(
-                self.wait_for, ChainedTasker
-            ):
+        self.wait_for = list(np.array(self.wait_for).reshape(-1))
+        self.wait_for_ids = []
+        
+        for x in self.wait_for:
+            if isinstance(x, (int, np.integer)):
+                self.wait_for_ids.append(x)
+            elif isinstance(x, Tasker):
                 try:
-                    self.wait_for_ids = [self.wait_for.jobid]
+                    self.wait_for_ids.append(x.jobid)
                 except AttributeError as e:
                     raise Exception(
-                        f"jobid not defined for wait_for input. Have you send any script with this object?"
+                        f"jobid not defined for some of the wait_for. Have you send "
+                        "any script with each of the wait_for objects?"
                     ).with_traceback(e.__traceback__)
-        else:
-            # Reshape into one dimension the list of wait fors
-            # Remove None values
-            # Also remove dummy taskers which are Nones anyway.
-            self.wait_for = list(np.array(self.wait_for).reshape(-1))
+            elif isinstance(x, type(None)):
+                pass
+            else:
+                raise ValueError("Unrecognized wait_for object: ", x)
 
-            self.wait_for_ids = []
-            for x in self.wait_for:
-                if isinstance(x, Tasker):
-                    try:
-                        self.wait_for_ids.append(x.jobid)
-                    except AttributeError as e:
-                        raise Exception(
-                            f"jobid not defiend for some of the wait_for. Have you send any script with each of the wait_for objects?"
-                        ).with_traceback(e.__traceback__)
-                else:
-                    self.wait_for_ids.append(x)
+        for file in self.in_files:
+            if not file.is_file():
+                raise FileNotFoundError("Input file for run not found", str(file))
 
-            self.wait_for_ids = list(filter(lambda x: x is not None, self.wait_for_ids))
-            if len(self.wait_for_ids) == 0:
-                self.wait_for_ids = None
+            size = file.stat().st_size
+            if size > 1 and size < 40:
+                self.wait_for_ids.append(
+                    int(Path(file).read_text().splitlines()[0])
+                )
+                
+        if len(self.wait_for_ids) == 0:
+            self.wait_for_ids = None
 
     def _make_command(self):
         """Method to generate a command with args
@@ -177,6 +188,9 @@ class Tasker:
         with open(self.jobid_log_file, "a") as file:
             file.write(str(self.run_file.name) + " " + str(self.jobid) + "\n")
 
+        if self.out_file is not None:
+            with open(self.out_file, "w") as file:
+                file.write(str(self.jobid))
 
 class SlurmTasker(Tasker):
     """Object to write and run jobs.
@@ -272,7 +286,7 @@ export OMP_NUM_THREADS={self.srun_options['cpus-per-task']}
         _ = Path(".").resolve()
         os.chdir(self.run_file.parent)
 
-        if self.wait_for is None:
+        if self.wait_for is None and len(self.in_files)==0:
             wait_for_str = ""
         else:
             self.get_wait_for_ids()

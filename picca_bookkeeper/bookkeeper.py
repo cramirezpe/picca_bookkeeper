@@ -960,6 +960,11 @@ class Bookkeeper:
             args = DictUtils.merge_dicts(args, dict(nspec=1000))
 
         self.paths.deltas_path(region).mkdir(exist_ok=True, parents=True)
+        self.paths.delta_attributes_file(region, None).parent.mkdir(
+            exist_ok=True, parents=True
+        )
+        delta_stats_file = self.paths.deltas_path(region).parent / "Delta-stats.fits.gz"
+        self.paths.delta_attributes_file(region, None).symlink_to(delta_stats_file)
 
         return get_Tasker(
             updated_system,
@@ -971,6 +976,7 @@ class Bookkeeper:
             run_file=self.paths.run_path / f"scripts/run_{job_name}.sh",
             jobid_log_file=self.paths.run_path / f"logs/jobids.log",
             wait_for=wait_for,
+            out_file=delta_stats_file,
         )
 
     def get_delta_extraction_tasker(
@@ -1139,10 +1145,6 @@ class Bookkeeper:
             )
             deltas_config_dict.get("data").update({"max num spec": 1000})
 
-        # Touching output file.
-        # to allow skipping afterwards
-        self.paths.delta_attributes_file(region, calib_step).touch()
-
         return get_Tasker(
             updated_system,
             command=command,
@@ -1155,6 +1157,7 @@ class Bookkeeper:
             run_file=self.paths.run_path / f"scripts/run_{job_name}.sh",
             jobid_log_file=self.paths.run_path / f"logs/jobids.log",
             wait_for=wait_for,
+            out_file=self.paths.delta_attributes_file(region, calib_step),
         )
 
     def get_calibration_extraction_tasker(
@@ -1403,8 +1406,6 @@ class Bookkeeper:
         self.paths.cf_fname(absorber, region, absorber2, region2).parent.mkdir(
             exist_ok=True, parents=True
         )
-        # Touching output file to allow skipping afterwards.
-        self.paths.cf_fname(absorber, region, absorber2, region2).touch()
 
         return get_Tasker(
             updated_system,
@@ -1416,6 +1417,10 @@ class Bookkeeper:
             run_file=self.paths.correlations_path / f"scripts/run_{job_name}.sh",
             jobid_log_file=self.paths.correlations_path / f"logs/jobids.log",
             wait_for=wait_for,
+            in_files=[
+                self.paths.delta_attributes_file(region_) for region_ in (region, region2)
+            ],
+            out_file=self.paths.cf_fname(absorber, region, absorber2, region2),
         )
 
     def get_dmat_tasker(
@@ -1571,8 +1576,6 @@ class Bookkeeper:
             exist_ok=True,
             parents=True,
         )
-        # touching output file to allow skipping afterwards
-        self.paths.dmat_fname(absorber, region, absorber2, region2).touch()
 
         return get_Tasker(
             updated_system,
@@ -1584,6 +1587,10 @@ class Bookkeeper:
             run_file=self.paths.correlations_path / f"scripts/run_{job_name}.sh",
             jobid_log_file=self.paths.correlations_path / f"logs/jobids.log",
             wait_for=wait_for,
+            in_files=[
+                self.paths.delta_attributes_file(region_) for region_ in (region, region2)
+            ],
+            out_file=self.paths.dmat_fname(absorber, region, absorber2, region2),
         )
 
     def get_cf_exp_tasker(
@@ -1714,11 +1721,9 @@ class Bookkeeper:
             "HDF5_USE_FILE_LOCKING": "FALSE",
         }
 
-        # touching output file to allow skipping afterwards
         self.paths.exp_cf_fname(absorber, region, absorber2, region2).parent.mkdir(
             exist_ok=True, parents=True
         )
-        self.paths.exp_cf_fname(absorber, region, absorber2, region2).touch()
 
         return get_Tasker(
             updated_system,
@@ -1731,6 +1736,10 @@ class Bookkeeper:
             run_file=self.paths.correlations_path / f"scripts/run_{job_name}.sh",
             jobid_log_file=self.paths.correlations_path / f"logs/jobids.log",
             wait_for=wait_for,
+            in_files=[
+                self.paths.cf_fname(absorber, region, absorber2, region2),
+            ],
+            out_file=self.paths.exp_cf_fname(absorber, region, absorber2, region2),
         )
 
     def get_metal_tasker(
@@ -1886,8 +1895,6 @@ class Bookkeeper:
         self.paths.metal_fname(absorber, region, absorber2, region2).parent.mkdir(
             exist_ok=True, parents=True
         )
-        # touching output file to allow skipping afterwards
-        self.paths.metal_fname(absorber, region, absorber2, region2).touch()
 
         return get_Tasker(
             updated_system,
@@ -1899,6 +1906,10 @@ class Bookkeeper:
             run_file=self.paths.correlations_path / f"scripts/run_{job_name}.sh",
             jobid_log_file=self.paths.correlations_path / f"logs/jobids.log",
             wait_for=wait_for,
+            in_files=[
+                self.paths.delta_attributes_file(region_) for region_ in (region, region2)
+            ],
+            out_file=self.paths.metal_fname(absorber, region, absorber2, region2),
         )
 
     def get_xcf_tasker(
@@ -2035,8 +2046,7 @@ class Bookkeeper:
             )
 
         self.paths.xcf_fname(absorber, region).parent.mkdir(exist_ok=True, parents=True)
-        # touching output file to allow skipping afterwards
-        self.paths.xcf_fname(absorber, region).touch()
+
         return get_Tasker(
             updated_system,
             command=command,
@@ -2047,6 +2057,10 @@ class Bookkeeper:
             run_file=self.paths.correlations_path / f"scripts/run_{job_name}.sh",
             jobid_log_file=self.paths.correlations_path / f"logs/jobids.log",
             wait_for=wait_for,
+            in_files=[
+                self.paths.delta_attributes_file(region),
+            ],
+            out_file=self.paths.xcf_fname(absorber, region),
         )
 
     def get_xdmat_tasker(
@@ -2184,8 +2198,6 @@ class Bookkeeper:
         self.paths.xdmat_fname(absorber, region).parent.mkdir(
             exist_ok=True, parents=True
         )
-        # touching output file to allow skipping afterwards
-        self.paths.xdmat_fname(absorber, region).touch()
 
         return get_Tasker(
             updated_system,
@@ -2197,6 +2209,10 @@ class Bookkeeper:
             run_file=self.paths.correlations_path / f"scripts/run_{job_name}.sh",
             jobid_log_file=self.paths.correlations_path / f"logs/jobids.log",
             wait_for=wait_for,
+            in_files=[
+                self.paths.delta_attributes_file(region),
+            ],
+            out_file=self.paths.xdmat_fname(absorber, region),
         )
 
     def get_xcf_exp_tasker(
@@ -2317,8 +2333,6 @@ class Bookkeeper:
         self.paths.exp_xcf_fname(absorber, region).parent.mkdir(
             exist_ok=True, parents=True
         )
-        # touching output file to allow skipping afterwards
-        self.paths.exp_xcf_fname(absorber, region).touch()
 
         return get_Tasker(
             updated_system,
@@ -2331,6 +2345,10 @@ class Bookkeeper:
             run_file=self.paths.correlations_path / f"scripts/run_{job_name}.sh",
             jobid_log_file=self.paths.correlations_path / f"logs/jobids.log",
             wait_for=wait_for,
+            in_files=[
+                self.paths.xcf_fname(absorber, region),
+            ],
+            out_file=self.paths.exp_xcf_fname(absorber, region),
         )
 
     def get_xmetal_tasker(
@@ -2472,8 +2490,6 @@ class Bookkeeper:
         self.paths.xmetal_fname(absorber, region).parent.mkdir(
             exist_ok=True, parents=True
         )
-        # touching output file to allow skipping afterwards
-        self.paths.xmetal_fname(absorber, region).touch()
 
         return get_Tasker(
             updated_system,
@@ -2486,6 +2502,10 @@ class Bookkeeper:
             run_file=self.paths.correlations_path / f"scripts/run_{job_name}.sh",
             jobid_log_file=self.paths.correlations_path / f"logs/jobids.log",
             wait_for=wait_for,
+            in_files=[
+                self.paths.delta_attributes_file(region),
+            ],
+            out_file=self.paths.xmetal_fname(absorber, region),
         )
 
     def get_fit_tasker(
@@ -2544,6 +2564,7 @@ class Bookkeeper:
         updated_system = self.generate_system_arg(system)
 
         ini_files = []
+        input_files = []
 
         config = self.generate_fit_configuration()
 
@@ -2562,6 +2583,10 @@ class Bookkeeper:
             region2 = self.validate_region(region2)
             absorber2 = self.validate_absorber(absorber2)
 
+            export_file = self.paths.exp_cf_fname(absorber, region, absorber2, region2)
+            metals_file = self.paths.metal_fname(absorber, region, absorber2, region2)
+            distortion_file = self.paths.dmat_fname(absorber, region, absorber2, region2)
+
             args = DictUtils.merge_dicts(
                 config,
                 {
@@ -2569,25 +2594,23 @@ class Bookkeeper:
                         "extra args": {
                             "vega_auto": {
                                 "data": {
-                                    "filename": self.paths.exp_cf_fname(
-                                        absorber, region, absorber2, region2
-                                    ),
+                                    "filename": export_file,
                                 },
                                 "metals": {
-                                    "filename": self.paths.metal_fname(
-                                        absorber, region, absorber2, region2
-                                    ),
+                                    "filename": metals_file,
                                 },
                             }
                         }
                     }
                 },
             )
+            input_files.append(export_file)
 
             if self.config["fits"].get("distortion", True):
                 args["fits"]["extra args"]["vega_auto"]["data"][
                     "distortion-file"
-                ] = self.paths.dmat_fname(absorber, region, absorber2, region2)
+                ] = distortion_file
+                input_files.append(distortion_file)                
 
             vega_args = self.generate_extra_args(
                 config=args,
@@ -2603,14 +2626,20 @@ class Bookkeeper:
 
             filename = self.paths.fit_auto_fname(absorber, region, absorber2, region2)
             self.write_ini(vega_args, filename)
-
             ini_files.append(str(filename))
+
+            if vega_args.get("metals", None) is not None:
+                input_files.append(metals_file)
 
         # Set because there can be repeated values.
         for cross_correlation in set(cross_correlations):
             absorber, region = cross_correlation.split(".")
             region = self.validate_region(region)
             absorber = self.validate_absorber(absorber)
+
+            export_file = self.paths.exp_xcf_fname(absorber, region)
+            metals_file = self.paths.xmetal_fname(absorber, region)
+            distortion_file = self.paths.xdmat_fname(absorber, region)
 
             args = DictUtils.merge_dicts(
                 config,
@@ -2619,25 +2648,23 @@ class Bookkeeper:
                         "extra args": {
                             "vega_cross": {
                                 "data": {
-                                    "filename": self.paths.exp_xcf_fname(
-                                        absorber, region
-                                    ),
+                                    "filename": export_file,
                                 },
                                 "metals": {
-                                    "filename": self.paths.xmetal_fname(
-                                        absorber, region
-                                    ),
+                                    "filename": metals_file,
                                 },
                             }
                         }
                     }
                 },
             )
+            input_files.append(export_file)
 
             if self.config["fits"].get("distortion", True):
                 args["fits"]["extra args"]["vega_cross"]["data"][
                     "distortion-file"
-                ] = self.paths.xdmat_fname(absorber, region)
+                ] = distortion_file
+                input_files.append(distortion_file)
 
             vega_args = self.generate_extra_args(
                 config=args,
@@ -2652,6 +2679,9 @@ class Bookkeeper:
             filename = self.paths.fit_cross_fname(absorber, region)
             self.write_ini(vega_args, filename)
             ini_files.append(str(filename))
+
+            if vega_args.get("metals", None) is not None:
+                input_files.append(metals_file)
 
         # Now the main file
         args = DictUtils.merge_dicts(
@@ -2741,6 +2771,7 @@ class Bookkeeper:
             environment=self.config["general"]["conda environment"],
             run_file=self.paths.fits_path / f"scripts/run_{job_name}.sh",
             jobid_log_file=self.paths.fits_path / f"logs/jobids.log",
+            in_files=input_files,
             wait_for=wait_for,
         )
 

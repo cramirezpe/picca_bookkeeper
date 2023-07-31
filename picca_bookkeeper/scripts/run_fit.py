@@ -36,9 +36,6 @@ def main(args=None):
     if not args.only_write:
         fit.send_job()
         logger.info(f"Sent fit: {fit.jobid}")
-        return fit.jobid
-    else:
-        return
 
 
 def get_args():

@@ -67,7 +67,6 @@ def main(args=None):
 
     regions = np.unique(regions)
 
-    wait_for = list(np.array(args.wait_for).flatten())
     ########################################
     ## Running delta extraction for calibration
     ## and then all the deltas needed.
@@ -89,9 +88,7 @@ def main(args=None):
                 overwrite=args.overwrite,
                 skip_sent=args.skip_sent,
             )
-            wait_for.append(run_delta_extraction(calib_args))
 
-        region_jobids = dict()
         for region in regions:
             region_args = argparse.Namespace(
                 bookkeeper_config=args.bookkeeper_config,
@@ -101,28 +98,19 @@ def main(args=None):
                 only_calibration=False,
                 skip_calibration=True,
                 only_write=args.only_write,
-                wait_for=wait_for,
+                wait_for=args.wait_for,
                 log_level=args.log_level,
                 overwrite=args.overwrite,
                 skip_sent=args.skip_sent,
             )
-            region_jobids[region] = run_delta_extraction(region_args)
-    else:
-        # If deltas are not computed, wait_for should be generated resembling
-        # the output from this step
-        region_jobids = dict()
-        for region in regions:
-            region_jobids[region] = args.wait_for
+            run_delta_extraction(region_args)
 
     ########################################
     ## Running all the correlations needed
     ########################################
     if not args.no_correlations:
-        correlation_jobids = []
         for auto in autos:
             absorber, region, absorber2, region2 = auto
-
-            wait_for = [region_jobids[region] for region in (region, region2)]
 
             auto_args = argparse.Namespace(
                 bookkeeper_config=args.bookkeeper_config,
@@ -135,12 +123,12 @@ def main(args=None):
                 no_metal=args.no_metal,
                 debug=False,  # Debug, only set deltas
                 only_write=args.only_write,
-                wait_for=wait_for,
+                wait_for=args.wait_for,
                 log_level=args.log_level,
                 overwrite=args.overwrite,
                 skip_sent=args.skip_sent,
             )
-            correlation_jobids.append(run_cf(auto_args))
+            run_cf(auto_args)
 
         for cross in crosses:
             absorber, region = cross
@@ -154,18 +142,12 @@ def main(args=None):
                 no_metal=args.no_metal,
                 debug=False,  # Debug, only set deltas,
                 only_write=args.only_write,
-                wait_for=region_jobids[region],
+                wait_for=args.wait_for,
                 log_level=args.log_level,
                 overwrite=args.overwrite,
                 skip_sent=args.skip_sent,
             )
-
-            correlation_jobids.append(run_xcf(cross_args))
-    else:
-        # Again, if correlations are not computed, we should
-        # create a wait_for array of the same structure
-        # as the one that would have been created.
-        correlation_jobids = [region_jobids[region] for region in regions]
+            run_xcf(cross_args)
 
     ########################################
     ## Running fits
@@ -177,19 +159,12 @@ def main(args=None):
             auto_correlations=args.auto_correlations,
             cross_correlations=args.cross_correlations,
             only_write=args.only_write,
-            wait_for=correlation_jobids,
+            wait_for=args.wait_for,
             log_level=args.log_level,
             overwrite=args.overwrite,
             skip_sent=args.skip_sent,
         )
-        fit_jobid = run_fit(fit_args)
-    else:
-        fit_jobid = correlation_jobids
-
-    if not args.only_write:
-        return fit_jobid
-    else:
-        return None
+        run_fit(fit_args)
 
 
 def get_args():

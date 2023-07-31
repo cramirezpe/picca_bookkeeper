@@ -36,17 +36,15 @@ def main(args=None):
         add_flux_properties=args.add_flux_properties,
         wait_for=args.wait_for,
         debug=args.debug,
+        in_files=[
+            bookkeeper.paths.delta_attributes_file(args.region),
+        ]
         extra_args=script_args,
     )
 
     task.write_job()
     if not args.only_write:
         task.send_job()
-        print(task.jobid)
-        return task.jobid
-    else:
-        return
-
 
 def get_args():
     parser = argparse.ArgumentParser()

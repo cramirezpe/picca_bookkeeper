@@ -49,36 +49,27 @@ def main(args=None):
             logger.info(f"Sent calibration step(s): {calibration.jobid}")
 
         if args.only_calibration:
-            if args.only_write:
-                return
-            else:
-                return calibration.jobid
+            return
 
         tasker = bookkeeper.get_delta_extraction_tasker
-        wait_for = calibration
     elif continuum_type == "raw":
         tasker = bookkeeper.get_raw_deltas_tasker
-        wait_for = args.wait_for
     else:
         tasker = bookkeeper.get_delta_extraction_tasker
-        wait_for = args.wait_for
 
     logger.info(f"Adding deltas for region: {args.region}.")
     deltas = tasker(
         region=args.region,
         system=None,
         debug=args.debug,
-        wait_for=wait_for,
+        wait_for=args.wait_for,
         overwrite=args.overwrite,
         skip_sent=args.skip_sent,
     )
     deltas.write_job()
-    if args.only_write:
-        return
-    else:
+    if not args.only_write:
         deltas.send_job()
         logger.info(f"Sent deltas for region: {args.region}: {deltas.jobid}")
-        return deltas.jobid
 
 
 def get_args():

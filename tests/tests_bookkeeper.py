@@ -102,16 +102,19 @@ def write_full_analysis(
     )
 
     xcf_exp = bookkeeper.get_xcf_exp_tasker(
-        region=region,
+        region=xregion,
     )
 
     for task in (cf_exp, xcf_exp):
         task.write_job()
         task.send_job()
 
+    if region2 is None:
+        region2 = region
+        
     fit = bookkeeper.get_fit_tasker(
-        auto_correlations=["lya.lya-lya.lya"],
-        cross_correlations=["lya.lya"],
+        auto_correlations=[f"lya.{region}-lya.{region2}"],
+        cross_correlations=[f"lya.{xregion}"],
     )
 
     fit.write_job()
@@ -427,21 +430,21 @@ class TestBookkeeper(unittest.TestCase):
             exist_ok=True, parents=True
         )
         bookkeeper.paths.cf_fname(absorber, region, absorber2, region2).write_text(
-            "auto"
+            "10"
         )
         bookkeeper.paths.dmat_fname(absorber, region, absorber2, region2).write_text(
-            "dmat"
+            "20"
         )
         bookkeeper.paths.metal_fname(absorber, region, absorber2, region2).write_text(
-            "metal"
+            "30"
         )
 
         bookkeeper.paths.xcf_fname(absorber, region).parent.mkdir(
             exist_ok=True, parents=True
         )
-        bookkeeper.paths.xcf_fname(absorber, region2).write_text("cross")
-        bookkeeper.paths.xdmat_fname(absorber, region2).write_text("xdmat")
-        bookkeeper.paths.xmetal_fname(absorber, region2).write_text("xmetal")
+        bookkeeper.paths.xcf_fname(absorber, region2).write_text("40")
+        bookkeeper.paths.xdmat_fname(absorber, region2).write_text("50")
+        bookkeeper.paths.xmetal_fname(absorber, region2).write_text("60")
 
         copy_config_substitute(
             self.files_path / "example_config_guadalupe_calib_copy_corrs.yaml"
@@ -483,24 +486,24 @@ class TestBookkeeper(unittest.TestCase):
 
         assert (
             bookkeeper2.paths.cf_fname(absorber, region, absorber2, region2).read_text()
-            == "auto"
+            == "10"
         )
         assert (
             bookkeeper2.paths.dmat_fname(
                 absorber, region, absorber2, region2
             ).read_text()
-            == "dmat"
+            == "20"
         )
         assert (
             bookkeeper2.paths.metal_fname(
                 absorber, region, absorber2, region2
             ).read_text()
-            == "metal"
+            == "30"
         )
 
-        assert bookkeeper2.paths.xcf_fname(absorber, region2).read_text() == "cross"
-        assert bookkeeper2.paths.xdmat_fname(absorber, region2).read_text() == "xdmat"
-        assert bookkeeper2.paths.xmetal_fname(absorber, region2).read_text() == "xmetal"
+        assert bookkeeper2.paths.xcf_fname(absorber, region2).read_text() == "40"
+        assert bookkeeper2.paths.xdmat_fname(absorber, region2).read_text() == "50"
+        assert bookkeeper2.paths.xmetal_fname(absorber, region2).read_text() == "60"
 
         self.replace_paths_bookkeeper_output(bookkeeper2.paths)
         if "UPDATE_TESTS" in os.environ and os.environ["UPDATE_TESTS"] == "True":
@@ -629,8 +632,8 @@ class TestBookkeeper(unittest.TestCase):
         bookkeeper2 = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
         fit = bookkeeper2.get_fit_tasker(
-            auto_correlations=["lya.lya-lya.lya"],
-            cross_correlations=["lya.lya"],
+            auto_correlations=["lya.lyb-lya.lya"],
+            cross_correlations=["lya.lyb"],
         )
 
         fit.write_job()

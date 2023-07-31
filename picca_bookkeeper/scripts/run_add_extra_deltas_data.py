@@ -85,6 +85,9 @@ def main(args=None):
         slurm_header_args=updated_slurm_header_args,
         srun_options=srun_options,
         environment=bookkeeper.config["general"]["conda environment"],
+        in_files=[
+            bookkeeper.paths.delta_attributes_file(region)
+        ]
         run_file=bookkeeper.paths.run_path / f"scripts/run_{job_name}.sh",
         wait_for=args.wait_for,
     )
@@ -92,10 +95,6 @@ def main(args=None):
     tasker.write_job()
     if not args.only_write:
         tasker.send_job()
-        print(tasker.jobid)
-        return tasker.jobid
-    else:
-        return
 
 
 def get_args():

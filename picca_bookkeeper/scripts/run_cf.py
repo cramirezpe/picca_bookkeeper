@@ -49,11 +49,7 @@ def main(args=None):
             f"{args.absorber}{args.region}_{args.absorber2}{args.region2}: "
             f"{cf.jobid}"
         )
-        wait_for = [
-            cf,
-        ]
-    else:
-        wait_for = None
+
 
     if not args.no_dmat:
         dmat = bookkeeper.get_dmat_tasker(
@@ -74,7 +70,6 @@ def main(args=None):
                 f"{args.absorber}{args.region}_{args.absorber2}{args.region2}: "
                 f"{dmat.jobid}"
             )
-            wait_for.append(dmat)
 
     if not args.no_metal:
         metal = bookkeeper.get_metal_tasker(
@@ -96,7 +91,6 @@ def main(args=None):
                 f"{args.absorber}{args.region}_{args.absorber2}{args.region2}: "
                 f"{metal.jobid}"
             )
-            wait_for.append(metal)
     else:
         metal = DummyTasker()
 
@@ -106,7 +100,7 @@ def main(args=None):
         absorber=args.absorber,
         absorber2=args.absorber2,
         system=None,
-        wait_for=cf,
+        wait_for=args.wait_for,
         overwrite=args.overwrite,
         skip_sent=args.skip_sent,
     )
@@ -119,10 +113,6 @@ def main(args=None):
             f"{args.absorber}{args.region}_{args.absorber2}{args.region2}: "
             f"{cf_exp.jobid}"
         )
-        wait_for.append(cf_exp)
-        return wait_for
-    else:
-        return
 
 
 def get_args():
