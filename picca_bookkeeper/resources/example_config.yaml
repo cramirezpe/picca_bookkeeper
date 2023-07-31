@@ -224,6 +224,7 @@ fits:
   auto correlations: lya.lya-lya.lya lya.lya-lya.lyb
   cross correlations: lya.lya 
 
+  distortion: True # Whether to use distortion matrix
   bao: True
   hcd: True
   metals: True

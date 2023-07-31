@@ -37,7 +37,14 @@ def main(args=None):
     xcf.write_job()
     if not args.only_write:
         xcf.send_job()
-        wait_for = xcf
+        logger.info(
+            "Sent cross-correlation "
+            f"{args.absorber}{args.region}_qso: "
+            f"{xcf.jobid}"
+        )
+        wait_for = [
+            xcf,
+        ]
     else:
         wait_for = None
 
@@ -47,12 +54,17 @@ def main(args=None):
             debug=args.debug,
             wait_for=args.wait_for,
             overwrite=args.overwrite,
-        skip_sent=args.skip_sent,
+            skip_sent=args.skip_sent,
         )
         xdmat.write_job()
         if not args.only_write:
             xdmat.send_job()
-            wait_for = [xcf, xdmat]
+            logger.info(
+                "Sent distortion matrix "
+                f"{args.absorber}{args.region}_qso: "
+                f"{xdmat.jobid}"
+            )
+            wait_for.append(xdmat)
 
     if not args.no_metal:
         metal = bookkeeper.get_xmetal_tasker(
@@ -61,19 +73,23 @@ def main(args=None):
             debug=args.debug,
             wait_for=args.wait_for,
             overwrite=args.overwrite,
-        skip_sent=args.skip_sent,
+            skip_sent=args.skip_sent,
         )
         metal.write_job()
         if not args.only_write:
             metal.send_job()
-            print(metal.jobid)
+            logger.info(
+                "Sent metal matrix "
+                f"{args.absorber}{args.region}_qso: "
+                f"{metal.jobid}"
+            )
+            wait_for.append(metal)
     else:
         metal = DummyTasker()
 
     xcf_exp = bookkeeper.get_xcf_exp_tasker(
         region=args.region,
-        wait_for=wait_for,
-        no_dmat=args.no_dmat,
+        wait_for=xcf,
         overwrite=args.overwrite,
         skip_sent=args.skip_sent,
     )
@@ -81,8 +97,13 @@ def main(args=None):
     xcf_exp.write_job()
     if not args.only_write:
         xcf_exp.send_job()
-        print(xcf_exp.jobid)
-        return [metal.jobid, xcf_exp.jobid]
+        logger.info(
+            "Sent export "
+            f"{args.absorber}{args.region}_qso: "
+            f"{xcf_exp.jobid}"
+        )
+        wait_for.append(xcf_exp)
+        return wait_for
     else:
         return
 
@@ -117,7 +138,7 @@ def get_args():
     parser.add_argument(
         "--skip-sent", action="store_true", help="Skip runs that were already sent."
     )
-    
+
     parser.add_argument(
         "--no-dmat", action="store_true", help="Do not use distortion matrix."
     )

@@ -44,7 +44,14 @@ def main(args=None):
     cf.write_job()
     if not args.only_write:
         cf.send_job()
-        wait_for = cf
+        logger.info(
+            "Sent auto-correlation "
+            f"{args.absorber}{args.region}_{args.absorber2}{args.region2}: "
+            f"{cf.jobid}"
+        )
+        wait_for = [
+            cf,
+        ]
     else:
         wait_for = None
 
@@ -62,7 +69,12 @@ def main(args=None):
         dmat.write_job()
         if not args.only_write:
             dmat.send_job()
-            wait_for = [cf, dmat]
+            logger.info(
+                "Sent distortion matrix "
+                f"{args.absorber}{args.region}_{args.absorber2}{args.region2}: "
+                f"{dmat.jobid}"
+            )
+            wait_for.append(dmat)
 
     if not args.no_metal:
         metal = bookkeeper.get_metal_tasker(
@@ -79,10 +91,14 @@ def main(args=None):
         metal.write_job()
         if not args.only_write:
             metal.send_job()
-            print(metal.jobid)
+            logger.info(
+                "Sent metal matrix "
+                f"{args.absorber}{args.region}_{args.absorber2}{args.region2}: "
+                f"{metal.jobid}"
+            )
+            wait_for.append(metal)
     else:
         metal = DummyTasker()
-
 
     cf_exp = bookkeeper.get_cf_exp_tasker(
         region=args.region,
@@ -90,8 +106,7 @@ def main(args=None):
         absorber=args.absorber,
         absorber2=args.absorber2,
         system=None,
-        wait_for=wait_for,
-        no_dmat=args.no_dmat,
+        wait_for=cf,
         overwrite=args.overwrite,
         skip_sent=args.skip_sent,
     )
@@ -99,8 +114,13 @@ def main(args=None):
     cf_exp.write_job()
     if not args.only_write:
         cf_exp.send_job()
-        print(cf_exp.jobid)
-        return [metal.jobid, cf_exp.jobid]
+        logger.info(
+            "Sent export "
+            f"{args.absorber}{args.region}_{args.absorber2}{args.region2}: "
+            f"{cf_exp.jobid}"
+        )
+        wait_for.append(cf_exp)
+        return wait_for
     else:
         return
 

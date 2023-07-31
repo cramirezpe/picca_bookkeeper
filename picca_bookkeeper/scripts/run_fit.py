@@ -35,7 +35,7 @@ def main(args=None):
     fit.write_job()
     if not args.only_write:
         fit.send_job()
-        print(fit.jobid)
+        logger.info(f"Sent fit: {fit.jobid}")
         return fit.jobid
     else:
         return

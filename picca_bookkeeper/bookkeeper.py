@@ -1593,7 +1593,6 @@ class Bookkeeper:
         wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
         slurm_header_extra_args: Dict = dict(),
         extra_args: Dict = dict(),
-        no_dmat: bool = False,
         overwrite: bool = False,
         skip_sent: bool = False,
     ) -> Tasker:
@@ -1620,7 +1619,6 @@ class Bookkeeper:
                 picca_deltas.py script. Use a dictionary with the format
                 {'argument_name', 'argument_value'}. Use {'argument_name': ''}
                 if a action-like option is used.
-            no_dmat: Do not use distortion matrix.
             overwrite: Overwrite files in destination.
             skip_sent: Skip this and return a DummyTasker if the run
                 was already sent before.
@@ -1700,10 +1698,6 @@ class Bookkeeper:
             "data": str(self.paths.cf_fname(absorber, region, absorber2, region2)),
             "out": str(self.paths.exp_cf_fname(absorber, region, absorber2, region2)),
         }
-        if not no_dmat:
-            args["dmat"] = str(
-                self.paths.dmat_fname(absorber, region, absorber2, region2)
-            )
 
         args = DictUtils.merge_dicts(args, updated_extra_args)
 
@@ -2212,7 +2206,6 @@ class Bookkeeper:
         wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
         slurm_header_extra_args: Dict = dict(),
         extra_args: Dict = dict(),
-        no_dmat: bool = False,
         overwrite: bool = False,
         skip_sent: bool = False,
     ) -> Tasker:
@@ -2236,7 +2229,6 @@ class Bookkeeper:
                 picca_deltas.py script. Use a dictionary with the format
                 {'argument_name', 'argument_value'}. Use {'argument_name': ''}
                 if a action-like option is used.
-            no_dmat: Do not use disortion matrix
             overwrite: Overwrite files in destination.
             skip_sent: Skip this and return a DummyTasker if the run
                 was already sent before.
@@ -2307,8 +2299,6 @@ class Bookkeeper:
             "out": str(self.paths.exp_xcf_fname(absorber, region)),
             "blind-corr-type": "qsoxlya",
         }
-        if not no_dmat:
-            args["dmat"] = str(self.paths.xdmat_fname(absorber, region))
 
         args = DictUtils.merge_dicts(args, updated_extra_args)
 
@@ -2592,6 +2582,11 @@ class Bookkeeper:
                 },
             )
 
+            if self.config["fits"].get("distortion", True):
+                args["fits"]["extra args"]["vega_auto"]["data"][
+                    "distortion-file"
+                ] = self.paths.dmat_fname(absorber, region, absorber2, region2)
+
             vega_args = self.generate_extra_args(
                 config=args,
                 default_config=self.defaults,
@@ -2636,6 +2631,11 @@ class Bookkeeper:
                     }
                 },
             )
+
+            if self.config["fits"].get("distortion", True):
+                args["fits"]["extra args"]["vega_cross"]["data"][
+                    "distortion-file"
+                ] = self.paths.xdmat_fname(absorber, region)
 
             vega_args = self.generate_extra_args(
                 config=args,

@@ -16,5 +16,5 @@ export OMP_NUM_THREADS=1
 
 export HDF5_USE_FILE_LOCKING=FALSE
 
-command="picca_export.py --data /picca_bookkeeper/tests/test_files/output/guadalupe/main/afterburn_v0/dMdB20_2.mgii_r.0.0_0/correlations/default/results/qso_lyalyb/xcf.fits.gz --out /picca_bookkeeper/tests/test_files/output/guadalupe/main/afterburn_v0/dMdB20_2.mgii_r.0.0_0/correlations/default/results/qso_lyalyb/xcf_exp.fits.gz --blind-corr-type qsoxlya --dmat /picca_bookkeeper/tests/test_files/output/guadalupe/main/afterburn_v0/dMdB20_2.mgii_r.0.0_0/correlations/default/results/qso_lyalyb/xdmat.fits.gz"
+command="picca_export.py --data /picca_bookkeeper/tests/test_files/output/guadalupe/main/afterburn_v0/dMdB20_2.mgii_r.0.0_0/correlations/default/results/qso_lyalyb/xcf.fits.gz --out /picca_bookkeeper/tests/test_files/output/guadalupe/main/afterburn_v0/dMdB20_2.mgii_r.0.0_0/correlations/default/results/qso_lyalyb/xcf_exp.fits.gz --blind-corr-type qsoxlya"
 srun --nodes 1 --ntasks 1 --cpus-per-task 1 $command

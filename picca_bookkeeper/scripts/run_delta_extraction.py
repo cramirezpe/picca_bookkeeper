@@ -46,12 +46,12 @@ def main(args=None):
         calibration.write_job()
         if not args.only_write:
             calibration.send_job()
+            logger.info(f"Sent calibration step(s): {calibration.jobid}")
 
         if args.only_calibration:
             if args.only_write:
                 return
             else:
-                print(calibration.jobid)
                 return calibration.jobid
 
         tasker = bookkeeper.get_delta_extraction_tasker
@@ -77,7 +77,7 @@ def main(args=None):
         return
     else:
         deltas.send_job()
-        print(deltas.jobid)
+        logger.info(f"Sent deltas for region: {args.region}: {deltas.jobid}")
         return deltas.jobid
 
 
