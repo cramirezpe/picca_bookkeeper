@@ -627,6 +627,9 @@ class Bookkeeper:
         Retursn:
             updated extra_args
         """
+        # List input files needed
+        input_files = []
+
         # update corrections section
         # here we are dealing with calibration runs
         # If there is no calibration, we should not have calib_steps
@@ -665,6 +668,9 @@ class Bookkeeper:
                             },
                         },
                     )
+                    input_files.append(
+                        self.paths.delta_attributes_file(None, calib_step=1)
+                    )
 
             # Actual run (no calibration)
             else:
@@ -698,6 +704,8 @@ class Bookkeeper:
                         },
                     },
                 )
+                input_files.append(self.paths.delta_attributes_file(None, calib_step=1))
+                input_files.append(self.paths.delta_attributes_file(None, calib_step=2))
 
         elif self.config["delta extraction"]["calib"] == 1:
             # No special action for calibration steps,
@@ -726,7 +734,8 @@ class Bookkeeper:
                         },
                     },
                 )
-        return extra_args
+                input_files.append(self.paths.delta_attributes_file(None, calib_step=1))
+        return input_files, extra_args
 
     def add_mask_options(self, extra_args: Dict, calib_step: int = None) -> Dict:
         """Method to add mask options to extra args
@@ -1110,7 +1119,7 @@ class Bookkeeper:
             updated_extra_args,
         )
 
-        deltas_config_dict = self.add_calibration_options(
+        input_files, deltas_config_dict = self.add_calibration_options(
             deltas_config_dict,
             calib_step,
         )
@@ -1157,6 +1166,7 @@ class Bookkeeper:
             run_file=self.paths.run_path / f"scripts/run_{job_name}.sh",
             jobid_log_file=self.paths.run_path / f"logs/jobids.log",
             wait_for=wait_for,
+            in_files=input_files,
             out_file=self.paths.delta_attributes_file(region, calib_step),
         )
 
@@ -1418,7 +1428,8 @@ class Bookkeeper:
             jobid_log_file=self.paths.correlations_path / f"logs/jobids.log",
             wait_for=wait_for,
             in_files=[
-                self.paths.delta_attributes_file(region_) for region_ in (region, region2)
+                self.paths.delta_attributes_file(region_)
+                for region_ in (region, region2)
             ],
             out_file=self.paths.cf_fname(absorber, region, absorber2, region2),
         )
@@ -1588,7 +1599,8 @@ class Bookkeeper:
             jobid_log_file=self.paths.correlations_path / f"logs/jobids.log",
             wait_for=wait_for,
             in_files=[
-                self.paths.delta_attributes_file(region_) for region_ in (region, region2)
+                self.paths.delta_attributes_file(region_)
+                for region_ in (region, region2)
             ],
             out_file=self.paths.dmat_fname(absorber, region, absorber2, region2),
         )
@@ -1907,7 +1919,8 @@ class Bookkeeper:
             jobid_log_file=self.paths.correlations_path / f"logs/jobids.log",
             wait_for=wait_for,
             in_files=[
-                self.paths.delta_attributes_file(region_) for region_ in (region, region2)
+                self.paths.delta_attributes_file(region_)
+                for region_ in (region, region2)
             ],
             out_file=self.paths.metal_fname(absorber, region, absorber2, region2),
         )
@@ -2585,7 +2598,9 @@ class Bookkeeper:
 
             export_file = self.paths.exp_cf_fname(absorber, region, absorber2, region2)
             metals_file = self.paths.metal_fname(absorber, region, absorber2, region2)
-            distortion_file = self.paths.dmat_fname(absorber, region, absorber2, region2)
+            distortion_file = self.paths.dmat_fname(
+                absorber, region, absorber2, region2
+            )
 
             args = DictUtils.merge_dicts(
                 config,
@@ -2610,7 +2625,7 @@ class Bookkeeper:
                 args["fits"]["extra args"]["vega_auto"]["data"][
                     "distortion-file"
                 ] = distortion_file
-                input_files.append(distortion_file)                
+                input_files.append(distortion_file)
 
             vega_args = self.generate_extra_args(
                 config=args,

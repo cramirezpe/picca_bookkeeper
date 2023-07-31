@@ -88,6 +88,7 @@ def main(args=None):
                 overwrite=args.overwrite,
                 skip_sent=args.skip_sent,
             )
+            run_delta_extraction(calib_args)
 
         for region in regions:
             region_args = argparse.Namespace(
