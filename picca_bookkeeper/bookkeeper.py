@@ -1082,6 +1082,7 @@ class Bookkeeper:
                         self.paths.deltas_path(region, calib_step).parent.resolve()
                     )
                     + "/",
+                    "num processors": 256,
                 },
                 "data": {
                     "type": "DesisimMocks"
@@ -1147,7 +1148,9 @@ class Bookkeeper:
             command=command,
             command_args={"": str(config_file.resolve())},
             slurm_header_args=slurm_header_args,
-            srun_options=dict(),
+            srun_options={
+                "cpus-per-task": deltas_config_dict["general"]["num processors"]
+            },
             environment=self.config["general"]["conda environment"],
             run_file=self.paths.run_path / f"scripts/run_{job_name}.sh",
             jobid_log_file=self.paths.run_path / f"logs/jobids.log",
@@ -1408,7 +1411,7 @@ class Bookkeeper:
             command=command,
             command_args=args,
             slurm_header_args=slurm_header_args,
-            srun_options=dict(),
+            srun_options={"cpus-per-task": args.get("nproc", 256)},
             environment=self.config["general"]["conda environment"],
             run_file=self.paths.correlations_path / f"scripts/run_{job_name}.sh",
             jobid_log_file=self.paths.correlations_path / f"logs/jobids.log",
@@ -1576,7 +1579,7 @@ class Bookkeeper:
             command=command,
             command_args=args,
             slurm_header_args=slurm_header_args,
-            srun_options=dict(),
+            srun_options={"cpus-per-task": args.get("nproc", 256)},
             environment=self.config["general"]["conda environment"],
             run_file=self.paths.correlations_path / f"scripts/run_{job_name}.sh",
             jobid_log_file=self.paths.correlations_path / f"logs/jobids.log",
@@ -1722,7 +1725,7 @@ class Bookkeeper:
             command=command,
             command_args=args,
             slurm_header_args=slurm_header_args,
-            srun_options=dict(),
+            srun_options={"cpus-per-task": 1},
             environment=self.config["general"]["conda environment"],
             environmental_variables=environmental_variables,
             run_file=self.paths.correlations_path / f"scripts/run_{job_name}.sh",
@@ -1891,7 +1894,7 @@ class Bookkeeper:
             command=command,
             command_args=args,
             slurm_header_args=slurm_header_args,
-            srun_options=dict(),
+            srun_options={"cpus-per-task": args.get("nproc", 256)},
             environment=self.config["general"]["conda environment"],
             run_file=self.paths.correlations_path / f"scripts/run_{job_name}.sh",
             jobid_log_file=self.paths.correlations_path / f"logs/jobids.log",
@@ -2034,13 +2037,12 @@ class Bookkeeper:
         self.paths.xcf_fname(absorber, region).parent.mkdir(exist_ok=True, parents=True)
         # touching output file to allow skipping afterwards
         self.paths.xcf_fname(absorber, region).touch()
-
         return get_Tasker(
             updated_system,
             command=command,
             command_args=args,
             slurm_header_args=slurm_header_args,
-            srun_options=dict(),
+            srun_options={"cpus-per-task": args.get("nproc", 256)},
             environment=self.config["general"]["conda environment"],
             run_file=self.paths.correlations_path / f"scripts/run_{job_name}.sh",
             jobid_log_file=self.paths.correlations_path / f"logs/jobids.log",
@@ -2190,7 +2192,7 @@ class Bookkeeper:
             command=command,
             command_args=args,
             slurm_header_args=slurm_header_args,
-            srun_options=dict(),
+            srun_options={"cpus-per-task": args.get("nproc", 256)},
             environment=self.config["general"]["conda environment"],
             run_file=self.paths.correlations_path / f"scripts/run_{job_name}.sh",
             jobid_log_file=self.paths.correlations_path / f"logs/jobids.log",
@@ -2478,7 +2480,7 @@ class Bookkeeper:
             command=command,
             command_args=args,
             slurm_header_args=slurm_header_args,
-            srun_options=dict(),
+            srun_options={"cpus-per-task": args.get("nproc", 256)},
             environment=self.config["general"]["conda environment"],
             environmental_variables=environmental_variables,
             run_file=self.paths.correlations_path / f"scripts/run_{job_name}.sh",
