@@ -874,6 +874,7 @@ class Bookkeeper:
         slurm_header_extra_args: Dict = dict(),
         extra_args: Dict = dict(),
         overwrite: bool = False,
+        skip_sent: bool = False,
     ) -> Tasker:
         """Method to get a Tasker object to run raw deltas with picca.
 
@@ -895,6 +896,8 @@ class Bookkeeper:
                 {'argument_name', 'argument_value'}. Use {'argument_name': ''}
                 if a action-like option is used.
             overwrite: Overwrite files in destination.
+            skip_sent: Skip this and return a DummyTasker if the run was already
+                sent before.
 
         Returns:
             Tasker: Tasker object to run delta extraction.
@@ -909,16 +912,17 @@ class Bookkeeper:
             )
         region = self.validate_region(region)
 
-        if (
-            self.paths.deltas_path(region).is_dir()
-            and any(self.paths.deltas_path(region).iterdir())
-            and not overwrite
+        # Check if output already there
+        updated_system = self.generate_system_arg(system)
+        job_name = f"raw_deltas_{region}"
+        if self.check_existing_output_file(
+            self.paths.delta_attributes_file(region),
+            job_name,
+            skip_sent,
+            overwrite,
+            updated_system,
         ):
-            raise FileExistsError(
-                "Destination files already exists, run with overwrite option "
-                "to continue",
-                self.paths.deltas_path(region),
-            )
+            return DummyTasker()
 
         command = "picca_convert_transmission.py"
 
@@ -938,9 +942,6 @@ class Bookkeeper:
             command=command,
             region=region,
         )
-        updated_system = self.generate_system_arg(system)
-
-        job_name = f"raw_deltas_{region}"
 
         slurm_header_args = {
             "job-name": job_name,
@@ -975,8 +976,7 @@ class Bookkeeper:
         delta_stats_file = self.paths.deltas_path(region).parent / "Delta-stats.fits.gz"
         self.paths.delta_attributes_file(region, None).symlink_to(delta_stats_file)
 
-        return get_Tasker(
-            updated_system,
+        return get_Tasker(updated_system)(
             command=command,
             command_args=args,
             slurm_header_args=slurm_header_args,
@@ -1042,19 +1042,15 @@ class Bookkeeper:
             job_name += "_calib_step_" + str(calib_step)
 
         # Check if output already there
-        if self.paths.delta_attributes_file(region, calib_step).is_file():
-            if skip_sent:
-                logger.info(
-                    f"{job_name}: skipping already run:\n\t"
-                    f"{str(self.paths.delta_attributes_file(region, calib_step))}"
-                )
-                return DummyTasker()
-            elif not overwrite:
-                raise FileExistsError(
-                    "Destination file already exists, run with overwrite option "
-                    "to continue",
-                    self.paths.delta_attributes_file(region, calib_step),
-                )
+        updated_system = self.generate_system_arg(system)
+        if self.check_existing_output_file(
+            self.paths.delta_attributes_file(region, calib_step),
+            job_name,
+            skip_sent,
+            overwrite,
+            updated_system,
+        ):
+            return DummyTasker()
 
         # Check if calibration data needs to be copied:
         if calib_step is not None:
@@ -1085,7 +1081,6 @@ class Bookkeeper:
             command=command,
             region=region,
         )
-        updated_system = self.generate_system_arg(system)
 
         config_file = self.paths.run_path / f"configs/{job_name}.ini"
 
@@ -1154,8 +1149,7 @@ class Bookkeeper:
             )
             deltas_config_dict.get("data").update({"max num spec": 1000})
 
-        return get_Tasker(
-            updated_system,
+        return get_Tasker(updated_system)(
             command=command,
             command_args={"": str(config_file.resolve())},
             slurm_header_args=slurm_header_args,
@@ -1325,19 +1319,16 @@ class Bookkeeper:
 
         job_name = f"cf_{absorber}{region}_{absorber2}{region2}"
 
-        if self.paths.cf_fname(absorber, region, absorber2, region2).is_file():
-            if skip_sent:
-                logger.info(
-                    f"{job_name}: skipping already run:\n\t"
-                    f"{str(self.paths.cf_fname(absorber, region, absorber2, region2))}"
-                )
-                return DummyTasker()
-            elif not overwrite:
-                raise FileExistsError(
-                    "Destination file already exists, run with overwrite option "
-                    "to continue",
-                    self.paths.cf_fname(absorber, region, absorber2, region2),
-                )
+        # Check if output already there
+        updated_system = self.generate_system_arg(system)
+        if self.check_existing_output_file(
+            self.paths.cf_fname(absorber, region, absorber2, region2),
+            job_name,
+            skip_sent,
+            overwrite,
+            updated_system,
+        ):
+            return DummyTasker()
 
         copy_cf_file = self.paths.copied_correlation_file(
             "cf files", absorber, region, absorber2, region2
@@ -1374,7 +1365,6 @@ class Bookkeeper:
             region2=region2,
             absorber2=absorber2,
         )
-        updated_system = self.generate_system_arg(system)
 
         slurm_header_args = {
             "job-name": job_name,
@@ -1417,8 +1407,7 @@ class Bookkeeper:
             exist_ok=True, parents=True
         )
 
-        return get_Tasker(
-            updated_system,
+        return get_Tasker(updated_system)(
             command=command,
             command_args=args,
             slurm_header_args=slurm_header_args,
@@ -1497,19 +1486,16 @@ class Bookkeeper:
 
         job_name = f"dmat_{absorber}{region}_{absorber2}{region2}"
 
-        if self.paths.dmat_fname(absorber, region, absorber2, region2).is_file():
-            if skip_sent:
-                logger.info(
-                    f"{job_name}: skipping already run:\n\t"
-                    f"{str(self.paths.dmat_fname(absorber, region, absorber2, region2))}"
-                )
-                return DummyTasker()
-            elif not overwrite:
-                raise FileExistsError(
-                    "Destination file already exists, run with overwrite option "
-                    "to continue",
-                    self.paths.dmat_fname(absorber, region, absorber2, region2),
-                )
+        # Check if output already there
+        updated_system = self.generate_system_arg(system)
+        if self.check_existing_output_file(
+            self.paths.dmat_fname(absorber, region, absorber2, region2),
+            job_name,
+            skip_sent,
+            overwrite,
+            updated_system,
+        ):
+            return DummyTasker()
 
         copy_dmat_file = self.paths.copied_correlation_file(
             "distortion matrices", absorber, region, absorber2, region2
@@ -1546,7 +1532,6 @@ class Bookkeeper:
             region2=region2,
             absorber2=absorber2,
         )
-        updated_system = self.generate_system_arg(system)
 
         slurm_header_args = {
             "job-name": job_name,
@@ -1588,8 +1573,7 @@ class Bookkeeper:
             parents=True,
         )
 
-        return get_Tasker(
-            updated_system,
+        return get_Tasker(updated_system)(
             command=command,
             command_args=args,
             slurm_header_args=slurm_header_args,
@@ -1666,19 +1650,16 @@ class Bookkeeper:
 
         job_name = f"cf_exp_{absorber}{region}_{absorber2}{region2}"
 
-        if self.paths.exp_cf_fname(absorber, region, absorber2, region2).is_file():
-            if skip_sent:
-                logger.info(
-                    f"{job_name}: skipping already run:\n\t"
-                    f"{str(self.paths.exp_cf_fname(absorber, region, absorber2, region2))}"
-                )
-                return DummyTasker()
-            elif not overwrite:
-                raise FileExistsError(
-                    "Destination file already exists, run with overwrite option "
-                    "to continue",
-                    self.paths.exp_cf_fname(absorber, region, absorber2, region2),
-                )
+        # Check if output already there
+        updated_system = self.generate_system_arg(system)
+        if self.check_existing_output_file(
+            self.paths.exp_cf_fname(absorber, region, absorber2, region2),
+            job_name,
+            skip_sent,
+            overwrite,
+            updated_system,
+        ):
+            return DummyTasker()
 
         command = "picca_export.py"
 
@@ -1704,7 +1685,6 @@ class Bookkeeper:
             region2=region2,
             absorber2=absorber2,
         )
-        updated_system = self.generate_system_arg(system)
 
         slurm_header_args = {
             "job-name": job_name,
@@ -1737,8 +1717,7 @@ class Bookkeeper:
             exist_ok=True, parents=True
         )
 
-        return get_Tasker(
-            updated_system,
+        return get_Tasker(updated_system)(
             command=command,
             command_args=args,
             slurm_header_args=slurm_header_args,
@@ -1817,19 +1796,16 @@ class Bookkeeper:
 
         job_name = f"metal_{absorber}{region}_{absorber2}{region2}"
 
-        if self.paths.metal_fname(absorber, region, absorber2, region2).is_file():
-            if skip_sent:
-                logger.info(
-                    f"{job_name}: skipping already run:\n\t"
-                    f"{str(self.paths.metal_fname(absorber, region, absorber2, region2))}"
-                )
-                return DummyTasker()
-            elif not overwrite:
-                raise FileExistsError(
-                    "Destination file already exists, run with overwrite option "
-                    "to continue",
-                    self.paths.metal_fname(absorber, region, absorber2, region2),
-                )
+        # Check if output already there
+        updated_system = self.generate_system_arg(system)
+        if self.check_existing_output_file(
+            self.paths.metal_fname(absorber, region, absorber2, region2),
+            job_name,
+            skip_sent,
+            overwrite,
+            updated_system,
+        ):
+            return DummyTasker()
 
         # If metal matrices are provided, we just copy them into the bookkeeper
         # as if they were computed.
@@ -1868,7 +1844,6 @@ class Bookkeeper:
             region2=region2,
             absorber2=absorber2,
         )
-        updated_system = self.generate_system_arg(system)
 
         slurm_header_args = {
             "job-name": job_name,
@@ -1908,8 +1883,7 @@ class Bookkeeper:
             exist_ok=True, parents=True
         )
 
-        return get_Tasker(
-            updated_system,
+        return get_Tasker(updated_system)(
             command=command,
             command_args=args,
             slurm_header_args=slurm_header_args,
@@ -1976,19 +1950,16 @@ class Bookkeeper:
 
         job_name = f"xcf_{absorber}{region}"
 
-        if self.paths.xcf_fname(absorber, region).is_file():
-            if skip_sent:
-                logger.info(
-                    f"{job_name}: skipping already run:\n\t"
-                    f"{str(self.paths.xcf_fname(absorber, region))}"
-                )
-                return DummyTasker()
-            elif not overwrite:
-                raise FileExistsError(
-                    "Destination file already exists, run with overwrite option "
-                    "to continue",
-                    self.paths.xcf_fname(absorber, region),
-                )
+        # Check if output already there
+        updated_system = self.generate_system_arg(system)
+        if self.check_existing_output_file(
+            self.paths.xcf_fname(absorber, region),
+            job_name,
+            skip_sent,
+            overwrite,
+            updated_system,
+        ):
+            return DummyTasker()
 
         copy_xcf_file = self.paths.copied_correlation_file(
             "xcf files", absorber, region, None, None
@@ -2021,7 +1992,6 @@ class Bookkeeper:
             region=region,
             absorber=absorber,
         )
-        updated_system = self.generate_system_arg(system)
 
         slurm_header_args = {
             "job-name": job_name,
@@ -2060,8 +2030,7 @@ class Bookkeeper:
 
         self.paths.xcf_fname(absorber, region).parent.mkdir(exist_ok=True, parents=True)
 
-        return get_Tasker(
-            updated_system,
+        return get_Tasker(updated_system)(
             command=command,
             command_args=args,
             slurm_header_args=slurm_header_args,
@@ -2129,19 +2098,16 @@ class Bookkeeper:
 
         job_name = f"xdmat_{absorber}{region}"
 
-        if self.paths.xdmat_fname(absorber, region).is_file():
-            if skip_sent:
-                logger.info(
-                    f"{job_name}: skipping already run:\n\t"
-                    f"{str(self.paths.xdmat_fname(absorber, region))}"
-                )
-                return DummyTasker()
-            elif not overwrite:
-                raise FileExistsError(
-                    "Destination file already exists, run with overwrite option "
-                    "to continue",
-                    self.paths.xdmat_fname(absorber, region),
-                )
+        # Check if output already there
+        updated_system = self.generate_system_arg(system)
+        if self.check_existing_output_file(
+            self.paths.xdmat_fname(absorber, region),
+            job_name,
+            skip_sent,
+            overwrite,
+            updated_system,
+        ):
+            return DummyTasker()
 
         copy_xdmat_file = self.paths.copied_correlation_file(
             "xdistortion matrices", absorber, region, None, None
@@ -2174,7 +2140,6 @@ class Bookkeeper:
             region=region,
             absorber=absorber,
         )
-        updated_system = self.generate_system_arg(system)
 
         slurm_header_args = {
             "job-name": job_name,
@@ -2212,8 +2177,7 @@ class Bookkeeper:
             exist_ok=True, parents=True
         )
 
-        return get_Tasker(
-            updated_system,
+        return get_Tasker(updated_system)(
             command=command,
             command_args=args,
             slurm_header_args=slurm_header_args,
@@ -2279,19 +2243,16 @@ class Bookkeeper:
         absorber = self.validate_absorber(absorber)
         job_name = f"xcf_exp_{absorber}{region}"
 
-        if self.paths.exp_xcf_fname(absorber, region).is_file():
-            if skip_sent:
-                logger.info(
-                    f"{job_name}: skipping already run:\n\t"
-                    f"{str(self.paths.exp_xcf_fname(absorber, region))}"
-                )
-                return DummyTasker()
-            elif not overwrite:
-                raise FileExistsError(
-                    "Destination file already exists, run with overwrite option "
-                    "to continue",
-                    self.paths.exp_xcf_fname(absorber, region),
-                )
+        # Check if output already there
+        updated_system = self.generate_system_arg(system)
+        if self.check_existing_output_file(
+            self.paths.exp_xcf_fname(absorber, region),
+            job_name,
+            skip_sent,
+            overwrite,
+            updated_system,
+        ):
+            return DummyTasker()
 
         command = "picca_export.py"
 
@@ -2313,7 +2274,6 @@ class Bookkeeper:
             region=region,
             absorber=absorber,
         )
-        updated_system = self.generate_system_arg(system)
 
         slurm_header_args = {
             "job-name": job_name,
@@ -2347,8 +2307,7 @@ class Bookkeeper:
             exist_ok=True, parents=True
         )
 
-        return get_Tasker(
-            updated_system,
+        return get_Tasker(updated_system)(
             command=command,
             command_args=args,
             slurm_header_args=slurm_header_args,
@@ -2407,19 +2366,16 @@ class Bookkeeper:
         absorber = self.validate_absorber(absorber)
         job_name = f"xmetal_{absorber}{region}"
 
-        if self.paths.xmetal_fname(absorber, region).is_file():
-            if skip_sent:
-                logger.info(
-                    f"{job_name}: skipping already run:\n\t"
-                    f"{str(self.paths.xmetal_fname(absorber, region))}"
-                )
-                return DummyTasker()
-            elif not overwrite:
-                raise FileExistsError(
-                    "Destination file already exists, run with overwrite option "
-                    "to continue",
-                    self.paths.xmetal_fname(absorber, region),
-                )
+        # Check if output already there
+        updated_system = self.generate_system_arg(system)
+        if self.check_existing_output_file(
+            self.paths.xmetal_fname(absorber, region),
+            job_name,
+            skip_sent,
+            overwrite,
+            updated_system,
+        ):
+            return DummyTasker()
 
         copy_metal_matrix = self.paths.copied_correlation_file(
             "xmetal matrices", absorber, region, None, None
@@ -2461,7 +2417,6 @@ class Bookkeeper:
             region=region,
             absorber=absorber,
         )
-        updated_system = self.generate_system_arg(system)
 
         slurm_header_args = {
             "job-name": job_name,
@@ -2504,8 +2459,7 @@ class Bookkeeper:
             exist_ok=True, parents=True
         )
 
-        return get_Tasker(
-            updated_system,
+        return get_Tasker(updated_system)(
             command=command,
             command_args=args,
             slurm_header_args=slurm_header_args,
@@ -2567,14 +2521,17 @@ class Bookkeeper:
                 f"{DictUtils.print_dict(self.defaults_diff)}"
             )
 
-        if self.paths.fit_out_fname().is_file() and not overwrite:
-            raise FileExistsError(
-                "Destination file already exists, run with overwrite option "
-                "to continue",
-                self.paths.fit_main_fname(),
-            )
-
+        # Check if output already there
         updated_system = self.generate_system_arg(system)
+        job_name = "vega_fit"
+        if self.check_existing_output_file(
+            self.paths.fit_out_fname(),
+            job_name,
+            False,
+            overwrite,
+            updated_system,
+        ):
+            return DummyTasker()
 
         ini_files = []
         input_files = []
@@ -2764,7 +2721,6 @@ class Bookkeeper:
             command=command,
         )
 
-        job_name = "vega_fit"
 
         slurm_header_args = {
             "job-name": job_name,
@@ -2777,8 +2733,7 @@ class Bookkeeper:
             updated_slurm_header_extra_args,
         )
 
-        return get_Tasker(
-            updated_system,
+        return get_Tasker(updated_system)(
             command=command,
             command_args={"": str(self.paths.fit_main_fname().resolve())},
             slurm_header_args=slurm_header_args,
@@ -2997,6 +2952,46 @@ class Bookkeeper:
 
         config["fits"]["extra args"] = args
         return config
+
+    def check_existing_output_file(
+        self, file: Path, job_name: str, skip_sent: bool, overwrite: bool, system: str
+    ) -> bool:
+        """
+        Method to check the status of an output file.
+
+        Args:
+            file: Path to the file we want to check.
+            job_name: Job name used for logging.
+            skip_sent: Whether sent jobs should be skipped.
+            overwrite: Whether existing runs should be overwritten.
+            system: System where the jobs are being run.
+
+        Returns:
+            True if the file exists and the run has to be skipped. False if the file does
+                not exist or the run has to be overwritten. It will raise a
+                FileExistsError if the overwrite option is disabled, a file exists and
+                skip_sent is disabled.
+        """
+        if not file.is_file():
+            return False
+        else:
+            if overwrite:
+                return False
+            elif skip_sent:
+                size = file.stat().st_size
+                if size < 40:
+                    jobid = int(file.read_text().splitlines()[0])
+                    status = get_Tasker(system).get_jobid_status(jobid)
+                    if status not in ("RUNNING", "PENDING", "REQUEUED", "SUSPENDED"):
+                        return False
+                logger.info(f"{job_name}: skipping already run:\n\t{str(file)}")
+                return True
+            else:
+                raise FileExistsError(
+                    "Destination file already exists, run with overwrite option or "
+                    "skipping completed runs to continue",
+                    file,
+                )
 
 
 class PathBuilder:

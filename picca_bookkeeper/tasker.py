@@ -12,15 +12,13 @@ import numpy as np
 logger = logging.getLogger(__name__)
 
 
-def get_Tasker(system: str, *args, **kwargs):
+def get_Tasker(system: str):
     """Function to get a Tasker object for a given system.
 
     Args:
         system : Shell the Tasker will use. 'slurm_cori' to use
             slurm scripts on cori, slurm_perlmutter' to use slurm scripts
             on perlmutter, 'bash' to run it in login nodes or computer shell.
-        *args: Will be sent to the Tasker constructor.
-        **kwargs: Will be sent to the Tasker constructor.
     """
     if system == "slurm":
         from warnings import warn
@@ -30,13 +28,13 @@ def get_Tasker(system: str, *args, **kwargs):
             "use slurm_cori or slurm_perlmutter instead",
             DeprecationWarning,
         )
-        return SlurmCoriTasker(*args, **kwargs)
+        return SlurmCoriTasker
     elif system == "slurm_cori":
-        return SlurmCoriTasker(*args, **kwargs)
+        return SlurmCoriTasker
     elif system == "slurm_perlmutter":
-        return SlurmPerlmutterTasker(*args, **kwargs)
+        return SlurmPerlmutterTasker
     elif system == "bash":
-        return BashTasker(*args, **kwargs)
+        return BashTasker
     else:
         raise ValueError(
             f"System not valid: {system} "
@@ -49,18 +47,18 @@ class Tasker:
     """Object to write and run jobs.
 
     Attributes:
-        slurm_header_args (dict): Header options to write if slurm tasker is selected. 
+        slurm_header_args (dict): Header options to write if slurm tasker is selected.
             Use a dictionary with the format {'option_name': 'option_value'}
         command (str): Command to be run in the job.
         command_args (str): Arguments to the command.
         environment (str): Conda/python environment to load before running the command.
-        environmental_variables (dict): Environmental variables to set before running the job. 
+        environmental_variables (dict): Environmental variables to set before running the job.
             Format: {'environmental_variable': 'value'}.
         srun_options (str): If slurm tasker selected. Options for the srun command.
         run_file (Path): Location of the job file.
-        wait_for (Tasker or str): If slurm tasker selected. Tasker to wait for before 
+        wait_for (Tasker or str): If slurm tasker selected. Tasker to wait for before
             running (if Tasker) or jobid of the task to wait (if str).
-        in_files: Input files that must exists or contain a jobid in order for the 
+        in_files: Input files that must exists or contain a jobid in order for the
             job to be launched.
         out_file: Out file that will be write by the job (to add jobid if available).
     """
@@ -76,11 +74,11 @@ class Tasker:
         srun_options: str,
         environment: str,
         run_file: Union[Path, str],
-        wait_for: Union[Self, int]=None,
+        wait_for: Union[Self, int] = None,
         environmental_variables=dict(),
         jobid_log_file=None,
         in_files: Union[List[Path], List[str]] = [],
-        out_file: Union[Path, str]=None,
+        out_file: Union[Path, str] = None,
     ):
         """
         Args:
@@ -93,7 +91,7 @@ class Tasker:
             wait_for (Tasker or int, optional): In NERSC, wait for a given job to finish before running the current one. Could be a  Tasker object or a slurm jobid (int). (Default: None, won't wait for anything).
             environmental_variables (dict, optional): Environmental variables to set before running the job. Format: {'environmental_variable': 'value'}. Default: No environmental variables defined.
             jobid_log_file (Path): Location of log file where to include jobids of runs.
-            in_files: Input files that must exists or contain a jobid in order for the 
+            in_files: Input files that must exists or contain a jobid in order for the
             job to be launched.
             out_file: Out file that will be write by the job (to add jobid if available).
         """
@@ -122,7 +120,7 @@ class Tasker:
         """Method to standardise wait_for Taskers or ids, in such a way that can be easily used afterwards."""
         self.wait_for = list(np.array(self.wait_for).reshape(-1))
         self.wait_for_ids = []
-        
+
         for x in self.wait_for:
             if isinstance(x, (int, np.integer)):
                 self.wait_for_ids.append(x)
@@ -145,10 +143,8 @@ class Tasker:
 
             size = file.stat().st_size
             if size > 1 and size < 40:
-                self.wait_for_ids.append(
-                    int(Path(file).read_text().splitlines()[0])
-                )
-                
+                self.wait_for_ids.append(int(Path(file).read_text().splitlines()[0]))
+
         if len(self.wait_for_ids) == 0:
             self.wait_for_ids = None
 
@@ -252,9 +248,9 @@ class SlurmTasker(Tasker):
 
         Returns:
             str: environmental options."""
-        if self.slurm_header_args.get('cpus-per-task', None) is not None:
-            self.srun_options['cpus-per-task'] = self.slurm_header_args['cpus-per-task']
-            
+        if self.slurm_header_args.get("cpus-per-task", None) is not None:
+            self.srun_options["cpus-per-task"] = self.slurm_header_args["cpus-per-task"]
+
         text = textwrap.dedent(
             f"""
 module load python
@@ -286,7 +282,7 @@ export OMP_NUM_THREADS={self.srun_options['cpus-per-task']}
         _ = Path(".").resolve()
         os.chdir(self.run_file.parent)
 
-        if self.wait_for is None and len(self.in_files)==0:
+        if self.wait_for is None and len(self.in_files) == 0:
             wait_for_str = ""
         else:
             self.get_wait_for_ids()
@@ -311,6 +307,28 @@ export OMP_NUM_THREADS={self.srun_options['cpus-per-task']}
             raise ValueError(
                 f'Submitting job failed. {self.sbatch_process.stderr.decode("utf-8")}'
             )
+
+    @staticmethod
+    def get_jobid_status(jobid: int):
+        """
+        Method to return the status of a given jobid in SLURM systems.
+
+        Args:
+            jobid: Identificator of the job to obtain the status for.
+        """
+        sbatch_process = run(
+            f"sacct -j {jobid} -o State --parsable2 -n",
+            shell=True,
+            capture_output=True,
+        )
+
+        try:
+            return sbatch_process.stdout.decode("utf-8").splitlines()[0]
+        except:
+            logger.info(
+                f"Retreiving status for jobid {jobid} failed. Assuming failed status."
+            )
+            return "FAILED"
 
 
 class SlurmCoriTasker(SlurmTasker):
