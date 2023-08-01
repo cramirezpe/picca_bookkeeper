@@ -2,7 +2,7 @@
 
 #SBATCH --qos regular
 #SBATCH --nodes 1
-#SBATCH --time 00:10:00
+#SBATCH --time 00:20:00
 #SBATCH --constraint cpu
 #SBATCH --account desi
 #SBATCH --job-name xcf_exp_lyalyb

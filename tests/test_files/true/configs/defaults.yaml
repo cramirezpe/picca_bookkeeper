@@ -1,36 +1,34 @@
 delta extraction:
   extra args:
-    picca_convert_transmission:
     picca_delta_extraction:
       data:
+        type: DesisimMocks
         lambda min: 3600
-        lambda max: 5772
+        lambda max: 5500
         wave solution: lin
-        delta lambda: 0.8
         minimum number pixels in forest: 150
-      expected flux:
-        type: Dr16ExpectedFlux
-    picca_delta_extraction_ciii:
   slurm args:
     picca_convert_transmission:
-      time: 02:00:00
+      time: 03:30:00
       qos: regular
     picca_delta_extraction:
-      time: 02:00:00
+      time: 03:30:00
       qos: regular
 correlations:
   extra args:
     picca_cf:
-      nproc: 128
+      nproc: 256
       rp-min: 0
-      rp-max: 300
+      rp-max: 200
       rt-max: 200
-      np: 75
+      np: 50
       nt: 50
       fid-Or: 7.975e-05
       rebin-factor: 3
+      z-max-sources: 3.79
+      no-project: ''
     picca_dmat:
-      nproc: 128
+      nproc: 256
       rej: 0.99
       rp-min: 0
       rp-max: 300
@@ -39,35 +37,40 @@ correlations:
       nt: 50
       fid-Or: 7.975e-05
       rebin-factor: 3
+      z-max-sources: 3.79
+      no-project: ''
     picca_metal_dmat:
       nproc: 128
-      rej: 0.995
+      rej: 0.999
       abs-igm: SiII(1260) SiIII(1207) SiII(1193) SiII(1190)
       rp-min: 0
-      rp-max: 300
+      rp-max: 200
       rt-max: 200
-      np: 75
+      np: 50
       nt: 50
       fid-Or: 7.975e-05
       rebin-factor: 3
+      z-max-sources: 3.79
     picca_metal_dmat_lyalyb_lyalya:
-      abs-igm: SiII(1260) SiIII(1207) SiII(1193) SiII(1190) CIV(eff)
+      abs-igm: SiII(1260) SiIII(1207) SiII(1193) SiII(1190)
     picca_metal_dmat_lyalya_lyalyb:
-      abs-igm: SiII(1260) SiIII(1207) SiII(1193) SiII(1190) CIV(eff)
+      abs-igm: SiII(1260) SiIII(1207) SiII(1193) SiII(1190)
     picca_xcf:
-      mode: desi_healpix
-      nproc: 128
+      nproc: 256
       nside: 16
-      rp-min: -300
-      rp-max: 300
+      rp-min: -200
+      rp-max: 200
       rt-max: 200
-      np: 150
+      np: 100
       nt: 50
       fid-Or: 7.975e-05
       rebin-factor: 3
+      z-max-sources: 3.79
+      mode: desi_mocks
+      no-project: ''
+      no-remove-mean-lambda-obs: ''
     picca_xdmat:
-      mode: desi_healpix
-      nproc: 128
+      nproc: 256
       rej: 0.99
       nside: 16
       rp-min: -300
@@ -77,43 +80,46 @@ correlations:
       nt: 50
       fid-Or: 7.975e-05
       rebin-factor: 3
+      z-max-sources: 3.79
+      mode: desi_mocks
     picca_metal_xdmat:
-      mode: desi_healpix
       nproc: 128
-      rej: 0.995
+      rej: 0.999
       abs-igm: SiII(1260) SiIII(1207) SiII(1193) SiII(1190)
-      rp-min: -300
-      rp-max: 300
+      rp-min: -200
+      rp-max: 200
       rt-max: 200
-      np: 150
+      np: 100
       nt: 50
       fid-Or: 7.975e-05
       rebin-factor: 3
+      z-max-sources: 3.79
+      mode: desi_mocks
   slurm args:
     picca_cf:
       qos: regular
-      time: 02:00:00
+      time: 04:00:00
     picca_dmat:
       qos: regular
-      time: 02:00:00
+      time: 04:00:00
     picca_export:
       qos: regular
-      time: 00:10:00
+      time: 00:20:00
     picca_metal_dmat:
       qos: regular
       time: '10:00:00'
     picca_xcf:
       qos: regular
-      time: 02:00:00
+      time: 03:00:00
     picca_xdmat:
       qos: regular
-      time: 02:00:00
+      time: 03:00:00
     picca_metal_xdmat:
       qos: regular
       time: '10:00:00'
 fits:
-  auto correlations:
-  cross correlations:
+  auto correlations: lya.lya-lya.lya
+  cross correlations: lya.lya
   bao: true
   hcd: true
   metals: true
@@ -151,18 +157,16 @@ fits:
         tracer1: LYA
         tracer2: LYA
       metals:
-        in tracer1: SiII(1260) SiIII(1207) SiII(1193) SiII(1190) CIV(eff)
-        in tracer2: SiII(1260) SiIII(1207) SiII(1193) SiII(1190) CIV(eff)
+        in tracer1: SiII(1260) SiIII(1207) SiII(1193) SiII(1190)
+        in tracer2: SiII(1260) SiIII(1207) SiII(1193) SiII(1190)
     vega_auto_lyalya_lyalyb:
       data:
         name: lyaxlyb
         tracer1: LYA
-        tracer2: LYB
+        tracer2: LYA
       metals:
-        in tracer1: SiII(1260) SiIII(1207) SiII(1193) SiII(1190) CIV(eff)
-        in tracer2: SiII(1260) SiIII(1207) SiII(1193) SiII(1190) CIV(eff)
-      parameters:
-        per binsize lyaxlyb: 4
+        in tracer1: SiII(1260) SiIII(1207) SiII(1193) SiII(1190)
+        in tracer2: SiII(1260) SiIII(1207) SiII(1193) SiII(1190)
     vega_cross:
       data:
         tracer1: QSO
@@ -192,13 +196,13 @@ fits:
         name: qsoxlya
         tracer2: LYA
       metals:
-        in tracer2: SiII(1260) SiIII(1207) SiII(1193) SiII(1190) CIV(eff)
+        in tracer2: SiII(1260) SiIII(1207) SiII(1193) SiII(1190)
     vega_cross_lyalyb:
       data:
         name: qsoxlyb
         tracer2: LYA
       metals:
-        in tracer2: SiII(1260) SiIII(1207) SiII(1193) SiII(1190) CIV(eff)
+        in tracer2: SiII(1260) SiIII(1207) SiII(1193) SiII(1190)
     vega_main:
       data sets:
         zeff: 2.35
@@ -234,6 +238,8 @@ fits:
         bias_eta_SiII(1190): true
         qso_rad_strength: true
         desi_inst_sys_amp: 0 3e-3 3e-4 1e-4
+      priors:
+        beta_hcd: gaussian 0.5 0.09
       parameters:
         ap: 1.0
         at: 1.0
@@ -277,3 +283,8 @@ fits:
         dnl_arinyo_av: 0.5378
         dnl_arinyo_bv: 1.607
         dnl_arinyo_kp: 19.47
+  slurm args:
+    run_vega:
+      qos: shared
+      ntasks: 1
+      cpus-per-task: 8

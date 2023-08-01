@@ -2,7 +2,7 @@
 
 #SBATCH --qos regular
 #SBATCH --nodes 1
-#SBATCH --time 02:00:00
+#SBATCH --time 03:30:00
 #SBATCH --constraint cpu
 #SBATCH --account desi
 #SBATCH --job-name delta_extraction_lya
