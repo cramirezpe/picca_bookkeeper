@@ -99,35 +99,38 @@ Again, the internal structure of fits is similar as the previous two. In configs
 All the information needed to reproduce each of the run is (and should be) contained in the ``bookkeeper_config.yaml`` file. An example of a config file is stored under ``picca_bookkeeper.resources.example_config.yaml`` or can be retrieved in console by running  ``picca_bookkeeper_show_example`` anywhere.
 # Scripts
 There are multiple scripts associated with the package that are installed with the application, the most relevant are:
+- ``picca_bookkeeper_run_full_analysis``: Can be used to run the full analysis. It can skip some of the steps if needed.
 - ``picca_bookkeeper_run_delta_extraction``: Can be used to run deltas.
 - ``picca_bookkeeper_run_cf`` and ``picca_bookkeeper_run_xcf``: Can be used to run correlations.
-- ``picca_bookkeeper_run_full_analysis``: Can be used to run the full analysis.
 - ``picca_bookkeeper_run_fit``: Run fit.
 
 For more information on how to run each of them use the ``--help`` command. (the scripts can be run directly from shell, e.g. ``picca_bookkeeper_run_full_analysis --help``.).
 
 # Examples
+> **¡¡Always check the terminal log to ensure the bookkeeper does what it is expected to do!!** The bookkeeper is designed to avoid rerunning something twice, this is done by checking sent jobs to slurm and preliminarily writing job ids in output files. This is very convenient, but the user needs to verify (**especially in runs with shared parts**) that everything is done as expected. 
+
 ## Run full analysis
 ``` bash
 picca_bookkeeper_run_full_analysis config.yaml
 ```
 
 ## Run full analysis if some steps where already computed (skipping them)
+This will also check sent jobs, if they failed, they will be rerun automatically.
 ``` bash
 picca_bookkeeper_run_full_analysis config.yaml --skip-sent
 ```
 
 ## Run two different correlations 
-If one wants to run two different correlation measurements for the same set of deltas, they will need to generate two config files ``config1.yaml``  ``config2.yaml``, config2 ``run name`` inside ``correlations`` section should be different than the one in config1:
+If one wants to run two different correlation measurements for the same set of deltas, they will need to generate two config files ``config1.yaml``  ``config2.yaml``. In file ``config2.yaml``, the field ``run name`` in section ``correlations`` should be different than the one in ``config1.yaml``:
 ```bash
 picca_bookkeeper_run_full_analysis config1.yaml --auto-correlations lya.lya-lya.lya lya.lya-lya.lyb --cross-correlations lya.lya lya.lyb --no-fits
 ```
 (here we wanted to skip fits, so we need to define the auto- and cross- correlations to compute).
 
-We can collect the jobid from the deltas steps (number returned in terminal), and use it for the next correlation measurements to wait for them:
+The bookkeeper will take care of not rerunning things that were run if ``skip-sent`` is used.
 ```
 # We don't need to rerun deltas
-picca_bookkeeper_run_full_analysis config2.yaml --auto-correlations lya.lya-lya.lya lya.lya-lya.lyb --cross-correlations lya.lya lya.lyb --skip-sent --no-fits --wait-for {delta-lya-jobid} {delta-lyb-jobid}
+picca_bookkeeper_run_full_analysis config2.yaml --auto-correlations lya.lya-lya.lya lya.lya-lya.lyb --cross-correlations lya.lya lya.lyb --skip-sent --no-fits
 ```
 
 ## Run full analysis with modified fits
@@ -137,5 +140,5 @@ picca_bookkeeper_run_full_analysis config1.yaml
 ```
 and then we generate only the second fits
 ```bash
-picca_bookkeeper_run_full_analysis --no-deltas --no-correlations --waitfor {auto-export-jobid} {auto-metal-jobid} {cross-export-jobid} {cross-metal-jobid}
+picca_bookkeeper_run_full_analysis config2.yaml
 ```
