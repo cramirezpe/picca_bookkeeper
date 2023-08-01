@@ -48,8 +48,9 @@ delta extraction:
   #   - prefix (dMdB20, CRP23, raw, True): specifies the general configuration of the run.
   #       - dMdB20: fudge included, 2.4A bins, var lss mod=0 (see resources/dMdB20.yaml)
   #       - CRP23: analysis performed for early3D DESI analyses. nofudge, 0.8A bins, var lss mod = 7.5, lambda rest frame max=1205.
+  #       - quickquasars: use this for normal LyaCoLoRe mocks that used quickquasars.
   #       - raw: use this for raw mocks.
-  #       - true: use this for true continuum analyses.
+  #       - True: use this for true continuum analyses.
   #       - Could also match any of the yaml files under picca_bookkeeper.resources.default_configs
   #
   #   - calib (0, 1, 2): Integer defining the number of calibration steps.

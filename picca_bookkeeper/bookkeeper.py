@@ -393,6 +393,7 @@ class Bookkeeper:
                 "cross correlations",
                 "bao",
                 "hcd",
+                "distortion",
                 "metals",
                 "sky",
                 "qso rad",
@@ -421,13 +422,6 @@ class Bookkeeper:
 
         with open(file, "w") as f:
             yaml.safe_dump(config, f, sort_keys=False)
-
-    @property
-    def is_mock(self) -> bool:
-        if "v9." in self.config["data"]["release"]:
-            return True
-        else:
-            return False
 
     @staticmethod
     def validate_region(region: str) -> str:
@@ -1095,9 +1089,7 @@ class Bookkeeper:
                     "num processors": 256,
                 },
                 "data": {
-                    "type": "DesisimMocks"
-                    if "v9." in self.config["data"]["release"]
-                    else "DesiHealpix",
+                    "type": "DesiHealpix",
                     "catalogue": str(self.paths.catalog),
                     "input directory": str(self.paths.healpix_data),
                     "lambda min rest frame": forest_regions[region]["lambda-rest-min"],
@@ -1385,10 +1377,6 @@ class Bookkeeper:
         if absorber2 != absorber:
             args["lambda-abs2"]: absorber_igm[absorber2.lower()]
 
-        if "v9." in self.config["data"]["release"]:
-            args["mode"] = "desi_mocks"
-            args["no-project"] = ""
-
         if region2 != region:
             args["in-dir2"] = str(self.paths.deltas_path(region2))
 
@@ -1551,10 +1539,6 @@ class Bookkeeper:
 
         if absorber2 != absorber:
             args["lambda-abs2"]: absorber_igm[absorber2.lower()]
-
-        if "v9." in self.config["data"]["release"]:
-            args["mode"] = "desi_mocks"
-            args["no-project"] = ""
 
         if region2 != region:
             args["in-dir2"] = str(self.paths.deltas_path(region2))
@@ -1864,9 +1848,6 @@ class Bookkeeper:
         if absorber2 != absorber:
             args["lambda-abs2"]: absorber_igm[absorber2.lower()]
 
-        if "v9." in self.config["data"]["release"]:
-            args["mode"] = "desi_mocks"
-
         if region2 != region:
             args["in-dir2"] = str(self.paths.deltas_path(region2))
 
@@ -2012,11 +1993,6 @@ class Bookkeeper:
             "lambda-abs": absorber_igm[absorber.lower()],
         }
 
-        if "v9." in self.config["data"]["release"]:
-            args["mode"] = "desi_mocks"
-            args["no-project"] = ""
-            args["no-remove-mean-lambda-obs"] = ""
-
         args = DictUtils.merge_dicts(args, updated_extra_args)
 
         if debug:  # pragma: no cover
@@ -2159,9 +2135,6 @@ class Bookkeeper:
             "out": str(self.paths.xdmat_fname(absorber, region)),
             "lambda-abs": absorber_igm[absorber.lower()],
         }
-
-        if "v9." in self.config["data"]["release"]:
-            args["mode"] = "desi_mocks"
 
         args = DictUtils.merge_dicts(args, updated_extra_args)
 
@@ -2436,9 +2409,6 @@ class Bookkeeper:
             "out": str(self.paths.xmetal_fname(absorber, region)),
             "lambda-abs": absorber_igm[absorber.lower()],
         }
-
-        if "v9." in self.config["data"]["release"]:
-            args["mode"] = "desi_mocks"
 
         args = DictUtils.merge_dicts(args, updated_extra_args)
 

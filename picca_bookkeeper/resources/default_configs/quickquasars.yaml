@@ -8,6 +8,12 @@ delta extraction:
         wave solution: lin
         minimum number pixels in forest: 150
 
+      expected flux:
+        type: Dr16FixedFudgeExpectedFlux
+        fudge value: 0
+        var lss mod: 7.5
+
+
 
   slurm args:
     picca_convert_transmission:

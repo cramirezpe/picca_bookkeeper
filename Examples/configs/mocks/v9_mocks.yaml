@@ -1,0 +1,42 @@
+general:
+  conda environment: picca_new_cont
+  system: slurm_perlmutter
+
+data:
+  bookkeeper dir: /path/to/analysis
+   
+  # Fill release and survey to get the default healpix data 
+  # under /global/cfs/cdirs/desi/mocks/lya_forest/develop/london/qq_desi/v9.0/{release}/{survey}
+  release: v9.0.0
+  survey: desi-2.0-1000 # use raw for raw analyses
+  
+  # LyaCoLoRe to read catalog from healpix data directory
+  # custom catalog path for custom catalog
+  catalog: LyaCoLoRe
+  
+
+delta extraction:
+  prefix: quickquasars
+  calib: 0 # Not implemented for mocks
+  dla: 0 # Not implemented for mocks (could set different values or names at will)
+  bal: 0 # Not implemented for mocks (could set different values or names at will)
+  suffix: 0
+
+  dla catalog: # For mocks this can be used to define the full path to the DLA catalog
+  bal catalog: # The same for BAL catalog
+  mask file:
+
+
+correlations:
+  run name: default
+  # catalog_tracer could be set up to use a different catalog for cross-correlations
+  # by default will use the data:catalog one.
+  catalog tracer:
+
+fits:
+  auto correlations: lya.lya-lya.lya
+  cross correlations: lya.lya
+  run name: default
+
+  distortion: False
+  metals: False

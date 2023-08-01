@@ -2,6 +2,11 @@ general:
   conda environment: picca
   system: slurm_perlmutter
   
+  # general slurm args, e.g. mail options
+  slurm args:
+    mail-type: fail
+    mail-user: user@host.com
+  
 data:
   bookkeeper dir: /path/to/analysis  
   healpix data:
@@ -12,16 +17,14 @@ data:
   
 delta extraction:
   prefix: dMdB20
-  calib: 2 #dr16 method of calibraiton
+  calib: 1 #EDR method of calibraiton
   calib region: ciii
   dla: 0
   bal: 2 #bal masking
   suffix: 0
 
-  slurm args:
-    general:
-      mail-type: fail
-      mail-user: xxxxx@yyyyyy.com
-
 correlations:
+  run name: default
+
+fits:
   run name: default

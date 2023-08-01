@@ -142,3 +142,9 @@ and then we generate only the second fits
 ```bash
 picca_bookkeeper_run_full_analysis config2.yaml
 ```
+
+## Run on mocks
+To run on mocks, use as a prefix ``quickquasars``, ``raw`` or ``True``. Then use one of the examples as a base and modify it. Remember to run without distortion and metals, both removing them in the fits section and at runtime through:
+```
+picca_bookkeeper_run_full_analysis mock_config.yaml --no-metal --no-dmat
+```
