@@ -378,7 +378,7 @@ class Bookkeeper:
                 "run name",
                 "catalog tracer",
                 "cf files",
-                "cf exp files"
+                "cf exp files",
                 "xcf files",
                 "xcf exp files",
                 "distortion matrices",
