@@ -46,7 +46,7 @@ def main(args=None):
         cf.send_job()
         logger.info(
             "Sent auto-correlation "
-            f"{args.absorber}{args.region}_{args.absorber2}{args.region2}: "
+            f"{args.absorber}{args.region}_{args.absorber2}{args.region2}:\n\t"
             f"{cf.jobid}"
         )
 
@@ -67,7 +67,7 @@ def main(args=None):
             dmat.send_job()
             logger.info(
                 "Sent distortion matrix "
-                f"{args.absorber}{args.region}_{args.absorber2}{args.region2}: "
+                f"{args.absorber}{args.region}_{args.absorber2}{args.region2}:\n\t"
                 f"{dmat.jobid}"
             )
 
@@ -88,7 +88,7 @@ def main(args=None):
             metal.send_job()
             logger.info(
                 "Sent metal matrix "
-                f"{args.absorber}{args.region}_{args.absorber2}{args.region2}: "
+                f"{args.absorber}{args.region}_{args.absorber2}{args.region2}:\n\t"
                 f"{metal.jobid}"
             )
     else:
@@ -110,7 +110,7 @@ def main(args=None):
         cf_exp.send_job()
         logger.info(
             "Sent export "
-            f"{args.absorber}{args.region}_{args.absorber2}{args.region2}: "
+            f"{args.absorber}{args.region}_{args.absorber2}{args.region2}:\n\t"
             f"{cf_exp.jobid}"
         )
 

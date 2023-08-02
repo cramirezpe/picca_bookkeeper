@@ -46,7 +46,7 @@ def main(args=None):
         calibration.write_job()
         if not args.only_write:
             calibration.send_job()
-            logger.info(f"Sent calibration step(s): {calibration.jobid}")
+            logger.info(f"Sent calibration step(s):\n\t{calibration.jobid}")
 
         if args.only_calibration:
             return
@@ -69,7 +69,7 @@ def main(args=None):
     deltas.write_job()
     if not args.only_write:
         deltas.send_job()
-        logger.info(f"Sent deltas for region: {args.region}: {deltas.jobid}")
+        logger.info(f"Sent deltas for region:\n\t{args.region}: {deltas.jobid}")
 
 
 def get_args():

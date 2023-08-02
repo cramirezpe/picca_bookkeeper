@@ -39,7 +39,7 @@ def main(args=None):
         xcf.send_job()
         logger.info(
             "Sent cross-correlation "
-            f"{args.absorber}{args.region}_qso: "
+            f"{args.absorber}{args.region}_qso:\n\t"
             f"{xcf.jobid}"
         )
 
@@ -56,7 +56,7 @@ def main(args=None):
             xdmat.send_job()
             logger.info(
                 "Sent distortion matrix "
-                f"{args.absorber}{args.region}_qso: "
+                f"{args.absorber}{args.region}_qso:\n\t"
                 f"{xdmat.jobid}"
             )
 
@@ -74,7 +74,7 @@ def main(args=None):
             metal.send_job()
             logger.info(
                 "Sent metal matrix "
-                f"{args.absorber}{args.region}_qso: "
+                f"{args.absorber}{args.region}_qso:\n\t"
                 f"{metal.jobid}"
             )
     else:
@@ -92,7 +92,7 @@ def main(args=None):
         xcf_exp.send_job()
         logger.info(
             "Sent export "
-            f"{args.absorber}{args.region}_qso: "
+            f"{args.absorber}{args.region}_qso:\n\t"
             f"{xcf_exp.jobid}"
         )
     else:
