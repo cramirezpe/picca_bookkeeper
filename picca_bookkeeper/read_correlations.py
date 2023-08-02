@@ -133,22 +133,129 @@ class CorrelationPlots:
             r_coef * data_wedge[1],
             r_coef * sp.sqrt(sp.diag(data_wedge[2])),
         )
-    
+
     @staticmethod
-    def compare_cf(
-        bookkeeper: Bookkeeper,
-        bookkeeper2: Bookkeeper,
-        region: str= "lya",
-        absorber: str = "lya",
-        mumin: float = 0,
-        mumax: float = 1,
-        correlation_file: Union[Path, str] = "",
-        correlation_file2: Union[Path, str] = "",
-        ax: matplotlib.axes._axes.Axes = None,
-        r_factor: int = 2,
-        plot_kwargs: Dict = dict(),
+    def compare_cfs(
+        bkp1: Bookkeeper,
+        bkp2: Bookkeeper=None,
+        mumin: float=0,
+        mumax: float=1,
+        region: str="lya",
+        region2: str=None,
+        correlation_file: Union[Path, str]="",
+        correlation_file2: Union[Path, str]="",
+        label: str=None,
+        label2: str=None,
     ):
         fig, axs = plt.subplots(3, 1, sharex=True, gridspec_kw={"height_ratios": [3, 2, 2]})
+
+        if label is None and isinstance(bkp1, Bookkeeper):
+            label = bkp1.label
+        if label2 is None and isinstance(bkp2, Bookkeeper):
+            label2 = bkp2.label
+
+        ax = axs[0]
+        a = CorrelationPlots.cf(
+            bkp1,
+            region=region,
+            region2=region2,
+            r_factor=2,
+            ax=ax,
+            correlation_file=correlation_file,
+            mumin=mumin,
+            mumax=mumax,
+            plot_kwargs=dict(label=label),
+        )
+        b = CorrelationPlots.cf(
+            bkp2,
+            region=region,
+            region2=region2,
+            correlation_file=correlation_file2,
+            r_factor=2,
+            ax=ax,
+            mumin=mumin,
+            mumax=mumax,
+            plot_kwargs=dict(label=label2),
+        )
+        ax.grid()
+        #    ax.set_ylim(-1, 1)
+        ax.legend()
+
+        ax = axs[1]
+        ax.plot(a[0], b[1] - a[1], c="k")
+        ax.set_xlabel(axs[0].get_xlabel())
+        ax.set_ylabel(f"{label2}-{label}")
+        ax.grid()
+        ax.set_xlabel(None)
+
+        ax = axs[2]
+        ax.plot(a[0], b[2] / a[2], c="k")
+        ax.set_xlabel(axs[0].get_xlabel())
+        ax.set_ylabel(f"errors{label2}/{label}")
+        ax.grid()
+
+        # axs[1].set_ylim(0.85, 1.15)
+        axs[0].set_xlabel(None)
+
+    @staticmethod
+    def compare_xcfs(
+        bkp1: Bookkeeper,
+        bkp2: Bookkeeper=None,
+        mumin: float=0,
+        mumax: float=1,
+        region: str="lya",
+        correlation_file: str="",
+        correlation_file2: str="",
+        label:str=None,
+        label2: str= None,
+    ):
+        fig, axs = plt.subplots(3, 1, sharex=True, gridspec_kw={"height_ratios": [3, 2, 2]})
+
+        if label is None and isinstance(bkp1, Bookkeeper):
+            label = bkp1.label
+        if label2 is None and isinstance(bkp2, Bookkeeper):
+            label2 = bkp2.label
+
+        ax = axs[0]
+        a = CorrelationPlots.xcf(
+            bkp1,
+            region=region,
+            r_factor=2,
+            ax=ax,
+            correlation_file=correlation_file,
+            mumin=mumin,
+            mumax=mumax,
+            plot_kwargs=dict(label=label),
+        )
+        b = CorrelationPlots.xcf(
+            bkp2,
+            region=region,
+            r_factor=2,
+            ax=ax,
+            correlation_file=correlation_file2,
+            mumin=mumin,
+            mumax=mumax,
+            plot_kwargs=dict(label=label2),
+        )
+        ax.grid()
+        ax.set_ylim(-1, 1)
+        ax.legend()
+
+        ax = axs[1]
+        ax.plot(a[0], b[1] - a[1], c="k")
+        ax.set_xlabel(axs[0].get_xlabel())
+        ax.set_ylabel(f"{label2}-{label}")
+        ax.grid()
+        ax.set_xlabel(None)
+
+        ax = axs[2]
+        ax.plot(a[0], b[2] / a[2], c="k")
+        ax.set_xlabel(axs[0].get_xlabel())
+        ax.set_ylabel(f"errors{label2}/{label}")
+        ax.grid()
+
+        # axs[1].set_ylim(0.85, 1.15)
+        axs[0].set_xlabel(None)
 
     @staticmethod
     def xcf(
@@ -189,7 +296,10 @@ class CorrelationPlots:
         if output_prefix is not None:
             output_prefix = Path(output_prefix)
 
-        with fitsio.FITS(bookkeeper.paths.exp_xcf_fname(absorber, region)) as ffile:
+        if not Path(correlation_file).is_file():
+            correlation_file = bookkeeper.paths.exp_xcf_fname(absorber, region)
+
+        with fitsio.FITS(correlation_file) as ffile:
             try:
                 da = ffile["COR"]["DA"][:]
             except ValueError:
