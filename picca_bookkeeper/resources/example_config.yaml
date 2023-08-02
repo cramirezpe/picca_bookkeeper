@@ -91,6 +91,12 @@ delta extraction:
   calibration data:
     step 1:
     step 2: # leave this empty if only 1 step calib.
+
+  # Only if you want to re-use deltas data from a different analysis.
+  # Insert here the region you want to use and spaced-separated 
+  # the paths to Deltas and to delta-attributes file
+  deltas:
+    # lya: /global/cfs/cdirs/desicollab/science/lya/y1-kp6/iron-IFAE-tests/iron/main/QSO_cat_iron_main_dark_healpix_v0/CRP23_1.ciii.1.2_0/results/lya/Delta /global/cfs/cdirs/desicollab/science/lya/y1-kp6/iron-IFAE-tests/iron/main/QSO_cat_iron_main_dark_healpix_v0/CRP23_1.ciii.1.2_0/results/lya/Log/delta_attributes.fits.gz
     
   # line masking to be applied in the continuum fitting process.
   mask file:

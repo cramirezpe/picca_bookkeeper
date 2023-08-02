@@ -421,6 +421,11 @@ class TestBookkeeper(unittest.TestCase):
         bookkeeper.paths.deltas_log_path(None, calib_step=1).mkdir(
             exist_ok=True, parents=True
         )
+        
+        bookkeeper.paths.deltas_path("lyb").mkdir(exist_ok=True, parents=True)
+        bookkeeper.paths.delta_attributes_file("lyb").parent.mkdir(exist_ok=True, parents=True)
+        (bookkeeper.paths.deltas_path("lyb") / "Delta-1.fits.gz").write_text("1231")
+        bookkeeper.paths.delta_attributes_file("lyb").write_text("3452")
 
         absorber = "lya"
         region = "lya"
@@ -454,6 +459,11 @@ class TestBookkeeper(unittest.TestCase):
             filedata = file.read()
 
         filedata = filedata.replace(
+            "deltaslyb:",
+            f"lyb: {str(bookkeeper.paths.deltas_path('lyb'))} {str(bookkeeper.paths.delta_attributes_file('lyb'))}"
+        )
+
+        filedata = filedata.replace(
             "cflyalya_lyalyb:",
             f"lyalya_lyalyb: {str(bookkeeper.paths.cf_fname(absorber, region, absorber2, region2))}",
         )
@@ -483,6 +493,14 @@ class TestBookkeeper(unittest.TestCase):
         bookkeeper2 = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
         write_full_analysis(bookkeeper2, calib=True, region="lya", region2="lyb", xregion="lyb")
+
+        assert(
+            (bookkeeper2.paths.deltas_path('lyb') / "Delta-1.fits.gz").read_text() == "1231"
+        )
+
+        assert(
+            bookkeeper2.paths.delta_attributes_file("lyb").read_text() == "3452"
+        )
 
         assert (
             bookkeeper2.paths.cf_fname(absorber, region, absorber2, region2).read_text()

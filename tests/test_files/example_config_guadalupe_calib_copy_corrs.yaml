@@ -18,6 +18,9 @@ delta extraction:
   bal: 0
   suffix: copy_corrs
 
+  deltas:
+    deltaslyb:
+
   
 correlations:
   catalog tracer:

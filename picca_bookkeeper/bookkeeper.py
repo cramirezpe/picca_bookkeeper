@@ -366,6 +366,7 @@ class Bookkeeper:
                 "bal",
                 "suffix",
                 "calibration data",
+                "deltas",
                 "mask file",
                 "dla catalog",
                 "bal catalog",
@@ -1048,7 +1049,7 @@ class Bookkeeper:
 
         # Check if calibration data needs to be copied:
         if calib_step is not None:
-            copied_attributes = self.paths.copied_delta_attributes(calib_step)
+            copied_attributes = self.paths.copied_calib_attributes(calib_step)
             if copied_attributes is not None:
                 filename = self.paths.delta_attributes_file(None, calib_step)
                 filename.unlink(missing_ok=True)
@@ -1056,6 +1057,21 @@ class Bookkeeper:
                 filename.symlink_to(copied_attributes)
 
                 return DummyTasker()
+
+        copy_deltas_paths = self.paths.copied_deltas_files(region)
+        if copy_deltas_paths is not None:
+            deltas_dir = self.paths.deltas_path(region)
+            if deltas_dir.is_dir() or deltas_dir.is_file():
+                shutil.rmtree(deltas_dir)
+            deltas_dir.parent.mkdir(exist_ok=True, parents=True)
+            deltas_dir.symlink_to(copy_deltas_paths[0])
+
+            filename = self.paths.delta_attributes_file(region)
+            filename.unlink(missing_ok=True)
+            filename.parent.mkdir(exist_ok=True, parents=True)
+            filename.symlink_to(copy_deltas_paths[1])
+
+            return DummyTasker()
 
         command = "picca_delta_extraction.py"
 
@@ -3374,7 +3390,7 @@ class PathBuilder:
             / "delta_attributes.fits.gz"
         )
 
-    def copied_delta_attributes(self, step: int) -> Union[Path, None]:
+    def copied_calib_attributes(self, step: int) -> Union[Path, None]:
         """Method to get path to delta attributes for calibration if it
         appears as the one to be read in the bookkeeper (instead of computing
         it).
@@ -3404,6 +3420,38 @@ class PathBuilder:
                 f"No attributes file provided, it will be computed."
             )
         return attributes
+
+    def copied_deltas_files(self, region: str) -> Union[Path, None]:
+        """Method to get path to deltas files and delta attributes if it
+        appears in the bookkeeper config file (instead of computing it)
+
+        Args:
+            region: Region to look in the configuration file.
+        """
+        files = self.config["delta extraction"].get("deltas", dict()).get(region, None)
+
+        if files is not None:
+            files = files.split(' ')
+            if len(files) != 2:
+                raise ValueError(
+                    f"{region}: Invalid format for deltas provided. Format should be "
+                    "two spaced-separated paths deltas_directory delta_attributes_file"
+                )
+            if not Path(files[0]).is_dir():
+                raise FileNotFoundError(
+                    f"{region}: Invalid deltas directory provided", files[0])
+            if not Path(files[1]).is_file():
+                raise FileNotFoundError(
+                    f"{region}: Invalid attributes file provided", files[1]
+                )
+            logger.info(f"{region}: Using deltas from file:\n\t{str(files[0])}")
+            logger.info(f"{region}: Using delta attributes from file:\n\t{str(files[1])}")
+        else:
+            logger.info(
+                f"{region}: No files provided to copy, deltas will be computed."
+            )
+        return files
+
 
     def copied_correlation_file(self, subsection, absorber, region, absorber2, region2):
         """Method to get a correlation file to copy given in the bookkeeper config
