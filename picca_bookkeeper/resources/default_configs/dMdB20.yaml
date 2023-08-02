@@ -28,7 +28,7 @@ delta extraction:
 correlations:
   extra args:
     picca_cf:
-      nproc: 128
+      nproc: 256
       rp-min: 0
       rp-max: 300
       rt-max: 200
@@ -38,7 +38,7 @@ correlations:
       rebin-factor: 3
 
     picca_dmat:
-      nproc: 128
+      nproc: 256
       rej: 0.99
       rp-min: 0
       rp-max: 300
@@ -49,7 +49,7 @@ correlations:
       rebin-factor: 3
 
     picca_metal_dmat:
-      nproc: 128
+      nproc: 256
       rej: 0.995
       abs-igm: "SiII(1260) SiIII(1207) SiII(1193) SiII(1190)"
       rp-min: 0
@@ -68,7 +68,7 @@ correlations:
 
     picca_xcf:
       mode: desi_healpix
-      nproc: 128
+      nproc: 256
       nside: 16
       rp-min: -300
       rp-max: 300
@@ -80,7 +80,7 @@ correlations:
 
     picca_xdmat:
       mode: "desi_healpix"
-      nproc: 128
+      nproc: 256
       rej: 0.99
       nside: 16
       rp-min: -300
@@ -93,7 +93,7 @@ correlations:
 
     picca_metal_xdmat:
       mode: "desi_healpix"
-      nproc: 128
+      nproc: 256
       rej: 0.995
       abs-igm: "SiII(1260) SiIII(1207) SiII(1193) SiII(1190)"
       rp-min: -300

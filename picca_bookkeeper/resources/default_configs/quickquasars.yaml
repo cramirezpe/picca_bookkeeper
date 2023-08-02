@@ -53,7 +53,7 @@ correlations:
       no-project: ""
 
     picca_metal_dmat:
-      nproc: 128
+      nproc: 256
       rej: 0.999
       abs-igm: "SiII(1260) SiIII(1207) SiII(1193) SiII(1190)"
       rp-min: 0
@@ -101,7 +101,7 @@ correlations:
       mode: "desi_mocks"
 
     picca_metal_xdmat:
-      nproc: 128
+      nproc: 256
       rej: 0.999
       abs-igm: "SiII(1260) SiIII(1207) SiII(1193) SiII(1190)"
       rp-min: -200

@@ -2,11 +2,22 @@ delta extraction:
   extra args:      
     picca_delta_extraction:
       data:
-        type: DesisimMocks
         lambda min: 3600
-        lambda max: 5500
+        lambda max: 5772
         wave solution: lin
+        delta lambda: 0.8
         minimum number pixels in forest: 150
+
+      expected flux:
+        type: Dr16FixedFudgeExpectedFlux
+        fudge value: 0
+        var lss mod: 7.5
+    
+    picca_delta_extraction_lya:
+      data:
+        lambda max rest frame: 1205.0
+      expected flux:
+        limit var lss: (0, 0.4)
 
 
   slurm args:
@@ -24,14 +35,13 @@ correlations:
     picca_cf:
       nproc: 256
       rp-min: 0
-      rp-max: 200
+      rp-max: 300
       rt-max: 200
-      np: 50
+      np: 75
       nt: 50
-      fid-Or: 7.975e-5
+      fid-Or: 7.963e-5
+      fid-Om: 0.315
       rebin-factor: 3
-      z-max-sources: 3.79
-      no-project: ""
 
     picca_dmat:
       nproc: 256
@@ -41,46 +51,39 @@ correlations:
       rt-max: 200
       np: 75
       nt: 50
-      fid-Or: 7.975e-5
+      fid-Or: 7.963e-5
+      fid-Om: 0.315
       rebin-factor: 3
-      z-max-sources: 3.79
-      no-project: ""
 
     picca_metal_dmat:
       nproc: 256
       rej: 0.999
-      abs-igm: "SiII(1260) SiIII(1207) SiII(1193) SiII(1190)"
+      abs-igm: "SiII(1260) SiIII(1207) SiII(1193) SiII(1190) CIV(eff)"
       rp-min: 0
-      rp-max: 200
+      rp-max: 300
       rt-max: 200
-      np: 50
+      np: 75
       nt: 50
-      fid-Or: 7.975e-5
+      fid-Or: 7.963e-5
+      fid-Om: 0.315
       rebin-factor: 3
-      z-max-sources: 3.79
-
-    picca_metal_dmat_lyalyb_lyalya:
-      abs-igm: "SiII(1260) SiIII(1207) SiII(1193) SiII(1190)"
-    
-    picca_metal_dmat_lyalya_lyalyb:
-      abs-igm: "SiII(1260) SiIII(1207) SiII(1193) SiII(1190)"
 
     picca_xcf:
+      mode: desi_healpix
       nproc: 256
       nside: 16
-      rp-min: -200
-      rp-max: 200
+      rp-min: -300
+      rp-max: 300
       rt-max: 200
-      np: 100
+      np: 150
       nt: 50
-      fid-Or: 7.975e-5
+      fid-Or: 7.963e-5
+      fid-Om: 0.315
       rebin-factor: 3
-      z-max-sources: 3.79
-      mode: "desi_mocks"
-      no-project: ""
-      no-remove-mean-lambda-obs: ""
+      z-max-obj: 3.79
 
     picca_xdmat:
+      mode: "desi_healpix"
       nproc: 256
       rej: 0.99
       nside: 16
@@ -89,24 +92,25 @@ correlations:
       rt-max: 200
       np: 150
       nt: 50
-      fid-Or: 7.975e-5
+      fid-Or: 7.963e-5
+      fid-Om: 0.315
       rebin-factor: 3
-      z-max-sources: 3.79
-      mode: "desi_mocks"
+      z-max-obj: 3.79
 
     picca_metal_xdmat:
+      mode: "desi_healpix"
       nproc: 256
       rej: 0.999
-      abs-igm: "SiII(1260) SiIII(1207) SiII(1193) SiII(1190)"
-      rp-min: -200
-      rp-max: 200
+      abs-igm: "SiII(1260) SiIII(1207) SiII(1193) SiII(1190) CIV(eff)"
+      rp-min: -300
+      rp-max: 300
       rt-max: 200
-      np: 100
+      np: 150
       nt: 50
-      fid-Or: 7.975e-5
+      fid-Or: 7.963e-5
+      fid-Om: 0.315
       rebin-factor: 3
-      z-max-sources: 3.79
-      mode: "desi_mocks"
+      z-max-obj: 3.79
 
   slurm args:
     picca_cf:
@@ -139,8 +143,9 @@ correlations:
 
 
 fits:
-  auto correlations: lya.lya-lya.lya 
-  cross correlations: lya.lya
+  auto correlations: lya.lya-lya.lya lya.lya-lya.lyb
+  cross correlations: lya.lya lya.lyb
+
   bao: True
   hcd: True
   metals: True
@@ -154,6 +159,8 @@ fits:
   extra args:
     vega_auto:
       data:
+        tracer1: LYA
+        tracer2: LYA
         tracer1-type: continuous
         tracer2-type: continuous
       
@@ -171,36 +178,26 @@ fits:
         model-hcd: Rogers2018
         z evol LYA: bias_vs_z_std
         small scale nl: dnl_arinyo
-        ell-max: 6
+        fast_metals: True
         desi-instrumental-systematics: True
 
       metals:
         z evol: bias_vs_z_std
+        in tracer1: SiII(1260) SiIII(1207) SiII(1193) SiII(1190) CIV(eff)
+        in tracer2: SiII(1260) SiIII(1207) SiII(1193) SiII(1190) CIV(eff)
 
     vega_auto_lyalya_lyalya:
       data:
         name: lyaxlya
-        tracer1: LYA
-        tracer2: LYA
-
-      metals:
-        in tracer1: SiII(1260) SiIII(1207) SiII(1193) SiII(1190)
-        in tracer2: SiII(1260) SiIII(1207) SiII(1193) SiII(1190)
 
     vega_auto_lyalya_lyalyb:
       data:
-        name: lyaxlyb
-        tracer1: LYA
-        tracer2: LYA
-        
-      metals:
-        in tracer1: SiII(1260) SiIII(1207) SiII(1193) SiII(1190)
-        in tracer2: SiII(1260) SiIII(1207) SiII(1193) SiII(1190)
-      
+        name: lyaxlyb     
 
     vega_cross:
       data:
         tracer1: QSO
+        tracer2: LYA
         tracer1-type: discrete
         tracer2-type: continuous
 
@@ -218,36 +215,32 @@ fits:
         model-hcd: Rogers2018
         z evol LYA: bias_vs_z_std
         z evol QSO: bias_vs_z_std
-        ell-max: 6
+        fast_metals: True
         velocity dispersion: lorentz
         radiation effects: True
 
       metals:
         z evol: bias_vs_z_std
         velocity dispersion: lorentz
+        in tracer2: SiII(1260) SiIII(1207) SiII(1193) SiII(1190) CIV(eff)
         
     vega_cross_lyalya:
       data:
         name: qsoxlya
-        tracer2: LYA
-        
-      metals:
-        in tracer2: SiII(1260) SiIII(1207) SiII(1193) SiII(1190)
 
     vega_cross_lyalyb:
       data:
         name: qsoxlyb
-        tracer2: LYA
-      
-      metals:
-        in tracer2:  SiII(1260) SiIII(1207) SiII(1193) SiII(1190)
 
     vega_main:
       data sets:
-        zeff: 2.35
+        zeff: 2.346200688930978
 
       cosmo-fit type:
         cosmo fit func: ap_at
+        full-shape: False
+        full-shape-alpha: False
+        smooth-scaling: False
 
       control:
         sampler: True
@@ -271,64 +264,65 @@ fits:
         at: True
         bias_LYA: True
         beta_LYA: True
-        bias_QSO: True
-        bias_hcd: True
+        bias_hcd: -0.5 0.5
         beta_hcd: True
+        bias_QSO: True
+        sigma_velo_disp_lorentz_QSO: 0. 20.
         drp_QSO: True
-        sigma_velo_disp_lorentz_QSO: True
-        bias_eta_SiII(1260): True
-        bias_eta_SiIII(1207): True
-        bias_eta_SiII(1193): True
-        bias_eta_SiII(1190): True
-        qso_rad_strength: True
-        desi_inst_sys_amp: 0 3e-3 3e-4 1e-4
+        qso_rad_strength: 0. 2.0
+        bias_eta_SiII(1190): -0.05 0.05
+        bias_eta_SiII(1193): -0.05 0.05
+        bias_eta_SiIII(1207): -0.05 0.05
+        bias_eta_SiII(1260): -0.05 0.05
+        desi_inst_sys_amp: True
+        bias_eta_CIV(eff): -0.012 0.009
 
       priors:
         beta_hcd: gaussian 0.5 0.09
 
       parameters:
-        ap: 1.0
-        at: 1.0
-        bias_LYA: -0.1
-        beta_LYA: 1.6689842055246313
-        alpha_LYA: 2.9
-        bias_QSO: 3.5
-        bias_hcd: -0.05229593809709332
-        beta_hcd: 0.5
-        L0_hcd: 10.
-        bias_eta_SiII(1260): -0.0026756210856865984
-        beta_SiII(1260): 0.5
-        alpha_SiII(1260): 1.0
-        bias_eta_SiIII(1207): -0.004500501963425506
-        beta_SiIII(1207): 0.5
-        alpha_SiIII(1207): 1.0
-        bias_eta_SiII(1193): -0.0020176237974432443
-        beta_SiII(1193): 0.5
-        alpha_SiII(1193): 1.0
-        bias_eta_SiII(1190): -0.002938954583714029
-        beta_SiII(1190): 0.5
-        alpha_SiII(1190): 1.0
-        bias_eta_CIV(eff): -0.005210131497292769
-        beta_CIV(eff): 0.27
-        alpha_CIV(eff): 1.
-        desi_inst_sys_amp: 0.0003189935987295203
-        bao_amp: 1.
+        ap: 1
+        at: 1
         sigmaNL_per: 3.24
         sigmaNL_par: 6.36984
-        growth_rate: 0.970386193694752
-        bias_eta_QSO: 1.
+        bao_amp: 1.
+        bias_LYA: -0.1179427863409476
+        beta_LYA: 1.67
+        alpha_LYA: 2.9
+        bias_QSO: 3.823847195586528
+        bias_eta_QSO: 1
+        growth_rate: 0.967912589135029
         alpha_QSO: 1.44
-        drp_QSO: 0.2540594873990489
-        sigma_velo_disp_lorentz_QSO: 7.772443711873628
-        qso_rad_strength: 0.7386158105819112
-        qso_rad_asymmetry: 0.
-        qso_rad_lifetime: 9e99
-        qso_rad_decrease: 300.
         dnl_arinyo_q1: 0.8558
         dnl_arinyo_kv: 1.11454
         dnl_arinyo_av: 0.5378
         dnl_arinyo_bv: 1.607
         dnl_arinyo_kp: 19.47
+        bias_hcd: -0.05
+        beta_hcd: 0.7
+        L0_hcd: 10.
+        drp_QSO: 0.0
+        sigma_velo_disp_lorentz_QSO: 6.86
+        qso_rad_strength: 0.74
+        qso_rad_asymmetry: 0.
+        qso_rad_lifetime: 9e99
+        qso_rad_decrease: 300.
+        bias_eta_SiII(1190): -0.0026
+        beta_SiII(1190): 0.5
+        alpha_SiII(1190): 1.
+        bias_eta_SiII(1193): -0.0012
+        beta_SiII(1193): 0.5
+        alpha_SiII(1193): 1.
+        bias_eta_SiIII(1207): -0.0037
+        beta_SiIII(1207): 0.5
+        alpha_SiIII(1207): 1.
+        bias_eta_SiII(1260): -0.0023
+        beta_SiII(1260): 0.5
+        alpha_SiII(1260): 1.
+        bias_eta_CIV(eff): -0.005
+        beta_CIV(eff): 0.27
+        alpha_CIV(eff): 1.
+        desi_inst_sys_amp: 1e-4
 
          
 
