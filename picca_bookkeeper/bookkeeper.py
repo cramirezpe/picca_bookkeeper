@@ -88,7 +88,7 @@ def get_quasar_catalog(release, survey, catalog, bal=False) -> Path:  # pragma: 
     catalog = basedir / release / survey / catalog
     for suffix in (".fits", ".fits.gz", "-bal.fits", "-bal.fits.gz"):
         if catalog.with_name(catalog.name + suffix).is_file():
-            return catalog.with_name(catalog.name + suffix)
+            return catalog.with_name(catalog.name + suffix).resolve()
     else:
         raise FileNotFoundError(
             f"Could not find a compatible catalog inside the bookkeeper. "
@@ -115,7 +115,7 @@ def get_dla_catalog(release, survey, version=1) -> Path:
 
     for suffix in (".fits", ".fits.gz"):
         if catalog.with_name(catalog.name + suffix):
-            return catalog.with_name(catalog.name + suffix)
+            return catalog.with_name(catalog.name + suffix).resolve()
     else:
         raise FileNotFoundError(
             f"Could not find a compatible catalog in the bookkeeper. (Path: {catalog})"
