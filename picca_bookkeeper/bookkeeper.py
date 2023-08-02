@@ -378,7 +378,9 @@ class Bookkeeper:
                 "run name",
                 "catalog tracer",
                 "cf files",
+                "cf exp files"
                 "xcf files",
+                "xcf exp files",
                 "distortion matrices",
                 "xdistortion matrices",
                 "metal matrices",
@@ -1661,6 +1663,17 @@ class Bookkeeper:
         ):
             return DummyTasker()
 
+        copy_cf_exp_file = self.paths.copied_correlation_file(
+            "cf exp files", absorber, region, absorber2, region2
+        )
+        if copy_cf_exp_file is not None:
+            filename = self.paths.exp_cf_fname(absorber, region, absorber2, region2)
+            filename.unlink(missing_ok=True)
+            filename.parent.mkdir(exist_ok=True, parents=True)
+            filename.symlink_to(copy_cf_exp_file)
+
+            return DummyTasker()
+
         command = "picca_export.py"
 
         updated_extra_args = self.generate_extra_args(
@@ -2242,6 +2255,19 @@ class Bookkeeper:
             updated_system,
         ):
             return DummyTasker()
+
+        copy_xcf_exp_file = self.paths.copied_correlation_file(
+            "xcf exp files", absorber, region, None, None
+        )
+        if copy_xcf_exp_file is not None:
+            filename = self.paths.exp_xcf_fname(absorber, region)
+            filename.unlink(missing_ok=True)
+            filename.parent.mkdir(exist_ok=True, parents=True)
+            filename.symlink_to(copy_xcf_exp_file)
+
+            return DummyTasker()
+
+        command = "picca_export.py"
 
         command = "picca_export.py"
 

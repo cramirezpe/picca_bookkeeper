@@ -153,10 +153,16 @@ correlations:
   # For auto-, one should provide the two absorbers and regions
   cf files:
     #lyalya_lyalya: /global/cfs/cdirs/desicollab/users/cramirez/iron-analyses/iron/main/QSO_cat_iron_main_dark_healpix_v0/CRP23_1.ciii.1.2_0/correlations/default/results/lyalya_lyalya/cf.fits.gz
+
+  cf exp files:
+    #lyalya_lyalya: /global/cfs/cdirs/desicollab/users/cramirez/iron-analyses/iron/main/QSO_cat_iron_main_dark_healpix_v0/CRP23_1.ciii.1.2_0/correlations/default/results/lyalya_lyalya/cf_exp.fits.gz
   
   # For cross-, only one absorber-region is needed
   xcf files:
     #lyalya: /global/cfs/cdirs/desicollab/users/cramirez/iron-analyses/iron/main/QSO_cat_iron_main_dark_healpix_v0/CRP23_1.ciii.1.2_0/correlations/default/results/qso_lyalya/xcf.fits.gz
+
+  xcf exp files:
+    #lyalya: /global/cfs/cdirs/desicollab/users/cramirez/iron-analyses/iron/main/QSO_cat_iron_main_dark_healpix_v0/CRP23_1.ciii.1.2_0/correlations/default/results/qso_lyalya/xcf_exp.fits.gz
 
   # copy distortion measurements from a different place
   # For auto-, one should provide the two absorbers and regions
