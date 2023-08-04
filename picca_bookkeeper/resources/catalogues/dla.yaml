@@ -1,0 +1,42 @@
+iron:
+
+  main:
+    v1: /global/cfs/cdirs/desicollab/science/lya/y1-kp6/iron-tests/catalogs/DLA_cnn_iron_main_dark_healpix_v0_conf05_nhi203.fits
+    v2: /global/cfs/cdirs/desi/users/jqzou/iron/dlacat/main-dark-dlacat-cnn-sub.fits
+    v3: /global/cfs/cdirs/desicollab/users/cramirez/Continuum_fitting_Y1/catalogs/dla/dla_catalog_v3.fits
+
+fugu:
+
+  all:
+    v1: /global/cfs/cdirs/desicollab/science/lya/early-3d/catalogs/dla/fugu/all/dla_catalog_v1.fits
+    v2: /global/cfs/cdirs/desicollab/science/lya/early-3d/catalogs/dla/fugu/all/dla_catalog_v2.fits
+    v3: /global/cfs/cdirs/desicollab/science/lya/early-3d/catalogs/dla/fugu/all/dla_catalog_v3.fits
+    v4: /global/cfs/cdirs/desicollab/science/lya/early-3d/catalogs/dla/fugu/all/dla_catalog_v4.fits
+
+fuji:
+
+  sv1:
+    v1: /global/cfs/cdirs/desicollab/users/jqzou/Fuji+Guadalupe/dlacatalog/afterburner/concordance/fuji/fuji-sv1-dark-combine-dlacatalog.fits
+    v2: /global/cfs/cdirs/desicollab/science/lya/early-3d/catalogs/dla/fuji/sv1/dla_catalog_v2.fits
+    v3: /global/cfs/cdirs/desicollab/science/lya/early-3d/catalogs/dla/fuji/sv1/dla_catalog_v3.fits
+    v4: /global/cfs/cdirs/desicollab/science/lya/early-3d/catalogs/dla/fuji/sv1/dla_catalog_v4.fits
+
+  sv13:
+    v1: /global/cfs/cdirs/desicollab/science/lya/early-3d/catalogs/dla/fuji/sv13/dla_catalog_v1.fits
+    v2: /global/cfs/cdirs/desicollab/science/lya/early-3d/catalogs/dla/fuji/sv13/dla_catalog_v2.fits
+    v3: /global/cfs/cdirs/desicollab/science/lya/early-3d/catalogs/dla/fuji/sv13/dla_catalog_v3.fits
+    v4: /global/cfs/cdirs/desicollab/science/lya/early-3d/catalogs/dla/fuji/sv13/dla_catalog_v4.fits
+
+  sv3:
+    v1: /global/cfs/cdirs/desicollab/users/jqzou/Fuji+Guadalupe/dlacatalog/afterburner/concordance/fuji/fuji-sv3-dark-combine-dlacatalog.fits
+    v2: /global/cfs/cdirs/desicollab/science/lya/early-3d/catalogs/dla/fuji/sv3/dla_catalog_v2.fits
+    v3: /global/cfs/cdirs/desicollab/science/lya/early-3d/catalogs/dla/fuji/sv3/dla_catalog_v3.fits
+    v4: /global/cfs/cdirs/desicollab/science/lya/early-3d/catalogs/dla/fuji/sv3/dla_catalog_v4.fits
+    
+guadalupe:
+
+  main:
+    v1: /global/cfs/cdirs/desicollab/users/jqzou/Fuji+Guadalupe/dlacatalog/afterburner/concordance/guadalupe-main-dark-combine-dlacatalog.fits
+    v2: /global/cfs/cdirs/desicollab/science/lya/early-3d/catalogs/dla/guadalupe/main/dla_catalog_v2.fits
+    v3: /global/cfs/cdirs/desicollab/science/lya/early-3d/catalogs/dla/guadalupe/main/dla_catalog_v3.fits
+    v4: /global/cfs/cdirs/desicollab/science/lya/early-3d/catalogs/dla/guadalupe/main/dla_catalog_v4.fits

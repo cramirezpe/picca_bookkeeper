@@ -75,24 +75,24 @@ def get_quasar_catalog(release, survey, catalog, bal=False) -> Path:  # pragma: 
         catalog (str): redrock_v0, afterburn_v0, afterburn_v1, ...
         bal (bool): whether to search for catalogs with BALs included.
     """
-    if release in ("everest", "fuji", "guadalupe", "fugu"):
-        basedir = Path("/global/cfs/cdirs/desi/science/lya/early-3d/catalogs/qso")
-    else:
-        basedir = Path(
-            "/global/cfs/cdirs/desi/users/cramirez/Continuum_fitting_Y1/catalogs/qso"
-        )
+    catalogues_file = files(resources).joinpath(
+        "catalogues/quasar.yaml"
+    )
+    catalogues = yaml.safe_load(catalogues_file.read_text())
 
     if bal:
         catalog += "-bal"
 
-    catalog = basedir / release / survey / catalog
     for suffix in (".fits", ".fits.gz", "-bal.fits", "-bal.fits.gz"):
-        if catalog.with_name(catalog.name + suffix).is_file():
-            return catalog.with_name(catalog.name + suffix).resolve()
+        if catalogues[release][survey].get(
+            catalog + suffix,
+            None
+        ) is not None:
+            return Path(catalogues[release][survey][catalog + suffix])
     else:
         raise FileNotFoundError(
-            f"Could not find a compatible catalog inside the bookkeeper. "
-            f"(Path: {catalog})"
+            "Could not find a compatible quasar catalogue inside the bookkeeper."
+            f"\tRelease: {release}\n\tSurvey: {survey}\n\tCatalog: {catalog}"
         )
 
 
@@ -104,23 +104,22 @@ def get_dla_catalog(release, survey, version=1) -> Path:
         survey (str): sv1, sv3, sv13, main, all
         version (float): version of the catalog
     """
-    if release in ("everest", "fuji", "guadalupe", "fugu"):
-        basedir = Path("/global/cfs/cdirs/desi/science/lya/early-3d/catalogs/dla")
-    else:
-        basedir = Path(
-            "/global/cfs/cdirs/desi/users/cramirez/Continuum_fitting_Y1/catalogs/dla"
-        )
+    catalogues_file = files(resources).joinpath(
+        "catalogues/dla.yaml"
+    )
+    catalogues = yaml.safe_load(catalogues_file.read_text())
 
-    catalog = basedir / release / survey / f"dla_catalog_v{version}"
 
-    for suffix in (".fits", ".fits.gz"):
-        if catalog.with_name(catalog.name + suffix):
-            return catalog.with_name(catalog.name + suffix).resolve()
+    if catalogues[release][survey].get(
+        f"v{version}",
+        None
+    ) is not None:
+        return Path(catalogues[release][survey][f"v{version}"])
     else:
         raise FileNotFoundError(
-            f"Could not find a compatible catalog in the bookkeeper. (Path: {catalog})"
+            "Could not find a compatible DLA catalogue inside the bookkeeper."
+            f"\tRelease: {release}\n\tSurvey: {survey}\n\tVersion: {version}"
         )
-
 
 class Bookkeeper:
     """Class to generate Tasker objects which can be used to run different picca jobs.

@@ -1,0 +1,57 @@
+iron:
+
+  main:
+    QSO_cat_iron_main_dark_healpix_only_qso_targets_v0-bal: /global/cfs/cdirs/desicollab/users/martini/bal-catalogs/iron/QSO_cat_iron_main_dark_healpix_only_qso_targets_v0-altbal.fits
+    QSO_cat_iron_main_dark_healpix_v0-bal:  /global/cfs/cdirs/desi/users/martini/bal-catalogs/iron/QSO_cat_iron_main_dark_healpix_v0-altbal.fits
+    QSO_cat_iron_main_dark_healpix_v0_zwarn_cut-bal: /global/cfs/cdirs/desicollab/science/lya/y1-kp6/iron-tests/catalogs/QSO_cat_iron_main_dark_healpix_v0-altbal_zwarn_cut.fits
+
+fugu:
+
+  all:
+    afterburn_targets_v0.1-bal: /global/cfs/cdirs/desicollab/science/lya/early-3d/catalogs/qso/fugu/all/afterburn_targets_v0.1-bal.fits
+    afterburn_targets_v0.2-bal: /global/cfs/cdirs/desicollab/science/lya/early-3d/catalogs/qso/fugu/all/afterburn_targets_v0.2-bal.fits
+    afterburn_targets_v0-bal: /global/cfs/cdirs/desicollab/science/lya/early-3d/catalogs/qso/fugu/all/afterburn_targets_v0-bal.fits
+    afterburn_v0.1-bal: /global/cfs/cdirs/desicollab/science/lya/early-3d/catalogs/qso/fugu/all/afterburn_v0.1-bal.fits
+    afterburn_v0.2-bal: /global/cfs/cdirs/desicollab/science/lya/early-3d/catalogs/qso/fugu/all/afterburn_v0.2-bal.fits
+    afterburn_v0-bal: /global/cfs/cdirs/desicollab/science/lya/early-3d/catalogs/qso/fugu/all/afterburn_v0-bal.fits
+
+fuji:
+
+  sv1:
+    afterburn_targets_v0.2-bal: /global/cfs/cdirs/desicollab/science/lya/early-3d/catalogs/qso/fuji/sv1/afterburn_targets_v0.2-bal.fits
+    afterburn_targets_v0.2: /global/cfs/cdirs/desicollab/science/lya/early-3d/catalogs/qso/fuji/sv1/afterburn_targets_v0.2.fits
+    afterburn_targets_v0: /global/cfs/cdirs/desicollab/users/edmondc/QSO_catalog/fuji/healpix/QSO_cat_fuji_sv1_dark_healpix_only_qso_targets.fits
+    afterburn_v0.2-bal: /global/cfs/cdirs/desicollab/science/lya/early-3d/catalogs/qso/fuji/sv1/afterburn_v0.2-bal.fits
+    afterburn_v0.2: /global/cfs/cdirs/desicollab/science/lya/early-3d/catalogs/qso/fuji/sv1/afterburn_v0.2.fits
+    afterburn_v0-bal: /global/cfs/cdirs/desicollab/users/martini/bal-catalogs/fuji/QSO_cat_fuji_sv1_dark_healpix-bal.fits
+    afterburn_v0: /global/cfs/cdirs/desicollab/users/edmondc/QSO_catalog/fuji/healpix/QSO_cat_fuji_sv1_dark_healpix.fits
+
+  sv13:
+    afterburn_targets_v0.1-bal: /global/cfs/cdirs/desicollab/science/lya/early-3d/catalogs/qso/fuji/sv13/afterburn_targets_v0.1-bal.fits
+    afterburn_targets_v0.2-bal: /global/cfs/cdirs/desicollab/science/lya/early-3d/catalogs/qso/fuji/sv13/afterburn_targets_v0.2-bal.fits
+    afterburn_v0.1-bal: /global/cfs/cdirs/desicollab/science/lya/early-3d/catalogs/qso/fuji/sv13/afterburn_v0.1-bal.fits
+    afterburn_v0.2-bal: /global/cfs/cdirs/desicollab/science/lya/early-3d/catalogs/qso/fuji/sv13/afterburn_v0.2-bal.fits
+    afterburn_v0-bal: /global/cfs/cdirs/desicollab/science/lya/early-3d/catalogs/qso/fuji/sv13/afterburn_v0-bal.fits
+
+  sv2:
+    afterburn_targets_v0: /global/cfs/cdirs/desicollab/users/edmondc/QSO_catalog/fuji/healpix/QSO_cat_fuji_sv2_dark_healpix_only_qso_targets.fits
+    afterburn_v0: /global/cfs/cdirs/desicollab/users/edmondc/QSO_catalog/fuji/healpix/QSO_cat_fuji_sv2_dark_healpix.fits
+
+  sv3:
+    afterburn_targets_v0.2-bal: /global/cfs/cdirs/desicollab/science/lya/early-3d/catalogs/qso/fuji/sv3/afterburn_targets_v0.2-bal.fits
+    afterburn_targets_v0.2: /global/cfs/cdirs/desicollab/science/lya/early-3d/catalogs/qso/fuji/sv3/afterburn_targets_v0.2.fits
+    afterburn_targets_v0: /global/cfs/cdirs/desicollab/users/edmondc/QSO_catalog/fuji/healpix/QSO_cat_fuji_sv3_dark_healpix_only_qso_targets.fits
+    afterburn_v0.2-bal: /global/cfs/cdirs/desicollab/science/lya/early-3d/catalogs/qso/fuji/sv3/afterburn_v0.2-bal.fits
+    afterburn_v0.2: /global/cfs/cdirs/desicollab/science/lya/early-3d/catalogs/qso/fuji/sv3/afterburn_v0.2.fits
+    afterburn_v0-bal: /global/cfs/cdirs/desicollab/users/martini/bal-catalogs/fuji/QSO_cat_fuji_sv3_dark_healpix-bal.fits
+    afterburn_v0: /global/cfs/cdirs/desicollab/users/edmondc/QSO_catalog/fuji/healpix/QSO_cat_fuji_sv3_dark_healpix.fits
+
+guadalupe:
+
+  main:
+    afterburn_targets_v0.2-bal: /global/cfs/cdirs/desicollab/science/lya/early-3d/catalogs/qso/guadalupe/main/afterburn_targets_v0.2-bal.fits
+    afterburn_targets_v0-bal: /global/cfs/cdirs/desicollab/users/edmondc/QSO_catalog/guadalupe/healpix/QSO_cat_guadalupe_main_dark_healpix_only_qso_targets.fits
+    afterburn_v0.2-bal: /global/cfs/cdirs/desicollab/science/lya/early-3d/catalogs/qso/guadalupe/main/afterburn_v0.2-bal.fits
+    afterburn_v0.2: /global/cfs/cdirs/desicollab/science/lya/early-3d/catalogs/qso/guadalupe/main/afterburn_v0.2.fits
+    afterburn_v0-bal: /global/cfs/cdirs/desicollab/users/martini/bal-catalogs/guadalupe/QSO_cat_guadalupe_main_dark_healpix-bal.fits
+    afterburn_v0: /global/cfs/cdirs/desicollab/users/edmondc/QSO_catalog/guadalupe/healpix/QSO_cat_guadalupe_main_dark_healpix.fits
