@@ -2,10 +2,10 @@ import fitsio
 import matplotlib
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-import picca.wedgize
 import scipy as sp
 from pathlib import Path
 from picca_bookkeeper.bookkeeper import Bookkeeper
+from vega.plots.wedges import Wedge
 from typing import *
 import numpy as np
 
@@ -68,17 +68,12 @@ class CorrelationPlots:
             nb = ffile["COR"]["NB"][:]
 
             cor_header = ffile["COR"].read_header()
-            w = picca.wedgize.wedge(
-                mumin=mumin, 
-                mumax=mumax,
-                rpmax=cor_header["RPMAX"],
-                rpmin=cor_header["RPMIN"],
-                nrp=cor_header["NP"],
-                rtmax=cor_header["RTMAX"],
-                rtmin=cor_header.get("RTMIN", 0),
-                nrt=cor_header["NT"],
+            wedge = Wedge(
+                rp=(cor_header["RPMIN"], cor_header["RPMAX"], cor_header["NP"]),
+                rt=(cor_header.get("RTMIN", 0), cor_header["RTMAX"], cor_header["NT"]),
+                mu=(mumin, mumax),
             )
-        data_wedge = w.wedge(da, co)
+        data_wedge = wedge(da, co)
 
         r_coef = data_wedge[0] ** r_factor
 
@@ -264,7 +259,7 @@ class CorrelationPlots:
         absorber: str = "lya",
         mumin: float = 0,
         mumax: float = 1,
-        correlation_file: Union[Path, str] = None,
+        correlation_file: Union[Path, str] = "",
         ax: matplotlib.axes._axes.Axes = None,
         r_factor: int = 2,
         plot_kwargs: Dict = dict(),
@@ -308,18 +303,13 @@ class CorrelationPlots:
             nb = ffile["COR"]["NB"][:]
 
             cor_header = ffile["COR"].read_header()
-            w = picca.wedgize.wedge(
-                mumin=mumin,
-                mumax=mumax,
-                rpmin=cor_header["RPMAX"],
-                rpmax=cor_header["RPMIN"],
-                nrp=cor_header["NP"],
-                rtmin=cor_header["RTMAX"],
-                rtmax=cor_header.get("RTMIN", 0),
-                nrt=cor_header["NT"],
-                absoluteMu=True,
+            wedge = Wedge(
+                rp=(cor_header["RPMIN"], cor_header["RPMAX"], cor_header["NP"]),
+                rt=(cor_header.get("RTMIN", 0), cor_header["RTMAX"], cor_header["NT"]),
+                mu=(mumin, mumax),
+                abs_mu=True,
             )
-        data_wedge = w.wedge(da, co)
+        data_wedge = wedge(da, co)
 
         r_coef = data_wedge[0] ** r_factor
 
@@ -502,17 +492,12 @@ class CorrelationPlots:
             nb = ffile["COR"]["NB"][:]
 
             cor_header = ffile["COR"].read_header()
-            w = picca.wedgize.wedge(
-                mumin=mumin, 
-                mumax=mumax,
-                rpmax=cor_header["RPMAX"],
-                rpmin=cor_header["RPMIN"],
-                nrp=cor_header["NP"],
-                rtmax=cor_header["RTMAX"],
-                rtmin=cor_header.get("RTMIN", 0),
-                nrt=cor_header["NT"],
-            )
-        data_wedge = w.wedge(da, co)
+            wedge = Wedge(
+                rp=(cor_header["RPMIN"], cor_header["RPMAX"], cor_header["NP"]),
+                rt=(cor_header.get("RTMIN", 0), cor_header["RTMAX"], cor_header["NT"]),
+                mu=(mumin, mumax),
+        )
+        data_wedge = wedge(da, co)
 
         r_coef = data_wedge[0] ** r_factor
 
@@ -606,18 +591,13 @@ class CorrelationPlots:
             nb = ffile["COR"]["NB"][:]
 
             cor_header = ffile["COR"].read_header()
-            w = picca.wedgize.wedge(
-                mumin=mumin,
-                mumax=mumax,
-                rpmin=cor_header["RPMAX"],
-                rpmax=cor_header["RPMIN"],
-                nrp=cor_header["NP"],
-                rtmin=cor_header["RTMAX"],
-                rtmax=cor_header.get("RTMIN", 0),
-                nrt=cor_header["NT"],
-                absoluteMu=True,
+            wedge = Wedge(
+                rp=(cor_header["RPMIN"], cor_header["RPMAX"], cor_header["NP"]),
+                rt=(cor_header.get("RTMIN", 0), cor_header["RTMAX"], cor_header["NT"]),
+                mu=(mumin, mumax),
+                abs_mu=True,
             )
-        data_wedge = w.wedge(da, co)
+        data_wedge = wedge(da, co)
 
         r_coef = data_wedge[0] ** r_factor
 
@@ -799,9 +779,10 @@ class CorrelationPlots:
         nrp, nrt = cor_header['NP'], cor_header['NT']
         r = r.reshape(nrp, nrt)
         mat = da.reshape(nrp, nrt)*r**r_factor
+        errmat = np.sqrt(np.diag(co)).reshape(nrp, nrt)*r**r_factor
 
         if just_return_values:
-            return extent, mat
+            return extent, mat, errmat
         
         if (save_data or save_plot) and output_prefix is None:
             raise ValueError("Set output_prefix in order to save data.")
@@ -846,6 +827,8 @@ class CorrelationPlots:
                 str(output_prefix) + ".npz",
                 **{**save_dict, **data_dict},
             )
+
+        return extent, mat, errmat
         
     @staticmethod
     def xcf_map(
@@ -855,8 +838,8 @@ class CorrelationPlots:
         absorber2: str = None,
         correlation_file: Union[Path, str] = None,
         r_factor: int = 2,
-        vmin=-0.04,
-        vmax=0.04,
+        vmin=-0.4,
+        vmax=0.4,
         fig=None,
         ax: matplotlib.axes.Axes = None,
         plot_kwargs: Dict = dict(),
@@ -900,9 +883,10 @@ class CorrelationPlots:
         nrp, nrt = cor_header['NP'], cor_header['NT']
         r = r.reshape(nrp, nrt)
         mat = da.reshape(nrp, nrt)*r**r_factor
+        errmat = np.sqrt(np.diag(co)).reshape(nrp, nrt)*r**r_factor
 
         if just_return_values:
-            return extent, mat
+            return extent, mat, errmat
         
         if (save_data or save_plot) and output_prefix is None:
             raise ValueError("Set output_prefix in order to save data.")
@@ -947,4 +931,5 @@ class CorrelationPlots:
                 str(output_prefix) + ".npz",
                 **{**save_dict, **data_dict},
             )
-        
+            
+        return extent, mat, errmat
