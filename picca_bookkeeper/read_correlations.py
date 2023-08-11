@@ -787,7 +787,7 @@ class CorrelationPlots:
         if (save_data or save_plot) and output_prefix is None:
             raise ValueError("Set output_prefix in order to save data.")
         if save_data:
-            data_dict = dict(extent=extent, mat=mat)
+            data_dict = dict(extent=extent, mat=mat, errmat=errmat)
         if ax is None:
             fig, ax = plt.subplots()
         elif fig is None:
@@ -803,8 +803,8 @@ class CorrelationPlots:
             interpolation="nearest",
             cmap="seismic",
             **{
+                **dict(vmin=vmin, vmax=vmax),
                 **plot_kwargs,
-                **dict(vmin=-0.04, vmax=0.04),
             },
         )
 
@@ -891,7 +891,7 @@ class CorrelationPlots:
         if (save_data or save_plot) and output_prefix is None:
             raise ValueError("Set output_prefix in order to save data.")
         if save_data:
-            data_dict = dict(extent=extent, mat=mat)
+            data_dict = dict(extent=extent, mat=mat, errmat=errmat)
         if ax is None:
             fig, ax = plt.subplots()
         elif fig is None:
@@ -907,8 +907,8 @@ class CorrelationPlots:
             interpolation="nearest",
             cmap="seismic",
             **{
+                **dict(vmin=vmin, vmax=vmax),
                 **plot_kwargs,
-                **dict(vmin=-0.4, vmax=0.4),
             },
         )
 
