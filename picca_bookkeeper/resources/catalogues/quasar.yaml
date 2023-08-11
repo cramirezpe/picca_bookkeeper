@@ -4,6 +4,8 @@ iron:
     QSO_cat_iron_main_dark_healpix_only_qso_targets_v0-bal: /global/cfs/cdirs/desicollab/users/martini/bal-catalogs/iron/QSO_cat_iron_main_dark_healpix_only_qso_targets_v0-altbal.fits
     QSO_cat_iron_main_dark_healpix_v0-bal:  /global/cfs/cdirs/desi/users/martini/bal-catalogs/iron/QSO_cat_iron_main_dark_healpix_v0-altbal.fits
     QSO_cat_iron_main_dark_healpix_v0_zwarn_cut-bal: /global/cfs/cdirs/desicollab/science/lya/y1-kp6/iron-tests/catalogs/QSO_cat_iron_main_dark_healpix_v0-altbal_zwarn_cut.fits
+    QSO_cat_iron_main_dark_healpix_v0_zwarn_cut_north-bal: /global/cfs/cdirs/desicollab/science/lya/y1-kp6/iron-tests/catalogs/QSO_cat_iron_main_dark_healpix_v0-altbal_zwarn_cut_north.fits
+    QSO_cat_iron_main_dark_healpix_v0_zwarn_cut_south-bal: /global/cfs/cdirs/desicollab/science/lya/y1-kp6/iron-tests/catalogs/QSO_cat_iron_main_dark_healpix_v0-altbal_zwarn_cut_south.fits
 
 fugu:
 

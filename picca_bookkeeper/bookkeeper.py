@@ -83,12 +83,12 @@ def get_quasar_catalog(release, survey, catalog, bal=False) -> Path:  # pragma: 
     if bal:
         catalog += "-bal"
 
-    for suffix in (".fits", ".fits.gz", "-bal.fits", "-bal.fits.gz"):
-        if catalogues[release][survey].get(
-            catalog + suffix,
-            None
-        ) is not None:
-            return Path(catalogues[release][survey][catalog + suffix])
+
+    if catalogues[release][survey].get(
+        catalog,
+        None
+    ) is not None:
+        return Path(catalogues[release][survey][catalog])
     else:
         raise FileNotFoundError(
             "Could not find a compatible quasar catalogue inside the bookkeeper."
