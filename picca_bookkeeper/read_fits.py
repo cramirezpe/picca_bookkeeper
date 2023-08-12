@@ -6,6 +6,7 @@ import fitsio
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import scipy as sp
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from vega.plots.wedges import Wedge
@@ -14,6 +15,129 @@ from picca_bookkeeper.bookkeeper import Bookkeeper
 
 logger = logging.getLogger(__name__)
 
+class ReadFits:
+    def __init__(
+        self,
+        bookkeeper: Union[Bookkeeper, Path, str] = None,
+        fit_file: Union[Path, str] = None,
+        label: str = None,
+    ):
+        """
+        Args:
+            bookkeeper: Bookkeeper object to read fit information from. Could also
+                be the path to a bookkeeper configuration file.
+            fit_file: Vega output file (if no bookkeeper provided).
+            label: Label to identify the fit run.
+        """
+        if bookkeeper is None:
+            if fit_file is None:
+                raise ValueError("Either bookkeeper or fit_file should be provided")    
+        elif isinstance(bookkeeper, Bookkeeper):
+            self.bookkeeper = bookkeeper
+        else:
+            self.bookkeeper = Bookkeeper(bookkeeper)
+
+        if fit_file is not None:
+            if Path(fit_file).is_file():
+                self.fit_file = Path(fit_file)
+            else:
+                raise FileNotFoundError(
+                    f"File does not exist, {str(fit_file)}"
+                )
+        else:
+            self.fit_file = self.bookkeeper.paths.fit_out_fname()
+
+        self.label = label
+
+        self.read_fit()
+
+    def __str__(self):
+        if self.label is None:
+            return self.fit_file.parents[1].name    
+        else:
+            return self.label
+
+    def read_fit(self) -> None:
+        """
+        Read relevant information from output and store it in variables.
+        """
+        with fitsio.FITS(self.fit_file) as hdul:
+            self.names = hdul["BESTFIT"]["names"].read()
+            self.values = hdul["BESTFIT"]["values"].read()
+            self.errors = hdul["BESTFIT"]["errors"].read()
+
+            self.chi2 = hdul["BESTFIT"].read_header()["FVAL"]
+            self.nparams = hdul["BESTFIT"].read_header()["NAXIS2"]
+            
+            self.ndata = 0
+            for x in "lyaxlya", "lyaxlyb", "qsoxlya", "qsoxlyb":
+                label = f"{x}_MASK"
+                if label in hdul["MODEL"].get_colnames():
+                    self.ndata += hdul["MODEL"][f"{x}_MASK"].read().sum()
+            
+            self.pvalue = 1 - sp.stats.chi2.cdf(self.chi2, self.ndata - self.nparams)
+
+    @staticmethod
+    def table_from_fit_data(
+        fits: List[Self],
+        params: List[str] = ["ap", "at", "bias_LYA", "beta_LYA"],
+        params_names: List[str] = None,
+        ap_baseline: float = 0.985,
+        at_baseline: float = 0.918,
+        precision: int = 3,
+    ) -> pd.DataFrame:
+        if params_names is None:
+            params_names = params
+        else:
+            params_names = params_names
+
+        header = ["name"]
+        header += params_names
+        header += ["fit", "pvalue"]
+
+        rows = []
+
+        for fit in fits:
+            row = []
+            row.append(fit.label)
+
+            for param in params:
+                if param in fit.names:
+                    idx = np.argmax(fit.names == param)
+                    if param == "ap":
+                        row.append(
+                            rf"{fit.values[idx]-ap_baseline:+.{precision}f} "
+                            rf"± {fit.errors[idx]:.{precision}f}"
+                        )
+                    elif param == "at":
+                        row.append(
+                            rf"{fit.values[idx]-at_baseline:+.{precision}f} "
+                            rf"± {fit.errors[idx]:.{precision}f}"
+                        )
+                    else:
+                        row.append(
+                            rf"{fit.values[idx]:.{precision}f} "
+                            rf"± {fit.errors[idx]:.{precision}f}"
+                        )
+                else:
+                    row.append("")
+            
+            row.append(
+                f"{fit.chi2:.{precision}f}/({fit.ndata}-{fit.nparams})"
+            )
+            row.append(
+                f"{fit.pvalue:.{precision}f}"
+            )
+
+            rows.append(row)
+
+        df = pd.DataFrame(data=rows)
+        df.columns = header
+        df = df.sort_values("pvalue")
+
+        return df
+
+        
 
 class FitPlots:
     @staticmethod
@@ -34,7 +158,7 @@ class FitPlots:
         output_prefix: Union[Path, str] = None,
         save_data: bool = False,
         save_dict: Dict = dict(),
-    ):
+    ) -> Tuple[np.ndarray, np.ndarray]:
         """
         Plot fit correlation function model.
 
@@ -174,7 +298,7 @@ class FitPlots:
         output_prefix: Union[Path, str] = None,
         save_data: bool = False,
         save_dict: Dict = dict(),
-    ):
+    ) -> Tuple[np.ndarray, np.ndarray]:
         """
         Plot fit correlation function model.
 
@@ -318,7 +442,7 @@ class FitPlots:
         save_data: bool = False,
         save_plot: bool = False,
         save_dict: Dict = dict(),
-    ):
+    ) -> Tuple[np.ndarray, np.ndarray]:
         """
         Plot fit correlation function model.
 
@@ -473,7 +597,7 @@ class FitPlots:
         save_data: bool = False,
         save_plot: bool = False,
         save_dict: Dict = dict(),
-    ):
+    ) -> Tuple[np.ndarray, np.ndarray]:
         """
         Plot fit correlation function model.
 
@@ -609,3 +733,79 @@ class FitPlots:
             )
 
         return extent, mat
+
+    @staticmethod
+    def plot_errorbars_from_fit(
+        readfits: List[ReadFits],
+        param: str,
+        param_name: str = None,
+        ax: matplotlib.axes._axes.Axes = None,
+    ) -> List[matplotlib.container.Container]:
+        """
+        Args:
+            readfits: List of readfits objects to show in the plot.
+            param: Param to plot.
+            param_name: Name of the param to show.
+            ax: Axis where to plot. If not provided, it will be created.
+
+        Returns: 
+            List of plot handles to make legend from it.
+        """
+        if param_name is None:
+            param_name = param
+
+        if ax is None:
+            fig, ax = plt.subplots()
+
+        handles = []
+
+        for i, fit in enumerate(readfits):
+            idx = np.argmax(fit.names == param)
+            value = fit.values[idx]
+            error = fit.errors[idx]
+
+            handles.append(
+                ax.errorbar(
+                    value, i, xerr=error, yerr=0, label=fit.label, marker="o"
+                )
+            )
+
+        ax.set_xlabel(param_name)
+        ax.set_yticks([])
+        ax.grid()
+
+        return handles
+
+    @staticmethod
+    def plot_p_value_from_fit(
+        readfits: List[ReadFits],
+        ax: matplotlib.axes._axes.Axes = None,
+    ) -> List[matplotlib.container.Container]:
+        """
+        Args:
+            readfits: List of readfits objects to show in the plot.
+            ax: Axis where to plot. If not provided, it will be created.
+
+        Returns: 
+            List of plot handles to make legend from it.
+        """
+        if ax is None:
+            fig, ax = plt.subplots()
+
+        handles = []
+        for i, fit in enumerate(readfits):
+            handles.append(
+                ax.errorbar(
+                    fit.pvalue / 2,
+                    i,
+                    xerr=fit.pvalue / 2,
+                    yerr=0,
+                    label=fit.label,
+                )
+            )
+    
+        ax.set_xlabel("p-value")
+        ax.set_yticks([])
+        ax.grid()
+
+        return handles
