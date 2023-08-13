@@ -57,7 +57,7 @@ class CorrelationPlots:
         if not Path(correlation_file).is_file():
             correlation_file = bookkeeper.paths.exp_cf_fname(
                 absorber, region, absorber2, region2
-            )        
+            )
 
         with fitsio.FITS(correlation_file) as ffile:
             try:
@@ -75,6 +75,13 @@ class CorrelationPlots:
             )
         data_wedge = wedge(da, co)
 
+        # Computing nb wedge manually
+        axis_sum = wedge.weights.sum(axis=0)
+        w = axis_sum > 0
+        nb_weights = np.copy(wedge.weights)
+        nb_weights[:, w] /= wedge.weights.sum(axis=0)[w]
+        nb_wedge = data_wedge[0], nb_weights.dot(nb)
+
         r_coef = data_wedge[0] ** r_factor
 
         if just_return_values:
@@ -82,6 +89,7 @@ class CorrelationPlots:
                 data_wedge[0],
                 r_coef * data_wedge[1],
                 r_coef * sp.sqrt(sp.diag(data_wedge[2])),
+                nb_wedge[1],
             )
 
         if (save_data or save_plot) and output_prefix is None:
@@ -109,7 +117,7 @@ class CorrelationPlots:
             data_dict["values"] = r_coef * data_wedge[1]
             data_dict["errors"] = r_coef * sp.sqrt(sp.diag(data_wedge[2]))
             data_dict["r_factor"] = r_factor
-            data_dict["nb"] = w.W.dot(nb)
+            data_dict["nb"] = nb_wedge[1]
             # data_dict['wedge_data'] = data_wedge
 
         plt.tight_layout()
@@ -127,22 +135,25 @@ class CorrelationPlots:
             data_wedge[0],
             r_coef * data_wedge[1],
             r_coef * sp.sqrt(sp.diag(data_wedge[2])),
+            nb_wedge[1],
         )
 
     @staticmethod
     def compare_cfs(
         bkp1: Bookkeeper,
-        bkp2: Bookkeeper=None,
-        mumin: float=0,
-        mumax: float=1,
-        region: str="lya",
-        region2: str=None,
-        correlation_file: Union[Path, str]="",
-        correlation_file2: Union[Path, str]="",
-        label: str=None,
-        label2: str=None,
+        bkp2: Bookkeeper = None,
+        mumin: float = 0,
+        mumax: float = 1,
+        region: str = "lya",
+        region2: str = None,
+        correlation_file: Union[Path, str] = "",
+        correlation_file2: Union[Path, str] = "",
+        label: str = None,
+        label2: str = None,
     ):
-        fig, axs = plt.subplots(3, 1, sharex=True, gridspec_kw={"height_ratios": [3, 2, 2]})
+        fig, axs = plt.subplots(
+            3, 1, sharex=True, gridspec_kw={"height_ratios": [3, 2, 2]}
+        )
 
         if label is None and isinstance(bkp1, Bookkeeper):
             label = bkp1.label
@@ -195,16 +206,18 @@ class CorrelationPlots:
     @staticmethod
     def compare_xcfs(
         bkp1: Bookkeeper,
-        bkp2: Bookkeeper=None,
-        mumin: float=0,
-        mumax: float=1,
-        region: str="lya",
-        correlation_file: str="",
-        correlation_file2: str="",
-        label:str=None,
-        label2: str= None,
+        bkp2: Bookkeeper = None,
+        mumin: float = 0,
+        mumax: float = 1,
+        region: str = "lya",
+        correlation_file: str = "",
+        correlation_file2: str = "",
+        label: str = None,
+        label2: str = None,
     ):
-        fig, axs = plt.subplots(3, 1, sharex=True, gridspec_kw={"height_ratios": [3, 2, 2]})
+        fig, axs = plt.subplots(
+            3, 1, sharex=True, gridspec_kw={"height_ratios": [3, 2, 2]}
+        )
 
         if label is None and isinstance(bkp1, Bookkeeper):
             label = bkp1.label
@@ -255,7 +268,7 @@ class CorrelationPlots:
     @staticmethod
     def xcf(
         bookkeeper: Bookkeeper,
-        region: str= "lya",
+        region: str = "lya",
         absorber: str = "lya",
         mumin: float = 0,
         mumax: float = 1,
@@ -311,6 +324,13 @@ class CorrelationPlots:
             )
         data_wedge = wedge(da, co)
 
+        # Computing nb wedge manually
+        axis_sum = wedge.weights.sum(axis=0)
+        w = axis_sum > 0
+        nb_weights = np.copy(wedge.weights)
+        nb_weights[:, w] /= wedge.weights.sum(axis=0)[w]
+        nb_wedge = data_wedge[0], nb_weights.dot(nb)
+
         r_coef = data_wedge[0] ** r_factor
 
         if just_return_values:
@@ -318,6 +338,7 @@ class CorrelationPlots:
                 data_wedge[0],
                 r_coef * data_wedge[1],
                 r_coef * sp.sqrt(sp.diag(data_wedge[2])),
+                nb_wedge[1],
             )
 
         if (save_data or save_plot) and output_prefix is None:
@@ -345,7 +366,7 @@ class CorrelationPlots:
             data_dict["values"] = r_coef * data_wedge[1]
             data_dict["errors"] = r_coef * sp.sqrt(sp.diag(data_wedge[2]))
             data_dict["r_factor"] = r_factor
-            data_dict["nb"] = w.W.dot(nb)
+            data_dict["nb"] = nb_wedge[1]
             # data_dict['wedge_data'] = data_wedge
 
         plt.tight_layout()
@@ -363,6 +384,7 @@ class CorrelationPlots:
             data_wedge[0],
             r_coef * data_wedge[1],
             r_coef * sp.sqrt(sp.diag(data_wedge[2])),
+            nb_wedge[1],
         )
 
     # @staticmethod
@@ -483,7 +505,9 @@ class CorrelationPlots:
         if output_prefix is not None:
             output_prefix = Path(output_prefix)
 
-        with fitsio.FITS(bookkeeper.paths.exp_cf_fname(absorber, region, absorber2, region2)) as ffile:
+        with fitsio.FITS(
+            bookkeeper.paths.exp_cf_fname(absorber, region, absorber2, region2)
+        ) as ffile:
             try:
                 da = ffile["COR"]["DA"][:]
             except ValueError:
@@ -496,13 +520,20 @@ class CorrelationPlots:
                 rp=(cor_header["RPMIN"], cor_header["RPMAX"], cor_header["NP"]),
                 rt=(cor_header.get("RTMIN", 0), cor_header["RTMAX"], cor_header["NT"]),
                 mu=(mumin, mumax),
-        )
+            )
         data_wedge = wedge(da, co)
+
+        # Computing nb wedge manually
+        axis_sum = wedge.weights.sum(axis=0)
+        w = axis_sum > 0
+        nb_weights = np.copy(wedge.weights)
+        nb_weights[:, w] /= wedge.weights.sum(axis=0)[w]
+        nb_wedge = data_wedge[0], nb_weights.dot(nb)
 
         r_coef = data_wedge[0] ** r_factor
 
         if just_return_values:
-            return data_wedge[0], r_coef * sp.sqrt(sp.diag(data_wedge[2]))
+            return data_wedge[0], r_coef * sp.sqrt(sp.diag(data_wedge[2])), nb_wedge[1]
 
         if (save_data or save_plot) and output_prefix is None:
             raise ValueError("Set output_prefix in order to save data.")
@@ -528,7 +559,7 @@ class CorrelationPlots:
             data_dict["r"] = data_wedge[0]
             data_dict["values"] = r_coef * sp.sqrt(sp.diag(data_wedge[2]))
             data_dict["r_factor"] = r_factor
-            data_dict["nb"] = w.W.dot(nb)
+            data_dict["nb"] = nb_wedge[1]
             # data_dict['wedge_data'] = data_wedge
 
         if save_plot:
@@ -541,7 +572,7 @@ class CorrelationPlots:
                 **{**save_dict, **data_dict},
             )
 
-        return data_wedge[0], r_coef * sp.sqrt(sp.diag(data_wedge[2]))
+        return data_wedge[0], r_coef * sp.sqrt(sp.diag(data_wedge[2])), nb_wedge[1]
 
     @staticmethod
     def xcf_errorbarsize(
@@ -599,10 +630,17 @@ class CorrelationPlots:
             )
         data_wedge = wedge(da, co)
 
+        # Computing nb wedge manually
+        axis_sum = wedge.weights.sum(axis=0)
+        w = axis_sum > 0
+        nb_weights = np.copy(wedge.weights)
+        nb_weights[:, w] /= wedge.weights.sum(axis=0)[w]
+        nb_wedge = data_wedge[0], nb_weights.dot(nb)
+
         r_coef = data_wedge[0] ** r_factor
 
         if just_return_values:
-            return data_wedge[0], r_coef * sp.sqrt(sp.diag(data_wedge[2]))
+            return data_wedge[0], r_coef * sp.sqrt(sp.diag(data_wedge[2])), nb_wedge[1]
 
         if (save_data or save_plot) and output_prefix is None:
             raise ValueError("Set output_prefix in order to save data.")
@@ -628,7 +666,7 @@ class CorrelationPlots:
             data_dict["r"] = data_wedge[0]
             data_dict["values"] = r_coef * sp.sqrt(sp.diag(data_wedge[2]))
             data_dict["r_factor"] = r_factor
-            data_dict["nb"] = w.W.dot(nb)
+            data_dict["nb"] = nb_wedge[1]
             # data_dict['wedge_data'] = data_wedge
 
         if save_plot:
@@ -641,7 +679,7 @@ class CorrelationPlots:
                 **{**save_dict, **data_dict},
             )
 
-        return data_wedge[0], r_coef * sp.sqrt(sp.diag(data_wedge[2]))
+        return data_wedge[0], r_coef * sp.sqrt(sp.diag(data_wedge[2])), nb_wedge[1]
 
     # @staticmethod
     # def multiple_cf_errorbarsize(
@@ -720,8 +758,8 @@ class CorrelationPlots:
     @staticmethod
     def cf_map(
         bookkeeper: Bookkeeper,
-        region: str='lya',
-        region2: str=None,
+        region: str = "lya",
+        region2: str = None,
         absorber: str = "lya",
         absorber2: str = None,
         correlation_file: Union[Path, str] = None,
@@ -762,7 +800,9 @@ class CorrelationPlots:
         if output_prefix is not None:
             output_prefix = Path(output_prefix)
 
-        with fitsio.FITS(bookkeeper.paths.exp_cf_fname(absorber, region, absorber2, region2)) as ffile:
+        with fitsio.FITS(
+            bookkeeper.paths.exp_cf_fname(absorber, region, absorber2, region2)
+        ) as ffile:
             try:
                 da = ffile["COR"]["DA"][:]
             except ValueError:
@@ -773,21 +813,27 @@ class CorrelationPlots:
             rt = ffile["COR"]["RT"][:]
 
             cor_header = ffile["COR"].read_header()
-        
-        extent = [cor_header.get('RTMIN', 0),cor_header['RTMAX'],cor_header['RPMIN'],cor_header['RPMAX']]
+
+        extent = [
+            cor_header.get("RTMIN", 0),
+            cor_header["RTMAX"],
+            cor_header["RPMIN"],
+            cor_header["RPMAX"],
+        ]
         r = np.sqrt(rp**2 + rt**2)
-        nrp, nrt = cor_header['NP'], cor_header['NT']
+        nrp, nrt = cor_header["NP"], cor_header["NT"]
         r = r.reshape(nrp, nrt)
-        mat = da.reshape(nrp, nrt)*r**r_factor
-        errmat = np.sqrt(np.diag(co)).reshape(nrp, nrt)*r**r_factor
+        mat = da.reshape(nrp, nrt) * r**r_factor
+        errmat = np.sqrt(np.diag(co)).reshape(nrp, nrt) * r**r_factor
+        nmat = nb.reshape(nrp, nrt)
 
         if just_return_values:
-            return extent, mat, errmat
-        
+            return extent, mat, errmat, nmat
+
         if (save_data or save_plot) and output_prefix is None:
             raise ValueError("Set output_prefix in order to save data.")
         if save_data:
-            data_dict = dict(extent=extent, mat=mat, errmat=errmat)
+            data_dict = dict(extent=extent, mat=mat, errmat=errmat, nmat=nmat)
         if ax is None:
             fig, ax = plt.subplots()
         elif fig is None:
@@ -797,8 +843,8 @@ class CorrelationPlots:
         cax = divider.append_axes("right", size="5%", pad=0.05)
 
         im = ax.imshow(
-            mat, 
-            origin="lower", 
+            mat,
+            origin="lower",
             extent=extent,
             interpolation="nearest",
             cmap="seismic",
@@ -809,11 +855,11 @@ class CorrelationPlots:
         )
 
         fig.colorbar(im, cax=cax, orientation="vertical")
-        ax.set_xlabel(r'$r_{\perp} \, [h^{-1} \, \rm{Mpc}]$')
-        ax.set_ylabel(r'$r_{\parallel} \, [h^{-1} \, \rm{Mpc}]$')
+        ax.set_xlabel(r"$r_{\perp} \, [h^{-1} \, \rm{Mpc}]$")
+        ax.set_ylabel(r"$r_{\parallel} \, [h^{-1} \, \rm{Mpc}]$")
         cax.yaxis.set_label_position("right")
-        cax.set_ylabel(r'$r\xi(r_{\parallel,r_{\perp}})$')
-        
+        cax.set_ylabel(r"$r\xi(r_{\parallel,r_{\perp}})$")
+
         if save_plot:
             output_prefix = Path(output_prefix)
             plt.tight_layout()
@@ -821,19 +867,19 @@ class CorrelationPlots:
                 str(output_prefix) + ".png",
                 dpi=300,
             )
-        
+
         if save_data:
             np.savez(
                 str(output_prefix) + ".npz",
                 **{**save_dict, **data_dict},
             )
 
-        return extent, mat, errmat
-        
+        return extent, mat, errmat, nmat
+
     @staticmethod
     def xcf_map(
         bookkeeper: Bookkeeper,
-        region: str='lya',
+        region: str = "lya",
         absorber: str = "lya",
         absorber2: str = None,
         correlation_file: Union[Path, str] = None,
@@ -877,21 +923,27 @@ class CorrelationPlots:
             rt = ffile["COR"]["RT"][:]
 
             cor_header = ffile["COR"].read_header()
-        
-        extent = [cor_header.get('RTMIN', 0),cor_header['RTMAX'],cor_header['RPMIN'],cor_header['RPMAX']]
+
+        extent = [
+            cor_header.get("RTMIN", 0),
+            cor_header["RTMAX"],
+            cor_header["RPMIN"],
+            cor_header["RPMAX"],
+        ]
         r = np.sqrt(rp**2 + rt**2)
-        nrp, nrt = cor_header['NP'], cor_header['NT']
+        nrp, nrt = cor_header["NP"], cor_header["NT"]
         r = r.reshape(nrp, nrt)
-        mat = da.reshape(nrp, nrt)*r**r_factor
-        errmat = np.sqrt(np.diag(co)).reshape(nrp, nrt)*r**r_factor
+        mat = da.reshape(nrp, nrt) * r**r_factor
+        errmat = np.sqrt(np.diag(co)).reshape(nrp, nrt) * r**r_factor
+        nmat = nb.reshape(nrp, nrt)
 
         if just_return_values:
-            return extent, mat, errmat
-        
+            return extent, mat, errmat, nmat
+
         if (save_data or save_plot) and output_prefix is None:
             raise ValueError("Set output_prefix in order to save data.")
         if save_data:
-            data_dict = dict(extent=extent, mat=mat, errmat=errmat)
+            data_dict = dict(extent=extent, mat=mat, errmat=errmat, nmat=nmat)
         if ax is None:
             fig, ax = plt.subplots()
         elif fig is None:
@@ -901,8 +953,8 @@ class CorrelationPlots:
         cax = divider.append_axes("right", size="5%", pad=0.05)
 
         im = ax.imshow(
-            mat, 
-            origin="lower", 
+            mat,
+            origin="lower",
             extent=extent,
             interpolation="nearest",
             cmap="seismic",
@@ -913,11 +965,11 @@ class CorrelationPlots:
         )
 
         fig.colorbar(im, cax=cax, orientation="vertical")
-        ax.set_xlabel(r'$r_{\perp} \, [h^{-1} \, \rm{Mpc}]$')
-        ax.set_ylabel(r'$r_{\parallel} \, [h^{-1} \, \rm{Mpc}]$')
+        ax.set_xlabel(r"$r_{\perp} \, [h^{-1} \, \rm{Mpc}]$")
+        ax.set_ylabel(r"$r_{\parallel} \, [h^{-1} \, \rm{Mpc}]$")
         cax.yaxis.set_label_position("right")
-        cax.set_ylabel(r'$r\xi(r_{\parallel,r_{\perp}})$')
-        
+        cax.set_ylabel(r"$r\xi(r_{\parallel,r_{\perp}})$")
+
         if save_plot:
             output_prefix = Path(output_prefix)
             plt.tight_layout()
@@ -925,11 +977,11 @@ class CorrelationPlots:
                 str(output_prefix) + ".png",
                 dpi=300,
             )
-        
+
         if save_data:
             np.savez(
                 str(output_prefix) + ".npz",
                 **{**save_dict, **data_dict},
             )
-            
-        return extent, mat, errmat
+
+        return extent, mat, errmat, nmat
