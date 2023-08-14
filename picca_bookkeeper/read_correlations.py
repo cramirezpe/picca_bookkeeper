@@ -105,7 +105,7 @@ class CorrelationPlots:
             yerr=r_coef * sp.sqrt(sp.diag(data_wedge[2])),
             **plot_kwargs,
         )
-        ax.grid()
+        ax.grid(visible=True)
         ax.set_xlabel(r"$r \, [\mathrm{Mpc \, h^{-1}}]$")
         ax.set_ylabel(
             r"$r^{0} \xi(r) \, [\mathrm{{Mpc \, h^{{-1}}  }}]$".format(r_factor)
@@ -183,7 +183,7 @@ class CorrelationPlots:
             mumax=mumax,
             plot_kwargs=dict(label=label2),
         )
-        ax.grid()
+        ax.grid(visible=True)
         #    ax.set_ylim(-1, 1)
         ax.legend()
 
@@ -191,14 +191,14 @@ class CorrelationPlots:
         ax.plot(a[0], b[1] - a[1], c="k")
         ax.set_xlabel(axs[0].get_xlabel())
         ax.set_ylabel(f"{label2}-{label}")
-        ax.grid()
+        ax.grid(visible=True)
         ax.set_xlabel(None)
 
         ax = axs[2]
         ax.plot(a[0], b[2] / a[2], c="k")
         ax.set_xlabel(axs[0].get_xlabel())
         ax.set_ylabel(f"errors{label2}/{label}")
-        ax.grid()
+        ax.grid(visible=True)
 
         # axs[1].set_ylim(0.85, 1.15)
         axs[0].set_xlabel(None)
@@ -245,7 +245,7 @@ class CorrelationPlots:
             mumax=mumax,
             plot_kwargs=dict(label=label2),
         )
-        ax.grid()
+        ax.grid(visible=True)
         ax.set_ylim(-1, 1)
         ax.legend()
 
@@ -253,14 +253,14 @@ class CorrelationPlots:
         ax.plot(a[0], b[1] - a[1], c="k")
         ax.set_xlabel(axs[0].get_xlabel())
         ax.set_ylabel(f"{label2}-{label}")
-        ax.grid()
+        ax.grid(visible=True)
         ax.set_xlabel(None)
 
         ax = axs[2]
         ax.plot(a[0], b[2] / a[2], c="k")
         ax.set_xlabel(axs[0].get_xlabel())
         ax.set_ylabel(f"errors{label2}/{label}")
-        ax.grid()
+        ax.grid(visible=True)
 
         # axs[1].set_ylim(0.85, 1.15)
         axs[0].set_xlabel(None)
@@ -354,7 +354,7 @@ class CorrelationPlots:
             yerr=r_coef * sp.sqrt(sp.diag(data_wedge[2])),
             **plot_kwargs,
         )
-        ax.grid()
+        ax.grid(visible=True)
         ax.set_xlabel(r"$r \, [\mathrm{Mpc \, h^{-1}}]$")
         ax.set_ylabel(
             r"$r^{0} \xi(r) \, [\mathrm{{Mpc \, h^{{-1}}  }}]$".format(r_factor)
@@ -547,7 +547,7 @@ class CorrelationPlots:
             r_coef * sp.sqrt(sp.diag(data_wedge[2])),
             **plot_kwargs,
         )
-        ax.grid()
+        ax.grid(visible=True)
         ax.set_xlabel(r"$r \, [\mathrm{Mpc \, h^{-1}}]$")
         ax.set_ylabel(
             r"$r^{0} \sigma_\xi(r) \, [\mathrm{{Mpc \, h^{{-1}}  }}]$".format(r_factor)
@@ -654,7 +654,7 @@ class CorrelationPlots:
             r_coef * sp.sqrt(sp.diag(data_wedge[2])),
             **plot_kwargs,
         )
-        ax.grid()
+        ax.grid(visible=True)
         ax.set_xlabel(r"$r \, [\mathrm{Mpc \, h^{-1}}]$")
         ax.set_ylabel(
             r"$r^{0} \sigma_\xi(r) \, [\mathrm{{Mpc \, h^{{-1}}  }}]$".format(r_factor)

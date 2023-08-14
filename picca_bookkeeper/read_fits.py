@@ -21,6 +21,7 @@ class ReadFits:
         bookkeeper: Union[Bookkeeper, Path, str] = None,
         fit_file: Union[Path, str] = None,
         label: str = None,
+        colour: str = None,
     ):
         """
         Args:
@@ -48,6 +49,7 @@ class ReadFits:
             self.fit_file = self.bookkeeper.paths.fit_out_fname()
 
         self.label = label
+        self.colour = colour
 
         self.read_fit()
 
@@ -260,7 +262,7 @@ class FitPlots:
             r_coef * model_wedge[1],
             **plot_kwargs,
         )
-        ax.grid()
+        ax.grid(visible=True)
         ax.set_xlabel(r"$r \, [\mathrm{Mpc \, h^{-1}}]$")
         ax.set_ylabel(
             r"$r^{0} \xi(r) \, [\mathrm{{Mpc \, h^{{-1}}  }}]$".format(r_factor)
@@ -400,7 +402,7 @@ class FitPlots:
             r_coef * model_wedge[1],
             **plot_kwargs,
         )
-        ax.grid()
+        ax.grid(visible=True)
         ax.set_xlabel(r"$r \, [\mathrm{Mpc \, h^{-1}}]$")
         ax.set_ylabel(
             r"$r^{0} \xi(r) \, [\mathrm{{Mpc \, h^{{-1}}  }}]$".format(r_factor)
@@ -740,6 +742,7 @@ class FitPlots:
         param: str,
         param_name: str = None,
         ax: matplotlib.axes._axes.Axes = None,
+        plot_kwargs: Dict = dict(),
     ) -> List[matplotlib.container.Container]:
         """
         Args:
@@ -764,15 +767,21 @@ class FitPlots:
             value = fit.values[idx]
             error = fit.errors[idx]
 
+            if fit.colour is not None:
+                plot_kwargs = {
+                    **plot_kwargs,
+                    **dict(color=fit.colour)
+                }
+
             handles.append(
                 ax.errorbar(
-                    value, i, xerr=error, yerr=0, label=fit.label, marker="o"
+                    value, i, xerr=error, yerr=0, label=fit.label, marker="o", **plot_kwargs,
                 )
             )
 
         ax.set_xlabel(param_name)
         ax.set_yticks([])
-        ax.grid()
+        ax.grid(visible=True)
 
         return handles
 
@@ -780,6 +789,7 @@ class FitPlots:
     def plot_p_value_from_fit(
         readfits: List[ReadFits],
         ax: matplotlib.axes._axes.Axes = None,
+        plot_kwargs: Dict = dict()
     ) -> List[matplotlib.container.Container]:
         """
         Args:
@@ -794,6 +804,12 @@ class FitPlots:
 
         handles = []
         for i, fit in enumerate(readfits):
+            if fit.colour is not None:
+                plot_kwargs = {
+                    **plot_kwargs,
+                    **dict(color=fit.colour)
+                }
+                
             handles.append(
                 ax.errorbar(
                     fit.pvalue / 2,
@@ -801,11 +817,12 @@ class FitPlots:
                     xerr=fit.pvalue / 2,
                     yerr=0,
                     label=fit.label,
+                    **plot_kwargs,
                 )
             )
     
         ax.set_xlabel("p-value")
         ax.set_yticks([])
-        ax.grid()
+        ax.grid(visible=True)
 
         return handles
