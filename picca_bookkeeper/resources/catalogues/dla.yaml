@@ -4,6 +4,7 @@ iron:
     v1: /global/cfs/cdirs/desicollab/science/lya/y1-kp6/iron-tests/catalogs/DLA_cnn_iron_main_dark_healpix_v0_conf05_nhi203.fits
     v2: /global/cfs/cdirs/desi/users/jqzou/iron/dlacat/main-dark-dlacat-cnn-sub.fits
     v3: /global/cfs/cdirs/desicollab/science/lya/y1-kp6/iron-tests/catalogs/DLA_cnn_iron_main_dark_healpix_v0_conf05_nhi203.fits
+    v4: /global/cfs/cdirs/desicollab/science/lya/y1-kp6/iron-tests/catalogs/main-dark-dlacat-combine-20230808-conf05-nhi203.fits
 
 fugu:
 
