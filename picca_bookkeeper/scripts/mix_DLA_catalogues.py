@@ -48,6 +48,70 @@ def select_table(table: astropy.table.table.Table, selection: int = 2):
         msk &= ((conf > 0.3) & (table["S2N"] > 0)) | (
             (conf > 0.2) & (table["S2N"] >= 3)
         )
+
+    elif selection == 5:
+        conf_min = np.minimum(
+                table['CNN_DLA_CONFIDENCE'],
+                table['GP_DLA_CONFIDENCE'])
+        msk = table['NHI'] > 20.3
+        msk &= conf_min > 0.5
+
+    elif selection == 6:
+        conf_min = np.minimum(
+                table['CNN_DLA_CONFIDENCE'],
+                table['GP_DLA_CONFIDENCE'])
+        msk = table['NHI'] > 20.3
+        msk &= conf_min > 0.5
+        msk &= table['S2N'] > 1
+
+    elif selection == 7:
+        conf_min = np.minimum(
+                table['CNN_DLA_CONFIDENCE'],
+                table['GP_DLA_CONFIDENCE'])
+        msk = table['NHI'] > 20.3
+        msk &= conf_min > 0.5
+        msk &= table['S2N'] > 2
+
+    elif selection == 8:
+        #gp_nhi being 0 means nhi is taken from cnn
+        #we try correcting the cnn_nhi by adding 0.17
+        idx=np.where(tb['GP_NHI']==0)
+        table['NHI'][idx] += 0.17
+
+        msk = table['NHI'] > 20.3
+        msk &= table['CNN_DLA_CONFIDENCE'] > 0.5
+        msk &= table['S2N'] > 1
+
+    elif selection == 9:
+        #gp_nhi being 0 means nhi is taken from cnn
+        #we try correcting the cnn_nhi by adding 0.17
+        idx=np.where(tb['GP_NHI']==0)
+        table['NHI'][idx] += 0.17
+
+        msk = table['NHI'] > 20.3
+        msk &= table['CNN_DLA_CONFIDENCE'] > 0.5
+        msk &= table['S2N'] > 2
+
+    elif selection == 10:
+        #gp_nhi being 0 means nhi is taken from cnn
+        #we try correcting the cnn_nhi by adding 0.17
+        idx=np.where(tb['GP_NHI']==0)
+        table['NHI'][idx] += 0.17
+
+        msk = table['NHI'] > 21
+        msk &= table['CNN_DLA_CONFIDENCE'] > 0.5
+        msk &= table['S2N'] > 1
+
+    elif selection == 11:
+        #gp_nhi being 0 means nhi is taken from cnn
+        #we try correcting the cnn_nhi by adding 0.17
+        idx=np.where(tb['GP_NHI']==0)
+        table['NHI'][idx] += 0.17
+
+        msk = table['NHI'] > 19.5
+        msk &= table['CNN_DLA_CONFIDENCE'] > 0.5
+        msk &= table['S2N'] > 1
+
     else:
         raise ValueError("Selection not valid.")
 
@@ -119,6 +183,13 @@ def getArgs():
             2,
             3,
             4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
         ],
         help=textwrap.dedent(
             """
@@ -136,6 +207,13 @@ def getArgs():
     Select DLA absorber type.
     Select absorbers with 'DLA_CONFIDENCE'>0.2 as valid detections for 'S2N'>3, 'DLA_CONFIDENCE'>0.3 for 'S2N'<3.
     Only use CNN.
+5: CONF_CNN > 0.5 and CONF_GP > 0.5 and NHI > 20.3
+6: CONF_CNN > 0.5 and CONF_GP > 0.5 and NHI > 20.3 and S2N > 1
+7: CONF_CNN > 0.5 and CONF_GP > 0.5 and NHI > 20.3 and S2N > 2
+8: CONF_CNN > 0.5, if NHI_GP available use else use NHI_CNN + 0.17, S2N > 1, NHI > 20.3
+9: CONF_CNN > 0.5, if NHI_GP available use else use NHI_CNN + 0.17, S2N > 2, NHI > 20.3
+10: CONF_CNN > 0.5, if NHI_GP available use else use NHI_CNN + 0.17, S2N > 1, NHI > 21
+11: CONF_CNN > 0.5, if NHI_GP available use else use NHI_CNN + 0.17, S2N > 1, NHI > 19.5
             """
         ),
     )
