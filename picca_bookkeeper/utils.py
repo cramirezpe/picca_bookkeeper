@@ -2,16 +2,20 @@
 from __future__ import annotations
 
 import numpy as np
-from typing import *
+from typing import TYPE_CHECKING
 import fitsio
 from pathlib import Path
 import healpy as hp
 
 from picca_bookkeeper.bookkeeper import forest_regions
 
+if TYPE_CHECKING:
+    from typing import Dict, List, Optional, Tuple
 
-def find_bins(original_array, grid_array):
+    from picca_bookkeeper.hints import wave_grid, wave_grid_rf, wave_grid_int
 
+
+def find_bins(original_array: wave_grid, grid_array: wave_grid) -> wave_grid_int:
     idx = np.searchsorted(grid_array, original_array)
     np.clip(idx, 0, len(grid_array) - 1, out=idx)
 
@@ -20,7 +24,8 @@ def find_bins(original_array, grid_array):
     ) ** 2
     return idx - prev_index_closer
 
-def find_qso_pixel(los_id: int, catalog: Union[str, Path]):
+
+def find_qso_pixel(los_id: int, catalog: str | Path) -> Tuple[int, str]:
     """Find healpix pixel where given quasar is located
 
     Arguments
@@ -39,12 +44,13 @@ def find_qso_pixel(los_id: int, catalog: Union[str, Path]):
             hdul["ZCATALOG"]["SURVEY"][indx],
         )
 
+
 def get_spectra_from_los_id(
     los_id: int,
-    catalog: Union[str, Path],
-    input_healpix: Union[str, Path]=None,
-    lambda_grid: List[float] = np.arange(3600, 9824, 0.8),
-):
+    catalog: str | Path,
+    input_healpix: Optional[str | Path] = None,
+    lambda_grid: wave_grid = np.arange(3600, 9824, 0.8),
+) -> Tuple[wave_grid, wave_grid, wave_grid]:
     """Get quasar spectra given los_id
 
     Arguments
@@ -54,7 +60,7 @@ def get_spectra_from_los_id(
     lambda_grid: Grid to show spectra for (np.array).
     """
     healpix, survey = find_qso_pixel(los_id, catalog)
-    healpix = str(healpix)
+    healpix_str = str(healpix)
 
     if input_healpix is None:
         input_healpix = Path("/global/cfs/cdirs/desi/science/lya/fugu_healpix/healpix")
@@ -65,9 +71,9 @@ def get_spectra_from_los_id(
         input_healpix
         / survey
         / "dark"
-        / healpix[:-2]
-        / healpix
-        / f"coadd-{survey}-dark-{healpix}.fits"
+        / healpix_str[:-2]
+        / healpix_str
+        / f"coadd-{survey}-dark-{healpix_str}.fits"
     )
 
     assert coadd_file.is_file()
@@ -94,7 +100,10 @@ def get_spectra_from_los_id(
 
     return coadd_flux_data(flux_data, lambda_grid)
 
-def coadd_flux_data(flux_data: Dict, lambda_grid: List[float]):
+
+def coadd_flux_data(
+    flux_data: Dict, lambda_grid: wave_grid
+) -> Tuple[wave_grid, wave_grid, wave_grid]:
     """Coadd flux data for different arms
 
     Arguments
@@ -122,7 +131,8 @@ def coadd_flux_data(flux_data: Dict, lambda_grid: List[float]):
 
     return lambda_grid, flux, ivar
 
-def Ulambda(lambda_rest: List[float], region: int = "lya"):
+
+def Ulambda(lambda_rest: wave_grid, region: str = "lya") -> wave_grid_rf:
     """Helper function to buid quasar continuum from aq bq parameters"""
     lambda_min = forest_regions[region]["lambda-rest-min"]
     lambda_max = forest_regions[region]["lambda-rest-max"]
@@ -131,7 +141,10 @@ def Ulambda(lambda_rest: List[float], region: int = "lya"):
         np.log10(lambda_max) - np.log10(lambda_min)
     )
 
-def compute_cont(los_id: int, attrs_file: Union[str, Path], region: str = "lya"):
+
+def compute_cont(
+    los_id: int, attrs_file: str | Path, region: str = "lya"
+) -> Tuple[wave_grid_rf, wave_grid_rf]:
     """Compute quasar continuum using attributes file (will read aq, bq and mean cont)
 
     Arguments:

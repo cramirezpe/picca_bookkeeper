@@ -7,14 +7,17 @@ import textwrap
 
 from pathlib import Path
 from subprocess import run
-from typing import *
+from typing import TYPE_CHECKING
 
 import numpy as np
+
+if TYPE_CHECKING:
+    from typing import Any, Dict, List, Optional, Self, Type
 
 logger = logging.getLogger(__name__)
 
 
-def get_Tasker(system: str):
+def get_Tasker(system: str) -> Type[Tasker]:
     """Function to get a Tasker object for a given system.
 
     Args:
@@ -65,22 +68,24 @@ class Tasker:
         out_file: Out file that will be write by the job (to add jobid if available).
     """
 
-    default_srun_options = dict()
-    default_header = dict()
+    default_srun_options: Dict = dict()
+    default_header: Dict = dict()
 
     def __init__(
         self,
         command: str,
-        command_args: str,
+        command_args: Dict,
         slurm_header_args: Dict,
-        srun_options: str,
+        srun_options: Dict,
         environment: str,
-        run_file: Union[Path, str],
-        wait_for: Union[Self, int] = None,
-        environmental_variables=dict(),
-        jobid_log_file=None,
-        in_files: Union[List[Path], List[str]] = [],
-        out_file: Union[Path, str] = None,
+        run_file: Path | str,
+        jobid_log_file: Path | str,
+        wait_for: Optional[
+            ChainedTasker | Tasker | List[Type[Tasker]] | int | List[int]
+        ] = None,
+        environmental_variables: Dict = dict(),
+        in_files: List[Path] | List[str] = list[Path](),
+        out_file: Optional[Path | str] = None,
     ):
         """
         Args:
@@ -118,7 +123,9 @@ class Tasker:
         self.in_files = in_files
         self.out_file = out_file
 
-    def get_wait_for_ids(self):
+        self.jobid: Optional[int] = None
+
+    def get_wait_for_ids(self) -> None:
         """Method to standardise wait_for Taskers or ids, in such a way that can be easily used afterwards."""
         self.wait_for = list(np.array(self.wait_for).reshape(-1))
         self.wait_for_ids = []
@@ -140,6 +147,7 @@ class Tasker:
                 raise ValueError("Unrecognized wait_for object: ", x)
 
         for file in self.in_files:
+            file = Path(file)
             if not file.is_file():
                 raise FileNotFoundError("Input file for run not found", str(file))
 
@@ -147,10 +155,7 @@ class Tasker:
             if size > 1 and size < 40:
                 self.wait_for_ids.append(int(Path(file).read_text().splitlines()[0]))
 
-        if len(self.wait_for_ids) == 0:
-            self.wait_for_ids = None
-
-    def _make_command(self):
+    def _make_command(self) -> str:
         """Method to generate a command with args
 
         Returns:
@@ -164,7 +169,7 @@ class Tasker:
         )
         return f'command="{self.command} {args}"'
 
-    def _make_body(self):
+    def _make_body(self) -> str:
         """Method to generate the body of the job script.
 
         Return:
@@ -176,12 +181,12 @@ class Tasker:
 
         return "\n".join([header, env_opts, command, run_command])
 
-    def write_job(self):
+    def write_job(self) -> None:
         """Method to write job script into file."""
         with open(self.run_file, "w") as f:
             f.write(self._make_body())
 
-    def write_jobid(self):
+    def write_jobid(self) -> None:
         """Method to write jobid into log file."""
         with open(self.jobid_log_file, "a") as file:
             file.write(str(self.run_file.name) + " " + str(self.jobid) + "\n")
@@ -189,6 +194,34 @@ class Tasker:
         if self.out_file is not None:
             with open(self.out_file, "w") as file:
                 file.write(str(self.jobid))
+
+    def send_job(self) -> None:
+        raise ValueError(
+            "Tasker class has no send_job defined, use child classes instead."
+        )
+
+    def _make_header(self) -> str:
+        raise ValueError(
+            "Tasker class has no _make_header defined, use child classes instead."
+        )
+
+    def _make_env_opts(self) -> str:
+        raise ValueError(
+            "Tasker class has no _make_env_opts defined, use child classes instead."
+        )
+
+    def _make_run_command(self) -> str:
+        raise ValueError(
+            "Tasker class has no _make_run_command defined, use child classes instead."
+        )
+
+    @staticmethod
+    def get_jobid_status(jobid: int) -> str:
+        logger.warning(
+            "Requesting jobid status for a non-slurm object. Returning COMPLETED"
+        )
+        return "COMPLETED"
+
 
 class SlurmTasker(Tasker):
     """Object to write and run jobs.
@@ -216,7 +249,7 @@ class SlurmTasker(Tasker):
         "time": "00:30:00",
     }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any):
         """
         Args:
             command (str): Command to be run in the job.
@@ -230,7 +263,7 @@ class SlurmTasker(Tasker):
         """
         super().__init__(*args, **kwargs)
 
-    def _make_header(self):
+    def _make_header(self) -> str:
         """Method to generate a slurm header given the slurm_header_args attribute.
 
         Returns:
@@ -245,7 +278,7 @@ class SlurmTasker(Tasker):
         )
         return header
 
-    def _make_env_opts(self):
+    def _make_env_opts(self) -> str:
         """Method to generate environmental options.
 
         Returns:
@@ -267,7 +300,7 @@ export OMP_NUM_THREADS={self.srun_options['cpus-per-task']}
 
         return text
 
-    def _make_run_command(self):
+    def _make_run_command(self) -> str:
         """Method to generate the srun command.
 
         Returns:
@@ -277,7 +310,7 @@ export OMP_NUM_THREADS={self.srun_options['cpus-per-task']}
         )
         return f"srun {args} $command\n"
 
-    def send_job(self):
+    def send_job(self) -> None:
         """Method to send job to slurm queue. Setting the wait_for variables beforehand."""
         # Changing dir into the file position to
         # avoid slurm files being written in unwanted places
@@ -289,7 +322,7 @@ export OMP_NUM_THREADS={self.srun_options['cpus-per-task']}
         else:
             self.get_wait_for_ids()
 
-            if self.wait_for_ids is None:
+            if len(self.wait_for_ids) == 0:
                 wait_for_str = ""
             else:
                 wait_for_str = f"--dependency=afterok:"
@@ -311,7 +344,7 @@ export OMP_NUM_THREADS={self.srun_options['cpus-per-task']}
             )
 
     @staticmethod
-    def get_jobid_status(jobid: int):
+    def get_jobid_status(jobid: int) -> str:
         """
         Method to return the status of a given jobid in SLURM systems.
 
@@ -369,7 +402,7 @@ class BashTasker(Tasker):
         environmental_variables (dict): Environmental variables to set before running the job. Format: {'environmental_variable': 'value'}.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any):
         """
         Args:
             command (str): Command to be run in the job.
@@ -382,11 +415,11 @@ class BashTasker(Tasker):
         if self.wait_for != None:
             raise ValueError("BachTasker won't work with wait_for feature.")
 
-    def _make_header(self):
+    def _make_header(self) -> str:
         """Dummy method to generate an empty header and keep compatibility with Tasker default class."""
         return ""
 
-    def _make_env_opts(self):
+    def _make_env_opts(self) -> str:
         """Method to generate environmental options.
 
         Returns:
@@ -398,14 +431,14 @@ source activate {self.environment}
 """
         )
 
-    def _make_run_command(self):
+    def _make_run_command(self) -> str:
         """Method to genearte the run command line.
 
         Returns:
             str: run command line."""
         return f"$command\n"
 
-    def send_job(self):
+    def send_job(self) -> None:
         """Method to run bash job script."""
         out = open(self.slurm_header_args["output"], "w")
         err = open(self.slurm_header_args["error"], "w")
@@ -422,25 +455,25 @@ class ChainedTasker:
         taskers (tasker.Tasker or list of tasker.Tasker): tasker objects associated with the class
     """
 
-    def __init__(self, taskers):
+    def __init__(self, taskers: List[Tasker]):
         """
         Args:
             taskers (tasker.Tasker or list of tasker.Tasker): tasker objects associated with the class
         """
         self.taskers = taskers
 
-    def write_job(self):
+    def write_job(self) -> None:
         """Method to write jobs associated with taskers."""
         for tasker in self.taskers:
             tasker.write_job()
 
-    def send_job(self):
+    def send_job(self) -> None:
         """Method to send jobs associated with taskers."""
         for tasker in self.taskers:
             tasker.send_job()
 
     @property
-    def jobid(self):
+    def jobid(self) -> Optional[int]:
         return self.taskers[-1].jobid
 
 
@@ -449,12 +482,12 @@ class DummyTasker(Tasker):
     are copied and runs are not needed.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any):
         pass
 
-    def write_job(self):
+    def write_job(self) -> None:
         pass
 
-    def send_job(self):
+    def send_job(self) -> None:
         self.jobid = None
         return None
