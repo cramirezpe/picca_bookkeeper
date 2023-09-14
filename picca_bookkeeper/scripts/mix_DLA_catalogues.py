@@ -48,7 +48,6 @@ def select_table(table: astropy.table.table.Table, selection: int = 2):
         msk &= ((conf > 0.3) & (table["S2N"] > 0)) | (
             (conf > 0.2) & (table["S2N"] >= 3)
         )
-
     elif selection == 5:
         conf_min = np.minimum(
                 table['CNN_DLA_CONFIDENCE'],
@@ -56,7 +55,6 @@ def select_table(table: astropy.table.table.Table, selection: int = 2):
         msk = table['NHI'] > args.NHI
         msk &= conf_min > 0.5
         msk &= table['S2N'] > args.S2N
-
     elif selection == 6:
         #gp_nhi being 0 means nhi is taken from cnn
         #we try correcting the cnn_nhi by adding 0.17
@@ -157,11 +155,6 @@ def getArgs():
             4,
             5,
             6,
-            7,
-            8,
-            9,
-            10,
-            11,
         ],
         help=textwrap.dedent(
             """
@@ -179,13 +172,9 @@ def getArgs():
     Select DLA absorber type.
     Select absorbers with 'DLA_CONFIDENCE'>0.2 as valid detections for 'S2N'>3, 'DLA_CONFIDENCE'>0.3 for 'S2N'<3.
     Only use CNN.
-5: CONF_CNN > 0.5 and CONF_GP > 0.5 and NHI > 20.3
-6: CONF_CNN > 0.5 and CONF_GP > 0.5 and NHI > 20.3 and S2N > 1
-7: CONF_CNN > 0.5 and CONF_GP > 0.5 and NHI > 20.3 and S2N > 2
-8: CONF_CNN > 0.5, if NHI_GP available use else use NHI_CNN + 0.17, S2N > 1, NHI > 20.3
-9: CONF_CNN > 0.5, if NHI_GP available use else use NHI_CNN + 0.17, S2N > 2, NHI > 20.3
-10: CONF_CNN > 0.5, if NHI_GP available use else use NHI_CNN + 0.17, S2N > 1, NHI > 21
-11: CONF_CNN > 0.5, if NHI_GP available use else use NHI_CNN + 0.17, S2N > 1, NHI > 19.5
+5: CONF_CNN > 0.5 and CONF_GP > 0.5 and NHI > args.NHI and S2N > args.S2N
+6: CONF_CNN > 0.5, if NHI_GP available use else use NHI_CNN + 0.17, NHI > args.NHI and S2N > args.S2N
+
             """
         ),
     )
