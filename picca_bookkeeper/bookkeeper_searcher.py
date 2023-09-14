@@ -1,4 +1,5 @@
 """Module to find bookkeepers in one base path and print differences"""
+from __future__ import annotations
 
 from pathlib import Path
 from tabulate import tabulate
