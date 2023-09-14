@@ -13,7 +13,7 @@ import numpy as np
 logger = logging.getLogger(__name__)
 
 
-def select_table(table: astropy.table.table.Table, selection: int = 2):
+def select_table(table: astropy.table.table.Table, selection: int = 2, NHI=20.3, S2N=0):
     """Select on confidence flags/snr, also select type==DLA only"""
     # print('first select unique DLA ID')
     # tab = select_table_1(tab)
@@ -52,18 +52,18 @@ def select_table(table: astropy.table.table.Table, selection: int = 2):
         conf_min = np.minimum(
                 table['CNN_DLA_CONFIDENCE'],
                 table['GP_DLA_CONFIDENCE'])
-        msk = table['NHI'] > args.NHI
+        msk = table['NHI'] > NHI
         msk &= conf_min > 0.5
-        msk &= table['S2N'] > args.S2N
+        msk &= table['S2N'] > S2N
     elif selection == 6:
         #gp_nhi being 0 means nhi is taken from cnn
         #we try correcting the cnn_nhi by adding 0.17
         idx=np.where(tb['GP_NHI']==0)
         table['NHI'][idx] += 0.17
 
-        msk = table['NHI'] > args.NHI
+        msk = table['NHI'] > NHI
         msk &= table['CNN_DLA_CONFIDENCE'] > 0.5
-        msk &= table['S2N'] > args.S2N
+        msk &= table['S2N'] > S2N
 
     else:
         raise ValueError("Selection not valid.")
@@ -90,7 +90,7 @@ def main(args=None):
     logger.info("Selecting objects from catalogues.")
     if args.selection != 0:
         catalogues = [
-            select_table(catalogue, selection=args.selection)
+            select_table(catalogue, selection=args.selection, NHI=args.NHI, S2N=args.S2N)
             for catalogue in catalogues
         ]
 
@@ -129,18 +129,18 @@ def getArgs():
     
     parser.add_argument(
         "--NHI",
-        type=int,
+        type=float,
         default=20.3,
         required=False,
-        help="minimum DLA NHI",
+        help="minimum DLA NHI, used only in selection 5 or 6",
     )
 
     parser.add_argument(
         "--S2N",
-        type=int,
+        type=float,
         default=0,
         required=False,
-        help="minimum QSO S2N",
+        help="minimum QSO S2N, used only in selection 5 or 6",
     )
 
 
@@ -174,7 +174,6 @@ def getArgs():
     Only use CNN.
 5: CONF_CNN > 0.5 and CONF_GP > 0.5 and NHI > args.NHI and S2N > args.S2N
 6: CONF_CNN > 0.5, if NHI_GP available use else use NHI_CNN + 0.17, NHI > args.NHI and S2N > args.S2N
-
             """
         ),
     )
