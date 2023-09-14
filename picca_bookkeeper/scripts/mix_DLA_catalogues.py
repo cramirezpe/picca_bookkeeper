@@ -53,64 +53,19 @@ def select_table(table: astropy.table.table.Table, selection: int = 2):
         conf_min = np.minimum(
                 table['CNN_DLA_CONFIDENCE'],
                 table['GP_DLA_CONFIDENCE'])
-        msk = table['NHI'] > 20.3
+        msk = table['NHI'] > args.NHI
         msk &= conf_min > 0.5
+        msk &= table['S2N'] > args.S2N
 
     elif selection == 6:
-        conf_min = np.minimum(
-                table['CNN_DLA_CONFIDENCE'],
-                table['GP_DLA_CONFIDENCE'])
-        msk = table['NHI'] > 20.3
-        msk &= conf_min > 0.5
-        msk &= table['S2N'] > 1
-
-    elif selection == 7:
-        conf_min = np.minimum(
-                table['CNN_DLA_CONFIDENCE'],
-                table['GP_DLA_CONFIDENCE'])
-        msk = table['NHI'] > 20.3
-        msk &= conf_min > 0.5
-        msk &= table['S2N'] > 2
-
-    elif selection == 8:
         #gp_nhi being 0 means nhi is taken from cnn
         #we try correcting the cnn_nhi by adding 0.17
         idx=np.where(tb['GP_NHI']==0)
         table['NHI'][idx] += 0.17
 
-        msk = table['NHI'] > 20.3
+        msk = table['NHI'] > args.NHI
         msk &= table['CNN_DLA_CONFIDENCE'] > 0.5
-        msk &= table['S2N'] > 1
-
-    elif selection == 9:
-        #gp_nhi being 0 means nhi is taken from cnn
-        #we try correcting the cnn_nhi by adding 0.17
-        idx=np.where(tb['GP_NHI']==0)
-        table['NHI'][idx] += 0.17
-
-        msk = table['NHI'] > 20.3
-        msk &= table['CNN_DLA_CONFIDENCE'] > 0.5
-        msk &= table['S2N'] > 2
-
-    elif selection == 10:
-        #gp_nhi being 0 means nhi is taken from cnn
-        #we try correcting the cnn_nhi by adding 0.17
-        idx=np.where(tb['GP_NHI']==0)
-        table['NHI'][idx] += 0.17
-
-        msk = table['NHI'] > 21
-        msk &= table['CNN_DLA_CONFIDENCE'] > 0.5
-        msk &= table['S2N'] > 1
-
-    elif selection == 11:
-        #gp_nhi being 0 means nhi is taken from cnn
-        #we try correcting the cnn_nhi by adding 0.17
-        idx=np.where(tb['GP_NHI']==0)
-        table['NHI'][idx] += 0.17
-
-        msk = table['NHI'] > 19.5
-        msk &= table['CNN_DLA_CONFIDENCE'] > 0.5
-        msk &= table['S2N'] > 1
+        msk &= table['S2N'] > args.S2N
 
     else:
         raise ValueError("Selection not valid.")
@@ -173,6 +128,23 @@ def getArgs():
         required=True,
         help="Output path to the final DLA catalogue.",
     )
+    
+    parser.add_argument(
+        "--NHI",
+        type=int,
+        default=20.3,
+        required=False,
+        help="minimum DLA NHI",
+    )
+
+    parser.add_argument(
+        "--S2N",
+        type=int,
+        default=0,
+        required=False,
+        help="minimum QSO S2N",
+    )
+
 
     parser.add_argument(
         "--selection",
