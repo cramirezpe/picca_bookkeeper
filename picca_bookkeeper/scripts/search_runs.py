@@ -1,12 +1,14 @@
 """ Script to search bookkeeper runs and print
 differences in tables."""
 
+from __future__ import annotations
+
 import argparse
 import logging
 import sys
 from pathlib import Path
 from typing import TYPE_CHECKING
-from __future__ import annotations
+
 from picca_bookkeeper.bookkeeper_searcher import get_bookkeeper_differences
 
 if TYPE_CHECKING:

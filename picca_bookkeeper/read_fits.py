@@ -5,22 +5,34 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import fitsio
+import getdist
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import scipy as sp
+from getdist import MCSamples, plots
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+from vega.parameters.param_utils import build_names
 from vega.plots.wedges import Wedge
 
 from picca_bookkeeper.bookkeeper import Bookkeeper
 
 if TYPE_CHECKING:
     from typing import Dict, List, Optional, Tuple, Type
-    
+
     from picca_bookkeeper.hints import Axes, Figure
 
 logger = logging.getLogger(__name__)
+
+
+def make_chain(names: List[int], mean: List[float], cov: np.ndarray) -> MCSamples:
+    labels = build_names(names)
+    gaussian_samples = np.random.multivariate_normal(mean, cov, size=1000000)
+    samples = MCSamples(
+        samples=gaussian_samples, names=names, labels=[labels[name] for name in labels]
+    )
+    return samples
 
 
 class ReadFits:
@@ -96,6 +108,21 @@ class ReadFits:
 
         if self.at_baseline is not None:
             self.values[np.argmax(self.names == "at")] -= self.at_baseline
+
+    def compute_chain(self) -> None:
+        res = {}
+        res["chisq"] = self.chi2
+        res["mean"] = list(self.values)
+        res["cov"] = self.cov
+
+        npars = len(self.names)
+
+        res["pars"] = {
+            self.names[i]: {"val": self.values[i], "err": self.errors[i]}
+            for i in range(npars)
+        }
+
+        self.chain = make_chain(res["pars"].keys(), res["mean"], res["cov"])
 
     @staticmethod
     def table_from_fit_data(
@@ -865,3 +892,43 @@ class FitPlots:
         ax.grid(visible=True)
 
         return handles
+
+    @staticmethod
+    def plot_triangle(
+        param_names: List[str],
+        readfits: Optional[List[ReadFits]] = None,
+        chains: Optional[List[MCSamples]] = None,
+        labels: Optional[List[str | None]] = None,
+        colours: Optional[List[str | None]] = None,
+        g: Optional[getdist.plots.GetDistPlotter] = None,
+        plot_kwargs: Dict = dict(),
+    ) -> None:
+        if readfits is None and chains is None:
+            raise ValueError("Either provide chains or ReadFits objects.")
+
+        if readfits is not None:
+            chains = []
+            for fit in readfits:
+                if hasattr(fit, "chain"):
+                    chains.append(fit.chain)
+                else:
+                    raise AttributeError(
+                        "Compute chain for all fits by using the method "
+                        "compute_chain before running the triangle plot."
+                    )
+
+            if labels is None:
+                labels = [fit.label for fit in readfits]
+            if colours is None:
+                colours = [fit.colour for fit in readfits]
+
+        if g is None:
+            g = getdist.plots.getSubplotPlotter()
+
+        g.triangle_plot(
+            chains,
+            param_names,
+            legend_labels=labels,
+            contour_colors=colours,
+            contours_ls=["solid", "dashed", "dotted"],
+        )
