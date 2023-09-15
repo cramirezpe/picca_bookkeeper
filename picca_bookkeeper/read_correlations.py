@@ -1,37 +1,42 @@
 from __future__ import annotations
 
+from pathlib import Path
+from typing import TYPE_CHECKING
+
 import fitsio
 import matplotlib
 import matplotlib.pyplot as plt
-from mpl_toolkits.axes_grid1 import make_axes_locatable
-import scipy as sp
-from pathlib import Path
-from picca_bookkeeper.bookkeeper import Bookkeeper
-from vega.plots.wedges import Wedge
-from typing import *
 import numpy as np
+import scipy as sp
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+from vega.plots.wedges import Wedge
+
+from picca_bookkeeper.bookkeeper import Bookkeeper
+
+if TYPE_CHECKING:
+    from typing import Dict, List, Optional, Tuple
 
 
 class CorrelationPlots:
     @staticmethod
     def cf(
-        bookkeeper: Bookkeeper,
+        bookkeeper: Optional[Bookkeeper],
         region: str = "lya",
-        region2: str = None,
+        region2: Optional[str] = None,
         absorber: str = "lya",
-        absorber2: str = None,
-        correlation_file: Union[Path, str] = "",
+        absorber2: Optional[str] = None,
+        correlation_file: Path | str = "",
         mumin: float = 0,
         mumax: float = 1,
-        ax: matplotlib.axes._axes.Axes = None,
+        ax: Optional[matplotlib.axes._axes.Axes] = None,
         r_factor: int = 2,
         plot_kwargs: Dict = dict(),
         just_return_values: bool = False,
-        output_prefix: Union[Path, str] = None,
+        output_prefix: Optional[Path | str] = None,
         save_data: bool = False,
         save_plot: bool = False,
         save_dict: Dict = dict(),
-    ):
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         """
         Plotting correlation function in defined wedge.
 
@@ -56,7 +61,7 @@ class CorrelationPlots:
         if output_prefix is not None:
             output_prefix = Path(output_prefix)
 
-        if not Path(correlation_file).is_file():
+        if isinstance(bookkeeper, Bookkeeper):
             correlation_file = bookkeeper.paths.exp_cf_fname(
                 absorber, region, absorber2, region2
             )
@@ -123,15 +128,19 @@ class CorrelationPlots:
             # data_dict['wedge_data'] = data_wedge
 
         plt.tight_layout()
-        if save_plot:
-            plt.savefig(
-                output_prefix.parent / (output_prefix.name + "-plot_cf.png"),
-            )
-        if save_data:
-            np.savez(
-                output_prefix.parent / (output_prefix.name + "-plot_cf.npz"),
-                **{**save_dict, **data_dict},
-            )
+
+        if output_prefix is not None:
+            if save_plot:
+                plt.savefig(
+                    output_prefix.parent / (output_prefix.name + "-plot_cf.png"),
+                )
+            if save_data:
+                np.savez(
+                    output_prefix.parent / (output_prefix.name + "-plot_cf.npz"),
+                    **{**save_dict, **data_dict},
+                )
+        elif save_data or save_plot:
+            raise ValueError("Set output_prefix in order to save data.")
 
         return (
             data_wedge[0],
@@ -143,16 +152,16 @@ class CorrelationPlots:
     @staticmethod
     def compare_cfs(
         bkp1: Bookkeeper,
-        bkp2: Bookkeeper = None,
+        bkp2: Optional[Bookkeeper] = None,
         mumin: float = 0,
         mumax: float = 1,
         region: str = "lya",
-        region2: str = None,
-        correlation_file: Union[Path, str] = "",
-        correlation_file2: Union[Path, str] = "",
-        label: str = None,
-        label2: str = None,
-    ):
+        region2: Optional[str] = None,
+        correlation_file: Path | str = "",
+        correlation_file2: Path | str = "",
+        label: Optional[str] = None,
+        label2: Optional[str] = None,
+    ) -> None:
         fig, axs = plt.subplots(
             3, 1, sharex=True, gridspec_kw={"height_ratios": [3, 2, 2]}
         )
@@ -208,15 +217,15 @@ class CorrelationPlots:
     @staticmethod
     def compare_xcfs(
         bkp1: Bookkeeper,
-        bkp2: Bookkeeper = None,
+        bkp2: Optional[Bookkeeper] = None,
         mumin: float = 0,
         mumax: float = 1,
         region: str = "lya",
         correlation_file: str = "",
         correlation_file2: str = "",
-        label: str = None,
-        label2: str = None,
-    ):
+        label: Optional[str] = None,
+        label2: Optional[str] = None,
+    ) -> None:
         fig, axs = plt.subplots(
             3, 1, sharex=True, gridspec_kw={"height_ratios": [3, 2, 2]}
         )
@@ -269,21 +278,21 @@ class CorrelationPlots:
 
     @staticmethod
     def xcf(
-        bookkeeper: Bookkeeper,
+        bookkeeper: Optional[Bookkeeper],
         region: str = "lya",
         absorber: str = "lya",
         mumin: float = 0,
         mumax: float = 1,
-        correlation_file: Union[Path, str] = "",
-        ax: matplotlib.axes._axes.Axes = None,
+        correlation_file: Path | str = "",
+        ax: Optional[matplotlib.axes._axes.Axes] = None,
         r_factor: int = 2,
         plot_kwargs: Dict = dict(),
         just_return_values: bool = False,
-        output_prefix: Union[Path, str] = None,
+        output_prefix: Optional[Path | str] = None,
         save_data: bool = False,
         save_plot: bool = False,
         save_dict: Dict = dict(),
-    ):
+    ) -> Tuple[np.ndarray, ...]:
         """
         Plotting correlation function in defined wedge.
 
@@ -306,7 +315,7 @@ class CorrelationPlots:
         if output_prefix is not None:
             output_prefix = Path(output_prefix)
 
-        if not Path(correlation_file).is_file():
+        if isinstance(bookkeeper, Bookkeeper):
             correlation_file = bookkeeper.paths.exp_xcf_fname(absorber, region)
 
         with fitsio.FITS(correlation_file) as ffile:
@@ -372,15 +381,19 @@ class CorrelationPlots:
             # data_dict['wedge_data'] = data_wedge
 
         plt.tight_layout()
-        if save_plot:
-            plt.savefig(
-                output_prefix.parent / (output_prefix.name + "-plot_xcf.png"),
-            )
-        if save_data:
-            np.savez(
-                output_prefix.parent / (output_prefix.name + "-plot_xcf.npz"),
-                **{**save_dict, **data_dict},
-            )
+
+        if output_prefix is not None:
+            if save_plot:
+                plt.savefig(
+                    output_prefix.parent / (output_prefix.name + "-plot_xcf.png"),
+                )
+            if save_data:
+                np.savez(
+                    output_prefix.parent / (output_prefix.name + "-plot_xcf.npz"),
+                    **{**save_dict, **data_dict},
+                )
+        elif save_data or save_plot:
+            raise ValueError("Set output_prefix in order to save data.")
 
         return (
             data_wedge[0],
@@ -397,14 +410,14 @@ class CorrelationPlots:
     #     region2: str = None,
     #     absorber: str = "lya",
     #     absorber2: str = None,
-    #     correlation_file: Union[Path, str] = None,
+    #     correlation_file: Path | str = None,
     #     mumin: float = 0,
     #     mumax: float = 1,
     #     ax: matplotlib.axes._axes.Axes = None,
     #     r_factor: int = 2,
     #     plot_kwargs: Dict = dict(),
     #     just_return_values: bool = False,
-    #     output_prefix: Union[Path, str] = None,
+    #     output_prefix: Path | str = None,
     #     save_data: bool = False,
     #     save_plot: bool = False,
     #     save_dict: Dict = None,
@@ -466,23 +479,23 @@ class CorrelationPlots:
 
     @staticmethod
     def cf_errorbarsize(
-        bookkeeper,
-        region,
-        region2=None,
+        bookkeeper: Bookkeeper,
+        region: str,
+        region2: Optional[str] = None,
         absorber: str = "lya",
-        absorber2: str = None,
-        correlation_file: Union[Path, str] = None,
-        mumin=0,
-        mumax=1,
-        r_factor=2,
-        ax=None,
-        plot_kwargs=dict(),
-        just_return_values=False,
-        output_prefix: Union[Path, str] = None,
+        absorber2: Optional[str] = None,
+        correlation_file: Optional[Path | str] = None,
+        mumin: float = 0,
+        mumax: float = 1,
+        r_factor: int = 2,
+        ax: matplotlib.axes._axes.Axes = None,
+        plot_kwargs: Dict = dict(),
+        just_return_values: bool = False,
+        output_prefix: Optional[Path | str] = None,
         save_data: bool = False,
         save_plot: bool = False,
         save_dict: Dict = dict(),
-    ):
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """
         Plotting correlation errorbar in defined wedge.
 
@@ -564,15 +577,18 @@ class CorrelationPlots:
             data_dict["nb"] = nb_wedge[1]
             # data_dict['wedge_data'] = data_wedge
 
-        if save_plot:
-            plt.savefig(
-                output_prefix.parent / (output_prefix.name + "-plot_cf.png"),
-            )
-        if save_data:
-            np.savez(
-                output_prefix.parent / (output_prefix.name + "-plot_cf.npz"),
-                **{**save_dict, **data_dict},
-            )
+        if output_prefix is not None:
+            if save_plot:
+                plt.savefig(
+                    output_prefix.parent / (output_prefix.name + "-plot_cf.png"),
+                )
+            if save_data:
+                np.savez(
+                    output_prefix.parent / (output_prefix.name + "-plot_cf.npz"),
+                    **{**save_dict, **data_dict},
+                )
+        elif save_data or save_plot:
+            raise ValueError("Set output_prefix in order to save data.")
 
         return data_wedge[0], r_coef * sp.sqrt(sp.diag(data_wedge[2])), nb_wedge[1]
 
@@ -581,18 +597,18 @@ class CorrelationPlots:
         bookkeeper: Bookkeeper,
         region: str,
         absorber: str = "lya",
-        correlation_file: Union[Path, str] = None,
+        correlation_file: Optional[Path | str] = None,
         mumin: float = 0,
         mumax: float = 1,
         r_factor: int = 2,
-        ax: matplotlib.axes.Axes = None,
+        ax: Optional[matplotlib.axes.Axes] = None,
         plot_kwargs: Dict = dict(),
         just_return_values: bool = False,
-        output_prefix: Union[Path, str] = None,
+        output_prefix: Optional[Path | str] = None,
         save_data: bool = False,
         save_plot: bool = False,
         save_dict: Dict = dict(),
-    ):
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """
         Plotting cross-correlation errorbars in defined wedge.
 
@@ -671,15 +687,18 @@ class CorrelationPlots:
             data_dict["nb"] = nb_wedge[1]
             # data_dict['wedge_data'] = data_wedge
 
-        if save_plot:
-            plt.savefig(
-                output_prefix.parent / (output_prefix.name + "-plot_cf.png"),
-            )
-        if save_data:
-            np.savez(
-                output_prefix.parent / (output_prefix.name + "-plot_cf.npz"),
-                **{**save_dict, **data_dict},
-            )
+        if output_prefix is not None:
+            if save_plot:
+                plt.savefig(
+                    output_prefix.parent / (output_prefix.name + "-plot_cf.png"),
+                )
+            if save_data:
+                np.savez(
+                    output_prefix.parent / (output_prefix.name + "-plot_cf.npz"),
+                    **{**save_dict, **data_dict},
+                )
+        elif save_data or save_plot:
+            raise ValueError("Set output_prefix in order to save data.")
 
         return data_wedge[0], r_coef * sp.sqrt(sp.diag(data_wedge[2])), nb_wedge[1]
 
@@ -691,14 +710,14 @@ class CorrelationPlots:
     #     region2: str = None,
     #     absorber: str = "lya",
     #     absorber2: str = None,
-    #     correlation_file: Union[Path, str] = None,
+    #     correlation_file: Path | str = None,
     #     mumin: float = 0,
     #     mumax: float = 1,
     #     ax: matplotlib.axes._axes.Axes = None,
     #     r_factor: int = 2,
     #     plot_kwargs: Dict = dict(),
     #     just_return_values: bool = False,
-    #     output_prefix: Union[Path, str] = None,
+    #     output_prefix: Path | str = None,
     #     save_data: bool = False,
     #     save_plot: bool = False,
     #     save_dict: Dict = None,
@@ -761,22 +780,22 @@ class CorrelationPlots:
     def cf_map(
         bookkeeper: Bookkeeper,
         region: str = "lya",
-        region2: str = None,
+        region2: Optional[str] = None,
         absorber: str = "lya",
-        absorber2: str = None,
-        correlation_file: Union[Path, str] = None,
+        absorber2: Optional[str] = None,
+        correlation_file: Optional[Path | str] = None,
         r_factor: int = 2,
-        vmin=-0.04,
-        vmax=0.04,
-        fig=None,
-        ax: matplotlib.axes.Axes = None,
+        vmin: float = -0.04,
+        vmax: float = 0.04,
+        fig: matplotlib.figure.Figure = None,
+        ax: Optional[matplotlib.axes.Axes] = None,
         plot_kwargs: Dict = dict(),
         just_return_values: bool = False,
-        output_prefix: Union[Path, str] = None,
+        output_prefix: Optional[Path | str] = None,
         save_data: bool = False,
         save_plot: bool = False,
         save_dict: Dict = dict(),
-    ):
+    ) -> Tuple[List[float], np.ndarray, np.ndarray, np.ndarray]:
         """
         Plotting correlation heatmap.
 
@@ -862,19 +881,22 @@ class CorrelationPlots:
         cax.yaxis.set_label_position("right")
         cax.set_ylabel(r"$r\xi(r_{\parallel,r_{\perp}})$")
 
-        if save_plot:
-            output_prefix = Path(output_prefix)
-            plt.tight_layout()
-            plt.savefig(
-                str(output_prefix) + ".png",
-                dpi=300,
-            )
+        if output_prefix is not None:
+            if save_plot:
+                output_prefix = Path(output_prefix)
+                plt.tight_layout()
+                plt.savefig(
+                    str(output_prefix) + ".png",
+                    dpi=300,
+                )
 
-        if save_data:
-            np.savez(
-                str(output_prefix) + ".npz",
-                **{**save_dict, **data_dict},
-            )
+            if save_data:
+                np.savez(
+                    str(output_prefix) + ".npz",
+                    **{**save_dict, **data_dict},
+                )
+        elif save_data or save_plot:
+            raise ValueError("Set output_prefix in order to save data.")
 
         return extent, mat, errmat, nmat
 
@@ -883,20 +905,20 @@ class CorrelationPlots:
         bookkeeper: Bookkeeper,
         region: str = "lya",
         absorber: str = "lya",
-        absorber2: str = None,
-        correlation_file: Union[Path, str] = None,
+        absorber2: Optional[str] = None,
+        correlation_file: Optional[Path | str] = None,
         r_factor: int = 2,
-        vmin=-0.4,
-        vmax=0.4,
-        fig=None,
-        ax: matplotlib.axes.Axes = None,
+        vmin: float = -0.4,
+        vmax: float = 0.4,
+        fig: Optional[matplotlib.figure.Figure] = None,
+        ax: Optional[matplotlib.axes.Axes] = None,
         plot_kwargs: Dict = dict(),
         just_return_values: bool = False,
-        output_prefix: Union[Path, str] = None,
+        output_prefix: Optional[Path | str] = None,
         save_data: bool = False,
         save_plot: bool = False,
         save_dict: Dict = dict(),
-    ):
+    ) -> Tuple[List[float], np.ndarray, np.ndarray, np.ndarray]:
         """
         Plotting correlation heatmap.
 
@@ -972,18 +994,21 @@ class CorrelationPlots:
         cax.yaxis.set_label_position("right")
         cax.set_ylabel(r"$r\xi(r_{\parallel,r_{\perp}})$")
 
-        if save_plot:
-            output_prefix = Path(output_prefix)
-            plt.tight_layout()
-            plt.savefig(
-                str(output_prefix) + ".png",
-                dpi=300,
-            )
+        if output_prefix is not None:
+            if save_plot:
+                output_prefix = Path(output_prefix)
+                plt.tight_layout()
+                plt.savefig(
+                    str(output_prefix) + ".png",
+                    dpi=300,
+                )
 
-        if save_data:
-            np.savez(
-                str(output_prefix) + ".npz",
-                **{**save_dict, **data_dict},
-            )
+            if save_data:
+                np.savez(
+                    str(output_prefix) + ".npz",
+                    **{**save_dict, **data_dict},
+                )
+        elif save_data or save_plot:
+            raise ValueError("Set output_prefix in order to save data.")
 
         return extent, mat, errmat, nmat

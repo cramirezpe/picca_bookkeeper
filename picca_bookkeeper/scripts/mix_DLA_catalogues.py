@@ -1,19 +1,33 @@
 """
     Script to combine multiple DLA catalogs.
 """
-import argparse, textwrap
-import fitsio
-import astropy
-from astropy.table import Table, vstack, unique
-from pathlib import Path
+from __future__ import annotations
+
+import argparse
 import logging
 import sys
+import textwrap
+from pathlib import Path
+from typing import TYPE_CHECKING
+
+import astropy
+import fitsio
 import numpy as np
+from astropy.table import Table, unique, vstack
+
+if TYPE_CHECKING:
+    from typing import Dict, Optional
 
 logger = logging.getLogger(__name__)
 
 
+<<<<<<< HEAD
 def select_table(table: astropy.table.table.Table, selection: int = 2, NHI=20.3, S2N=0):
+=======
+def select_table(
+    table: astropy.table.table.Table, selection: int = 2
+) -> astropy.table.table.Table:
+>>>>>>> master
     """Select on confidence flags/snr, also select type==DLA only"""
     # print('first select unique DLA ID')
     # tab = select_table_1(tab)
@@ -71,7 +85,7 @@ def select_table(table: astropy.table.table.Table, selection: int = 2, NHI=20.3,
     return table[msk]
 
 
-def main(args=None):
+def main(args: Optional[argparse.Namespace] = None) -> None:
     if args is None:
         args = getArgs()
 
@@ -101,7 +115,7 @@ def main(args=None):
 
     logger.info("Writing final catalogue.")
     with fitsio.FITS(args.output_catalogue, "rw", clobber=True) as results:
-        header = {}
+        header: Dict = {}
         results.write(
             [final_catalogue[column] for column in columns],
             names=columns,
@@ -111,7 +125,7 @@ def main(args=None):
     logger.info("Done.")
 
 
-def getArgs():
+def getArgs() -> argparse.Namespace:
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument(
         "dla_catalogues",

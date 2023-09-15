@@ -1,21 +1,29 @@
 """ Read all masks applied during a picca run, for studying its effects"""
 
+from __future__ import annotations
+
 import argparse
-import multiprocessing
-from pathlib import Path
-from typing import *
-import logging
 import itertools
+import logging
+import multiprocessing
 import sys
+from pathlib import Path
+from typing import TYPE_CHECKING
+
+import fitsio
 import matplotlib
 import matplotlib.pyplot as plt
-import fitsio
 import numpy as np
 import picca
-from picca.delta_extraction.survey import Survey
-from picca.delta_extraction.masks.dla_mask import DlaMask, dla_profile
-from picca.delta_extraction.masks.bal_mask import BalMask
 from picca.delta_extraction.astronomical_objects.forest import Forest
+from picca.delta_extraction.masks.bal_mask import BalMask
+from picca.delta_extraction.masks.dla_mask import DlaMask, dla_profile
+from picca.delta_extraction.survey import Survey
+
+from picca_bookkeeper.utils import find_bins
+
+if TYPE_CHECKING:
+    from typing import Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +33,7 @@ class ReadExtraDeltasData:
 
     def __init__(
         self,
-        picca_config: Union[Path, str],
+        picca_config: Path | str,
     ):
         """Initialize class instance
 
@@ -37,7 +45,7 @@ class ReadExtraDeltasData:
         self.survey = Survey()
         self.survey.load_config(str(self.picca_config))
 
-    def _get_survey_mask(self, classinfo: Union[DlaMask, BalMask]):
+    def _get_survey_mask(self, classinfo: DlaMask | BalMask) -> DlaMask | BalMask:
         for mask in self.survey.masks:
             if isinstance(mask, classinfo):
                 return mask
@@ -46,14 +54,14 @@ class ReadExtraDeltasData:
                 "Could not find compatible mask in survey masks", self.survey.masks
             )
 
-    def read_data(self):
+    def read_data(self) -> None:
         """Read data from DESI using picca survey object."""
         self.survey.read_corrections()
         self.survey.read_masks()
         self.survey.read_data()
         self.survey.apply_corrections()
 
-    def read_DLA_mask(self, num_processors: int = None):
+    def read_DLA_mask(self, num_processors: int) -> None:
         """Read DLA mask using picca code."""
         logger.info("Reading DLA masks.")
         mask = self._get_survey_mask(DlaMask)
@@ -72,7 +80,7 @@ class ReadExtraDeltasData:
                 chunksize=chunksize,
             )
 
-    def read_BAL_mask(self, num_processors: int = None):
+    def read_BAL_mask(self, num_processors: int) -> None:
         """Read BAL mask using picca code."""
         logger.info("Reading BAL masks.")
         mask = self._get_survey_mask(BalMask)
@@ -95,8 +103,11 @@ class ReadExtraDeltasData:
             )
 
     def save_data_mask(
-        self, out_dir: Union[str, Path], sorted_ids: Dict, num_processors: int = None
-    ):
+        self,
+        out_dir: Path | str,
+        sorted_ids: Dict,
+        num_processors: Optional[int] = None,
+    ) -> None:
         logger.info("Converting statistics into rest frame.")
         Path(out_dir).mkdir(exist_ok=True)
 
@@ -126,8 +137,11 @@ class ReadExtraDeltasData:
             )
 
     def save_data_flux(
-        self, out_dir: Union[str, Path], sorted_ids: Dict, num_processors: int = None
-    ):
+        self,
+        out_dir: Path | str,
+        sorted_ids: Dict,
+        num_processors: Optional[int] = None,
+    ) -> None:
         Path(out_dir).mkdir(exist_ok=True)
 
         logger.info("Saving flux data.")
@@ -148,7 +162,7 @@ class ReadExtraDeltasData:
                 arguments,
             )
 
-    def read_original_deltas_ids(self, in_dir: Union[str, Path]):
+    def read_original_deltas_ids(self, in_dir: Path | str) -> Dict:
         logger.info("Reading original LOS_ID sorting.")
         target_ids = dict()
         for delta_file in Path(in_dir).glob("delta-*.fits.gz"):
@@ -161,7 +175,7 @@ class ReadExtraDeltasData:
 
 def compute_RF_statistics(
     forest: Forest,
-):
+) -> Forest:
     bins = find_bins(
         10**forest.log_lambda / (1 + forest.z),
         10**Forest.log_lambda_rest_frame_grid,
@@ -196,11 +210,11 @@ def compute_RF_statistics(
 
 
 def save_healpix_data_mask(
-    out_dir: Union[str, Path],
+    out_dir: Path | str,
     healpix: int,
     forests: List[Forest],
     sorted_ids: List[int],
-):
+) -> None:
     out_dir = Path(out_dir)
 
     # Sorting forests by LOS_ID will make identification faster
@@ -213,15 +227,15 @@ def save_healpix_data_mask(
 
     # We search each sorted_ids into ids (which is sorted numerically to speed up the process)
     save_indexs = np.searchsorted(ids, sorted_ids)
-    forests = np.asarray(forests)[save_indexs]
+    save_forests = np.asarray(forests)[save_indexs]
 
     with fitsio.FITS(
         out_dir / f"mask-info-{healpix}.fits.gz", "rw", clobber=True
     ) as hdul:
         hdul.write(
             np.array(
-                [tuple(forest.get_metadata()) for forest in forests],
-                dtype=forests[0].get_metadata_dtype(),
+                [tuple(forest.get_metadata()) for forest in save_forests],
+                dtype=save_forests[0].get_metadata_dtype(),
             ),
             extname="METADATA",
         )
@@ -236,8 +250,8 @@ def save_healpix_data_mask(
             extname="LAMBDA_RF",
         )
 
-        in_mask = np.full((len(forests), len(Forest.log_lambda_grid)), 0)
-        for i, forest in enumerate(forests):
+        in_mask = np.full((len(save_forests), len(Forest.log_lambda_grid)), 0)
+        for i, forest in enumerate(save_forests):
             in_mask[i][forest.log_lambda_index] = np.ones_like(
                 forest.log_lambda_index, dtype=int
             )
@@ -246,8 +260,8 @@ def save_healpix_data_mask(
             extname="INPUT_MASK",
         )
 
-        dla_mask = np.full((len(forests), len(Forest.log_lambda_grid)), False)
-        for i, forest in enumerate(forests):
+        dla_mask = np.full((len(save_forests), len(Forest.log_lambda_grid)), False)
+        for i, forest in enumerate(save_forests):
             dla_mask[i][forest.log_lambda_index] = forest.dla_mask
         hdul.write(
             np.array(dla_mask, dtype=int),
@@ -255,16 +269,16 @@ def save_healpix_data_mask(
         )
 
         dla_transmission = np.full(
-            (len(forests), len(Forest.log_lambda_grid)),
+            (len(save_forests), len(Forest.log_lambda_grid)),
             0,
             dtype=float,
         )
-        for i, forest in enumerate(forests):
+        for i, forest in enumerate(save_forests):
             dla_transmission[i][forest.log_lambda_index] = forest.dla_transmission
         hdul.write(dla_transmission, extname="DLA_TRANSMISSION")
 
-        bal_mask = np.full((len(forests), len(Forest.log_lambda_grid)), False)
-        for i, forest in enumerate(forests):
+        bal_mask = np.full((len(save_forests), len(Forest.log_lambda_grid)), False)
+        for i, forest in enumerate(save_forests):
             bal_mask[i][forest.log_lambda_index] = forest.bal_mask
         hdul.write(np.array(bal_mask, dtype=int), extname="BAL_MASK")
 
@@ -274,8 +288,10 @@ def save_healpix_data_mask(
             extname="LAMBDA_RF",
         )
 
-        in_mask = np.full((len(forests), len(Forest.log_lambda_rest_frame_grid)), 0)
-        for i, forest in enumerate(forests):
+        in_mask = np.full(
+            (len(save_forests), len(Forest.log_lambda_rest_frame_grid)), 0
+        )
+        for i, forest in enumerate(save_forests):
             in_mask[i][forest.log_lambda_rest_frame_index] = np.ones_like(
                 forest.log_lambda_rest_frame_index, dtype=int
             )
@@ -284,27 +300,27 @@ def save_healpix_data_mask(
             extname="INPUT_MASK_RF",
         )
 
-        dla_mask_rf = np.asarray([forest.dla_mask_rf for forest in forests])
+        dla_mask_rf = np.asarray([forest.dla_mask_rf for forest in save_forests])
         hdul.write(
             np.array(dla_mask_rf, dtype=int),
             extname="DLA_MASK_RF",
         )
 
         dla_transmission_rf = np.asarray(
-            [forest.dla_transmission_rf for forest in forests]
+            [forest.dla_transmission_rf for forest in save_forests]
         )
         hdul.write(dla_transmission_rf, extname="DLA_TRANSMISSION_RF")
 
-        bal_mask_rf = np.asarray([forest.bal_mask_rf for forest in forests])
+        bal_mask_rf = np.asarray([forest.bal_mask_rf for forest in save_forests])
         hdul.write(np.array(bal_mask_rf, dtype=int), extname="BAL_MASK_RF")
 
 
 def save_healpix_data_flux(
-    out_dir: Union[str, Path],
+    out_dir: Path | str,
     healpix: int,
     forests: List[Forest],
     sorted_ids: List[int],
-):
+) -> None:
     out_dir = Path(out_dir)
 
     # Sorting forests by LOS_ID will make identification faster
@@ -317,21 +333,21 @@ def save_healpix_data_flux(
 
     # We search each sorted_ids into ids (which is sorted numerically to speed up the process)
     save_indexs = np.searchsorted(ids, sorted_ids)
-    forests = np.asarray(forests)[save_indexs]
+    save_forests = np.asarray(forests)[save_indexs]
 
     with fitsio.FITS(
         out_dir / f"flux-info-{healpix}.fits.gz", "rw", clobber=True
     ) as hdul:
         hdul.write(
             np.array(
-                [tuple(forest.get_metadata()) for forest in forests],
-                dtype=forests[0].get_metadata_dtype(),
+                [tuple(forest.get_metadata()) for forest in save_forests],
+                dtype=save_forests[0].get_metadata_dtype(),
             ),
             extname="METADATA",
         )
 
-        flux = np.full((len(forests), len(Forest.log_lambda_grid)), np.nan)
-        for i, forest in enumerate(forests):
+        flux = np.full((len(save_forests), len(Forest.log_lambda_grid)), np.nan)
+        for i, forest in enumerate(save_forests):
             flux[i][forest.log_lambda_index] = forest.flux
 
         hdul.write(
@@ -339,8 +355,8 @@ def save_healpix_data_flux(
             extname="FLUX",
         )
 
-        ivar = np.full((len(forests), len(Forest.log_lambda_grid)), np.nan)
-        for i, forest in enumerate(forests):
+        ivar = np.full((len(save_forests), len(Forest.log_lambda_grid)), np.nan)
+        for i, forest in enumerate(save_forests):
             ivar[i][forest.log_lambda_index] = forest.ivar
 
         hdul.write(
@@ -349,7 +365,7 @@ def save_healpix_data_flux(
         )
 
 
-def read_DLA_mask_single(forest: Forest, mask: DlaMask):
+def read_DLA_mask_single(forest: Forest, mask: DlaMask) -> Forest:
     lambda_ = 10**forest.log_lambda
 
     # load DLAs
@@ -378,7 +394,7 @@ def read_DLA_mask_single(forest: Forest, mask: DlaMask):
     return forest
 
 
-def read_BAL_mask_single(forest: Forest, mask: BalMask):
+def read_BAL_mask_single(forest: Forest, mask: BalMask) -> Forest:
     if not hasattr(forest, "los_id"):
         pass
     if not hasattr(mask, "los_ids"):
@@ -407,17 +423,7 @@ def read_BAL_mask_single(forest: Forest, mask: BalMask):
     return forest
 
 
-def find_bins(original_array, grid_array):
-    idx = np.searchsorted(grid_array, original_array)
-    np.clip(idx, 0, len(grid_array) - 1, out=idx)
-
-    prev_index_closer = (grid_array[idx - 1] - original_array) ** 2 <= (
-        grid_array[idx] - original_array
-    ) ** 2
-    return idx - prev_index_closer
-
-
-def main(args=None):
+def main(args: Optional[argparse.Namespace] = None) -> None:
     if args is None:
         args = getArgs()
 
@@ -453,7 +459,7 @@ def main(args=None):
     logger.info("Done.")
 
 
-def getArgs():
+def getArgs() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--deltas-input",

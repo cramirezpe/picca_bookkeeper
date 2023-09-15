@@ -1,17 +1,22 @@
 """ Script to run picca_delta_extraction or picca_convert_transmission
 given a bookkeeper config file."""
+from __future__ import annotations
+
 import argparse
 import logging
 import sys
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from picca_bookkeeper.bookkeeper import Bookkeeper
 from picca_bookkeeper.tasker import Tasker
 
+if TYPE_CHECKING:
+    from typing import Callable, Optional, Type
 logger = logging.getLogger(__name__)
 
 
-def main(args=None):
+def main(args: Optional[argparse.Namespace] = None) -> None:
     if args is None:
         args = get_args()
 
@@ -51,14 +56,14 @@ def main(args=None):
         if args.only_calibration:
             return
 
-        tasker = bookkeeper.get_delta_extraction_tasker
+        get_tasker: Callable = bookkeeper.get_delta_extraction_tasker
     elif continuum_type == "raw":
-        tasker = bookkeeper.get_raw_deltas_tasker
+        get_tasker = bookkeeper.get_raw_deltas_tasker
     else:
-        tasker = bookkeeper.get_delta_extraction_tasker
+        get_tasker = bookkeeper.get_delta_extraction_tasker
 
     logger.info(f"Adding deltas for region: {args.region}.")
-    deltas = tasker(
+    deltas = get_tasker(
         region=args.region,
         system=None,
         debug=args.debug,
@@ -72,7 +77,7 @@ def main(args=None):
         logger.info(f"Sent deltas for region:\n\t{args.region}: {deltas.jobid}")
 
 
-def get_args():
+def get_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "bookkeeper_config", type=Path, help="Path to bookkeeper file to use"

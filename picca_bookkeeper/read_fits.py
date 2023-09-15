@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import *
+from typing import TYPE_CHECKING
 
 import fitsio
 import matplotlib
@@ -15,15 +15,19 @@ from vega.plots.wedges import Wedge
 
 from picca_bookkeeper.bookkeeper import Bookkeeper
 
+if TYPE_CHECKING:
+    from typing import Dict, List, Optional, Tuple, Type
+
 logger = logging.getLogger(__name__)
+
 
 class ReadFits:
     def __init__(
         self,
-        bookkeeper: Union[Bookkeeper, Path, str] = None,
-        fit_file: Union[Path, str] = None,
-        label: str = None,
-        colour: str = None,
+        bookkeeper: Optional[Bookkeeper | Path | str] = None,
+        fit_file: Optional[Path | str] = None,
+        label: Optional[str] = None,
+        colour: Optional[str] = None,
     ):
         """
         Args:
@@ -34,7 +38,7 @@ class ReadFits:
         """
         if bookkeeper is None:
             if fit_file is None:
-                raise ValueError("Either bookkeeper or fit_file should be provided")    
+                raise ValueError("Either bookkeeper or fit_file should be provided")
         elif isinstance(bookkeeper, Bookkeeper):
             self.bookkeeper = bookkeeper
         else:
@@ -44,9 +48,7 @@ class ReadFits:
             if Path(fit_file).is_file():
                 self.fit_file = Path(fit_file)
             else:
-                raise FileNotFoundError(
-                    f"File does not exist, {str(fit_file)}"
-                )
+                raise FileNotFoundError(f"File does not exist, {str(fit_file)}")
         else:
             self.fit_file = self.bookkeeper.paths.fit_out_fname()
 
@@ -55,9 +57,9 @@ class ReadFits:
 
         self.read_fit()
 
-    def __str__(self):
+    def __str__(self) -> str:
         if self.label is None:
-            return self.fit_file.parents[1].name    
+            return self.fit_file.parents[1].name
         else:
             return self.label
 
@@ -69,23 +71,24 @@ class ReadFits:
             self.names = hdul["BESTFIT"]["names"].read()
             self.values = hdul["BESTFIT"]["values"].read()
             self.errors = hdul["BESTFIT"]["errors"].read()
+            self.cov = hdul["BESTFIT"]["covariance"].read()
 
             self.chi2 = hdul["BESTFIT"].read_header()["FVAL"]
             self.nparams = hdul["BESTFIT"].read_header()["NAXIS2"]
-            
+
             self.ndata = 0
             for x in "lyaxlya", "lyaxlyb", "qsoxlya", "qsoxlyb":
                 label = f"{x}_MASK"
                 if label in hdul["MODEL"].get_colnames():
                     self.ndata += hdul["MODEL"][f"{x}_MASK"].read().sum()
-            
+
             self.pvalue = 1 - sp.stats.chi2.cdf(self.chi2, self.ndata - self.nparams)
 
     @staticmethod
     def table_from_fit_data(
-        fits: List[Self],
+        fits: List[Type[ReadFits]],
         params: List[str] = ["ap", "at", "bias_LYA", "beta_LYA"],
-        params_names: List[str] = None,
+        params_names: Optional[List[str]] = None,
         ap_baseline: float = 0.985,
         at_baseline: float = 0.918,
         precision: int = 3,
@@ -125,13 +128,9 @@ class ReadFits:
                         )
                 else:
                     row.append("")
-            
-            row.append(
-                f"{fit.chi2:.{precision}f}/({fit.ndata}-{fit.nparams})"
-            )
-            row.append(
-                f"{fit.pvalue:.{precision}f}"
-            )
+
+            row.append(f"{fit.chi2:.{precision}f}/({fit.ndata}-{fit.nparams})")
+            row.append(f"{fit.pvalue:.{precision}f}")
 
             rows.append(row)
 
@@ -141,25 +140,24 @@ class ReadFits:
 
         return df
 
-        
 
 class FitPlots:
     @staticmethod
     def cf_model(
-        bookkeeper: Bookkeeper = None,
-        fit_file: Union[Path, str] = "",
-        correlation_file: Union[Path, str] = "",
+        bookkeeper: Optional[Bookkeeper] = None,
+        fit_file: Path | str = "",
+        correlation_file: Path | str = "",
         region: str = "lya",
-        region2: str = None,
+        region2: Optional[str] = None,
         absorber: str = "lya",
-        absorber2: str = None,
+        absorber2: Optional[str] = None,
         mumin: float = 0,
         mumax: float = 1,
         ax: matplotlib.axes._axes.Axes = None,
         r_factor: int = 2,
         plot_kwargs: Dict = dict(),
         just_return_values: bool = False,
-        output_prefix: Union[Path, str] = None,
+        output_prefix: Optional[Path | str] = None,
         save_data: bool = False,
         save_dict: Dict = dict(),
     ) -> Tuple[np.ndarray, np.ndarray]:
@@ -197,10 +195,15 @@ class FitPlots:
                     "time or use a bookkeeper"
                 )
 
-        if not Path(fit_file).is_file():
-            fit_file = bookkeeper.paths.fit_out_fname()
+        if not isinstance(bookkeeper, Bookkeeper):
+            if not Path(fit_file).is_file() or not Path(correlation_file).is_file():
+                raise ValueError(
+                    "Should provide fit_file and correlation_file at the same"
+                    "time or use a bookkeeper"
+                )
 
-        if not Path(correlation_file).is_file():
+        if isinstance(bookkeeper, Bookkeeper):
+            fit_file = bookkeeper.paths.fit_out_fname()
             correlation_file = bookkeeper.paths.exp_cf_fname(
                 absorber, region, absorber2, region2
             )
@@ -272,13 +275,12 @@ class FitPlots:
         ax.set_title("{0} < $\mu$ < {1}".format(mumin, mumax))
 
         if save_data:
-            data_dict["r"] = data_wedge[0]
-            data_dict["values"] = r_coef * data_wedge[1]
+            data_dict["r"] = model_wedge[0]
+            data_dict["values"] = r_coef * model_wedge[1]
             data_dict["r_factor"] = r_factor
-            data_dict["nb"] = w.W.dot(nb)
 
         plt.tight_layout()
-        if save_data:
+        if save_data and output_prefix is not None:
             np.savez(
                 output_prefix.parent / (output_prefix.name + "-plot_cf_model.npz"),
                 **{**save_dict, **data_dict},
@@ -288,9 +290,9 @@ class FitPlots:
 
     @staticmethod
     def xcf_model(
-        bookkeeper: Bookkeeper = None,
-        fit_file: Union[Path, str] = "",
-        correlation_file: Union[Path, str] = "",
+        bookkeeper: Optional[Bookkeeper] = None,
+        fit_file: Path | str = "",
+        correlation_file: Path | str = "",
         region: str = "lya",
         absorber: str = "lya",
         mumin: float = 0,
@@ -299,7 +301,7 @@ class FitPlots:
         r_factor: int = 2,
         plot_kwargs: Dict = dict(),
         just_return_values: bool = False,
-        output_prefix: Union[Path, str] = None,
+        output_prefix: Optional[Path | str] = None,
         save_data: bool = False,
         save_dict: Dict = dict(),
     ) -> Tuple[np.ndarray, np.ndarray]:
@@ -335,10 +337,15 @@ class FitPlots:
                     "time or use a bookkeeper"
                 )
 
-        if not Path(fit_file).is_file():
-            fit_file = bookkeeper.paths.fit_out_fname()
+        if not isinstance(bookkeeper, Bookkeeper):
+            if not Path(fit_file).is_file() or not Path(correlation_file).is_file():
+                raise ValueError(
+                    "Should provide fit_file and correlation_file at the same"
+                    "time or use a bookkeeper"
+                )
 
-        if not Path(correlation_file).is_file():
+        if isinstance(bookkeeper, Bookkeeper):
+            fit_file = bookkeeper.paths.fit_out_fname()
             correlation_file = bookkeeper.paths.exp_xcf_fname(absorber, region)
 
         with fitsio.FITS(correlation_file) as ffile:
@@ -412,41 +419,44 @@ class FitPlots:
         ax.set_title("{0} < $\mu$ < {1}".format(mumin, mumax))
 
         if save_data:
-            data_dict["r"] = data_wedge[0]
-            data_dict["values"] = r_coef * data_wedge[1]
+            data_dict["r"] = model_wedge[0]
+            data_dict["values"] = r_coef * model_wedge[1]
             data_dict["r_factor"] = r_factor
-            data_dict["nb"] = w.W.dot(nb)
 
         plt.tight_layout()
-        if save_data:
-            np.savez(
-                output_prefix.parent / (output_prefix.name + "-plot_xcf_model.npz"),
-                **{**save_dict, **data_dict},
-            )
+
+        if output_prefix is not None:
+            if save_data:
+                np.savez(
+                    output_prefix.parent / (output_prefix.name + "-plot_xcf_model.npz"),
+                    **{**save_dict, **data_dict},
+                )
+        elif save_data:
+            raise ValueError("Set output_prefix in order to save data.")
 
         return (model_wedge[0], r_coef * model_wedge[1])
 
     @staticmethod
     def cf_model_map(
-        bookkeeper: Bookkeeper = None,
-        fit_file: Union[Path, str] = "",
-        correlation_file: Union[Path, str] = "",
+        bookkeeper: Optional[Bookkeeper] = None,
+        fit_file: Path | str = "",
+        correlation_file: Path | str = "",
         region: str = "lya",
-        region2: str = None,
+        region2: Optional[str] = None,
         absorber: str = "lya",
-        absorber2: str = None,
+        absorber2: Optional[str] = None,
         ax: matplotlib.axes._axes.Axes = None,
         r_factor: int = 2,
         vmin: float = -0.04,
         vmax: float = 0.04,
-        fig: matplotlib.figure.Figure = None, 
+        fig: matplotlib.figure.Figure = None,
         plot_kwargs: Dict = dict(),
         just_return_values: bool = False,
-        output_prefix: Union[Path, str] = None,
+        output_prefix: Optional[Path | str] = None,
         save_data: bool = False,
         save_plot: bool = False,
         save_dict: Dict = dict(),
-    ) -> Tuple[np.ndarray, np.ndarray]:
+    ) -> Tuple[List[float], np.ndarray]:
         """
         Plot fit correlation function model.
 
@@ -482,10 +492,15 @@ class FitPlots:
                     "time or use a bookkeeper"
                 )
 
-        if not Path(fit_file).is_file():
-            fit_file = bookkeeper.paths.fit_out_fname()
+        if not isinstance(bookkeeper, Bookkeeper):
+            if not Path(fit_file).is_file() or not Path(correlation_file).is_file():
+                raise ValueError(
+                    "Should provide fit_file and correlation_file at the same"
+                    "time or use a bookkeeper"
+                )
 
-        if not Path(correlation_file).is_file():
+        if isinstance(bookkeeper, Bookkeeper):
+            fit_file = bookkeeper.paths.fit_out_fname()
             correlation_file = bookkeeper.paths.exp_cf_fname(
                 absorber, region, absorber2, region2
             )
@@ -532,7 +547,7 @@ class FitPlots:
         nrp, nrt = cor_header["NP"], cor_header["NT"]
         r = r.reshape(nrp, nrt)
 
-        mat = model.reshape(nrp, nrt)*r**r_factor
+        mat = model.reshape(nrp, nrt) * r**r_factor
 
         if just_return_values:
             return extent, mat
@@ -567,41 +582,44 @@ class FitPlots:
         cax.yaxis.set_label_position("right")
         cax.set_ylabel(r"$r\xi(r_{\parallel,r_{\perp}})$")
 
-        if save_plot:
-            output_prefix = Path(output_prefix)
-            plt.tight_layout()
-            plt.savefig(
-                str(output_prefix) + ".png",
-                dpi=300,
-            )
+        if output_prefix is not None:
+            if save_plot:
+                output_prefix = Path(output_prefix)
+                plt.tight_layout()
+                plt.savefig(
+                    str(output_prefix) + ".png",
+                    dpi=300,
+                )
 
-        if save_data:
-            np.savez(
-                str(output_prefix) + ".npz",
-                **{**save_dict, **data_dict},
-            )
+            if save_data:
+                np.savez(
+                    str(output_prefix) + ".npz",
+                    **{**save_dict, **data_dict},
+                )
+        elif save_data or save_plot:
+            raise ValueError("Set output_prefix in order to save data.")
 
         return extent, mat
 
     @staticmethod
     def xcf_model_map(
-        bookkeeper: Bookkeeper = None,
-        fit_file: Union[Path, str] = "",
-        correlation_file: Union[Path, str] = "",
+        bookkeeper: Optional[Bookkeeper] = None,
+        fit_file: Path | str = "",
+        correlation_file: Path | str = "",
         region: str = "lya",
         absorber: str = "lya",
         ax: matplotlib.axes._axes.Axes = None,
         r_factor: int = 2,
         vmin: float = -0.4,
         vmax: float = 0.4,
-        fig: matplotlib.figure.Figure = None, 
+        fig: matplotlib.figure.Figure = None,
         plot_kwargs: Dict = dict(),
         just_return_values: bool = False,
-        output_prefix: Union[Path, str] = None,
+        output_prefix: Optional[Path | str] = None,
         save_data: bool = False,
         save_plot: bool = False,
         save_dict: Dict = dict(),
-    ) -> Tuple[np.ndarray, np.ndarray]:
+    ) -> Tuple[List[float], np.ndarray]:
         """
         Plot fit correlation function model.
 
@@ -635,10 +653,15 @@ class FitPlots:
                     "time or use a bookkeeper"
                 )
 
-        if not Path(fit_file).is_file():
-            fit_file = bookkeeper.paths.fit_out_fname()
+        if not isinstance(bookkeeper, Bookkeeper):
+            if not Path(fit_file).is_file() or not Path(correlation_file).is_file():
+                raise ValueError(
+                    "Should provide fit_file and correlation_file at the same"
+                    "time or use a bookkeeper"
+                )
 
-        if not Path(correlation_file).is_file():
+        if isinstance(bookkeeper, Bookkeeper):
+            fit_file = bookkeeper.paths.fit_out_fname()
             correlation_file = bookkeeper.paths.exp_xcf_fname(absorber, region)
 
         with fitsio.FITS(correlation_file) as ffile:
@@ -687,7 +710,7 @@ class FitPlots:
         nrp, nrt = cor_header["NP"], cor_header["NT"]
         r = r.reshape(nrp, nrt)
 
-        mat = model.reshape(nrp, nrt)*r**r_factor
+        mat = model.reshape(nrp, nrt) * r**r_factor
 
         if just_return_values:
             return extent, mat
@@ -717,24 +740,27 @@ class FitPlots:
         )
 
         fig.colorbar(im, cax=cax, orientation="vertical")
-        ax.set_xlabel(r'$r_{\perp} \, [h^{-1} \, \rm{Mpc}]$')
-        ax.set_ylabel(r'$r_{\parallel} \, [h^{-1} \, \rm{Mpc}]$')
+        ax.set_xlabel(r"$r_{\perp} \, [h^{-1} \, \rm{Mpc}]$")
+        ax.set_ylabel(r"$r_{\parallel} \, [h^{-1} \, \rm{Mpc}]$")
         cax.yaxis.set_label_position("right")
-        cax.set_ylabel(r'$r\xi(r_{\parallel,r_{\perp}})$')
+        cax.set_ylabel(r"$r\xi(r_{\parallel,r_{\perp}})$")
 
-        if save_plot:
-            output_prefix = Path(output_prefix)
-            plt.tight_layout()
-            plt.savefig(
-                str(output_prefix) + ".png",
-                dpi=300,
-            )
+        if output_prefix is not None:
+            if save_plot:
+                output_prefix = Path(output_prefix)
+                plt.tight_layout()
+                plt.savefig(
+                    str(output_prefix) + ".png",
+                    dpi=300,
+                )
 
-        if save_data:
-            np.savez(
-                str(output_prefix) + ".npz",
-                **{**save_dict, **data_dict},
-            )
+            if save_data:
+                np.savez(
+                    str(output_prefix) + ".npz",
+                    **{**save_dict, **data_dict},
+                )
+        elif save_data or save_plot:
+            raise ValueError("Set output_prefix in order to save data.")
 
         return extent, mat
 
@@ -742,8 +768,8 @@ class FitPlots:
     def plot_errorbars_from_fit(
         readfits: List[ReadFits],
         param: str,
-        param_name: str = None,
-        ax: matplotlib.axes._axes.Axes = None,
+        param_name: Optional[str] = None,
+        ax: Optional[matplotlib.axes._axes.Axes] = None,
         plot_kwargs: Dict = dict(),
     ) -> List[matplotlib.container.Container]:
         """
@@ -753,7 +779,7 @@ class FitPlots:
             param_name: Name of the param to show.
             ax: Axis where to plot. If not provided, it will be created.
 
-        Returns: 
+        Returns:
             List of plot handles to make legend from it.
         """
         if param_name is None:
@@ -770,14 +796,17 @@ class FitPlots:
             error = fit.errors[idx]
 
             if fit.colour is not None:
-                plot_kwargs = {
-                    **plot_kwargs,
-                    **dict(color=fit.colour)
-                }
+                plot_kwargs = {**plot_kwargs, **dict(color=fit.colour)}
 
             handles.append(
                 ax.errorbar(
-                    value, i, xerr=error, yerr=0, label=fit.label, marker="o", **plot_kwargs,
+                    value,
+                    i,
+                    xerr=error,
+                    yerr=0,
+                    label=fit.label,
+                    marker="o",
+                    **plot_kwargs,
                 )
             )
 
@@ -791,14 +820,14 @@ class FitPlots:
     def plot_p_value_from_fit(
         readfits: List[ReadFits],
         ax: matplotlib.axes._axes.Axes = None,
-        plot_kwargs: Dict = dict()
+        plot_kwargs: Dict = dict(),
     ) -> List[matplotlib.container.Container]:
         """
         Args:
             readfits: List of readfits objects to show in the plot.
             ax: Axis where to plot. If not provided, it will be created.
 
-        Returns: 
+        Returns:
             List of plot handles to make legend from it.
         """
         if ax is None:
@@ -807,11 +836,8 @@ class FitPlots:
         handles = []
         for i, fit in enumerate(readfits):
             if fit.colour is not None:
-                plot_kwargs = {
-                    **plot_kwargs,
-                    **dict(color=fit.colour)
-                }
-                
+                plot_kwargs = {**plot_kwargs, **dict(color=fit.colour)}
+
             handles.append(
                 ax.errorbar(
                     fit.pvalue / 2,
@@ -822,7 +848,7 @@ class FitPlots:
                     **plot_kwargs,
                 )
             )
-    
+
         ax.set_xlabel("p-value")
         ax.set_yticks([])
         ax.grid(visible=True)

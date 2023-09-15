@@ -1,14 +1,20 @@
 """ Script to run vega fit given a bookkeeper config file"""
+from __future__ import annotations
+
 import argparse
 import logging
 import sys
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from picca_bookkeeper.bookkeeper import Bookkeeper
 
+if TYPE_CHECKING:
+    from typing import Optional
 logger = logging.getLogger(__name__)
 
-def main(args=None):
+
+def main(args: Optional[argparse.Namespace] = None) -> None:
     if args is None:
         args = get_args()
 
@@ -38,16 +44,14 @@ def main(args=None):
         logger.info(f"Sent fit:\n\t{fit.jobid}")
 
 
-def get_args():
+def get_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "bookkeeper_config", type=Path, help="Path to bookkeeper file to use"
     )
 
     parser.add_argument(
-        "--overwrite",
-        action="store_true",
-        help="Force overwrite output data."
+        "--overwrite", action="store_true", help="Force overwrite output data."
     )
 
     parser.add_argument(

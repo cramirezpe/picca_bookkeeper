@@ -1,12 +1,17 @@
 """ Script to run add_extra_deltas_data
 given a bookkeeper config file."""
-from pathlib import Path
 import argparse
+from pathlib import Path
+from typing import TYPE_CHECKING
+from __future__ import annotations
 from picca_bookkeeper.bookkeeper import Bookkeeper
 from picca_bookkeeper.tasker import get_Tasker
 
+if TYPE_CHECKING:
+    from typing import Optional
 
-def main(args=None):
+
+def main(args: Optional[argparse.Namespace] = None) -> None:
     if args is None:
         args = get_args()
     bookkeeper = Bookkeeper(
@@ -64,8 +69,9 @@ def main(args=None):
     }
 
     updated_slurm_header_args = bookkeeper.generate_slurm_header_extra_args(
-        config=bookkeeper.config["delta extraction"],
-        default_config=bookkeeper.defaults["delta extraction"],
+        config=bookkeeper.config,
+        default_config=bookkeeper.defaults,
+        section="delta extraction",
         slurm_args=slurm_header_args,
         command=command,
         region=region,
@@ -78,17 +84,15 @@ def main(args=None):
 
     system = bookkeeper.generate_system_arg(None)
 
-    tasker = get_Tasker(
-        system,
+    tasker = get_Tasker(system)(
         command=command,
         command_args=command_args,
         slurm_header_args=updated_slurm_header_args,
         srun_options=srun_options,
         environment=bookkeeper.config["general"]["conda environment"],
-        in_files=[
-            bookkeeper.paths.delta_attributes_file(region)
-        ]
+        in_files=[bookkeeper.paths.delta_attributes_file(region)],
         run_file=bookkeeper.paths.run_path / f"scripts/run_{job_name}.sh",
+        jobid_log_file=bookkeeper.paths.run_path / f"logs/jobids.log",
         wait_for=args.wait_for,
     )
 
@@ -97,7 +101,7 @@ def main(args=None):
         tasker.send_job()
 
 
-def get_args():
+def get_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "bookkeeper_config", type=Path, help="Path to bookkeeper file to use"

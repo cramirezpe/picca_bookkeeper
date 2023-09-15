@@ -7,7 +7,7 @@ import copy
 
 class DictUtils:
     @staticmethod
-    def merge_dicts(dict1: Dict, dict2: Dict):
+    def merge_dicts(dict1: Dict, dict2: Dict) -> Dict:
         """Merges two dictionaries recursively preserving values in dict2"""
         result = copy.deepcopy(dict1)
 
@@ -15,27 +15,27 @@ class DictUtils:
             if isinstance(value, collections.abc.Mapping):
                 if not isinstance(result.get(key, {}), collections.abc.Mapping):
                     result[key] = dict()
-                result[key] = DictUtils.merge_dicts(result.get(key, {}), value)
+                result[key] = DictUtils.merge_dicts(result.get(key, {}), value)  # type: ignore
             else:
                 result[key] = copy.deepcopy(dict2[key])
 
         return result
 
     @staticmethod
-    def remove_matching(dict1: Dict, dict2: Dict):
+    def remove_matching(dict1: Dict, dict2: Dict) -> Dict:
         """Removes occurrences happening in two dictionaries."""
         result = copy.deepcopy(dict1)
 
         for key, value in dict2.items():
             if isinstance(value, collections.abc.Mapping):
-                result[key] = DictUtils.remove_matching(result.get(key, {}), value)
+                result[key] = DictUtils.remove_matching(result.get(key, {}), value)  # type: ignore
             elif key in result:
                 result.pop(key)
 
         return result
 
     @staticmethod
-    def diff_dicts(dict1: Dict, dict2: Dict):
+    def diff_dicts(dict1: Dict, dict2: Dict) -> Dict:
         """Function to give differences between dicts"""
         differences = dict()
 
@@ -43,7 +43,7 @@ class DictUtils:
             if not isinstance(dict2, collections.abc.Mapping) or key not in dict2:
                 differences[key] = [dict1[key], None]
             elif isinstance(value, collections.abc.Mapping):
-                differences[key] = DictUtils.diff_dicts(dict1[key], dict2[key])
+                differences[key] = DictUtils.diff_dicts(dict1[key], dict2[key])  # type: ignore
             elif not dict1[key] == dict2[key]:
                 differences[key] = [dict1[key], dict2[key]]
 
@@ -55,7 +55,7 @@ class DictUtils:
         return differences
 
     @staticmethod
-    def remove_empty(config: Dict):
+    def remove_empty(config: Dict) -> Dict:
         """Function to remove empty strings from dict"""
         result = copy.deepcopy(config)
 
@@ -65,7 +65,7 @@ class DictUtils:
                     result.pop(key)
                     break
                 elif isinstance(value, collections.abc.Mapping):
-                    result[key] = DictUtils.remove_empty(value)
+                    result[key] = DictUtils.remove_empty(value)  # type: ignore
             else:
                 # This trick allows for repeating the function until
                 # input and outut are the same: all empty strings have
@@ -78,7 +78,7 @@ class DictUtils:
                 return result
 
     @staticmethod
-    def print_dict(dict_, depth=0, string="") -> str:
+    def print_dict(dict_: Dict, depth: int = 0, string: str = "") -> str:
         """Nicely prints a dict with multiple depth levels.
 
         Returns
@@ -93,7 +93,7 @@ class DictUtils:
         return string
 
     @staticmethod
-    def convert_to_string(dict_) -> Dict:
+    def convert_to_string(dict_: Dict) -> Dict:
         """Convert dictionary values into strings for savely output into .ini
         file
 

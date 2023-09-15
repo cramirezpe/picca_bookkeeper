@@ -3,21 +3,29 @@ from __future__ import annotations
 
 from pathlib import Path
 from tabulate import tabulate
-from typing import *
+from typing import TYPE_CHECKING
 import yaml
 import numpy as np
 
 from picca_bookkeeper.dict_utils import DictUtils
 
+if TYPE_CHECKING:
+    from typing import Any, Dict, List, Optional, Tuple, Type, TypeVar
+
+    T1 = TypeVar("T1", bound=int)
+
 
 def get_bookkeeper_differences(
-    locations: Union[str, Path],
+    locations: Path | str | List[Path | str],
     analysis_type: str = "delta",
     remove_identical: bool = True,
     transpose: bool = False,
     sort_by_value: bool = False,
 ) -> None:
     assert analysis_type in ("delta", "correlation", "fit")
+
+    Config: Type[ConfigReader]
+
     if analysis_type == "delta":
         Config = DeltaConfigReader
     elif analysis_type == "correlation":
@@ -33,6 +41,7 @@ def get_bookkeeper_differences(
 
     analyses = []
     for config in locations:
+        config = Path(config)
         for file in config.glob(f"**/{filename}"):
             analyses.append(
                 Config(
@@ -59,15 +68,15 @@ def get_bookkeeper_differences(
 
 def show_diffs(
     configs: List[Dict],
-    name_keys: List[str],
-    name_values: List[str],
+    name_keys: List[str] | np.ndarray[Tuple[T1], np.dtype[np.str_]],
+    name_values: List[str] | np.ndarray[Tuple[T1], np.dtype[np.str_]],
     remove_identical: bool = True,
     transpose: bool = False,
     sort_by_value: bool = False,
     depth: int = 1,
     title: str = "",
 ) -> None:
-    keys = []
+    keys_ = []
     dict_keys = []
     remove_keys = []
     for config in configs:
@@ -83,8 +92,8 @@ def show_diffs(
                 # be performed outside the configs loop.
                 dict_keys.append(key)
             else:
-                keys.append(key)
-    keys = np.unique(keys)
+                keys_.append(key)
+    keys = np.unique(keys_)
     dict_keys = np.unique(dict_keys)
     remove_keys = np.unique(remove_keys)
 
@@ -106,7 +115,7 @@ def show_diffs(
             title=title + "/" + dict_key,
         )
 
-    rows = []
+    rows_ = []
     for config in configs:
         if config is None:
             config = dict()
@@ -116,8 +125,8 @@ def show_diffs(
                 row.append(config[key])
             else:
                 row.append("")
-        rows.append(row)
-    rows = np.array(rows)
+        rows_.append(row)
+    rows = np.array(rows_)
 
     if rows.size == 0:
         # No data in plot, then skip
@@ -164,8 +173,11 @@ class ConfigReader:
     """
 
     config_name = "bookkeeper_config.yaml"
+    config_type: str = ""
+    first_els = np.array([])
+    first_els_values = np.array([])
 
-    def __init__(self, bookkeeper_path: Union[str, Path]):
+    def __init__(self, bookkeeper_path: Path | str):
         """
         Args:
             bookkeeper_path: Path to the bookkeeper or bookkeeper file.
@@ -193,7 +205,7 @@ class ConfigReader:
     def name(self) -> str:
         return self.path.resolve().parent.parent.name
 
-    def read_defaults(self):
+    def read_defaults(self) -> None:
         """Method to read bookkeeper defaults"""
         if self.defaults_file.is_file():
             with open(self.defaults_file) as file:
@@ -201,7 +213,7 @@ class ConfigReader:
         else:
             self.defaults = dict()
 
-    def read_config(self):
+    def read_config(self) -> None:
         """Method to read a bookkeeper configuration yaml file"""
         with open(self.path) as file:
             self.config = yaml.safe_load(file)
@@ -218,12 +230,22 @@ class ConfigReader:
             DictUtils.remove_empty(self.config),
         )
 
+    @property
+    def defaults_file(self) -> Path:
+        raise ValueError("Function has to be defined by child class.")
+
+    def save_key_fields(self) -> None:
+        raise ValueError("Function has to be defined by child class.")
+
+    def clean_config(self) -> None:
+        raise ValueError("Function has to be defined by child class.")
+
 
 class DeltaConfigReader(ConfigReader):
     first_els = np.array(["delta run"])
     config_type = "deltas"
 
-    def clean_config(self):
+    def clean_config(self) -> None:
         """Method to remove unnecessary sections from config file"""
         self.config = self.config["delta extraction"]
 
@@ -234,7 +256,7 @@ class DeltaConfigReader(ConfigReader):
         self.config.pop("bal")
         self.config.pop("suffix")
 
-    def save_key_fields(self):
+    def save_key_fields(self) -> None:
         run_name = self.name
 
         self.first_els_values = np.array([run_name])
@@ -248,14 +270,14 @@ class CorrelationConfigReader(ConfigReader):
     first_els = np.array(["delta run", "correlation run"])
     config_type = "correlations"
 
-    def clean_config(self):
+    def clean_config(self) -> None:
         """Method to remove unnecessary sections from config file"""
         self.config = self.config["correlations"]
 
         self.config.pop("delta extraction")
         self.config.pop("run name")
 
-    def save_key_fields(self):
+    def save_key_fields(self) -> None:
         run_name = self.name
         delta_extraction = self.path.resolve().parent.parent.parent.parent.name
 
@@ -274,7 +296,7 @@ class FitConfigReader(ConfigReader):
     first_els = np.array(["delta run", "correlation run", "fit run"])
     config_type = "fits"
 
-    def clean_config(self):
+    def clean_config(self) -> None:
         """Method to remove unnecessary sections from config file"""
         self.config = self.config["fits"]
 
@@ -282,7 +304,7 @@ class FitConfigReader(ConfigReader):
         self.config.pop("correlation run name")
         self.config.pop("run name")
 
-    def save_key_fields(self):
+    def save_key_fields(self) -> None:
         run_name = self.name
         correlation_run = self.path.resolve().parent.parent.parent.parent.name
         delta_extraction = (

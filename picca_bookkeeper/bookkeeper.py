@@ -7,9 +7,9 @@ import logging
 import shutil
 import sys
 from pathlib import Path
-from typing import *
-import numpy as np
+from typing import TYPE_CHECKING
 
+import numpy as np
 import yaml
 from importlib_resources import files
 from picca.constants import ABSORBER_IGM
@@ -17,7 +17,10 @@ from yaml import SafeDumper
 
 from picca_bookkeeper import resources
 from picca_bookkeeper.dict_utils import DictUtils
-from picca_bookkeeper.tasker import ChainedTasker, Tasker, get_Tasker, DummyTasker
+from picca_bookkeeper.tasker import ChainedTasker, DummyTasker, Tasker, get_Tasker
+
+if TYPE_CHECKING:
+    from typing import Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -68,7 +71,9 @@ absorber_igm = dict((absorber.lower(), absorber) for absorber in ABSORBER_IGM)
 config_file_sorting = ["general", "delta extraction", "correlations", "fits"]
 
 
-def get_quasar_catalog(release, survey, catalog, bal=False) -> Path:  # pragma: no cover
+def get_quasar_catalog(
+    release: str, survey: str, catalog: str, bal: bool = False
+) -> Path:  # pragma: no cover
     """Function to obtain a quasar catalog given different options
 
     Attributes:
@@ -77,19 +82,13 @@ def get_quasar_catalog(release, survey, catalog, bal=False) -> Path:  # pragma: 
         catalog (str): redrock_v0, afterburn_v0, afterburn_v1, ...
         bal (bool): whether to search for catalogs with BALs included.
     """
-    catalogues_file = files(resources).joinpath(
-        "catalogues/quasar.yaml"
-    )
+    catalogues_file = files(resources).joinpath("catalogues/quasar.yaml")
     catalogues = yaml.safe_load(catalogues_file.read_text())
 
     if bal:
         catalog += "-bal"
 
-
-    if catalogues[release][survey].get(
-        catalog,
-        None
-    ) is not None:
+    if catalogues[release][survey].get(catalog, None) is not None:
         return Path(catalogues[release][survey][catalog])
     else:
         raise FileNotFoundError(
@@ -98,7 +97,7 @@ def get_quasar_catalog(release, survey, catalog, bal=False) -> Path:  # pragma: 
         )
 
 
-def get_dla_catalog(release, survey, version=1) -> Path:
+def get_dla_catalog(release: str, survey: str, version: int = 1) -> Path:
     """Function to obtain a DLA catalog.
 
     Arguments:
@@ -106,22 +105,17 @@ def get_dla_catalog(release, survey, version=1) -> Path:
         survey (str): sv1, sv3, sv13, main, all
         version (float): version of the catalog
     """
-    catalogues_file = files(resources).joinpath(
-        "catalogues/dla.yaml"
-    )
+    catalogues_file = files(resources).joinpath("catalogues/dla.yaml")
     catalogues = yaml.safe_load(catalogues_file.read_text())
 
-
-    if catalogues[release][survey].get(
-        f"v{version}",
-        None
-    ) is not None:
+    if catalogues[release][survey].get(f"v{version}", None) is not None:
         return Path(catalogues[release][survey][f"v{version}"])
     else:
         raise FileNotFoundError(
             "Could not find a compatible DLA catalogue inside the bookkeeper."
             f"\tRelease: {release}\n\tSurvey: {survey}\n\tVersion: {version}"
         )
+
 
 class Bookkeeper:
     """Class to generate Tasker objects which can be used to run different picca jobs.
@@ -130,9 +124,11 @@ class Bookkeeper:
         config (configparser.ConfigParser): Configuration file for the bookkeeper.
     """
 
+    label: Optional[str]
+
     def __init__(
         self,
-        config_path: Union[str, Path],
+        config_path: str | Path,
         overwrite_config: bool = False,
         read_mode: bool = False,
     ):
@@ -332,7 +328,7 @@ class Bookkeeper:
             )
 
     @staticmethod
-    def write_ini(config: Dict, file: Union[Path, str]) -> None:
+    def write_ini(config: Dict, file: Path | str) -> None:
         """Safely save a dictionary into an .ini file
 
         Args
@@ -342,14 +338,14 @@ class Bookkeeper:
         config = DictUtils.convert_to_string(config)
 
         parser = configparser.ConfigParser()
-        parser.optionxform = str
+        parser.optionxform = str  # type: ignore
         parser.read_dict(config)
 
-        with open(file, "w") as file:
-            parser.write(file)
+        with open(file, "w") as write_file:
+            parser.write(write_file)
 
     @staticmethod
-    def write_bookkeeper(config: Dict, file: Union[Path, str]) -> None:
+    def write_bookkeeper(config: Dict, file: Path | str) -> None:
         """Method to write bookkeeper yaml file to file
 
         Args:
@@ -462,10 +458,10 @@ class Bookkeeper:
         section: str,
         slurm_args: Dict,
         command: str,
-        region: str = None,
-        absorber: str = None,
-        region2: str = None,
-        absorber2: str = None,
+        region: Optional[str] = None,
+        absorber: Optional[str] = None,
+        region2: Optional[str] = None,
+        absorber2: Optional[str] = None,
     ) -> Dict:
         """Add extra slurm header args to the run.
 
@@ -533,10 +529,10 @@ class Bookkeeper:
         section: str,
         extra_args: Dict,
         command: str,
-        region: str = None,
-        absorber: str = None,
-        region2: str = None,
-        absorber2: str = None,
+        region: Optional[str] = None,
+        absorber: Optional[str] = None,
+        region2: Optional[str] = None,
+        absorber2: Optional[str] = None,
     ) -> Dict:
         """Add extra extra args to the run.
 
@@ -568,7 +564,7 @@ class Bookkeeper:
         if region2 != "":
             sections[-1] += f"_{absorber2}{region2}"
 
-        args = dict()
+        args: Dict = dict()
         if "extra args" in default_config.keys() and isinstance(
             default_config["extra args"], dict
         ):
@@ -607,7 +603,7 @@ class Bookkeeper:
 
         return args
 
-    def generate_system_arg(self, system) -> str:
+    def generate_system_arg(self, system: Optional[str]) -> str:
         if system is None:
             return copy.copy(
                 self.config.get("general", dict()).get("system", "slurm_perlmutter")
@@ -615,7 +611,9 @@ class Bookkeeper:
         else:
             return system
 
-    def add_calibration_options(self, extra_args: Dict, calib_step: int = None) -> Dict:
+    def add_calibration_options(
+        self, extra_args: Dict, calib_step: Optional[int] = None
+    ) -> Tuple[List[Path], Dict]:
         """Method to add calibration options to extra args
 
         Args:
@@ -649,7 +647,12 @@ class Bookkeeper:
             if calib_step is not None:
                 if calib_step == 2:
                     num_corrections = (
-                        int(extra_args.get("corrections").get("num corrections", 0)) + 1
+                        int(
+                            extra_args.get("corrections", dict()).get(
+                                "num corrections", 0
+                            )
+                        )
+                        + 1
                     )
 
                     extra_args = DictUtils.merge_dicts(
@@ -679,7 +682,8 @@ class Bookkeeper:
                     )
 
                 num_corrections = (
-                    int(extra_args.get("corrections").get("num corrections", 0)) + 2
+                    int(extra_args.get("corrections", dict()).get("num corrections", 0))
+                    + 2
                 )
 
                 extra_args = DictUtils.merge_dicts(
@@ -715,7 +719,8 @@ class Bookkeeper:
                         "before running deltas."
                     )
                 num_corrections = (
-                    int(extra_args.get("corrections").get("num corrections", 0)) + 1
+                    int(extra_args.get("corrections", dict()).get("num corrections", 0))
+                    + 1
                 )
 
                 extra_args = DictUtils.merge_dicts(
@@ -735,7 +740,9 @@ class Bookkeeper:
                 input_files.append(self.paths.delta_attributes_file(None, calib_step=1))
         return input_files, extra_args
 
-    def add_mask_options(self, extra_args: Dict, calib_step: int = None) -> Dict:
+    def add_mask_options(
+        self, extra_args: Dict, calib_step: Optional[int] = None
+    ) -> Dict:
         """Method to add mask options to extra args
 
         Args:
@@ -858,7 +865,12 @@ class Bookkeeper:
                     "args section in order to run TrueContinuum"
                 )
             deltas_config_dict["expected flux"]["type"] = "TrueContinuum"
-            if deltas_config_dict.get("expected flux").get("input directory", 0) == 0:
+            if (
+                deltas_config_dict.get("expected flux", dict()).get(
+                    "input directory", 0
+                )
+                == 0
+            ):
                 deltas_config_dict["expected flux"][
                     "input directory"
                 ] = self.paths.healpix_data
@@ -866,9 +878,9 @@ class Bookkeeper:
     def get_raw_deltas_tasker(
         self,
         region: str = "lya",
-        system: str = None,
+        system: Optional[str] = None,
         debug: bool = False,
-        wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
+        wait_for: Optional[Tasker | ChainedTasker | int | List[int]] = None,
         slurm_header_extra_args: Dict = dict(),
         extra_args: Dict = dict(),
         overwrite: bool = False,
@@ -989,12 +1001,12 @@ class Bookkeeper:
     def get_delta_extraction_tasker(
         self,
         region: str = "lya",
-        system: str = None,
+        system: Optional[str] = None,
         debug: bool = False,
-        wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
+        wait_for: Optional[Tasker | ChainedTasker | int | List[int]] = None,
         slurm_header_extra_args: Dict = dict(),
         extra_args: Dict = dict(),
-        calib_step: int = None,
+        calib_step: Optional[int] = None,
         overwrite: bool = False,
         skip_sent: bool = False,
     ) -> Tasker:
@@ -1158,7 +1170,7 @@ class Bookkeeper:
             slurm_header_args = DictUtils.merge_dicts(
                 slurm_header_args, dict(qos="debug", time="00:30:00")
             )
-            deltas_config_dict.get("data").update({"max num spec": 1000})
+            deltas_config_dict.get("data", dict()).update({"max num spec": 1000})
 
         return get_Tasker(updated_system)(
             command=command,
@@ -1177,14 +1189,14 @@ class Bookkeeper:
 
     def get_calibration_extraction_tasker(
         self,
-        system: str = None,
-        debug: str = False,
-        wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
+        system: Optional[str] = None,
+        debug: bool = False,
+        wait_for: Optional[Tasker | ChainedTasker | int | List[int]] = None,
         slurm_header_extra_args: Dict = dict(),
         extra_args: Dict = dict(),
         overwrite: bool = False,
         skip_sent: bool = False,
-    ) -> Tasker:
+    ) -> ChainedTasker:
         """Method to get a Tasker object to run calibration with picca delta
         extraction method.
 
@@ -1250,7 +1262,7 @@ class Bookkeeper:
                 )
             )
         elif self.config["delta extraction"]["calib"] in (1, 10):
-            steps = (
+            steps = [
                 self.get_delta_extraction_tasker(
                     region=region,
                     system=system,
@@ -1262,7 +1274,7 @@ class Bookkeeper:
                     overwrite=overwrite,
                     skip_sent=skip_sent,
                 ),
-            )
+            ]
         else:
             raise ValueError("Trying to run calibration with calib=0 in config file.")
 
@@ -1271,12 +1283,12 @@ class Bookkeeper:
     def get_cf_tasker(
         self,
         region: str = "lya",
-        region2: str = None,
+        region2: Optional[str] = None,
         absorber: str = "lya",
-        absorber2: str = None,
-        system: str = None,
+        absorber2: Optional[str] = None,
+        system: Optional[str] = None,
         debug: bool = False,
-        wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
+        wait_for: Optional[Tasker | ChainedTasker | int | List[int]] = None,
         slurm_header_extra_args: Dict = dict(),
         extra_args: Dict = dict(),
         overwrite: bool = False,
@@ -1394,7 +1406,7 @@ class Bookkeeper:
         }
 
         if absorber2 != absorber:
-            args["lambda-abs2"]: absorber_igm[absorber2.lower()]
+            args["lambda-abs2"] = absorber_igm[absorber2.lower()]
 
         if region2 != region:
             args["in-dir2"] = str(self.paths.deltas_path(region2))
@@ -1433,12 +1445,12 @@ class Bookkeeper:
     def get_dmat_tasker(
         self,
         region: str = "lya",
-        region2: str = None,
+        region2: Optional[str] = None,
         absorber: str = "LYA",
-        absorber2: str = None,
-        system: str = None,
+        absorber2: Optional[str] = None,
+        system: Optional[str] = None,
         debug: bool = False,
-        wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
+        wait_for: Optional[Tasker | ChainedTasker | int | List[int]] = None,
         slurm_header_extra_args: Dict = dict(),
         extra_args: Dict = dict(),
         overwrite: bool = False,
@@ -1557,7 +1569,7 @@ class Bookkeeper:
         }
 
         if absorber2 != absorber:
-            args["lambda-abs2"]: absorber_igm[absorber2.lower()]
+            args["lambda-abs2"] = absorber_igm[absorber2.lower()]
 
         if region2 != region:
             args["in-dir2"] = str(self.paths.deltas_path(region2))
@@ -1595,11 +1607,11 @@ class Bookkeeper:
     def get_cf_exp_tasker(
         self,
         region: str = "lya",
-        region2: str = None,
+        region2: Optional[str] = None,
         absorber: str = "LYA",
-        absorber2: str = None,
-        system: str = None,
-        wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
+        absorber2: Optional[str] = None,
+        system: Optional[str] = None,
+        wait_for: Optional[Tasker | ChainedTasker | int | List[int]] = None,
         slurm_header_extra_args: Dict = dict(),
         extra_args: Dict = dict(),
         overwrite: bool = False,
@@ -1750,12 +1762,12 @@ class Bookkeeper:
     def get_metal_tasker(
         self,
         region: str = "lya",
-        region2: str = None,
+        region2: Optional[str] = None,
         absorber: str = "LYA",
-        absorber2: str = None,
-        system: str = None,
+        absorber2: Optional[str] = None,
+        system: Optional[str] = None,
         debug: bool = False,
-        wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
+        wait_for: Optional[Tasker | ChainedTasker | int | List[int]] = None,
         slurm_header_extra_args: Dict = dict(),
         extra_args: Dict = dict(),
         overwrite: bool = False,
@@ -1876,7 +1888,7 @@ class Bookkeeper:
         }
 
         if absorber2 != absorber:
-            args["lambda-abs2"]: absorber_igm[absorber2.lower()]
+            args["lambda-abs2"] = absorber_igm[absorber2.lower()]
 
         if region2 != region:
             args["in-dir2"] = str(self.paths.deltas_path(region2))
@@ -1914,9 +1926,9 @@ class Bookkeeper:
         self,
         region: str = "lya",
         absorber: str = "lya",
-        system: str = None,
+        system: Optional[str] = None,
         debug: bool = False,
-        wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
+        wait_for: Optional[Tasker | ChainedTasker | int | List[int]] = None,
         slurm_header_extra_args: Dict = dict(),
         extra_args: Dict = dict(),
         overwrite: bool = False,
@@ -2055,9 +2067,9 @@ class Bookkeeper:
         self,
         region: str = "lya",
         absorber: str = "lya",
-        system: str = None,
+        system: Optional[str] = None,
         debug: bool = False,
-        wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
+        wait_for: Optional[Tasker | ChainedTasker | int | List[int]] = None,
         slurm_header_extra_args: Dict = dict(),
         extra_args: Dict = dict(),
         overwrite: bool = False,
@@ -2199,9 +2211,9 @@ class Bookkeeper:
         self,
         region: str = "lya",
         absorber: str = "lya",
-        system: str = None,
+        system: Optional[str] = None,
         debug: bool = False,
-        wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
+        wait_for: Optional[Tasker | ChainedTasker | int | List[int]] = None,
         slurm_header_extra_args: Dict = dict(),
         extra_args: Dict = dict(),
         overwrite: bool = False,
@@ -2343,9 +2355,9 @@ class Bookkeeper:
         self,
         region: str = "lya",
         absorber: str = "lya",
-        system: str = None,
+        system: Optional[str] = None,
         debug: bool = False,
-        wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
+        wait_for: Optional[Tasker | ChainedTasker | int | List[int]] = None,
         slurm_header_extra_args: Dict = dict(),
         extra_args: Dict = dict(),
         overwrite: bool = False,
@@ -2492,12 +2504,12 @@ class Bookkeeper:
         self,
         auto_correlations: List[str] = [],
         cross_correlations: List[str] = [],
-        system: str = None,
-        wait_for: Union[Tasker, ChainedTasker, int, List[int]] = None,
+        system: Optional[str] = None,
+        wait_for: Optional[Tasker | ChainedTasker | int | List[int]] = None,
         # vega_extra_args: Dict = dict(),
         slurm_header_extra_args: Dict = dict(),
         overwrite: bool = False,
-    ) -> Tasker:
+    ) -> Tasker | DummyTasker:
         """Method to get a Tasker object to run vega with correlation data.
 
         Args:
@@ -2734,7 +2746,6 @@ class Bookkeeper:
             command=command,
         )
 
-
         slurm_header_args = {
             "job-name": job_name,
             "output": str(self.paths.fits_path / f"logs/{job_name}-%j.out"),
@@ -2758,7 +2769,7 @@ class Bookkeeper:
             wait_for=wait_for,
         )
 
-    def generate_fit_configuration(self):
+    def generate_fit_configuration(self) -> Dict:
         """
         Method to generate fit configuration args to be combined with input
         yaml file
@@ -3190,7 +3201,7 @@ class PathBuilder:
         """
         return self.fits_path / "configs" / "bookkeeper_config.yaml"
 
-    def get_catalog_from_field(self, field) -> Path:
+    def get_catalog_from_field(self, field: str) -> Path:
         """Method to obtain catalogs given a catalog name in config file.
 
         It will check if the file exists, expand the full path if only the filename
@@ -3292,7 +3303,7 @@ class PathBuilder:
             return name
 
     @staticmethod
-    def get_fits_file_name(file) -> str:
+    def get_fits_file_name(file: Path | str) -> str:
         name = Path(file).name
         if name[-8:] == ".fits.gz":
             return name[:-8]
@@ -3322,9 +3333,9 @@ class PathBuilder:
 
     @staticmethod
     def compare_config_files(
-        file1: Union[str, Path],
-        file2: Union[str, Path],
-        section: str = None,
+        file1: str | Path,
+        file2: str | Path,
+        section: Optional[str] = None,
         ignore_fields: List[str] = [],
     ) -> Dict:
         """Compare two config files to determine if they are the same.
@@ -3373,7 +3384,9 @@ class PathBuilder:
         for folder in ("scripts", "results", "logs", "configs"):
             (self.fits_path / folder).mkdir(exist_ok=True, parents=True)
 
-    def deltas_path(self, region: str = None, calib_step: int = None) -> Path:
+    def deltas_path(
+        self, region: Optional[str] = None, calib_step: Optional[int] = None
+    ) -> Path:
         """Method to obtain the path to deltas output.
 
         Args:
@@ -3386,10 +3399,14 @@ class PathBuilder:
         if calib_step is not None:
             return self.run_path / "results" / f"calibration_{calib_step}" / "Delta"
         else:
+            if region is None:
+                raise ValueError("Invalid region provided: ", region)
             region = Bookkeeper.validate_region(region)
             return self.run_path / "results" / region / "Delta"
 
-    def deltas_log_path(self, region: str, calib_step: int = None) -> Path:
+    def deltas_log_path(
+        self, region: Optional[str] = None, calib_step: Optional[int] = None
+    ) -> Path:
         """Method to get the path to deltas log.
 
         Args:
@@ -3402,7 +3419,9 @@ class PathBuilder:
         deltas_path = self.deltas_path(region, calib_step)
         return deltas_path.parent / "Log"
 
-    def delta_attributes_file(self, region: str, calib_step: int = None) -> Path:
+    def delta_attributes_file(
+        self, region: Optional[str] = None, calib_step: Optional[int] = None
+    ) -> Path:
         """Method to get the path to deltas attributes file.
 
         Args:
@@ -3417,7 +3436,7 @@ class PathBuilder:
             / "delta_attributes.fits.gz"
         )
 
-    def copied_calib_attributes(self, step: int) -> Union[Path, None]:
+    def copied_calib_attributes(self, step: int) -> Path | None:
         """Method to get path to delta attributes for calibration if it
         appears as the one to be read in the bookkeeper (instead of computing
         it).
@@ -3448,7 +3467,7 @@ class PathBuilder:
             )
         return attributes
 
-    def copied_deltas_files(self, region: str) -> Union[Path, None]:
+    def copied_deltas_files(self, region: str) -> List[Path] | None:
         """Method to get path to deltas files and delta attributes if it
         appears in the bookkeeper config file (instead of computing it)
 
@@ -3458,7 +3477,7 @@ class PathBuilder:
         files = self.config["delta extraction"].get("deltas", dict()).get(region, None)
 
         if files is not None:
-            files = files.split(' ')
+            files = files.split(" ")
             if len(files) != 2:
                 raise ValueError(
                     f"{region}: Invalid format for deltas provided. Format should be "
@@ -3466,21 +3485,30 @@ class PathBuilder:
                 )
             if not Path(files[0]).is_dir():
                 raise FileNotFoundError(
-                    f"{region}: Invalid deltas directory provided", files[0])
+                    f"{region}: Invalid deltas directory provided", files[0]
+                )
             if not Path(files[1]).is_file():
                 raise FileNotFoundError(
                     f"{region}: Invalid attributes file provided", files[1]
                 )
             logger.info(f"{region}: Using deltas from file:\n\t{str(files[0])}")
-            logger.info(f"{region}: Using delta attributes from file:\n\t{str(files[1])}")
+            logger.info(
+                f"{region}: Using delta attributes from file:\n\t{str(files[1])}"
+            )
         else:
             logger.info(
                 f"{region}: No files provided to copy, deltas will be computed."
             )
         return files
 
-
-    def copied_correlation_file(self, subsection, absorber, region, absorber2, region2):
+    def copied_correlation_file(
+        self,
+        subsection: str,
+        absorber: str,
+        region: str,
+        absorber2: Optional[str],
+        region2: Optional[str],
+    ) -> Path:
         """Method to get a correlation file to copy given in the bookkeeper config
 
         Args:
@@ -3517,8 +3545,8 @@ class PathBuilder:
         self,
         absorber: str,
         region: str,
-        absorber2: str = None,
-        region2: str = None,
+        absorber2: Optional[str] = None,
+        region2: Optional[str] = None,
     ) -> Path:
         """Method to get the path to a forest-forest correlation file.
 
@@ -3544,8 +3572,8 @@ class PathBuilder:
         self,
         absorber: str,
         region: str,
-        absorber2: str = None,
-        region2: str = None,
+        absorber2: Optional[str] = None,
+        region2: Optional[str] = None,
     ) -> Path:
         """Method to get the path to a distortion matrix file for forest-forest
         correlations.
@@ -3567,8 +3595,8 @@ class PathBuilder:
         self,
         absorber: str,
         region: str,
-        absorber2: str = None,
-        region2: str = None,
+        absorber2: Optional[str] = None,
+        region2: Optional[str] = None,
     ) -> Path:
         """Method to get the path to a metal distortion matrix file for forest-forest
         correlations.
@@ -3591,8 +3619,8 @@ class PathBuilder:
         self,
         absorber: str,
         region: str,
-        absorber2: str = None,
-        region2: str = None,
+        absorber2: Optional[str] = None,
+        region2: Optional[str] = None,
     ) -> Path:
         """Method to get the path to a forest-forest correlation export file.
 
@@ -3668,8 +3696,8 @@ class PathBuilder:
         self,
         absorber: str,
         region: str,
-        absorber2: str = None,
-        region2: str = None,
+        absorber2: Optional[str] = None,
+        region2: Optional[str] = None,
     ) -> Path:
         """Method to get te path to a given fit auto config file.
 

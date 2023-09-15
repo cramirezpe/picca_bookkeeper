@@ -1,17 +1,23 @@
 """ Script to run picca_cf and export
 given a bookkeeper config file."""
+from __future__ import annotations
+
 import argparse
 import logging
 import sys
 from pathlib import Path
 
 from picca_bookkeeper.bookkeeper import Bookkeeper
-from picca_bookkeeper.tasker import Tasker, DummyTasker
+from picca_bookkeeper.tasker import DummyTasker, Tasker
 
 logger = logging.getLogger(__name__)
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from typing import Optional
 
 
-def main(args=None):
+def main(args: Optional[argparse.Namespace] = None) -> None:
     if args is None:
         args = get_args()
 
@@ -49,7 +55,6 @@ def main(args=None):
             f"{args.absorber}{args.region}_{args.absorber2}{args.region2}:\n\t"
             f"{cf.jobid}"
         )
-
 
     if not args.no_dmat:
         dmat = bookkeeper.get_dmat_tasker(
@@ -115,7 +120,7 @@ def main(args=None):
         )
 
 
-def get_args():
+def get_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "bookkeeper_config", type=Path, help="Path to bookkeeper file to use"

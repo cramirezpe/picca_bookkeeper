@@ -1,17 +1,22 @@
 """Build a full bookkeeper config provided a bookkeeper inside a run. That is
 a bookkeeper that can be rerun completely in a different location."""
 
+from __future__ import annotations
+
 import argparse
 import logging
 import sys
-
 from pathlib import Path
+from typing import TYPE_CHECKING
+
 from picca_bookkeeper.bookkeeper import Bookkeeper
 
+if TYPE_CHECKING:
+    from typing import Optional
 logger = logging.getLogger(__name__)
 
 
-def main(args=None):
+def main(args: Optional[argparse.Namespace] = None) -> None:
     if args is None:
         args = get_args()
 
@@ -22,7 +27,7 @@ def main(args=None):
         raise FileExistsError("Output file already exists.", str(args.save_path))
 
 
-def get_args():
+def get_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Rebuilds a full yaml configuration file from its location in a bookkeeper analysis tree so it can be rerun entirely."
     )
@@ -43,6 +48,7 @@ def get_args():
     args = parser.parse_args()
 
     return args
+
 
 if __name__ == "__main__":
     main()

@@ -1,23 +1,37 @@
 from __future__ import annotations
 
 import itertools
+import os
+import warnings
 from configparser import ConfigParser
 from multiprocessing import Pool
 from pathlib import Path
+from typing import TYPE_CHECKING
+
 import fitsio
-import numpy as np
-from scipy.interpolate import interp1d
 import matplotlib
 import matplotlib.pyplot as plt
-from typing import *
-import os
-import warnings
+import numpy as np
+from scipy.interpolate import interp1d
 
-from picca_bookkeeper.utils import compute_cont, get_spectra_from_los_id
 from picca_bookkeeper.bookkeeper import Bookkeeper
+from picca_bookkeeper.utils import compute_cont, get_spectra_from_los_id
+
+if TYPE_CHECKING:
+    from typing import Any, Dict, List, Optional, Tuple
+
+    from picca_bookkeeper.hints import wave_grid, wave_grid_int, wave_grid_rf
+
 
 class ReadDeltas:
-    def __init__(self, bookkeeper: Bookkeeper, region: str=None, calib_step: int=None, blind: bool=False, label: str=None):
+    def __init__(
+        self,
+        bookkeeper: Bookkeeper | Path | str,
+        region: Optional[str] = None,
+        calib_step: Optional[int] = None,
+        blind: bool = False,
+        label: Optional[str] = None,
+    ):
         self.region = region
         self.calib_step = calib_step
 
@@ -32,18 +46,11 @@ class ReadDeltas:
         self.define_interp_quantities()
         self.label = label
 
-    def __str__(self):
-        return self.label
+    def __str__(self) -> str:
+        return str(self.label)
 
     @property
-    def config_file(self):
-        if self.region == "calibration_1":
-            return self.bookkeeper.paths.deltas_path(self.region, "calibration_1")
-        else:
-            return self.bookkeeper.paths.deltas_path(self.region).parent / ""
-        
-    @property
-    def config_file_in(self):
+    def config_file_in(self) -> Path:
         if self.calib_step is not None:
             return (
                 self.bookkeeper.paths.run_path
@@ -51,30 +58,34 @@ class ReadDeltas:
                 / f"delta_extraction_{self.region}_calib_step_{self.calib_step}.ini"
             )
         else:
-            return self.bookkeeper.patsh.run_path / "configs" / f"udelta_extraction_{self.region}.ini"
+            return (
+                self.bookkeeper.paths.run_path
+                / "configs"
+                / f"delta_extraction_{self.region}.ini"
+            )
 
     @property
-    def config_file(self):
+    def config_file(self) -> Path:
         return self.deltas_path.parent / ".config.ini"
 
     @property
-    def deltas_path(self):
+    def deltas_path(self) -> Path:
         return self.bookkeeper.paths.deltas_path(
             region=self.region, calib_step=self.calib_step
         )
 
     @property
-    def attributes_file(self):
+    def attributes_file(self) -> Path:
         return self.bookkeeper.paths.delta_attributes_file(
             region=self.region, calib_step=self.calib_step
         )
 
-    def set_var_lss_mod(self):
+    def set_var_lss_mod(self) -> None:
         config = ConfigParser()
         config.read(self.config_file)
         self.var_lss_mod = config["expected flux"].getfloat("var lss mod", 1)
 
-    def define_lambda_arrays(self):
+    def define_lambda_arrays(self) -> None:
         config = ConfigParser()
         config.read(self.config_file)
 
@@ -100,7 +111,7 @@ class ReadDeltas:
                 + float(config["data"]["delta log lambda"]),
                 float(config["data"]["delta log lambda"]),
             )
-            self.lambda_grid = 10 ** self.lambda_grid
+            self.lambda_grid = 10**self.lambda_grid
 
             self.lambda_rf_grid = np.arange(
                 np.log10(float(config["data"]["lambda min rest frame"])),
@@ -108,27 +119,29 @@ class ReadDeltas:
                 + float(config["data"]["delta log lambda"]),
                 float(config["data"]["delta log lambda"]),
             )
-            self.lambda_rf_grid = 10 ** self.lambda_grid
+            self.lambda_rf_grid = 10**self.lambda_grid
 
-        self.lambda_edges = np.concatenate(
-            (
+        self.lambda_edges: np.ndarray = np.concatenate(
+            (  # type: ignore
                 ((1.5 * self.lambda_grid[0] - 0.5 * self.lambda_grid[1]),),
                 0.5 * (self.lambda_grid[1:] + self.lambda_grid[:-1]),
                 ((1.5 * self.lambda_grid[-1] - 0.5 * self.lambda_grid[-2]),),
             )
         )
 
-        self.lambda_rf_edges = np.concatenate(
-            (
+        self.lambda_rf_edges: np.ndarray = np.concatenate(
+            (  # type: ignore
                 ((1.5 * self.lambda_rf_grid[0] - 0.5 * self.lambda_rf_grid[1]),),
                 0.5 * (self.lambda_rf_grid[1:] + self.lambda_rf_grid[:-1]),
                 ((1.5 * self.lambda_rf_grid[-1] - 0.5 * self.lambda_rf_grid[-2]),),
             )
         )
 
-    def define_interp_quantities(self):
+    def define_interp_quantities(self) -> None:
         with fitsio.FITS(self.attributes_file) as attrs_fits:
-            if "ETA" in [name.upper() for name in attrs_fits["VAR_FUNC"].get_colnames()]:
+            if "ETA" in [
+                name.upper() for name in attrs_fits["VAR_FUNC"].get_colnames()
+            ]:
                 self.eta_interp = interp1d(
                     10 ** attrs_fits["VAR_FUNC"]["loglam"][:],
                     attrs_fits["VAR_FUNC"]["eta"][:],
@@ -138,7 +151,9 @@ class ReadDeltas:
             else:
                 self.eta = np.ones_like(self.lambda_grid)
 
-            if "FUDGE" in [name.upper() for name in attrs_fits["VAR_FUNC"].get_colnames()]:
+            if "FUDGE" in [
+                name.upper() for name in attrs_fits["VAR_FUNC"].get_colnames()
+            ]:
                 self.fudge_interp = interp1d(
                     10 ** attrs_fits["VAR_FUNC"]["loglam"][:],
                     attrs_fits["VAR_FUNC"]["fudge"][:],
@@ -146,13 +161,13 @@ class ReadDeltas:
                 )
                 self.fudge = self.fudge_interp(self.lambda_grid)
             else:
-                self.fudge = 0*np.ones_like(self.lambda_grid)
+                self.fudge = 0 * np.ones_like(self.lambda_grid)
 
             self.var_lss_interp = interp1d(
                 10 ** attrs_fits["VAR_FUNC"]["loglam"][:],
                 attrs_fits["VAR_FUNC"]["var_lss"][:],
                 fill_value="extrapolate",
-            )            
+            )
             self.var_lss = self.var_lss_interp(self.lambda_grid)
 
             self.mean_cont_interp = interp1d(
@@ -184,9 +199,13 @@ class ReadDeltas:
                 )
 
                 self.delta_stack = self.delta_stack_interp(self.lambda_grid)
-                self.delta_stack_weight = self.delta_stack_weight_interp(self.lambda_grid)
+                self.delta_stack_weight = self.delta_stack_weight_interp(
+                    self.lambda_grid
+                )
 
-    def get_statistics(self, downsampling=1, random_seed=0, read_flux=False):
+    def get_statistics(
+        self, downsampling: float = 1, random_seed: int = 0, read_flux: bool = False
+    ) -> None:
         delta_files = list(self.deltas_path.glob("delta*fits*"))
 
         pool = Pool(processes=5)
@@ -211,11 +230,15 @@ class ReadDeltas:
         self.flux_ivar_arr = np.vstack(np.asarray(self.statistics).T[7])
         self.z_arr = np.concatenate(np.asarray(self.statistics).T[8])
         self.meansnr_arr = np.concatenate(np.asarray(self.statistics).T[9])
-        self.deltas2_arr = self.deltas_arr ** 2
+        self.deltas2_arr = self.deltas_arr**2
 
     def get_file_statistics(
-        self, deltas_filename, downsampling=1, random_seed=0, read_flux=False
-    ):
+        self,
+        deltas_filename: Path,
+        downsampling: float = 1,
+        random_seed: int = 0,
+        read_flux: bool = False,
+    ) -> Tuple[np.ndarray, ...]:
         delta_field = "DELTA" if not self.blind else "DELTA_BLIND"
         with fitsio.FITS(deltas_filename) as delta_fits:
             with warnings.catch_warnings():
@@ -223,8 +246,11 @@ class ReadDeltas:
                 VAR = 1 / delta_fits["WEIGHT"].read()
                 var_pipe = (
                     VAR
-                    - self.var_lss*self.var_lss_mod
-                    + np.sqrt((self.var_lss*self.var_lss_mod - VAR) ** 2 - 4 * self.eta * self.fudge)
+                    - self.var_lss * self.var_lss_mod
+                    + np.sqrt(
+                        (self.var_lss * self.var_lss_mod - VAR) ** 2
+                        - 4 * self.eta * self.fudge
+                    )
                 ) / (2 * self.eta)
                 # var_pipe = (VAR - self.var_lss) / self.eta
 
@@ -275,58 +301,63 @@ class ReadDeltas:
                         delta_fits["METADATA"]["MEANSNR"][:][msk],
                     )
 
+
 class ReadDeltasNoBookkeeper(ReadDeltas):
     def __init__(
         self,
-        deltas_path,
-        log_path,
-        config_file,
-        region,
-        config_file_in=None,
-        blind=False,
-        label=None,
+        deltas_path: Path | str,
+        log_path: Path | str,
+        config_file: Path | str,
+        region: str,
+        config_file_in: Optional[Path | str] = None,
+        blind: bool = False,
+        label: Optional[str] = None,
     ):
-        self._config_file = config_file
-        self._config_file_in = config_file_in if config_file_in is None else config_file
+        self._config_file = Path(config_file)
+        self._config_file_in = (
+            Path(config_file_in) if config_file_in is not None else Path(config_file)
+        )
         self._attributes_file = Path(log_path) / "delta_attributes.fits.gz"
         self._deltas_path = Path(deltas_path)
 
         super().__init__(
-            bookkeeper_path=deltas_path, region=region, blind=blind, label=label
+            bookkeeper=Path(deltas_path), region=region, blind=blind, label=label
         )
 
     @property
-    def config_file_in(self):
+    def config_file_in(self) -> Path:
         return self._config_file_in
 
     @property
-    def config_file(self):
+    def config_file(self) -> Path:
         return self._config_file
 
     @property
-    def deltas_path(self):
+    def deltas_path(self) -> Path:
         return self._deltas_path
 
     @property
-    def attributes_file(self):
+    def attributes_file(self) -> Path:
         return self._attributes_file
 
 
 class Plots:
     @staticmethod
     def eta(
-        bookkeeper: Bookkeeper = None,
-        region: str = None,
-        calib_step: int = None,
-        attributes_file: Union[Path, str] = None,
-        ax: matplotlib.axes._axes.Axes = None,
+        bookkeeper: Optional[Bookkeeper] = None,
+        region: Optional[str] = None,
+        calib_step: Optional[int] = None,
+        attributes_file: Optional[Path | str] = None,
+        ax: Optional[matplotlib.axes._axes.Axes] = None,
         plot_kwargs: Dict = dict(),
-    ):
+    ) -> Tuple[wave_grid, wave_grid]:
         if ax is None:
             fig, ax = plt.subplots()
 
-        if attributes_file is None:
-            attributes_file = bookkeeper.paths.delta_attributes_file(region=region, calib_step=calib_step)
+        if isinstance(bookkeeper, Bookkeeper):
+            attributes_file = bookkeeper.paths.delta_attributes_file(
+                region=region, calib_step=calib_step
+            )
 
         with fitsio.FITS(attributes_file) as hdul:
             if "VAR_FUNC" in hdul:
@@ -349,18 +380,20 @@ class Plots:
 
     @staticmethod
     def var_lss(
-        bookkeeper: Bookkeeper = None,
-        region: str = None,
-        calib_step: int = None,
-        attributes_file: Union[Path, str] = None,
-        ax: matplotlib.axes._axes.Axes = None,
+        bookkeeper: Optional[Bookkeeper] = None,
+        region: Optional[str] = None,
+        calib_step: Optional[int] = None,
+        attributes_file: Optional[Path | str] = None,
+        ax: Optional[matplotlib.axes._axes.Axes] = None,
         plot_kwargs: Dict = dict(),
-    ):
+    ) -> Tuple[wave_grid, wave_grid]:
         if ax is None:
             fig, ax = plt.subplots()
 
-        if attributes_file is None:
-            attributes_file = bookkeeper.paths.delta_attributes_file(region=region, calib_step=calib_step)
+        if isinstance(bookkeeper, Bookkeeper):
+            attributes_file = bookkeeper.paths.delta_attributes_file(
+                region=region, calib_step=calib_step
+            )
 
         with fitsio.FITS(attributes_file) as hdul:
             if "VAR_FUNC" in hdul:
@@ -368,12 +401,11 @@ class Plots:
             else:
                 card = "WEIGHT"
 
-                
             wave = 10 ** hdul[card]["LOGLAM"].read()
             var_lss = hdul[card]["VAR_LSS"].read()
 
         ax.plot(
-            wave, 
+            wave,
             var_lss,
             **plot_kwargs,
         )
@@ -385,18 +417,20 @@ class Plots:
 
     @staticmethod
     def fudge(
-        bookkeeper: Bookkeeper = None,
-        region: str = None,
-        calib_step: int = None,
-        attributes_file: Union[Path, str] = None,
-        ax: matplotlib.axes._axes.Axes = None,
+        bookkeeper: Optional[Bookkeeper] = None,
+        region: Optional[str] = None,
+        calib_step: Optional[int] = None,
+        attributes_file: Optional[Path | str] = None,
+        ax: Optional[matplotlib.axes._axes.Axes] = None,
         plot_kwargs: Dict = dict(),
-    ):
+    ) -> Tuple[wave_grid, wave_grid]:
         if ax is None:
             fig, ax = plt.subplots()
 
-        if attributes_file is None:
-            attributes_file = bookkeeper.paths.delta_attributes_file(region=region, calib_step=calib_step)
+        if isinstance(bookkeeper, Bookkeeper):
+            attributes_file = bookkeeper.paths.delta_attributes_file(
+                region=region, calib_step=calib_step
+            )
 
         with fitsio.FITS(attributes_file) as hdul:
             if "VAR_FUNC" in hdul:
@@ -406,7 +440,7 @@ class Plots:
 
             lambda_ = 10 ** hdul[card]["LOGLAM"].read()
             fudge = hdul[card]["FUDGE"].read()
-        
+
         ax.plot(
             lambda_,
             fudge,
@@ -420,21 +454,23 @@ class Plots:
 
     @staticmethod
     def stack(
-        bookkeeper: Bookkeeper = None,
-        region: str = None,
-        calib_step: int = None,
-        attributes_file: Union[Path, str] = None,
-        rebin: float = None,
-        ax: matplotlib.axes.Axes = None,
+        bookkeeper: Optional[Bookkeeper] = None,
+        region: Optional[str] = None,
+        calib_step: Optional[int] = None,
+        attributes_file: Optional[Path | str] = None,
+        rebin: Optional[int] = None,
+        ax: Optional[matplotlib.axes.Axes] = None,
         plot_kwargs: Dict = dict(),
         use_weights: bool = False,
         offset: float = 0,
-    ):
+    ) -> Tuple[wave_grid, wave_grid]:
         if ax is None:
             fig, ax = plt.subplots()
 
-        if attributes_file is None:
-            attributes_file = bookkeeper.paths.delta_attributes_file(region=region, calib_step=calib_step)
+        if isinstance(bookkeeper, Bookkeeper):
+            attributes_file = bookkeeper.paths.delta_attributes_file(
+                region=region, calib_step=calib_step
+            )
 
         with fitsio.FITS(attributes_file) as hdul:
             lambda_ = 10 ** hdul["STACK_DELTAS"]["loglam"].read()
@@ -457,7 +493,7 @@ class Plots:
 
             if use_weights:
                 weights = np.concatenate(
-                    (weights, weights[-1] * np.ones(rebin - len(weights) % rebin))
+                    (weights, np.full(rebin - len(weights) % rebin, weights[-1]))
                 )
                 weights = np.mean(weights.reshape(-1, rebin), axis=1)
 
@@ -472,19 +508,21 @@ class Plots:
 
     @staticmethod
     def num_pixels(
-        bookkeeper: Bookkeeper = None,
-        region: str = None,
-        calib_step: int = None,
-        attributes_file: Union[Path, str] = None,
-        ax: matplotlib.axes.Axes = None,
+        bookkeeper: Optional[Bookkeeper] = None,
+        region: Optional[str] = None,
+        calib_step: Optional[int] = None,
+        attributes_file: Optional[Path | str] = None,
+        ax: Optional[matplotlib.axes.Axes] = None,
         plot_kwargs: Dict = dict(),
-    ):
+    ) -> Tuple[wave_grid, wave_grid_int]:
         if ax is None:
             fig, ax = plt.subplots()
 
-        if attributes_file is None:
-            attributes_file = bookkeeper.paths.delta_attributes_file(region=region, calib_step=calib_step)
-       
+        if isinstance(bookkeeper, Bookkeeper):
+            attributes_file = bookkeeper.paths.delta_attributes_file(
+                region=region, calib_step=calib_step
+            )
+
         with fitsio.FITS(attributes_file) as hdul:
             lambda_ = 10 ** hdul["VAR_FUNC"]["loglam"].read()
             num_pixels = hdul["VAR_FUNC"]["num_pixels"].read()
@@ -497,22 +535,24 @@ class Plots:
         ax.set_xlabel(r"$\lambda \, [\AA]$")
         ax.set_ylabel(r"# pixels")
 
-        return lambda_, num_pixels 
-    
+        return lambda_, num_pixels
+
     @staticmethod
     def valid_fit(
-        bookkeeper: Bookkeeper = None,
-        region: str = None,
-        calib_step: int = None,
-        attributes_file: Union[Path, str] = None,
-        ax: matplotlib.axes.Axes = None,
+        bookkeeper: Optional[Bookkeeper] = None,
+        region: Optional[str] = None,
+        calib_step: Optional[int] = None,
+        attributes_file: Optional[Path | str] = None,
+        ax: Optional[matplotlib.axes.Axes] = None,
         plot_kwargs: Dict = dict(),
-    ):
+    ) -> None:
         if ax is None:
             fig, ax = plt.subplots()
 
-        if attributes_file is None:
-            attributes_file = bookkeeper.paths.delta_attributes_file(region=region, calib_step=calib_step)
+        if isinstance(bookkeeper, Bookkeeper):
+            attributes_file = bookkeeper.paths.delta_attributes_file(
+                region=region, calib_step=calib_step
+            )
 
         with fitsio.FITS(attributes_file) as hdul:
             ax.plot(
@@ -523,41 +563,47 @@ class Plots:
 
     @staticmethod
     def mean_cont(
-        bookkeeper: Bookkeeper = None,
-        region: str = None,
-        calib_step: int = None,
-        attributes_file: Union[Path, str] = None,
-        ax: matplotlib.axes.Axes = None,
+        bookkeeper: Optional[Bookkeeper] = None,
+        region: Optional[str] = None,
+        calib_step: Optional[int] = None,
+        attributes_file: Optional[Path | str] = None,
+        ax: Optional[matplotlib.axes.Axes] = None,
         plot_kwargs: Dict = dict(),
-    ):
+    ) -> Tuple[wave_grid_rf, wave_grid_rf]:
         if ax is None:
             fig, ax = plt.subplots()
 
-        if attributes_file is None:
-            attributes_file = bookkeeper.paths.delta_attributes_file(region=region, calib_step=calib_step)
+        if isinstance(bookkeeper, Bookkeeper):
+            attributes_file = bookkeeper.paths.delta_attributes_file(
+                region=region, calib_step=calib_step
+            )
 
         with fitsio.FITS(attributes_file) as hdul:
             wave = 10 ** hdul["CONT"]["loglam_rest"].read()
             mean_cont = hdul["CONT"]["mean_cont"].read()
-        
+
         ax.plot(
-            wave, 
+            wave,
             mean_cont,
             **plot_kwargs,
         )
-    
+
         return wave, mean_cont
 
     @staticmethod
     def line_masking(
-        mask_file: Union[Path, str] = Path(os.getenv("pr"))
+        mask_file: Path
+        | str = Path(str(os.getenv("pr")))
         / "Continuum_fitting/config_files/sharp-lines-mask.txt",
-        ax: matplotlib.axes.Axes = None,
+        ax: Optional[matplotlib.axes.Axes] = None,
         plot_kwargs: Dict = dict(),
         use_labels: bool = False,
-        lambda_lim: List[float] = None,
-        standard_width: float = None,
-    ):
+        lambda_lim: Optional[List[float]] = None,
+        standard_width: Optional[float] = None,
+    ) -> None:
+        if ax is None:
+            fig, ax = plt.subplots()
+
         with open(mask_file) as f:
             lines = f.readlines()
         colors = dict(K="green", H="pink", Na="olive", sky="cyan")
@@ -603,23 +649,23 @@ class Plots:
         bookkeeper: Bookkeeper,
         los_id: int,
         plot_kwargs: Dict = dict(),
-        ax: matplotlib.axes._axes.Axes = None,
-        z: float=None,
-    ):
+        ax: Optional[matplotlib.axes._axes.Axes] = None,
+        z: Optional[float] = None,
+    ) -> None:
         if ax is None:
             fig, ax = plt.subplots()
 
         flux_data = get_spectra_from_los_id(
-            los_id, 
-            catalog=bookkeeper.output.catalog,
-            input_healpix=bookkeeper.output.healpix_data
+            los_id,
+            catalog=bookkeeper.paths.catalog,
+            input_healpix=bookkeeper.paths.healpix_data,
         )
 
         if z is not None:
-            grid = flux_data[0]/(1+z)
+            grid = flux_data[0] / (1 + z)
         else:
             grid = flux_data[0]
-        
+
         ax.plot(
             grid,
             flux_data[1],
@@ -629,12 +675,12 @@ class Plots:
     @staticmethod
     def plot_cont(
         los_id: int,
-        attrs_file: Union[str, Path],
-        ax: matplotlib.axes._axes.Axes = None,
+        attrs_file: Path | str,
+        ax: Optional[matplotlib.axes._axes.Axes] = None,
         region: str = "lya",
-        z: float=None,
-        **kwargs,
-    ):
+        z: Optional[float] = None,
+        **kwargs: Any,
+    ) -> Tuple[wave_grid_rf, wave_grid_rf]:
         """Helper function to compute continuum
 
         Arguments:
@@ -649,11 +695,10 @@ class Plots:
             fig, ax = plt.subplots()
 
         lambda_rest, cont = compute_cont(los_id, attrs_file, region)
-        
+
         if z is None:
             ax.plot(lambda_rest, cont, **kwargs)
             return lambda_rest, cont
         else:
-            ax.plot(lambda_rest*(1+z), cont, **kwargs)
-            return lambda_rest*(1+z), cont
-
+            ax.plot(lambda_rest * (1 + z), cont, **kwargs)
+            return lambda_rest * (1 + z), cont

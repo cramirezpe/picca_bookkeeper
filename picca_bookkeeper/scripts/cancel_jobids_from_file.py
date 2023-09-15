@@ -1,11 +1,17 @@
 """Simple script to cancel all jobs in a jobid log file"""
 
+from __future__ import annotations
+
 import argparse
 from pathlib import Path
 from subprocess import run
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from typing import Optional
 
 
-def main(args=None):
+def main(args: Optional[argparse.Namespace] = None) -> None:
     if args is None:
         args = get_args()
 
@@ -17,7 +23,7 @@ def main(args=None):
         run(["scancel", str(jobid)])
 
 
-def get_args():
+def get_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("file", type=Path, help="Prefix to print defaults of.")
     return parser.parse_args()

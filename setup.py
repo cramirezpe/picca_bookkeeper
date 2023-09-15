@@ -31,7 +31,7 @@ setuptools.setup(
             "picca_bookkeeper_run_full_analysis = picca_bookkeeper.scripts.run_full_analysis:main",
             "picca_bookkeeper_convert_deltas = picca_bookkeeper.scripts.convert_deltas_format:main",
             "picca_bookkeeper_mix_DLA_catalogues = picca_bookkeeper.scripts.mix_DLA_catalogues:main",
-            "picca_bookkeeper_add_last_nfight_column = picca_bookkeeper.scripts.add_last_night_column:main",
+            "picca_bookkeeper_add_last_night_column = picca_bookkeeper.scripts.add_last_night_column:main",
             "picca_bookkeeper_add_extra_deltas_data = picca_bookkeeper.scripts.add_extra_deltas_data:main",
             "picca_bookkeeper_search_runs = picca_bookkeeper.scripts.search_runs:main",
             "picca_bookkeeper_show_defaults = picca_bookkeeper.scripts.print_bookkeeper_defaults:main",

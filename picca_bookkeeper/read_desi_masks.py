@@ -2,21 +2,26 @@
     Read flux, ivar, mask and wavelength information for DESI data
 """
 import argparse
-from pathlib import Path
+import itertools
 import logging
 import sys
-import numpy as np
 from multiprocessing import Pool
+from pathlib import Path
+from typing import TYPE_CHECKING
+from __future__ import annotations
 import fitsio
-from astropy.table import Table
 import healpy as hp
-import itertools
 import matplotlib.pyplot as plt
+import numpy as np
+from astropy.table import Table
+
+if TYPE_CHECKING:
+    from typing import Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
 
-def read_file(file, valid_targetids):
+def read_file(file: Path | str, valid_targetids: List[str | int]) -> np.ndarray:
     ffile = fitsio.FITS(file)
     targetid = ffile["FIBERMAP"]["TARGETID"].read()
 
@@ -37,14 +42,14 @@ def read_file(file, valid_targetids):
 class Plots:
     @staticmethod
     def masked_pixels_percentage(
-        properties,
-        output_prefix,
-        plot_kwargs=dict(),
-        downsampling=1,
-        save_data=False,
-        save_plot=False,
-        save_dict=dict(),
-    ):
+        properties: Dict,
+        output_prefix: Path,
+        plot_kwargs: Dict = dict(),
+        downsampling: float = 1,
+        save_data: bool = False,
+        save_plot: bool = False,
+        save_dict: Dict = dict(),
+    ) -> None:
         fig, axs = plt.subplots(1, 3, sharey=True, figsize=(10, 5))
 
         for ax, color in zip(axs, ("B", "R", "Z")):
@@ -92,14 +97,14 @@ class Plots:
 
     @staticmethod
     def histogram_qsos_per_masked_bins(
-        properties,
-        output_prefix,
-        hist_kwargs=dict(),
-        downsampling=1,
-        save_data=False,
-        save_plot=False,
-        save_dict=dict(),
-    ):
+        properties: Dict,
+        output_prefix: Path,
+        hist_kwargs: Dict = dict(),
+        downsampling: float = 1,
+        save_data: bool = False,
+        save_plot: bool = False,
+        save_dict: Dict = dict(),
+    ) -> None:
         if save_data:
             data_dict = {}
 
@@ -147,7 +152,7 @@ class Plots:
 
 
 class ReadDESILyaData:
-    def __init__(self, input_directory, catalogue):
+    def __init__(self, input_directory: Path, catalogue: Path | str):
         """
         Read flux, ivar, mask and wavelength information for DESI data
 
@@ -169,7 +174,12 @@ class ReadDESILyaData:
             )
         )
 
-    def read_data(self, downsampling=1, file_downsampling=1, processes=None):
+    def read_data(
+        self,
+        downsampling: float = 1,
+        file_downsampling: float = 1,
+        processes: Optional[int] = None,
+    ) -> Dict:
         """
         Read data from DESI files.
 
@@ -221,8 +231,8 @@ class ReadDESILyaData:
                 self.input_directory
                 / survey
                 / "dark"
-                / str(healpix // 100)
-                / str(healpix)
+                / str(healpix // 100)  # type: ignore
+                / str(healpix)  # type: ignore
                 / f"coadd-{survey}-dark-{healpix}.fits"
             )
 
@@ -246,7 +256,7 @@ class ReadDESILyaData:
         logger.info(f"Reading files.")
         pool = Pool(processes=processes)
 
-        values = pool.starmap(
+        results = pool.starmap(
             read_file,
             zip(
                 files_to_read,
@@ -254,7 +264,7 @@ class ReadDESILyaData:
             ),
         )
 
-        values = np.asarray(values)
+        values = np.asarray(results)
 
         properties = dict(
             B_WAVELENGTH=values[0][0],
@@ -275,7 +285,7 @@ class ReadDESILyaData:
         return properties
 
 
-def main(args=None):
+def main(args: Optional[argparse.Namespace] = None) -> None:
     if args is None:
         args = getArgs()
 
@@ -317,7 +327,7 @@ def main(args=None):
     )
 
 
-def getArgs():
+def getArgs() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--input-directory",
