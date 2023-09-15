@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import fitsio
 import matplotlib
 import matplotlib.pyplot as plt
