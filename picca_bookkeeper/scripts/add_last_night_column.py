@@ -2,16 +2,20 @@
     Add column LAST_NIGHT with a default time value to a given catalog.
 """
 import argparse
-from pathlib import Path
 import logging
 import sys
+from pathlib import Path
+from typing import TYPE_CHECKING
+
 import fitsio
 import numpy as np
 
+if TYPE_CHECKING:
+    from typing import Optional
 logger = logging.getLogger(__name__)
 
 
-def main(args=None):
+def main(args: Optional[argparse.Namespace] = None) -> None:
     if args is None:
         args = getArgs()
 
@@ -33,7 +37,7 @@ def main(args=None):
     logger.info("Done.")
 
 
-def getArgs():
+def getArgs() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "input_cat",

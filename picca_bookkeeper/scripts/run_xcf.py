@@ -3,14 +3,18 @@ import argparse
 import logging
 import sys
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from picca_bookkeeper.bookkeeper import Bookkeeper
-from picca_bookkeeper.tasker import Tasker, DummyTasker
+from picca_bookkeeper.tasker import DummyTasker, Tasker
+
+if TYPE_CHECKING:
+    from typing import Optional
 
 logger = logging.getLogger(__name__)
 
 
-def main(args=None):
+def main(args: Optional[argparse.Namespace] = None) -> None:
     if args is None:
         args = get_args()
 
@@ -91,15 +95,13 @@ def main(args=None):
     if not args.only_write:
         xcf_exp.send_job()
         logger.info(
-            "Sent export "
-            f"{args.absorber}{args.region}_qso:\n\t"
-            f"{xcf_exp.jobid}"
+            "Sent export " f"{args.absorber}{args.region}_qso:\n\t" f"{xcf_exp.jobid}"
         )
     else:
         return
 
 
-def get_args():
+def get_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "bookkeeper_config", type=Path, help="Path to bookkeeper file to use"

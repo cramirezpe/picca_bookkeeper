@@ -2,19 +2,25 @@
     Build new deltas format from original deltas. This new format will allow for faster reading of data.
 """
 import argparse
-from pathlib import Path
-import logging
-import fitsio
-import sys
 import itertools
+import logging
+import sys
 from configparser import ConfigParser
 from multiprocessing import Pool
+from pathlib import Path
+from typing import TYPE_CHECKING
+
+import fitsio
 import numpy as np
 
+from picca_bookkeeper.utils import find_bins
+
+if TYPE_CHECKING:
+    from typing import Dict, Optional, Tuple
 logger = logging.getLogger(__name__)
 
 
-def main(args=None):
+def main(args: Optional[argparse.Namespace] = None) -> None:
     if args is None:
         args = getArgs()
 
@@ -48,7 +54,12 @@ def main(args=None):
     pool.close()
 
 
-def convert_delta_file(delta_path, out_dir, config, survey_data=None):
+def convert_delta_file(
+    delta_path: Path,
+    out_dir: Path,
+    config: Dict,
+    survey_data: Optional[Tuple[np.ndarray, ...]] = None,
+) -> None:
     logger.info(f"Reading file: {delta_path.name}")
     if config["data"]["wave solution"] == "lin":
         lambda_grid = np.arange(
@@ -190,7 +201,7 @@ def convert_delta_file(delta_path, out_dir, config, survey_data=None):
             )
 
 
-def read_survey_data(config_file):
+def read_survey_data(config_file: Path | str) -> Tuple[np.ndarray, ...]:
     from picca.delta_extraction.survey import Survey
 
     survey = Survey()
@@ -211,22 +222,7 @@ def read_survey_data(config_file):
     return ids[sortinds], fluxes[sortinds], ivars[sortinds], lambdas[sortinds]
 
 
-def find_bins(original_array, grid_array):
-    idx = np.searchsorted(grid_array, original_array)
-    # El problema es que si un elemento de original
-    # array es más grande (aunque sea por poco) que
-    # cualquier elemento de grid array, falla
-    # al función clip evita que el número máximo
-    # sobrepase el valor máximo de la array.
-    np.clip(idx, 0, len(grid_array) - 1, out=idx)
-
-    prev_index_closer = (grid_array[idx - 1] - original_array) ** 2 <= (
-        grid_array[idx] - original_array
-    ) ** 2
-    return idx - prev_index_closer
-
-
-def getArgs():
+def getArgs() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--log-level",

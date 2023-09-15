@@ -3,6 +3,7 @@ import argparse
 import logging
 import sys
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -13,10 +14,12 @@ from picca_bookkeeper.scripts.run_delta_extraction import main as run_delta_extr
 from picca_bookkeeper.scripts.run_fit import main as run_fit
 from picca_bookkeeper.scripts.run_xcf import main as run_xcf
 
+if TYPE_CHECKING:
+    from typing import Optional
 logger = logging.getLogger(__name__)
 
 
-def main(args=None):
+def main(args: Optional[argparse.Namespace] = None) -> None:
     if args is None:
         args = get_args()
 
@@ -55,7 +58,10 @@ def main(args=None):
 
     crosses = []
     cross_correlations = args.cross_correlations
-    if bookkeeper.config.get("fits", dict()).get("cross correlations", None) is not None:
+    if (
+        bookkeeper.config.get("fits", dict()).get("cross correlations", None)
+        is not None
+    ):
         cross_correlations += bookkeeper.config["fits"]["cross correlations"].split(" ")
     for cross in cross_correlations:
         absorber, region = cross.split(".")
@@ -168,7 +174,7 @@ def main(args=None):
         run_fit(fit_args)
 
 
-def get_args():
+def get_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "bookkeeper_config", type=Path, help="Path to bookkeeper file to use"

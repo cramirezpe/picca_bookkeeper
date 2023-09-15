@@ -8,8 +8,8 @@ import shutil
 import sys
 from pathlib import Path
 from typing import TYPE_CHECKING
-import numpy as np
 
+import numpy as np
 import yaml
 from importlib_resources import files
 from picca.constants import ABSORBER_IGM
@@ -17,7 +17,7 @@ from yaml import SafeDumper
 
 from picca_bookkeeper import resources
 from picca_bookkeeper.dict_utils import DictUtils
-from picca_bookkeeper.tasker import ChainedTasker, Tasker, get_Tasker, DummyTasker
+from picca_bookkeeper.tasker import ChainedTasker, DummyTasker, Tasker, get_Tasker
 
 if TYPE_CHECKING:
     from typing import Dict, List, Optional, Tuple
@@ -123,6 +123,8 @@ class Bookkeeper:
     Attributes:
         config (configparser.ConfigParser): Configuration file for the bookkeeper.
     """
+
+    label: Optional[str]
 
     def __init__(
         self,

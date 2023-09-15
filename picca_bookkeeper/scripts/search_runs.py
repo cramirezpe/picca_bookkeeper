@@ -5,11 +5,15 @@ import argparse
 import logging
 import sys
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from picca_bookkeeper.bookkeeper_searcher import get_bookkeeper_differences
 
+if TYPE_CHECKING:
+    from typing import Optional
 
-def main(args=None):
+
+def main(args: Optional[argparse.Namespace] = None) -> None:
     if args is None:
         args = get_args()
 
@@ -48,7 +52,7 @@ def main(args=None):
         )
 
 
-def get_args():
+def get_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "directory", type=Path, nargs="+", help="Path where to search for bookkeepers."

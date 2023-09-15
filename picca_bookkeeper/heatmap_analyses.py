@@ -1,10 +1,18 @@
 from __future__ import annotations
 
+from pathlib import Path
+from typing import TYPE_CHECKING
+
+import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
-from pathlib import Path
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+
+from picca_bookkeeper.bookkeeper import Bookkeeper
 from picca_bookkeeper.read_deltas import ReadDeltas
+
+if TYPE_CHECKING:
+    from typing import Any, Dict, List, Optional, Tuple, Type
 
 
 class HeatmapAnalysis(ReadDeltas):
@@ -14,20 +22,20 @@ class HeatmapAnalysis(ReadDeltas):
 class Plots:
     @staticmethod
     def var_lss(
-        analysis,
-        fig=None,
-        ax=None,
-        y_min=None,
-        y_max=None,
-        add_mean_line=False,
-        imshow_kwargs=dict(),
-        mean_line_kwargs=dict(),
-        mask=None,
-        output_prefix=None,
-        save_data=False,
-        save_plot=False,
-        save_dict=dict(),
-    ):
+        analysis: Type[ReadDeltas],
+        fig: Optional[matplotlib.figure.Figure] = None,
+        ax: Optional[matplotlib.axes.Axes] = None,
+        y_min: Optional[float] = None,
+        y_max: Optional[float] = None,
+        add_mean_line: bool = False,
+        imshow_kwargs: Dict = dict(),
+        mean_line_kwargs: Dict = dict(),
+        mask: Optional[np.ndarray] = None,
+        output_prefix: Optional[Path | str] = None,
+        save_data: bool = False,
+        save_plot: bool = False,
+        save_dict: Dict = dict(),
+    ) -> None:
         if (save_data or save_plot) and output_prefix is None:
             raise ValueError("Set output_prefix in order to save data.")
 
@@ -103,39 +111,43 @@ class Plots:
 
         plt.tight_layout()
 
-        if save_plot:
-            output_prefix = Path(output_prefix)
-            plt.savefig(
-                output_prefix.parent / (output_prefix.name + "-var_lss.png"),
-                dpi=300,
-            )
+        if output_prefix is not None:
+            if save_plot:
+                output_prefix = Path(output_prefix)
+                plt.savefig(
+                    output_prefix.parent / (output_prefix.name + "-var_lss.png"),
+                    dpi=300,
+                )
 
-        if save_data:
-            np.savez(
-                output_prefix.parent / (output_prefix.name + "-var_lss.npz"),
-                **{**save_dict, **data_dict},
-            )
+            if save_data:
+                output_prefix = Path(output_prefix)
+                np.savez(
+                    output_prefix.parent / (output_prefix.name + "-var_lss.npz"),
+                    **{**save_dict, **data_dict},
+                )
+        elif save_data or save_plot:
+            raise ValueError("Set output_prefix in order to save data.")
 
     @staticmethod
     def heatmap_stat(
-        analysis,
-        x_values,
-        y_stat,
-        bins=(200, 777),
-        use_weights=False,
-        fig=None,
-        ax=None,
-        y_min=None,
-        y_max=None,
-        add_mean_line=False,
-        imshow_kwargs=dict(),
-        mean_line_kwargs=dict(),
-        mask=None,
-        output_prefix=None,
-        save_data=False,
-        save_plot=False,
-        save_dict=dict(),
-    ):
+        analysis: Type[ReadDeltas],
+        x_values: np.ndarray,
+        y_stat: np.ndarray,
+        bins: Tuple[int, int] | Tuple[np.ndarray, int] = (200, 777),
+        use_weights: bool = False,
+        fig: Optional[matplotlib.figure.Figure] = None,
+        ax: Optional[matplotlib.axes.Axes] = None,
+        y_min: Optional[float] = None,
+        y_max: Optional[float] = None,
+        add_mean_line: bool = False,
+        imshow_kwargs: Dict = dict(),
+        mean_line_kwargs: Dict = dict(),
+        mask: Optional[np.ndarray] = None,
+        output_prefix: Optional[Path | str] = None,
+        save_data: bool = False,
+        save_plot: bool = False,
+        save_dict: Dict = dict(),
+    ) -> None:
         """
         Arguments
         ---------
@@ -187,7 +199,7 @@ class Plots:
             weights = analysis.weights_arr[mask]
         else:
             weights = None
-        heatmap, xedges, yedges = np.histogram2d(
+        heatmap, xedges, yedges = np.histogram2d(  # type: ignore
             x_values,
             y_stat,
             bins=(bins[0], y_edges),
@@ -236,37 +248,40 @@ class Plots:
             if save_data:
                 data_dict["mean_line"] = (0.5 * (xedges[:-1] + xedges[1:]), averages)
 
-        if save_plot:
-            output_prefix = Path(output_prefix)
-            plt.tight_layout()
-            plt.savefig(
-                str(output_prefix) + ".png",
-                dpi=300,
-            )
+        if output_prefix is not None:
+            if save_plot:
+                output_prefix = Path(output_prefix)
+                plt.tight_layout()
+                plt.savefig(
+                    str(output_prefix) + ".png",
+                    dpi=300,
+                )
 
-        if save_data:
-            np.savez(
-                str(output_prefix) + ".npz",
-                **{**save_dict, **data_dict},
-            )
+            if save_data:
+                np.savez(
+                    str(output_prefix) + ".npz",
+                    **{**save_dict, **data_dict},
+                )
+        elif save_data or save_plot:
+            raise ValueError("Set output_prefix in order to save data.")
 
     @staticmethod
     def flux(
-        analysis,
-        use_weights=False,
-        fig=None,
-        ax=None,
-        y_min=None,
-        y_max=None,
-        add_mean_line=False,
-        imshow_kwargs=dict(),
-        mean_line_kwargs=dict(),
-        mask=None,
-        output_prefix=None,
-        save_data=False,
-        save_plot=False,
-        save_dict=dict(),
-    ):
+        analysis: Type[ReadDeltas],
+        use_weights: bool = False,
+        fig: Optional[matplotlib.figure.Figure] = None,
+        ax: Optional[matplotlib.axes.Axes] = None,
+        y_min: Optional[float] = None,
+        y_max: Optional[float] = None,
+        add_mean_line: bool = False,
+        imshow_kwargs: Dict = dict(),
+        mean_line_kwargs: Dict = dict(),
+        mask: Optional[np.ndarray] = None,
+        output_prefix: Optional[Path | str] = None,
+        save_data: bool = False,
+        save_plot: bool = False,
+        save_dict: Dict = dict(),
+    ) -> None:
         if output_prefix is not None:
             output_prefix = Path(output_prefix).parent / (
                 Path(output_prefix).name + "-flux"
@@ -319,21 +334,21 @@ class Plots:
 
     @staticmethod
     def flux_var(
-        analysis,
-        use_weights=False,
-        fig=None,
-        ax=None,
-        y_min=None,
-        y_max=None,
-        add_mean_line=False,
-        imshow_kwargs=dict(),
-        mean_line_kwargs=dict(),
-        mask=None,
-        output_prefix=None,
-        save_data=False,
-        save_plot=False,
-        save_dict=dict(),
-    ):
+        analysis: Type[ReadDeltas],
+        use_weights: bool = False,
+        fig: Optional[matplotlib.figure.Figure] = None,
+        ax: Optional[matplotlib.axes.Axes] = None,
+        y_min: Optional[float] = None,
+        y_max: Optional[float] = None,
+        add_mean_line: bool = False,
+        imshow_kwargs: Dict = dict(),
+        mean_line_kwargs: Dict = dict(),
+        mask: Optional[np.ndarray] = None,
+        output_prefix: Optional[Path | str] = None,
+        save_data: bool = False,
+        save_plot: bool = False,
+        save_dict: Dict = dict(),
+    ) -> None:
         if output_prefix is not None:
             output_prefix = Path(output_prefix).parent / (
                 Path(output_prefix).name + "-flux_var"
@@ -385,21 +400,21 @@ class Plots:
 
     @staticmethod
     def flux_var_over_flux(
-        analysis,
-        use_weights=False,
-        fig=None,
-        ax=None,
-        y_min=None,
-        y_max=None,
-        add_mean_line=False,
-        imshow_kwargs=dict(),
-        mean_line_kwargs=dict(),
-        mask=None,
-        output_prefix=None,
-        save_data=False,
-        save_plot=False,
-        save_dict=dict(),
-    ):
+        analysis: Type[ReadDeltas],
+        use_weights: bool = False,
+        fig: Optional[matplotlib.figure.Figure] = None,
+        ax: Optional[matplotlib.axes.Axes] = None,
+        y_min: Optional[float] = None,
+        y_max: Optional[float] = None,
+        add_mean_line: bool = False,
+        imshow_kwargs: Dict = dict(),
+        mean_line_kwargs: Dict = dict(),
+        mask: Optional[np.ndarray] = None,
+        output_prefix: Optional[Path | str] = None,
+        save_data: bool = False,
+        save_plot: bool = False,
+        save_dict: Dict = dict(),
+    ) -> None:
         if output_prefix is not None:
             output_prefix = Path(output_prefix).parent / (
                 Path(output_prefix).name + "-flux_var"
@@ -453,21 +468,21 @@ class Plots:
 
     @staticmethod
     def pipe_var(
-        analysis,
-        use_weights=False,
-        fig=None,
-        ax=None,
-        y_min=None,
-        y_max=None,
-        add_mean_line=False,
-        imshow_kwargs=dict(),
-        mean_line_kwargs=dict(),
-        mask=None,
-        output_prefix=None,
-        save_data=False,
-        save_plot=False,
-        save_dict=dict(),
-    ):
+        analysis: Type[ReadDeltas],
+        use_weights: bool = False,
+        fig: Optional[matplotlib.figure.Figure] = None,
+        ax: Optional[matplotlib.axes.Axes] = None,
+        y_min: Optional[float] = None,
+        y_max: Optional[float] = None,
+        add_mean_line: bool = False,
+        imshow_kwargs: Dict = dict(),
+        mean_line_kwargs: Dict = dict(),
+        mask: Optional[np.ndarray] = None,
+        output_prefix: Optional[Path | str] = None,
+        save_data: bool = False,
+        save_plot: bool = False,
+        save_dict: Dict = dict(),
+    ) -> None:
         if output_prefix is not None:
             output_prefix = Path(output_prefix).parent / (
                 Path(output_prefix).name + "-pipe_var"
@@ -519,21 +534,21 @@ class Plots:
 
     @staticmethod
     def flux_var_rf(
-        analysis,
-        use_weights=False,
-        fig=None,
-        ax=None,
-        y_min=None,
-        y_max=None,
-        add_mean_line=False,
-        imshow_kwargs=dict(),
-        mean_line_kwargs=dict(),
-        mask=None,
-        output_prefix=None,
-        save_data=False,
-        save_plot=False,
-        save_dict=dict(),
-    ):
+        analysis: Type[ReadDeltas],
+        use_weights: bool = False,
+        fig: Optional[matplotlib.figure.Figure] = None,
+        ax: Optional[matplotlib.axes.Axes] = None,
+        y_min: Optional[float] = None,
+        y_max: Optional[float] = None,
+        add_mean_line: bool = False,
+        imshow_kwargs: Dict = dict(),
+        mean_line_kwargs: Dict = dict(),
+        mask: Optional[np.ndarray] = None,
+        output_prefix: Optional[Path | str] = None,
+        save_data: bool = False,
+        save_plot: bool = False,
+        save_dict: Dict = dict(),
+    ) -> None:
         if output_prefix is not None:
             output_prefix = Path(output_prefix).parent / (
                 Path(output_prefix).name + "-flux-_var_rf"
@@ -581,21 +596,21 @@ class Plots:
 
     @staticmethod
     def lambda_vs_lambda_rf(
-        analysis,
-        use_weights=False,
-        fig=None,
-        ax=None,
-        y_min=None,
-        y_max=None,
-        add_mean_line=False,
-        imshow_kwargs=dict(),
-        mean_line_kwargs=dict(),
-        mask=None,
-        output_prefix=None,
-        save_data=False,
-        save_plot=False,
-        save_dict=dict(),
-    ):
+        analysis: Type[ReadDeltas],
+        use_weights: bool = False,
+        fig: Optional[matplotlib.figure.Figure] = None,
+        ax: Optional[matplotlib.axes.Axes] = None,
+        y_min: Optional[float] = None,
+        y_max: Optional[float] = None,
+        add_mean_line: bool = False,
+        imshow_kwargs: Dict = dict(),
+        mean_line_kwargs: Dict = dict(),
+        mask: Optional[np.ndarray] = None,
+        output_prefix: Optional[Path | str] = None,
+        save_data: bool = False,
+        save_plot: bool = False,
+        save_dict: Dict = dict(),
+    ) -> None:
         if output_prefix is not None:
             output_prefix = Path(output_prefix).parent / (
                 Path(output_prefix).name + "-lambda_vs_lambda_rf"
@@ -646,5 +661,9 @@ class Plots:
             )
 
     @staticmethod
-    def var_residual(analysis, fig=None, ax=None) -> None:
+    def var_residual(
+        analysis: Type[ReadDeltas],
+        fig: matplotlib.figure.Figure = None,
+        ax: matplotlib.axes.Axes = None,
+    ) -> None:
         pass
