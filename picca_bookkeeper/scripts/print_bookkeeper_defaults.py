@@ -1,18 +1,19 @@
 """Simple script to print default values"""
 
 import argparse
+from typing import TYPE_CHECKING
 
 import yaml
 from importlib_resources import files
 
 from picca_bookkeeper import resources
 from picca_bookkeeper.dict_utils import DictUtils
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from typing import Optional
 
-def main(args: Optional[argparse.Namespace]=None) -> None:
+
+def main(args: Optional[argparse.Namespace] = None) -> None:
     if args is None:
         args = get_args()
 
