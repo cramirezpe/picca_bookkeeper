@@ -58,7 +58,7 @@ def select_table(table: astropy.table.table.Table, selection: int = 2, NHI=20.3,
     elif selection == 6:
         #gp_nhi being 0 means nhi is taken from cnn
         #we try correcting the cnn_nhi by adding 0.17
-        idx=np.where(tb['GP_NHI']==0)
+        idx=np.where(table['GP_NHI']==0)
         table['NHI'][idx] += 0.17
 
         msk = table['NHI'] > NHI
