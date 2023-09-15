@@ -1,6 +1,8 @@
 """
     Build new deltas format from original deltas. This new format will allow for faster reading of data.
 """
+from __future__ import annotations
+
 import argparse
 import itertools
 import logging

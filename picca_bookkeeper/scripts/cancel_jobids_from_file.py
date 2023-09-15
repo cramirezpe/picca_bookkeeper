@@ -1,5 +1,7 @@
 """Simple script to cancel all jobs in a jobid log file"""
 
+from __future__ import annotations
+
 import argparse
 from pathlib import Path
 from subprocess import run

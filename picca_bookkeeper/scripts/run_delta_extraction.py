@@ -1,5 +1,7 @@
 """ Script to run picca_delta_extraction or picca_convert_transmission
 given a bookkeeper config file."""
+from __future__ import annotations
+
 import argparse
 import logging
 import sys

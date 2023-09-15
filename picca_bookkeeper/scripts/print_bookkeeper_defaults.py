@@ -1,5 +1,7 @@
 """Simple script to print default values"""
 
+from __future__ import annotations
+
 import argparse
 from typing import TYPE_CHECKING
 

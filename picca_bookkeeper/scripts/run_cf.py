@@ -1,5 +1,7 @@
 """ Script to run picca_cf and export
 given a bookkeeper config file."""
+from __future__ import annotations
+
 import argparse
 import logging
 import sys

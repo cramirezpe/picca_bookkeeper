@@ -1,6 +1,8 @@
 """
     Add column LAST_NIGHT with a default time value to a given catalog.
 """
+from __future__ import annotations
+
 import argparse
 import logging
 import sys

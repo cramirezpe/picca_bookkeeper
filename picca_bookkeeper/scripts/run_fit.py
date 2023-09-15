@@ -1,4 +1,6 @@
 """ Script to run vega fit given a bookkeeper config file"""
+from __future__ import annotations
+
 import argparse
 import logging
 import sys

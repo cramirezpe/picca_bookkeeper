@@ -1,6 +1,8 @@
 """Build a full bookkeeper config provided a bookkeeper inside a run. That is
 a bookkeeper that can be rerun completely in a different location."""
 
+from __future__ import annotations
+
 import argparse
 import logging
 import sys

@@ -6,7 +6,7 @@ import logging
 import sys
 from pathlib import Path
 from typing import TYPE_CHECKING
-
+from __future__ import annotations
 from picca_bookkeeper.bookkeeper_searcher import get_bookkeeper_differences
 
 if TYPE_CHECKING:

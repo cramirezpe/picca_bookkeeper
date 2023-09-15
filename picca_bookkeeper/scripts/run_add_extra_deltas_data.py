@@ -3,7 +3,7 @@ given a bookkeeper config file."""
 import argparse
 from pathlib import Path
 from typing import TYPE_CHECKING
-
+from __future__ import annotations
 from picca_bookkeeper.bookkeeper import Bookkeeper
 from picca_bookkeeper.tasker import get_Tasker
 

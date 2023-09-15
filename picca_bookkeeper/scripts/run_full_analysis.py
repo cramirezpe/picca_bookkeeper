@@ -1,4 +1,6 @@
 """Script to run all the analyis from terminal"""
+from __future__ import annotations
+
 import argparse
 import logging
 import sys
@@ -10,7 +12,8 @@ import numpy as np
 from picca_bookkeeper import bookkeeper
 from picca_bookkeeper.bookkeeper import Bookkeeper
 from picca_bookkeeper.scripts.run_cf import main as run_cf
-from picca_bookkeeper.scripts.run_delta_extraction import main as run_delta_extraction
+from picca_bookkeeper.scripts.run_delta_extraction import \
+    main as run_delta_extraction
 from picca_bookkeeper.scripts.run_fit import main as run_fit
 from picca_bookkeeper.scripts.run_xcf import main as run_xcf
 

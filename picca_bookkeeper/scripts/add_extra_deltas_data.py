@@ -1,5 +1,7 @@
 """ Read all masks applied during a picca run, for studying its effects"""
 
+from __future__ import annotations
+
 import argparse
 import itertools
 import logging
