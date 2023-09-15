@@ -21,13 +21,12 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-<<<<<<< HEAD
-def select_table(table: astropy.table.table.Table, selection: int = 2, NHI=20.3, S2N=0):
-=======
 def select_table(
-    table: astropy.table.table.Table, selection: int = 2
+    table: astropy.table.table.Table,
+    selection: int = 2,
+    NHI: float = 20.3,
+    S2N: float = 0,
 ) -> astropy.table.table.Table:
->>>>>>> master
     """Select on confidence flags/snr, also select type==DLA only"""
     # print('first select unique DLA ID')
     # tab = select_table_1(tab)
@@ -63,21 +62,19 @@ def select_table(
             (conf > 0.2) & (table["S2N"] >= 3)
         )
     elif selection == 5:
-        conf_min = np.minimum(
-                table['CNN_DLA_CONFIDENCE'],
-                table['GP_DLA_CONFIDENCE'])
-        msk = table['NHI'] > NHI
+        conf_min = np.minimum(table["CNN_DLA_CONFIDENCE"], table["GP_DLA_CONFIDENCE"])
+        msk = table["NHI"] > NHI
         msk &= conf_min > 0.5
-        msk &= table['S2N'] > S2N
+        msk &= table["S2N"] > S2N
     elif selection == 6:
-        #gp_nhi being 0 means nhi is taken from cnn
-        #we try correcting the cnn_nhi by adding 0.17
-        idx=np.where(table['GP_NHI']==0)
-        table['NHI'][idx] += 0.17
+        # gp_nhi being 0 means nhi is taken from cnn
+        # we try correcting the cnn_nhi by adding 0.17
+        idx = np.where(table["GP_NHI"] == 0)
+        table["NHI"][idx] += 0.17
 
-        msk = table['NHI'] > NHI
-        msk &= table['CNN_DLA_CONFIDENCE'] > 0.5
-        msk &= table['S2N'] > S2N
+        msk = table["NHI"] > NHI
+        msk &= table["CNN_DLA_CONFIDENCE"] > 0.5
+        msk &= table["S2N"] > S2N
 
     else:
         raise ValueError("Selection not valid.")
@@ -104,7 +101,9 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
     logger.info("Selecting objects from catalogues.")
     if args.selection != 0:
         catalogues = [
-            select_table(catalogue, selection=args.selection, NHI=args.NHI, S2N=args.S2N)
+            select_table(
+                catalogue, selection=args.selection, NHI=args.NHI, S2N=args.S2N
+            )
             for catalogue in catalogues
         ]
 
@@ -140,7 +139,7 @@ def getArgs() -> argparse.Namespace:
         required=True,
         help="Output path to the final DLA catalogue.",
     )
-    
+
     parser.add_argument(
         "--NHI",
         type=float,
@@ -156,7 +155,6 @@ def getArgs() -> argparse.Namespace:
         required=False,
         help="minimum QSO S2N, used only in selection 5 or 6",
     )
-
 
     parser.add_argument(
         "--selection",
