@@ -20,7 +20,8 @@ from picca_bookkeeper.utils import compute_cont, get_spectra_from_los_id
 if TYPE_CHECKING:
     from typing import Any, Dict, List, Optional, Tuple
 
-    from picca_bookkeeper.hints import wave_grid, wave_grid_int, wave_grid_rf
+    from picca_bookkeeper.hints import Axes, wave_grid, wave_grid_int, wave_grid_rf
+    
 
 
 class ReadDeltas:
@@ -348,7 +349,7 @@ class Plots:
         region: Optional[str] = None,
         calib_step: Optional[int] = None,
         attributes_file: Optional[Path | str] = None,
-        ax: Optional[matplotlib.axes._axes.Axes] = None,
+        ax: Optional[Axes] = None,
         plot_kwargs: Dict = dict(),
     ) -> Tuple[wave_grid, wave_grid]:
         if ax is None:
@@ -384,7 +385,7 @@ class Plots:
         region: Optional[str] = None,
         calib_step: Optional[int] = None,
         attributes_file: Optional[Path | str] = None,
-        ax: Optional[matplotlib.axes._axes.Axes] = None,
+        ax: Optional[Axes] = None,
         plot_kwargs: Dict = dict(),
     ) -> Tuple[wave_grid, wave_grid]:
         if ax is None:
@@ -421,7 +422,7 @@ class Plots:
         region: Optional[str] = None,
         calib_step: Optional[int] = None,
         attributes_file: Optional[Path | str] = None,
-        ax: Optional[matplotlib.axes._axes.Axes] = None,
+        ax: Optional[Axes] = None,
         plot_kwargs: Dict = dict(),
     ) -> Tuple[wave_grid, wave_grid]:
         if ax is None:
@@ -459,7 +460,7 @@ class Plots:
         calib_step: Optional[int] = None,
         attributes_file: Optional[Path | str] = None,
         rebin: Optional[int] = None,
-        ax: Optional[matplotlib.axes.Axes] = None,
+        ax: Optional[Axes] = None,
         plot_kwargs: Dict = dict(),
         use_weights: bool = False,
         offset: float = 0,
@@ -512,7 +513,7 @@ class Plots:
         region: Optional[str] = None,
         calib_step: Optional[int] = None,
         attributes_file: Optional[Path | str] = None,
-        ax: Optional[matplotlib.axes.Axes] = None,
+        ax: Optional[Axes] = None,
         plot_kwargs: Dict = dict(),
     ) -> Tuple[wave_grid, wave_grid_int]:
         if ax is None:
@@ -543,7 +544,7 @@ class Plots:
         region: Optional[str] = None,
         calib_step: Optional[int] = None,
         attributes_file: Optional[Path | str] = None,
-        ax: Optional[matplotlib.axes.Axes] = None,
+        ax: Optional[Axes] = None,
         plot_kwargs: Dict = dict(),
     ) -> None:
         if ax is None:
@@ -567,7 +568,7 @@ class Plots:
         region: Optional[str] = None,
         calib_step: Optional[int] = None,
         attributes_file: Optional[Path | str] = None,
-        ax: Optional[matplotlib.axes.Axes] = None,
+        ax: Optional[Axes] = None,
         plot_kwargs: Dict = dict(),
     ) -> Tuple[wave_grid_rf, wave_grid_rf]:
         if ax is None:
@@ -595,7 +596,7 @@ class Plots:
         mask_file: Path
         | str = Path(str(os.getenv("pr")))
         / "Continuum_fitting/config_files/sharp-lines-mask.txt",
-        ax: Optional[matplotlib.axes.Axes] = None,
+        ax: Optional[Axes] = None,
         plot_kwargs: Dict = dict(),
         use_labels: bool = False,
         lambda_lim: Optional[List[float]] = None,
@@ -649,7 +650,7 @@ class Plots:
         bookkeeper: Bookkeeper,
         los_id: int,
         plot_kwargs: Dict = dict(),
-        ax: Optional[matplotlib.axes._axes.Axes] = None,
+        ax: Optional[Axes] = None,
         z: Optional[float] = None,
     ) -> None:
         if ax is None:
@@ -676,7 +677,7 @@ class Plots:
     def plot_cont(
         los_id: int,
         attrs_file: Path | str,
-        ax: Optional[matplotlib.axes._axes.Axes] = None,
+        ax: Optional[Axes] = None,
         region: str = "lya",
         z: Optional[float] = None,
         **kwargs: Any,

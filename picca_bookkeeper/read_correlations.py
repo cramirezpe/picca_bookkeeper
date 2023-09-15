@@ -16,6 +16,8 @@ from picca_bookkeeper.bookkeeper import Bookkeeper
 if TYPE_CHECKING:
     from typing import Dict, List, Optional, Tuple
 
+    from picca_bookkeeper.hints import Axes, Figure
+
 
 class CorrelationPlots:
     @staticmethod
@@ -28,7 +30,7 @@ class CorrelationPlots:
         correlation_file: Path | str = "",
         mumin: float = 0,
         mumax: float = 1,
-        ax: Optional[matplotlib.axes._axes.Axes] = None,
+        ax: Optional[Axes] = None,
         r_factor: int = 2,
         plot_kwargs: Dict = dict(),
         just_return_values: bool = False,
@@ -284,7 +286,7 @@ class CorrelationPlots:
         mumin: float = 0,
         mumax: float = 1,
         correlation_file: Path | str = "",
-        ax: Optional[matplotlib.axes._axes.Axes] = None,
+        ax: Optional[Axes] = None,
         r_factor: int = 2,
         plot_kwargs: Dict = dict(),
         just_return_values: bool = False,
@@ -413,7 +415,7 @@ class CorrelationPlots:
     #     correlation_file: Path | str = None,
     #     mumin: float = 0,
     #     mumax: float = 1,
-    #     ax: matplotlib.axes._axes.Axes = None,
+    #     ax: Axes = None,
     #     r_factor: int = 2,
     #     plot_kwargs: Dict = dict(),
     #     just_return_values: bool = False,
@@ -488,7 +490,7 @@ class CorrelationPlots:
         mumin: float = 0,
         mumax: float = 1,
         r_factor: int = 2,
-        ax: matplotlib.axes._axes.Axes = None,
+        ax: Axes = None,
         plot_kwargs: Dict = dict(),
         just_return_values: bool = False,
         output_prefix: Optional[Path | str] = None,
@@ -601,7 +603,7 @@ class CorrelationPlots:
         mumin: float = 0,
         mumax: float = 1,
         r_factor: int = 2,
-        ax: Optional[matplotlib.axes.Axes] = None,
+        ax: Optional[Axes] = None,
         plot_kwargs: Dict = dict(),
         just_return_values: bool = False,
         output_prefix: Optional[Path | str] = None,
@@ -713,7 +715,7 @@ class CorrelationPlots:
     #     correlation_file: Path | str = None,
     #     mumin: float = 0,
     #     mumax: float = 1,
-    #     ax: matplotlib.axes._axes.Axes = None,
+    #     ax: Axes = None,
     #     r_factor: int = 2,
     #     plot_kwargs: Dict = dict(),
     #     just_return_values: bool = False,
@@ -787,8 +789,8 @@ class CorrelationPlots:
         r_factor: int = 2,
         vmin: float = -0.04,
         vmax: float = 0.04,
-        fig: matplotlib.figure.Figure = None,
-        ax: Optional[matplotlib.axes.Axes] = None,
+        fig: Figure = None,
+        ax: Optional[Axes] = None,
         plot_kwargs: Dict = dict(),
         just_return_values: bool = False,
         output_prefix: Optional[Path | str] = None,
@@ -910,8 +912,8 @@ class CorrelationPlots:
         r_factor: int = 2,
         vmin: float = -0.4,
         vmax: float = 0.4,
-        fig: Optional[matplotlib.figure.Figure] = None,
-        ax: Optional[matplotlib.axes.Axes] = None,
+        fig: Optional[Figure] = None,
+        ax: Optional[Axes] = None,
         plot_kwargs: Dict = dict(),
         just_return_values: bool = False,
         output_prefix: Optional[Path | str] = None,

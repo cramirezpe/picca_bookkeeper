@@ -14,6 +14,8 @@ from picca_bookkeeper.read_deltas import ReadDeltas
 if TYPE_CHECKING:
     from typing import Any, Dict, List, Optional, Tuple, Type
 
+    from picca_bookkeeper.hints import Axes, Figure
+
 
 class HeatmapAnalysis(ReadDeltas):
     pass
@@ -23,8 +25,8 @@ class Plots:
     @staticmethod
     def var_lss(
         analysis: Type[ReadDeltas],
-        fig: Optional[matplotlib.figure.Figure] = None,
-        ax: Optional[matplotlib.axes.Axes] = None,
+        fig: Optional[Figure] = None,
+        ax: Optional[Axes] = None,
         y_min: Optional[float] = None,
         y_max: Optional[float] = None,
         add_mean_line: bool = False,
@@ -135,8 +137,8 @@ class Plots:
         y_stat: np.ndarray,
         bins: Tuple[int, int] | Tuple[np.ndarray, int] = (200, 777),
         use_weights: bool = False,
-        fig: Optional[matplotlib.figure.Figure] = None,
-        ax: Optional[matplotlib.axes.Axes] = None,
+        fig: Optional[Figure] = None,
+        ax: Optional[Axes] = None,
         y_min: Optional[float] = None,
         y_max: Optional[float] = None,
         add_mean_line: bool = False,
@@ -269,8 +271,8 @@ class Plots:
     def flux(
         analysis: Type[ReadDeltas],
         use_weights: bool = False,
-        fig: Optional[matplotlib.figure.Figure] = None,
-        ax: Optional[matplotlib.axes.Axes] = None,
+        fig: Optional[Figure] = None,
+        ax: Optional[Axes] = None,
         y_min: Optional[float] = None,
         y_max: Optional[float] = None,
         add_mean_line: bool = False,
@@ -336,8 +338,8 @@ class Plots:
     def flux_var(
         analysis: Type[ReadDeltas],
         use_weights: bool = False,
-        fig: Optional[matplotlib.figure.Figure] = None,
-        ax: Optional[matplotlib.axes.Axes] = None,
+        fig: Optional[Figure] = None,
+        ax: Optional[Axes] = None,
         y_min: Optional[float] = None,
         y_max: Optional[float] = None,
         add_mean_line: bool = False,
@@ -402,8 +404,8 @@ class Plots:
     def flux_var_over_flux(
         analysis: Type[ReadDeltas],
         use_weights: bool = False,
-        fig: Optional[matplotlib.figure.Figure] = None,
-        ax: Optional[matplotlib.axes.Axes] = None,
+        fig: Optional[Figure] = None,
+        ax: Optional[Axes] = None,
         y_min: Optional[float] = None,
         y_max: Optional[float] = None,
         add_mean_line: bool = False,
@@ -470,8 +472,8 @@ class Plots:
     def pipe_var(
         analysis: Type[ReadDeltas],
         use_weights: bool = False,
-        fig: Optional[matplotlib.figure.Figure] = None,
-        ax: Optional[matplotlib.axes.Axes] = None,
+        fig: Optional[Figure] = None,
+        ax: Optional[Axes] = None,
         y_min: Optional[float] = None,
         y_max: Optional[float] = None,
         add_mean_line: bool = False,
@@ -536,8 +538,8 @@ class Plots:
     def flux_var_rf(
         analysis: Type[ReadDeltas],
         use_weights: bool = False,
-        fig: Optional[matplotlib.figure.Figure] = None,
-        ax: Optional[matplotlib.axes.Axes] = None,
+        fig: Optional[Figure] = None,
+        ax: Optional[Axes] = None,
         y_min: Optional[float] = None,
         y_max: Optional[float] = None,
         add_mean_line: bool = False,
@@ -598,8 +600,8 @@ class Plots:
     def lambda_vs_lambda_rf(
         analysis: Type[ReadDeltas],
         use_weights: bool = False,
-        fig: Optional[matplotlib.figure.Figure] = None,
-        ax: Optional[matplotlib.axes.Axes] = None,
+        fig: Optional[Figure] = None,
+        ax: Optional[Axes] = None,
         y_min: Optional[float] = None,
         y_max: Optional[float] = None,
         add_mean_line: bool = False,
@@ -663,7 +665,7 @@ class Plots:
     @staticmethod
     def var_residual(
         analysis: Type[ReadDeltas],
-        fig: matplotlib.figure.Figure = None,
-        ax: matplotlib.axes.Axes = None,
+        fig: Figure = None,
+        ax: Axes = None,
     ) -> None:
         pass

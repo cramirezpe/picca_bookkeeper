@@ -17,6 +17,8 @@ from picca_bookkeeper.bookkeeper import Bookkeeper
 
 if TYPE_CHECKING:
     from typing import Dict, List, Optional, Tuple, Type
+    
+    from picca_bookkeeper.hints import Axes, Figure
 
 logger = logging.getLogger(__name__)
 
@@ -153,7 +155,7 @@ class FitPlots:
         absorber2: Optional[str] = None,
         mumin: float = 0,
         mumax: float = 1,
-        ax: matplotlib.axes._axes.Axes = None,
+        ax: Axes = None,
         r_factor: int = 2,
         plot_kwargs: Dict = dict(),
         just_return_values: bool = False,
@@ -297,7 +299,7 @@ class FitPlots:
         absorber: str = "lya",
         mumin: float = 0,
         mumax: float = 1,
-        ax: matplotlib.axes._axes.Axes = None,
+        ax: Axes = None,
         r_factor: int = 2,
         plot_kwargs: Dict = dict(),
         just_return_values: bool = False,
@@ -445,11 +447,11 @@ class FitPlots:
         region2: Optional[str] = None,
         absorber: str = "lya",
         absorber2: Optional[str] = None,
-        ax: matplotlib.axes._axes.Axes = None,
+        ax: Axes = None,
         r_factor: int = 2,
         vmin: float = -0.04,
         vmax: float = 0.04,
-        fig: matplotlib.figure.Figure = None,
+        fig: Figure = None,
         plot_kwargs: Dict = dict(),
         just_return_values: bool = False,
         output_prefix: Optional[Path | str] = None,
@@ -608,11 +610,11 @@ class FitPlots:
         correlation_file: Path | str = "",
         region: str = "lya",
         absorber: str = "lya",
-        ax: matplotlib.axes._axes.Axes = None,
+        ax: Axes = None,
         r_factor: int = 2,
         vmin: float = -0.4,
         vmax: float = 0.4,
-        fig: matplotlib.figure.Figure = None,
+        fig: Figure = None,
         plot_kwargs: Dict = dict(),
         just_return_values: bool = False,
         output_prefix: Optional[Path | str] = None,
@@ -769,7 +771,7 @@ class FitPlots:
         readfits: List[ReadFits],
         param: str,
         param_name: Optional[str] = None,
-        ax: Optional[matplotlib.axes._axes.Axes] = None,
+        ax: Optional[Axes] = None,
         plot_kwargs: Dict = dict(),
     ) -> List[matplotlib.container.Container]:
         """
@@ -819,7 +821,7 @@ class FitPlots:
     @staticmethod
     def plot_p_value_from_fit(
         readfits: List[ReadFits],
-        ax: matplotlib.axes._axes.Axes = None,
+        ax: Axes = None,
         plot_kwargs: Dict = dict(),
     ) -> List[matplotlib.container.Container]:
         """
