@@ -1,10 +1,12 @@
 """ Script to run picca_xcf and export given a bookkeeper config file."""
+from __future__ import annotations
+
 import argparse
 import logging
 import sys
 from pathlib import Path
 from typing import TYPE_CHECKING
-from __future__ import annotations
+
 from picca_bookkeeper.bookkeeper import Bookkeeper
 from picca_bookkeeper.tasker import DummyTasker, Tasker
 
