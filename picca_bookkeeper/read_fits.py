@@ -30,6 +30,8 @@ class ReadFits:
         fit_file: Optional[Path | str] = None,
         label: Optional[str] = None,
         colour: Optional[str] = None,
+        ap_baseline: Optional[float] = None,
+        at_baseline: Optional[float] = None,
     ):
         """
         Args:
@@ -56,6 +58,9 @@ class ReadFits:
 
         self.label = label
         self.colour = colour
+
+        self.ap_baseline = ap_baseline
+        self.at_baseline = at_baseline
 
         self.read_fit()
 
@@ -86,13 +91,17 @@ class ReadFits:
 
             self.pvalue = 1 - sp.stats.chi2.cdf(self.chi2, self.ndata - self.nparams)
 
+        if self.ap_baseline is not None:
+            self.values[np.argmax(self.names == "ap")] -= self.ap_baseline
+
+        if self.at_baseline is not None:
+            self.values[np.argmax(self.names == "at")] -= self.at_baseline
+
     @staticmethod
     def table_from_fit_data(
         fits: List[Type[ReadFits]],
         params: List[str] = ["ap", "at", "bias_LYA", "beta_LYA"],
         params_names: Optional[List[str]] = None,
-        ap_baseline: float = 0.985,
-        at_baseline: float = 0.918,
         precision: int = 3,
     ) -> pd.DataFrame:
         if params_names is None:
@@ -115,12 +124,12 @@ class ReadFits:
                     idx = np.argmax(fit.names == param)
                     if param == "ap":
                         row.append(
-                            rf"{fit.values[idx]-ap_baseline:+.{precision}f} "
+                            rf"{fit.values[idx]:+.{precision}f} "
                             rf"± {fit.errors[idx]:.{precision}f}"
                         )
                     elif param == "at":
                         row.append(
-                            rf"{fit.values[idx]-at_baseline:+.{precision}f} "
+                            rf"{fit.values[idx]:+.{precision}f} "
                             rf"± {fit.errors[idx]:.{precision}f}"
                         )
                     else:
