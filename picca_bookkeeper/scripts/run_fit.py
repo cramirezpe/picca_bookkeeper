@@ -36,6 +36,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
         cross_correlations=args.cross_correlations,
         wait_for=args.wait_for,
         overwrite=args.overwrite,
+        skip_sent=args.skip_sent,
     )
 
     fit.write_job()
@@ -58,6 +59,10 @@ def get_args() -> argparse.Namespace:
         "--overwrite-config",
         action="store_true",
         help="Force overwrite bookkeeper config.",
+    )
+
+    parser.add_argument(
+        "--skip-sent", action="store_true", help="Skip runs that were already sent."
     )
 
     parser.add_argument(

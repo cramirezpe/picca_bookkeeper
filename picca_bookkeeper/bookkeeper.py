@@ -2509,6 +2509,7 @@ class Bookkeeper:
         # vega_extra_args: Dict = dict(),
         slurm_header_extra_args: Dict = dict(),
         overwrite: bool = False,
+        skip_sent: bool = False,
     ) -> Tasker | DummyTasker:
         """Method to get a Tasker object to run vega with correlation data.
 
@@ -2552,7 +2553,7 @@ class Bookkeeper:
         if self.check_existing_output_file(
             self.paths.fit_out_fname(),
             job_name,
-            False,
+            skip_sent,
             overwrite,
             updated_system,
         ):
