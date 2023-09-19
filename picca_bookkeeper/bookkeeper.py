@@ -53,6 +53,10 @@ def get_quasar_catalog(
 
     if catalogues[release][survey].get(catalog, None) is not None:
         return Path(catalogues[release][survey][catalog])
+    elif (
+        not bal and catalogues[release][survey].get(catalog + "-bal", None) is not None
+    ):
+        return Path(catalogues[release][survey][catalog + "-bal"])
     else:
         raise FileNotFoundError(
             "Could not find a compatible quasar catalogue inside the bookkeeper."
