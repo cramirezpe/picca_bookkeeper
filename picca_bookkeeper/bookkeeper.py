@@ -2675,32 +2675,6 @@ class Bookkeeper:
                 }
             },
         )
-        if "fiducial" not in args["fits"]["extra args"]["vega_main"] or (
-            args["fits"]["extra args"]["vega_main"]["fiducial"].get("filename", None)
-            is None
-        ):
-            shutil.copy(
-                files(resources).joinpath("fit_models/PlanckDR16.fits"),
-                self.paths.fit_main_fname().parent / "PlanckDR16.fits",
-            )
-
-            args = DictUtils.merge_dicts(
-                args,
-                {
-                    "fits": {
-                        "extra args": {
-                            "vega_main": {
-                                "fiducial": {
-                                    "filename": (
-                                        self.paths.fit_main_fname().parent
-                                        / "PlanckDR16.fits"
-                                    )
-                                }
-                            }
-                        }
-                    }
-                },
-            )
 
         if self.config["fits"].get("compute zeff", False):
             zeff = compute_zeff(
@@ -2721,6 +2695,9 @@ class Bookkeeper:
             extra_args=dict(),
             command="vega_main.py",  # The .py needed to make use of same function
         )
+
+        if "fiducial" not in vega_args or vega_args["fiducial"].get("filename", None) is None:
+            vega_args["fiducial"]["filename"] = "PlanckDR16/PlanckDR16.fits"
 
         filename = self.paths.fit_main_fname()
         self.write_ini(vega_args, filename)
