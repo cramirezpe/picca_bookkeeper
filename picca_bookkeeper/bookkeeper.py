@@ -1817,8 +1817,10 @@ class Bookkeeper:
         if self.config["correlations"].get(
             "fast metals", self.defaults["correlations"].get("fast metals", False)
         ):
+            fast_metal = True
             command = "picca_fast_metal_dmat.py"
         else:
+            fast_metal = False
             command = "picca_metal_dmat.py"
 
         updated_extra_args = self.generate_extra_args(
@@ -1854,17 +1856,26 @@ class Bookkeeper:
             slurm_header_args, updated_slurm_header_extra_args
         )
 
-        args = {
-            "in-dir": str(self.paths.deltas_path(region)),
-            "out": str(self.paths.metal_fname(absorber, region, absorber2, region2)),
-            "lambda-abs": absorber_igm[absorber.lower()],
-        }
+        args = {}
+
+        if fast_metal:
+            args["in-attributes"] = str(self.paths.delta_attributes_file(region))
+            args["delta-dir"] = str(self.paths.deltas_path(region))
+
+            if region2 != region:
+                args["in-attributes2"] = str(self.paths.delta_attributes_file(region2))
+        else:
+            args["in-dir"] = str(self.paths.deltas_path(region))
+
+            if region2 != region:
+                args["in-dir2"] = str(self.paths.deltas_path(region2))
+
+        args["out"] = str(self.paths.metal_fname(absorber, region, absorber2, region2))
+        args["lambda-abs"] = absorber_igm[absorber.lower()]
 
         if absorber2 != absorber:
             args["lambda-abs2"] = absorber_igm[absorber2.lower()]
 
-        if region2 != region:
-            args["in-dir2"] = str(self.paths.deltas_path(region2))
 
         args = DictUtils.merge_dicts(args, updated_extra_args)
 
@@ -2401,8 +2412,10 @@ class Bookkeeper:
         if self.config["correlations"].get(
             "fast metals", self.defaults["correlations"].get("fast metals", False)
         ):
+            fast_metal = True
             command = "picca_fast_metal_xdmat.py"
         else:
+            fast_metal = False
             command = "picca_metal_xdmat.py"
 
         updated_extra_args = self.generate_extra_args(
@@ -2436,12 +2449,16 @@ class Bookkeeper:
 
         drq = self.paths.catalog_tracer
 
-        args = {
-            "in-dir": str(self.paths.deltas_path(region)),
-            "drq": str(drq),
-            "out": str(self.paths.xmetal_fname(absorber, region)),
-            "lambda-abs": absorber_igm[absorber.lower()],
-        }
+        args = {}
+        if fast_metal:
+            args["in-attributes"] = str(self.paths.delta_attributes_file(region))
+            args["delta-dir"] = str(self.paths.deltas_path(region))
+        else:
+            args["in-dir"] = str(self.paths.deltas_path(region))
+
+        args["drq"] = str(drq)
+        args["out"] = str(self.paths.xmetal_fname(absorber, region))
+        args["lambda-abs"] = absorber_igm[absorber.lower()]
 
         args = DictUtils.merge_dicts(args, updated_extra_args)
 
