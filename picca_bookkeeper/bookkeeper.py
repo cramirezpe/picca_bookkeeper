@@ -12,12 +12,13 @@ from typing import TYPE_CHECKING
 import numpy as np
 import yaml
 from importlib_resources import files
-from picca.constants import ABSORBER_IGM
 from yaml import SafeDumper
 
 from picca_bookkeeper import resources
+from picca_bookkeeper.constants import absorber_igm, forest_regions
 from picca_bookkeeper.dict_utils import DictUtils
 from picca_bookkeeper.tasker import ChainedTasker, DummyTasker, Tasker, get_Tasker
+from picca_bookkeeper.utils import compute_zeff
 
 if TYPE_CHECKING:
     from typing import Dict, List, Optional, Tuple
@@ -29,44 +30,6 @@ SafeDumper.add_representer(
     type(None),
     lambda dumper, value: dumper.represent_scalar("tag:yaml.org,2002:null", ""),
 )
-
-forest_regions = {
-    "lya": {
-        "lambda-rest-min": 1040.0,
-        "lambda-rest-max": 1200.0,
-    },
-    "lyb": {
-        "lambda-rest-min": 920.0,
-        "lambda-rest-max": 1020.0,
-    },
-    "mgii_r": {
-        "lambda-rest-min": 2900.0,
-        "lambda-rest-max": 3120.0,
-    },
-    "ciii": {
-        "lambda-rest-min": 1600.0,
-        "lambda-rest-max": 1850.0,
-    },
-    "civ": {
-        "lambda-rest-min": 1410.0,
-        "lambda-rest-max": 1520.0,
-    },
-    "siv": {
-        "lambda-rest-min": 1260.0,
-        "lambda-rest-max": 1375.0,
-    },
-    "mgii_11": {
-        "lambda-rest-min": 2600.0,
-        "lambda-rest-max": 2760.0,
-    },
-    "mgii_h": {
-        "lambda-rest-min": 2100.0,
-        "lambda-rest-max": 2760.0,
-    },
-}
-
-# Get absorbers in lowercase.
-absorber_igm = dict((absorber.lower(), absorber) for absorber in ABSORBER_IGM)
 
 config_file_sorting = ["general", "delta extraction", "correlations", "fits"]
 
@@ -374,6 +337,7 @@ class Bookkeeper:
                 "delta extraction",
                 "run name",
                 "catalog tracer",
+                "fast metals",
                 "cf files",
                 "cf exp files",
                 "xcf files",
@@ -1846,7 +1810,10 @@ class Bookkeeper:
 
             return DummyTasker()
 
-        command = "picca_metal_dmat.py"
+        if self.config["correlations"].get("fast metals", False):
+            command = "picca_fast_metal_dmat.py"
+        else:
+            command = "picca_metal_dmat.py"
 
         updated_extra_args = self.generate_extra_args(
             config=self.config,
@@ -2425,7 +2392,10 @@ class Bookkeeper:
                 f"{DictUtils.print_dict(self.defaults_diff)}"
             )
 
-        command = "picca_metal_xdmat.py"
+        if self.config["correlations"].get("fast metals", False):
+            command = "picca_fast_metal_xdmat.py"
+        else:
+            command = "picca_metal_xdmat.py"
 
         updated_extra_args = self.generate_extra_args(
             config=self.config,
@@ -2569,6 +2539,8 @@ class Bookkeeper:
         if self.config["fits"].get("cross correlations", None) is not None:
             cross_correlations += self.config["fits"]["cross correlations"].split(" ")
 
+        export_files_auto = []
+
         # Set because there can be repeated values.
         for auto_correlation in set(auto_correlations):
             absorber, region, absorber2, region2 = auto_correlation.replace(
@@ -2580,6 +2552,8 @@ class Bookkeeper:
             absorber2 = self.validate_absorber(absorber2)
 
             export_file = self.paths.exp_cf_fname(absorber, region, absorber2, region2)
+            export_files_auto.append(export_file)
+
             metals_file = self.paths.metal_fname(absorber, region, absorber2, region2)
             distortion_file = self.paths.dmat_fname(
                 absorber, region, absorber2, region2
@@ -2629,6 +2603,8 @@ class Bookkeeper:
             if vega_args.get("metals", None) is not None:
                 input_files.append(metals_file)
 
+        export_files_cross = []
+
         # Set because there can be repeated values.
         for cross_correlation in set(cross_correlations):
             absorber, region = cross_correlation.split(".")
@@ -2636,6 +2612,8 @@ class Bookkeeper:
             absorber = self.validate_absorber(absorber)
 
             export_file = self.paths.exp_xcf_fname(absorber, region)
+            export_files_cross.append(export_file)
+
             metals_file = self.paths.xmetal_fname(absorber, region)
             distortion_file = self.paths.xdmat_fname(absorber, region)
 
@@ -2723,6 +2701,18 @@ class Bookkeeper:
                     }
                 },
             )
+
+        if self.config["fits"].get("compute zeff", False):
+            zeff = compute_zeff(
+                cf_files=export_files_auto,
+                xcf_files=export_files_cross,
+                rmin_cf=config["fits"]["rmin cf"],
+                rmax_cf=config["fits"]["rmax cf"],
+                rmin_xcf=config["fits"]["rmin xcf"],
+                rmax_xcf=config["fits"]["rmax xcf"],
+            )
+            args["fits"]["extra args"]["vega main"]["data sets"]["zeff"] = zeff
+            logger.info(f"Using computed zeff: {zeff:.2f}")
 
         vega_args = self.generate_extra_args(
             config=args,

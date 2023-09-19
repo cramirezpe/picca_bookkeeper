@@ -149,6 +149,9 @@ correlations:
   # by default will use the previous one for all the analyses.
   catalog tracer: 
 
+  # whether to use the new fast_metals code
+  fast metals: True
+
   # copy correlation measurements from a different place.
   # For auto-, one should provide the two absorbers and regions
   cf files:
@@ -236,6 +239,9 @@ fits:
 
   auto correlations: lya.lya-lya.lya lya.lya-lya.lyb
   cross correlations: lya.lya 
+
+  # Compute zeff directly from correlation export files
+  compute zeff: False
 
   distortion: True # Whether to use distortion matrix
   bao: True
