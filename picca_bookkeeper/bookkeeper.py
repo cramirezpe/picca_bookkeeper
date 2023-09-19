@@ -1810,7 +1810,9 @@ class Bookkeeper:
 
             return DummyTasker()
 
-        if self.config["correlations"].get("fast metals", False):
+        if self.config["correlations"].get(
+            "fast metals", self.defaults["correlations"].get("fast metals", False)
+        ):
             command = "picca_fast_metal_dmat.py"
         else:
             command = "picca_metal_dmat.py"
@@ -2392,7 +2394,9 @@ class Bookkeeper:
                 f"{DictUtils.print_dict(self.defaults_diff)}"
             )
 
-        if self.config["correlations"].get("fast metals", False):
+        if self.config["correlations"].get(
+            "fast metals", self.defaults["correlations"].get("fast metals", False)
+        ):
             command = "picca_fast_metal_xdmat.py"
         else:
             command = "picca_metal_xdmat.py"
@@ -2696,7 +2700,10 @@ class Bookkeeper:
             command="vega_main.py",  # The .py needed to make use of same function
         )
 
-        if "fiducial" not in vega_args or vega_args["fiducial"].get("filename", None) is None:
+        if (
+            "fiducial" not in vega_args
+            or vega_args["fiducial"].get("filename", None) is None
+        ):
             vega_args["fiducial"]["filename"] = "PlanckDR16/PlanckDR16.fits"
 
         filename = self.paths.fit_main_fname()
