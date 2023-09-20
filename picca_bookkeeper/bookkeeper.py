@@ -3592,10 +3592,11 @@ class PathBuilder:
         Returns:
             Path: Path to correlation file.
         """
-        return (
-            self.cf_fname(absorber, region, absorber2, region2).parent
-            / f"metal.fits.gz"
-        )
+        parent = self.cf_fname(absorber, region, absorber2, region2).parent
+        if (parent / "metal.fits.gz").is_file():
+            return parent / "metal.fits.gz"
+        else: 
+            return parent / f"metal.fits"
 
     def exp_cf_fname(
         self,
@@ -3659,7 +3660,11 @@ class PathBuilder:
         Returns:
             Path: Path to export correlation file.
         """
-        return self.xcf_fname(absorber, region).parent / f"xmetal.fits.gz"
+        parent = self.xcf_fname(absorber, region).parent 
+        if (parent / "xmetal.fits.gz").is_file():
+            return parent / "xmetal.fits.gz"
+        else:
+            return parent / "xmetal.fits"
 
     def exp_xcf_fname(self, absorber: str, region: str) -> Path:
         """Method to get the path to a forest-quasar correlation export file.
