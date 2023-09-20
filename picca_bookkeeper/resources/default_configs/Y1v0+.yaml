@@ -22,10 +22,12 @@ delta extraction:
     picca_convert_transmission:
       time: "03:30:00"
       qos: regular
+      cpus-per-task: 256
     
     picca_delta_extraction:
       time: "03:30:00"
       qos: regular
+      cpus-per-task: 256
 
 
 correlations:
@@ -114,30 +116,37 @@ correlations:
     picca_cf:
       qos: regular
       time: "04:00:00"
+      cpus-per-task: 256
 
     picca_dmat:
       qos: regular
       time: "04:00:00"
+      cpus-per-task: 128
 
     picca_export:
       qos: regular
       time: "00:20:00"
+      cpus-per-task: 1
 
     picca_metal_dmat:
       qos: regular
       time: "10:00:00"
+      cpus-per-task: 128
 
     picca_xcf:
       qos: regular
       time: "03:00:00"
+      cpus-per-task: 256
 
     picca_xdmat:
       qos: regular
       time: "03:00:00"
+      cpus-per-task: 128
 
     picca_metal_xdmat:
       qos: regular
       time: "10:00:00"
+      cpus-per-task: 128
 
 
 fits:

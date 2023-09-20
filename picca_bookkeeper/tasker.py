@@ -76,7 +76,6 @@ class Tasker:
         command: str,
         command_args: Dict,
         slurm_header_args: Dict,
-        srun_options: Dict,
         environment: str,
         run_file: Path | str,
         jobid_log_file: Path | str,
@@ -84,6 +83,7 @@ class Tasker:
             ChainedTasker | Tasker | List[Type[Tasker]] | int | List[int]
         ] = None,
         environmental_variables: Dict = dict(),
+        srun_options: Dict = dict(),
         in_files: List[Path] | List[str] = list[Path](),
         out_file: Optional[Path | str] = None,
     ):
@@ -240,13 +240,13 @@ class SlurmTasker(Tasker):
     default_srun_options = {
         "nodes": 1,  # N
         "ntasks": 1,  # n
-        "cpus-per-task": 32,  # c
     }
 
     default_header = {
         "qos": "regular",
         "nodes": 1,
         "time": "00:30:00",
+        "cpus-per-task": "256",
     }
 
     def __init__(self, *args: Any, **kwargs: Any):
@@ -291,7 +291,7 @@ class SlurmTasker(Tasker):
 module load python
 source activate {self.environment}
 umask 0002
-export OMP_NUM_THREADS={self.srun_options['cpus-per-task']}
+export OMP_NUM_THREADS={self.slurm_header_args['cpus-per-task']}
 
 """
         )
@@ -388,7 +388,6 @@ class SlurmPerlmutterTasker(SlurmTasker):
     default_srun_options = {
         "nodes": 1,  # N
         "ntasks": 1,  # n
-        "cpus-per-task": 256,  # c
     }
 
 
