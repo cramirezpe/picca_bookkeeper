@@ -2749,6 +2749,7 @@ class Bookkeeper:
             jobid_log_file=self.paths.fits_path / f"logs/jobids.log",
             in_files=input_files,
             wait_for=wait_for,
+            out_file=self.paths.fit_out_fname(),
         )
 
     def generate_fit_configuration(self) -> Dict:
