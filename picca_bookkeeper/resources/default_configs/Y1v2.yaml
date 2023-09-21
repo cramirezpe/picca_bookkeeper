@@ -69,9 +69,9 @@ correlations:
     picca_fast_metal_dmat:
       abs-igm: "SiII(1190) SiII(1193) SiIII(1207) SiII(1260) CIV(eff)"
       rp-min: 0
-      rp-max: 200
+      rp-max: 300
       rt-max: 200
-      np: 50
+      np: 75
       nt: 50
       fid-Or: 7.963e-5
       fid-Om: 0.315
@@ -83,9 +83,9 @@ correlations:
       rej: 0.999
       abs-igm: "SiII(1190) SiII(1193) SiIII(1207) SiII(1260) CIV(eff)"
       rp-min: 0
-      rp-max: 200
+      rp-max: 300
       rt-max: 200
-      np: 50
+      np: 75
       nt: 50
       fid-Or: 7.963e-5
       fid-Om: 0.315
@@ -126,10 +126,10 @@ correlations:
     picca_fast_metal_xdmat:
       mode: "desi_healpix"
       abs-igm: "SiII(1190) SiII(1193) SiIII(1207) SiII(1260) CIV(eff)"
-      rp-min: -200
-      rp-max: 200
+      rp-min: -300
+      rp-max: 300
       rt-max: 200
-      np: 100
+      np: 150
       nt: 50
       fid-Or: 7.963e-5
       fid-Om: 0.315
@@ -141,10 +141,10 @@ correlations:
       nproc: 256
       rej: 0.999
       abs-igm: "SiII(1190) SiII(1193) SiIII(1207) SiII(1260) CIV(eff)"
-      rp-min: -200
-      rp-max: 200
+      rp-min: -300
+      rp-max: 300
       rt-max: 200
-      np: 100
+      np: 75
       nt: 50
       fid-Or: 7.963e-5
       fid-Om: 0.315
@@ -172,7 +172,7 @@ correlations:
 
     picca_fast_metal_dmat:
       qos: regular
-      time: "00:10:00"
+      time: "00:30:00"
       cpus-per-task: 256
       exclusive: ""
 
@@ -196,7 +196,7 @@ correlations:
 
     picca_fast_metal_xdmat:
       qos: regular
-      time: "00:10:00"
+      time: "00:30:00"
 
       cpus-per-task: 256
       exclusive: ""
@@ -400,4 +400,4 @@ fits:
     run_vega:
       qos: shared
       ntasks: 1
-      cpus-per-task: 8
+      cpus-per-task: 12
