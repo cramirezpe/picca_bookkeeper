@@ -19,6 +19,6 @@ correlations:
   xdistortion matrices:
     lyalyb: /picca_bookkeeper/tests/test_files/output/guadalupe/main/afterburn_v0/dMdB20_2.mgii_r.0.0_0/correlations/default/results/qso_lyalyb/xdmat.fits.gz
   metal matrices:
-    lyalya_lyalyb: /picca_bookkeeper/tests/test_files/output/guadalupe/main/afterburn_v0/dMdB20_2.mgii_r.0.0_0/correlations/default/results/lyalya_lyalyb/metal.fits.gz
+    lyalya_lyalyb: /picca_bookkeeper/tests/test_files/output/guadalupe/main/afterburn_v0/dMdB20_2.mgii_r.0.0_0/correlations/default/results/lyalya_lyalyb/metal.fits
   xmetal matrices:
-    lyalyb: /picca_bookkeeper/tests/test_files/output/guadalupe/main/afterburn_v0/dMdB20_2.mgii_r.0.0_0/correlations/default/results/qso_lyalyb/xmetal.fits.gz
+    lyalyb: /picca_bookkeeper/tests/test_files/output/guadalupe/main/afterburn_v0/dMdB20_2.mgii_r.0.0_0/correlations/default/results/qso_lyalyb/xmetal.fits

@@ -45,6 +45,7 @@ def write_full_analysis(
     deltas = bookkeeper.get_delta_extraction_tasker(
         region=region,
     )
+    
     deltas.write_job()
     deltas.send_job()
 
