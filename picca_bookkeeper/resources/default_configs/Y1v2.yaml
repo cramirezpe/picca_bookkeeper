@@ -138,7 +138,7 @@ correlations:
       rp-min: -300
       rp-max: 300
       rt-max: 200
-      np: 75
+      np: 150
       nt: 50
       fid-Or: 7.963e-5
       fid-Om: 0.315
