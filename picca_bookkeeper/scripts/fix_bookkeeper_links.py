@@ -57,15 +57,20 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
     file_string = "\n\t".join(map(str, links))
     print(f"Symlink files:\n\t{file_string}")
 
+    # Remove ending / because if there are 2 issues might happen
+    updated_old_dirs = []
     for old_dir in old_dirs:
-        if old_dir[-1] != "/":
-            old_dir += "/"
+        while old_dir[-1] == "/":
+            old_dir = old_dir[:-1]
+        updated_old_dirs.append(old_dir)
+    old_dirs = updated_old_dirs
 
-    if args.new_dir[-1] != "/":
-        new_dir = args.new_dir + "/"
-    else:
-        new_dir = args.new_dir
-
+    new_dir = args.new_dir
+    print(new_dir)
+    while new_dir[-1] == "/":
+        new_dir = new_dir[:-1]
+    print(new_dir)
+    
     print("\nThe following substitutions will be made:")
     for dir_ in old_dirs:
         print(strRed(dir_), "->", strCyan(new_dir))
