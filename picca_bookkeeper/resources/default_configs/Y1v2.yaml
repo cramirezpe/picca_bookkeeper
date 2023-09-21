@@ -43,7 +43,6 @@ correlations:
 
   extra args:
     picca_cf:
-      nproc: 256
       rp-min: 0
       rp-max: 200
       rt-max: 200
@@ -54,7 +53,6 @@ correlations:
       rebin-factor: 3
 
     picca_dmat:
-      nproc: 256
       rej: 0.99
       rp-min: 0
       rp-max: 300
@@ -79,7 +77,6 @@ correlations:
       coef-binning-model: 2
 
     picca_metal_dmat:
-      nproc: 256
       rej: 0.999
       abs-igm: "SiII(1190) SiII(1193) SiIII(1207) SiII(1260) CIV(eff)"
       rp-min: 0
@@ -94,7 +91,6 @@ correlations:
 
     picca_xcf:
       mode: desi_healpix
-      nproc: 256
       nside: 16
       rp-min: -200
       rp-max: 200
@@ -110,7 +106,6 @@ correlations:
 
     picca_xdmat:
       mode: "desi_healpix"
-      nproc: 256
       rej: 0.99
       nside: 16
       rp-min: -300
@@ -138,7 +133,6 @@ correlations:
 
     picca_metal_xdmat:
       mode: "desi_healpix"
-      nproc: 256
       rej: 0.999
       abs-igm: "SiII(1190) SiII(1193) SiIII(1207) SiII(1260) CIV(eff)"
       rp-min: -300
@@ -172,7 +166,7 @@ correlations:
 
     picca_fast_metal_dmat:
       qos: regular
-      time: "00:30:00"
+      time: "01:00:00"
       cpus-per-task: 256
       exclusive: ""
 
@@ -196,8 +190,7 @@ correlations:
 
     picca_fast_metal_xdmat:
       qos: regular
-      time: "00:30:00"
-
+      time: "01:00:00"
       cpus-per-task: 256
       exclusive: ""
 
@@ -400,4 +393,5 @@ fits:
     run_vega:
       qos: shared
       ntasks: 1
-      cpus-per-task: 12
+      time: "01:30:00"
+      cpus-per-task: 20
