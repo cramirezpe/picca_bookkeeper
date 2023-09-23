@@ -238,12 +238,14 @@ class Bookkeeper:
             config_fit = copy.deepcopy(self.config)
 
             config_fit["fits"]["delta extraction"] = self.paths.continuum_tag
-            config_fit["fits"]["correlation run name"] = self.config["correlations"][
-                "run name"
-            ]
+            
+            if self.config["fits"].get("correlation run name", None) is None:
+                config_fit["fits"]["correlation run name"] = self.config[
+                    "correlations"
+                ]["run name"]
 
             config_fit.pop("delta extraction")
-            config_fit.pop("correlations")
+            config_fit.pop("correlations", None)
 
             if not self.paths.fit_config_file.is_file():
                 self.write_bookkeeper(config_fit, self.paths.fit_config_file)
@@ -1867,7 +1869,6 @@ class Bookkeeper:
 
         if absorber2 != absorber:
             args["lambda-abs2"] = absorber_igm[absorber2.lower()]
-
 
         args = DictUtils.merge_dicts(args, updated_extra_args)
 
@@ -3596,7 +3597,7 @@ class PathBuilder:
         parent = self.cf_fname(absorber, region, absorber2, region2).parent
         if (parent / "metal.fits.gz").is_file():
             return parent / "metal.fits.gz"
-        else: 
+        else:
             return parent / f"metal.fits"
 
     def exp_cf_fname(
@@ -3661,7 +3662,7 @@ class PathBuilder:
         Returns:
             Path: Path to export correlation file.
         """
-        parent = self.xcf_fname(absorber, region).parent 
+        parent = self.xcf_fname(absorber, region).parent
         if (parent / "xmetal.fits.gz").is_file():
             return parent / "xmetal.fits.gz"
         else:
