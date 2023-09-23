@@ -63,7 +63,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
         while old_dir[-1] == "/":
             old_dir = old_dir[:-1]
         updated_old_dirs.append(old_dir)
-    old_dirs = updated_old_dirs
+    old_dirs = set(updated_old_dirs)
 
     new_dir = args.new_dir
     print(new_dir)
