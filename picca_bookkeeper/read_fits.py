@@ -174,7 +174,8 @@ class ReadFits:
 
         df = pd.DataFrame(data=rows)
         df.columns = header
-        df = df.sort_values("pvalue")
+        # df = df.sort_values("pvalue")
+        
 
         return df
 
