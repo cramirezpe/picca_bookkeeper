@@ -87,10 +87,19 @@ class ReadFits:
         Read relevant information from output and store it in variables.
         """
         with fitsio.FITS(self.fit_file) as hdul:
-            self.names = hdul["BESTFIT"]["names"].read()
-            self.values = hdul["BESTFIT"]["values"].read()
-            self.errors = hdul["BESTFIT"]["errors"].read()
-            self.cov = hdul["BESTFIT"]["covariance"].read()
+            self.values = dict()
+            self.errors = dict()
+            self.covs = dict()
+            for name, value, error, cov in zip(
+                hdul["BESTFIT"]["names"].read(),
+                hdul["BESTFIT"]["values"].read(),
+                hdul["BESTFIT"]["errors"].read(),
+                hdul["BESTFIT"]["covariance"].read(),
+            ):
+                self.values[name] = value
+                self.errors[name] = error
+                self.covs[name] = cov
+            
 
             self.chi2 = hdul["BESTFIT"].read_header()["FVAL"]
             self.nparams = hdul["BESTFIT"].read_header()["NAXIS2"]
@@ -103,11 +112,12 @@ class ReadFits:
 
             self.pvalue = 1 - sp.stats.chi2.cdf(self.chi2, self.ndata - self.nparams)
 
-        if self.ap_baseline is not None:
-            self.values[np.argmax(self.names == "ap")] -= self.ap_baseline
 
-        if self.at_baseline is not None:
-            self.values[np.argmax(self.names == "at")] -= self.at_baseline
+        if "ap" in self.values.keys() and self.ap_baseline is not None:
+            self.values["ap"] -= self.ap_baseline
+
+        if "at" in self.values.keys() and self.at_baseline is not None:
+            self.values["at"] -= self.at_baseline
 
     def compute_chain(self) -> None:
         res = {}
@@ -115,11 +125,9 @@ class ReadFits:
         res["mean"] = list(self.values)
         res["cov"] = self.cov
 
-        npars = len(self.names)
-
         res["pars"] = {
-            self.names[i]: {"val": self.values[i], "err": self.errors[i]}
-            for i in range(npars)
+            name: {"val": self.values[name], "err": self.errors[name]}
+            for name in self.values.keys()
         }
 
         self.chain = make_chain(res["pars"].keys(), res["mean"], res["cov"])
@@ -147,22 +155,21 @@ class ReadFits:
             row.append(fit.label)
 
             for param in params:
-                if param in fit.names:
-                    idx = np.argmax(fit.names == param)
+                if param in fit.values.keys():
                     if param == "ap":
                         row.append(
-                            rf"{fit.values[idx]:+.{precision}f} "
-                            rf"± {fit.errors[idx]:.{precision}f}"
+                            rf"{fit.values[param]:+.{precision}f} "
+                            rf"± {fit.errors[param]:.{precision}f}"
                         )
                     elif param == "at":
                         row.append(
-                            rf"{fit.values[idx]:+.{precision}f} "
-                            rf"± {fit.errors[idx]:.{precision}f}"
+                            rf"{fit.values[param]:+.{precision}f} "
+                            rf"± {fit.errors[param]:.{precision}f}"
                         )
                     else:
                         row.append(
-                            rf"{fit.values[idx]:.{precision}f} "
-                            rf"± {fit.errors[idx]:.{precision}f}"
+                            rf"{fit.values[param]:.{precision}f} "
+                            rf"± {fit.errors[param]:.{precision}f}"
                         )
                 else:
                     row.append("")
@@ -830,9 +837,8 @@ class FitPlots:
         handles = []
 
         for i, fit in enumerate(readfits):
-            idx = np.argmax(fit.names == param)
-            value = fit.values[idx]
-            error = fit.errors[idx]
+            value = fit.values.get(param, None)
+            error = fit.errors.get(param, None)
 
             if fit.colour is not None:
                 plot_kwargs = {**plot_kwargs, **dict(color=fit.colour)}
