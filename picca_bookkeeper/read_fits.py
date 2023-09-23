@@ -90,16 +90,17 @@ class ReadFits:
             self.values = dict()
             self.errors = dict()
             self.covs = dict()
+            self.names = []
             for name, value, error, cov in zip(
                 hdul["BESTFIT"]["names"].read(),
                 hdul["BESTFIT"]["values"].read(),
                 hdul["BESTFIT"]["errors"].read(),
                 hdul["BESTFIT"]["covariance"].read(),
             ):
+                self.names.append(name)
                 self.values[name] = value
                 self.errors[name] = error
                 self.covs[name] = cov
-            
 
             self.chi2 = hdul["BESTFIT"].read_header()["FVAL"]
             self.nparams = hdul["BESTFIT"].read_header()["NAXIS2"]
@@ -112,11 +113,38 @@ class ReadFits:
 
             self.pvalue = 1 - sp.stats.chi2.cdf(self.chi2, self.ndata - self.nparams)
 
+        # If fit performed in alpha/phi, translate result into ap/at.
+        if ("ap" not in self.names or "at" not in self.names) and (
+            "alpha" in self.names and "phi" in self.names
+        ):
+            self.names.append("ap")
+            self.names.append("at")
+            self.values["ap"] = self.values["alpha"] / np.sqrt(self.values["phi"])
+            self.values["at"] = self.values["alpha"] * np.sqrt(self.values["phi"])
 
-        if "ap" in self.values.keys() and self.ap_baseline is not None:
+            self.errors["ap"] = np.sqrt(
+                (self.errors["alpha"] / np.sqrt(self.values["phi"])) ** 2
+                + (
+                    self.errors["phi"]
+                    * self.values["alpha"]
+                    / (2 * self.values["phi"] ** (1.5))
+                )
+                ** 2
+            )
+            self.errors["at"] = np.sqrt(
+                (self.errors["alpha"] * np.sqrt(self.values["phi"])) ** 2
+                + (
+                    self.errors["phi"]
+                    * self.values["alpha"]
+                    / np.sqrt(self.values["phi"])
+                )
+                ** 2
+            )
+
+        if "ap" in self.names and self.ap_baseline is not None:
             self.values["ap"] -= self.ap_baseline
 
-        if "at" in self.values.keys() and self.at_baseline is not None:
+        if "at" in self.names and self.at_baseline is not None:
             self.values["at"] -= self.at_baseline
 
     def compute_chain(self) -> None:
@@ -127,7 +155,7 @@ class ReadFits:
 
         res["pars"] = {
             name: {"val": self.values[name], "err": self.errors[name]}
-            for name in self.values.keys()
+            for name in self.names
         }
 
         self.chain = make_chain(res["pars"].keys(), res["mean"], res["cov"])
@@ -182,7 +210,6 @@ class ReadFits:
         df = pd.DataFrame(data=rows)
         df.columns = header
         # df = df.sort_values("pvalue")
-        
 
         return df
 
