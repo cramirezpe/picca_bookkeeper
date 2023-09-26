@@ -150,8 +150,8 @@ class ReadFits:
     def compute_chain(self) -> None:
         res = {}
         res["chisq"] = self.chi2
-        res["mean"] = list(self.values)
-        res["cov"] = self.cov
+        res["mean"] = list(self.values.values())
+        res["cov"] = list(self.covs.values())
 
         res["pars"] = {
             name: {"val": self.values[name], "err": self.errors[name]}
@@ -965,4 +965,5 @@ class FitPlots:
             legend_labels=labels,
             contour_colors=colours,
             contours_ls=["solid", "dashed", "dotted"],
+            **plot_kwargs,
         )
