@@ -44,17 +44,29 @@ def find_qso_pixel(los_id: int, catalog: str | Path) -> Tuple[int, str]:
             hdul["ZCATALOG"]["SURVEY"][indx],
         )
 
-def compute_zeff(cf_files: List[Path], xcf_files: List[Path], rmin_cf: float = 10, rmax_cf: float = 300, rmin_xcf: float = 10, rmax_xcf: float = 300) -> float:
+
+def compute_zeff(
+    cf_files: List[Path],
+    xcf_files: List[Path],
+    rmin_cf: float = 10,
+    rmax_cf: float = 300,
+    rmin_xcf: float = 10,
+    rmax_xcf: float = 300,
+) -> float:
     """Compute zeff from a set of export files"""
     zeff_list = []
     weights = []
-    for export_files, rmin, rmax in zip([cf_files, xcf_files], [rmin_cf, rmin_xcf], [rmax_cf, rmax_xcf]):
+    for export_files, rmin, rmax in zip(
+        [cf_files, xcf_files], [rmin_cf, rmin_xcf], [rmax_cf, rmax_xcf]
+    ):
         for export_file in export_files:
             with fitsio.FITS(export_file) as hdul:
-                r_arr = np.sqrt(hdul[1].data['RP']**2 + hdul[1].data["RT]"]**2)
+                r_arr = np.sqrt(hdul[1].data["RP"] ** 2 + hdul[1].data["RT]"] ** 2)
                 cells = (r_arr > rmin) * (r_arr < rmax)
 
-                zeff = np.average(hdul[1].data['Z'][cells], weights=hdul[1].data['NB'][cells])
+                zeff = np.average(
+                    hdul[1].data["Z"][cells], weights=hdul[1].data["NB"][cells]
+                )
                 weight = np.sum(hdul[1].data["NB"][cells])
 
             zeff_list.append(zeff)
