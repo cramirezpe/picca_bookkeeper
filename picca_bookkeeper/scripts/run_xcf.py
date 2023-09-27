@@ -35,6 +35,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
 
     xcf = bookkeeper.get_xcf_tasker(
         region=args.region,
+        absorber=args.absorber,
         debug=args.debug,
         wait_for=args.wait_for,
         overwrite=args.overwrite,
@@ -52,6 +53,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
     if not args.no_dmat:
         xdmat = bookkeeper.get_xdmat_tasker(
             region=args.region,
+            absorber=args.absorber,
             debug=args.debug,
             wait_for=args.wait_for,
             overwrite=args.overwrite,
@@ -69,6 +71,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
     if not args.no_metal:
         metal = bookkeeper.get_xmetal_tasker(
             region=args.region,
+            absorber=args.absorber,
             system=None,
             debug=args.debug,
             wait_for=args.wait_for,
@@ -88,6 +91,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
 
     xcf_exp = bookkeeper.get_xcf_exp_tasker(
         region=args.region,
+        absorber=args.absorber,
         wait_for=args.wait_for,
         overwrite=args.overwrite,
         skip_sent=args.skip_sent,
