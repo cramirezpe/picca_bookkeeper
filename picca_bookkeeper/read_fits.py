@@ -844,6 +844,7 @@ class FitPlots:
         param_name: Optional[str] = None,
         ax: Optional[Axes] = None,
         plot_kwargs: Dict = dict(),
+        reference: Optional[ReadFits] = None,
     ) -> List[matplotlib.container.Container]:
         """
         Args:
@@ -851,6 +852,7 @@ class FitPlots:
             param: Param to plot.
             param_name: Name of the param to show.
             ax: Axis where to plot. If not provided, it will be created.
+            reference: Add reference as shaded line.
 
         Returns:
             List of plot handles to make legend from it.
@@ -862,6 +864,39 @@ class FitPlots:
             fig, ax = plt.subplots()
 
         handles = []
+
+        if reference is not None:
+            value = reference.values.get(param, None)
+            error = reference.errors.get(param, None)
+            ax.axvspan(
+                value - error,
+                value + error,
+                alpha=0.2,
+                color="gray",
+            )
+            if param in ("ap", "at"):
+                ax.axvspan(
+                    value - error,
+                    value - error/3,
+                    alpha=0.2,
+                    color="red",
+                )
+                ax.axvspan(
+                    value + error/3,
+                    value + error,
+                    alpha=0.2,
+                    color="red",
+                )
+            handles.append(
+                ax.axvline(
+                    value,
+                    color="black",
+                    ls="--",
+                    lw=0.6,
+                    alpha=1,
+                    label=reference.label,
+                )
+            )
 
         for i, fit in enumerate(readfits):
             value = fit.values.get(param, None)
@@ -893,6 +928,7 @@ class FitPlots:
         readfits: List[ReadFits],
         ax: Axes = None,
         plot_kwargs: Dict = dict(),
+        reference: Optiona[ReadFits] = None,
     ) -> List[matplotlib.container.Container]:
         """
         Args:
@@ -906,6 +942,19 @@ class FitPlots:
             fig, ax = plt.subplots()
 
         handles = []
+
+        if reference is not None:
+            handles.append(
+                ax.axvline(
+                    reference.pvalue,
+                    color="black",
+                    ls="--",
+                    lw=0.6,
+                    alpha=1,
+                    label=reference.label,
+                )
+            )
+
         for i, fit in enumerate(readfits):
             if fit.colour is not None:
                 plot_kwargs = {**plot_kwargs, **dict(color=fit.colour)}
