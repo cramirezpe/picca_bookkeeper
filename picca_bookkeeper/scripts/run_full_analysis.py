@@ -118,6 +118,10 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
     ########################################
     ## Running all the correlations needed
     ########################################
+    if not(bookkeeper.config.get("fits", dict()).get("metals", True)) or args.no_metal:
+        no_metal = True
+    else:
+        no_metal = False
     if not args.no_correlations:
         for auto in autos:
             absorber, region, absorber2, region2 = auto
@@ -130,7 +134,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
                 absorber=absorber,
                 absorber2=absorber2,
                 no_dmat=args.no_dmat,
-                no_metal=args.no_metal,
+                no_metal=no_metal,
                 debug=False,  # Debug, only set deltas
                 only_write=args.only_write,
                 wait_for=args.wait_for,
@@ -149,7 +153,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
                 region=region,
                 absorber=absorber,
                 no_dmat=args.no_dmat,
-                no_metal=args.no_metal,
+                no_metal=no_metal,
                 debug=False,  # Debug, only set deltas,
                 only_write=args.only_write,
                 wait_for=args.wait_for,
