@@ -395,17 +395,17 @@ class Bookkeeper:
 
     @staticmethod
     def validate_region(region: str) -> str:
-        """Method to check if a region string is valid. Also converts it into lowercase.
+        """Method to check if a region string is valid.
 
         Will raise value error if the region is not in forest_regions.
 
         Args:
             region: Region (should be in forest_regions to pass the validation).
         """
-        if region.lower() not in forest_regions:
+        if region not in forest_regions:
             raise ValueError("Invalid region", region)
 
-        return region.lower()
+        return region
 
     @staticmethod
     def validate_absorber(absorber: str) -> str:
@@ -413,13 +413,15 @@ class Bookkeeper:
 
         Will raise value error if the absorber not in picca.absorbers.ABSORBER_IGM
 
+        lya and lyb are exceptions in lowercase.
+
         Args:
             absorber: Absorber to be used
         """
-        if absorber.lower() not in absorber_igm:
+        if absorber not in absorber_igm:
             raise ValueError("Invalid absorber", absorber)
 
-        return absorber.lower()
+        return absorber
 
     def generate_slurm_header_extra_args(
         self,
@@ -1306,6 +1308,7 @@ class Bookkeeper:
         absorber = self.validate_absorber(absorber)
 
         job_name = f"cf_{absorber}{region}_{absorber2}{region2}"
+        job_name = job_name.replace("(", "").replace(")", "")
 
         # Check if output already there
         updated_system = self.generate_system_arg(system)
@@ -1367,11 +1370,11 @@ class Bookkeeper:
         args = {
             "in-dir": str(self.paths.deltas_path(region)),
             "out": str(self.paths.cf_fname(absorber, region, absorber2, region2)),
-            "lambda-abs": absorber_igm[absorber.lower()],
+            "lambda-abs": absorber_igm[absorber],
         }
 
         if absorber2 != absorber:
-            args["lambda-abs2"] = absorber_igm[absorber2.lower()]
+            args["lambda-abs2"] = absorber_igm[absorber2]
 
         if region2 != region:
             args["in-dir2"] = str(self.paths.deltas_path(region2))
@@ -1468,6 +1471,7 @@ class Bookkeeper:
         absorber = self.validate_absorber(absorber)
 
         job_name = f"dmat_{absorber}{region}_{absorber2}{region2}"
+        job_name = job_name.replace("(", "").replace(")", "")
 
         # Check if output already there
         updated_system = self.generate_system_arg(system)
@@ -1529,11 +1533,11 @@ class Bookkeeper:
         args = {
             "in-dir": str(self.paths.deltas_path(region)),
             "out": str(self.paths.dmat_fname(absorber, region, absorber2, region2)),
-            "lambda-abs": absorber_igm[absorber.lower()],
+            "lambda-abs": absorber_igm[absorber],
         }
 
         if absorber2 != absorber:
-            args["lambda-abs2"] = absorber_igm[absorber2.lower()]
+            args["lambda-abs2"] = absorber_igm[absorber2]
 
         if region2 != region:
             args["in-dir2"] = str(self.paths.deltas_path(region2))
@@ -1627,6 +1631,7 @@ class Bookkeeper:
         absorber = self.validate_absorber(absorber)
 
         job_name = f"cf_exp_{absorber}{region}_{absorber2}{region2}"
+        job_name = job_name.replace("(", "").replace(")", "")
 
         # Check if output already there
         updated_system = self.generate_system_arg(system)
@@ -1783,6 +1788,7 @@ class Bookkeeper:
         absorber = self.validate_absorber(absorber)
 
         job_name = f"metal_{absorber}{region}_{absorber2}{region2}"
+        job_name = job_name.replace("(", "").replace(")", "")
 
         # Check if output already there
         updated_system = self.generate_system_arg(system)
@@ -1865,10 +1871,10 @@ class Bookkeeper:
                 args["in-dir2"] = str(self.paths.deltas_path(region2))
 
         args["out"] = str(self.paths.metal_fname(absorber, region, absorber2, region2))
-        args["lambda-abs"] = absorber_igm[absorber.lower()]
+        args["lambda-abs"] = absorber_igm[absorber]
 
         if absorber2 != absorber:
-            args["lambda-abs2"] = absorber_igm[absorber2.lower()]
+            args["lambda-abs2"] = absorber_igm[absorber2]
 
         args = DictUtils.merge_dicts(args, updated_extra_args)
 
@@ -1948,6 +1954,7 @@ class Bookkeeper:
         absorber = self.validate_absorber(absorber)
 
         job_name = f"xcf_{absorber}{region}"
+        job_name = job_name.replace("(", "").replace(")", "")
 
         # Check if output already there
         updated_system = self.generate_system_arg(system)
@@ -2008,7 +2015,7 @@ class Bookkeeper:
             "in-dir": str(self.paths.deltas_path(region)),
             "drq": str(drq),
             "out": str(self.paths.xcf_fname(absorber, region)),
-            "lambda-abs": absorber_igm[absorber.lower()],
+            "lambda-abs": absorber_igm[absorber],
         }
 
         args = DictUtils.merge_dicts(args, updated_extra_args)
@@ -2090,6 +2097,7 @@ class Bookkeeper:
         absorber = self.validate_absorber(absorber)
 
         job_name = f"xdmat_{absorber}{region}"
+        job_name = job_name.replace("(", "").replace(")", "")
 
         # Check if output already there
         updated_system = self.generate_system_arg(system)
@@ -2150,7 +2158,7 @@ class Bookkeeper:
             "in-dir": str(self.paths.deltas_path(region)),
             "drq": str(drq),
             "out": str(self.paths.xdmat_fname(absorber, region)),
-            "lambda-abs": absorber_igm[absorber.lower()],
+            "lambda-abs": absorber_igm[absorber],
         }
 
         args = DictUtils.merge_dicts(args, updated_extra_args)
@@ -2231,6 +2239,7 @@ class Bookkeeper:
         region = self.validate_region(region)
         absorber = self.validate_absorber(absorber)
         job_name = f"xcf_exp_{absorber}{region}"
+        job_name = job_name.replace("(", "").replace(")", "")
 
         # Check if output already there
         updated_system = self.generate_system_arg(system)
@@ -2366,6 +2375,7 @@ class Bookkeeper:
         region = self.validate_region(region)
         absorber = self.validate_absorber(absorber)
         job_name = f"xmetal_{absorber}{region}"
+        job_name = job_name.replace("(", "").replace(")", "")
 
         # Check if output already there
         updated_system = self.generate_system_arg(system)
@@ -2447,7 +2457,7 @@ class Bookkeeper:
 
         args["drq"] = str(drq)
         args["out"] = str(self.paths.xmetal_fname(absorber, region))
-        args["lambda-abs"] = absorber_igm[absorber.lower()]
+        args["lambda-abs"] = absorber_igm[absorber]
 
         args = DictUtils.merge_dicts(args, updated_extra_args)
 
@@ -3548,8 +3558,8 @@ class PathBuilder:
         return (
             self.correlations_path
             / "results"
-            / f"{absorber}{region}_{absorber2}{region2}"
-            / f"cf.fits.gz"
+            / f"{absorber.replace('(', '').replace(')', '')}{region}_"
+            f"{absorber2.replace('(', '').replace(')', '')}{region2}" / f"cf.fits.gz"
         )
 
     def dmat_fname(
@@ -3634,7 +3644,7 @@ class PathBuilder:
         return (
             self.correlations_path
             / "results"
-            / f"qso_{absorber}{region}"
+            / f"qso_{absorber.replace('(', '').replace(')', '')}{region}"
             / f"xcf.fits.gz"
         )
 

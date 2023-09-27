@@ -26,6 +26,10 @@ forest_regions = {
         "lambda-rest-min": 1260.0,
         "lambda-rest-max": 1375.0,
     },
+    "SiII": {
+        "lambda-rest-min": 1225.0,
+        "lambda-rest-max": 1255.0,
+    },
     "mgii_11": {
         "lambda-rest-min": 2600.0,
         "lambda-rest-max": 2760.0,
@@ -37,4 +41,9 @@ forest_regions = {
 }
 
 # Get absorbers in lowercase.
-absorber_igm = dict((absorber.lower(), absorber) for absorber in ABSORBER_IGM)
+# For historical reasons I'm using lowercase for lya and lyb.
+absorber_igm = dict(
+    (absorber, absorber) for absorber in ABSORBER_IGM if absorber not in ("LYA", "LYB")
+)
+absorber_igm["lya"] = "LYA"
+absorber_igm["lyb"] = "LYB"
