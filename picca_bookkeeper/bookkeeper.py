@@ -2589,7 +2589,10 @@ class Bookkeeper:
                         "extra args": {
                             "vega_auto": {
                                 "data": {
+                                    "name": f"{absorber}{region}x{absorber2}{region2}",
+                                    "tracer1": absorber_igm[absorber],
                                     "filename": export_file,
+                                    "tracer2": absorber_igm[absorber2],
                                 },
                                 "metals": {
                                     "filename": metals_file,
@@ -2647,6 +2650,8 @@ class Bookkeeper:
                         "extra args": {
                             "vega_cross": {
                                 "data": {
+                                    "name": f"qsox{absorber}{region}",
+                                    "tracer2": absorber_igm[absorber],
                                     "filename": export_file,
                                 },
                                 "metals": {
@@ -3711,9 +3716,9 @@ class PathBuilder:
         """
         region2 = region if region2 is None else region2
         absorber2 = absorber if absorber2 is None else absorber2
-        return (
-            self.fits_path / "configs" / f"{absorber}{region}x{absorber2}{region2}.ini"
-        )
+
+        name = self.fits_path / "configs" / f"{absorber}{region}x{absorber2}{region2}.ini"
+        return name.parent / name.name.replace("(", "").replace(")", "")
 
     def fit_cross_fname(self, absorber: str, region: str) -> Path:
         """Method to get te path to a given fit cross config file.
@@ -3725,7 +3730,8 @@ class PathBuilder:
         Returns:
             Path: Path to fit config file.
         """
-        return self.fits_path / "configs" / f"qsox{absorber}{region}.ini"
+        name = self.fits_path / "configs" / f"qsox{absorber}{region}.ini"
+        return name.parent / name.name.replace("(", "").replace(")", "")
 
     def fit_main_fname(self) -> Path:
         """Method to get the path to the main fit config file.
