@@ -61,13 +61,13 @@ def compute_zeff(
     ):
         for export_file in export_files:
             with fitsio.FITS(export_file) as hdul:
-                r_arr = np.sqrt(hdul[1].data["RP"] ** 2 + hdul[1].data["RT]"] ** 2)
+                r_arr = np.sqrt(hdul[1].read()["RP"] ** 2 + hdul[1].read()["RT"] ** 2)
                 cells = (r_arr > rmin) * (r_arr < rmax)
 
                 zeff = np.average(
-                    hdul[1].data["Z"][cells], weights=hdul[1].data["NB"][cells]
+                    hdul[1].read()["Z"][cells], weights=hdul[1].read()["NB"][cells]
                 )
-                weight = np.sum(hdul[1].data["NB"][cells])
+                weight = np.sum(hdul[1].read()["NB"][cells])
 
             zeff_list.append(zeff)
             weights.append(weight)
