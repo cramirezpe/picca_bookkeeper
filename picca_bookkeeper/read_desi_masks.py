@@ -1,6 +1,8 @@
 """
     Read flux, ivar, mask and wavelength information for DESI data
 """
+from __future__ import annotations
+
 import argparse
 import itertools
 import logging
@@ -8,7 +10,7 @@ import sys
 from multiprocessing import Pool
 from pathlib import Path
 from typing import TYPE_CHECKING
-from __future__ import annotations
+
 import fitsio
 import healpy as hp
 import matplotlib.pyplot as plt

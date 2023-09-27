@@ -1,9 +1,11 @@
 """ Script to run add_extra_deltas_data
 given a bookkeeper config file."""
+from __future__ import annotations
+
 import argparse
 from pathlib import Path
 from typing import TYPE_CHECKING
-from __future__ import annotations
+
 from picca_bookkeeper.bookkeeper import Bookkeeper
 from picca_bookkeeper.tasker import get_Tasker
 

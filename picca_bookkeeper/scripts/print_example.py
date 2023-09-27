@@ -1,7 +1,9 @@
 """Simple script to print default values"""
 
-from typing import TYPE_CHECKING
 from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from importlib_resources import files
 
 from picca_bookkeeper import resources
