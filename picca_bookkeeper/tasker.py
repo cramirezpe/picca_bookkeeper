@@ -86,6 +86,7 @@ class Tasker:
         srun_options: Dict = dict(),
         in_files: List[Path] | List[str] = list[Path](),
         out_file: Optional[Path | str] = None,
+        force_OMP_threads: Optional[int] = None,
     ):
         """
         Args:
@@ -101,6 +102,7 @@ class Tasker:
             in_files: Input files that must exists or contain a jobid in order for the
             job to be launched.
             out_file: Out file that will be write by the job (to add jobid if available).
+            force_OMP_threads: Force the number of OMP threads in script.
         """
         self.slurm_header_args = {**self.default_header, **slurm_header_args}
 
@@ -122,6 +124,7 @@ class Tasker:
         self.jobid_log_file = jobid_log_file
         self.in_files = in_files
         self.out_file = out_file
+        self.OMP_threads = force_OMP_threads
 
         self.jobid: Optional[int] = None
 
@@ -283,7 +286,11 @@ class SlurmTasker(Tasker):
 
         Returns:
             str: environmental options."""
-        text = textwrap.dedent(
+        if self.OMP_threads is not None:
+            text = f"export OMP_NUM_THREADS={self.OMP_threads}\n"
+        else:
+            text = ""
+        text += textwrap.dedent(
             f"""
 module load python
 source activate {self.environment}

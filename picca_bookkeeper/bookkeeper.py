@@ -2664,6 +2664,7 @@ class Bookkeeper:
             in_files=input_files,
             wait_for=wait_for,
             out_file=self.paths.sampler_out_path() / "checkfile?",
+            force_OMP_threads=1,
         )
 
     def generate_fit_configuration(self) -> Dict:
@@ -3030,6 +3031,9 @@ class Bookkeeper:
                         "vega_main": {
                             "data sets": {
                                 "ini files": " ".join(ini_files),
+                            },
+                            "Polychord": {
+                                "path": self.paths.sampler_out_path(),
                             },
                             "output": {"filename": self.paths.fit_out_fname()},
                         }
