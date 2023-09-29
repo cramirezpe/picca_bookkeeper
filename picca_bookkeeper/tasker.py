@@ -283,15 +283,11 @@ class SlurmTasker(Tasker):
 
         Returns:
             str: environmental options."""
-        if self.slurm_header_args.get("cpus-per-task", None) is not None:
-            self.srun_options["cpus-per-task"] = self.slurm_header_args["cpus-per-task"]
-
         text = textwrap.dedent(
             f"""
 module load python
 source activate {self.environment}
 umask 0002
-export OMP_NUM_THREADS={self.slurm_header_args['cpus-per-task']}
 
 """
         )
@@ -429,6 +425,7 @@ class BashTasker(Tasker):
             f"""
 module load python
 source activate {self.environment}
+umask 0002
 """
         )
 
