@@ -928,7 +928,7 @@ class FitPlots:
         readfits: List[ReadFits],
         ax: Axes = None,
         plot_kwargs: Dict = dict(),
-        reference: Optiona[ReadFits] = None,
+        reference: Optional[ReadFits] = None,
     ) -> List[matplotlib.container.Container]:
         """
         Args:
