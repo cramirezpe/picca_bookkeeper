@@ -238,7 +238,7 @@ class Bookkeeper:
             config_fit = copy.deepcopy(self.config)
 
             config_fit["fits"]["delta extraction"] = self.paths.continuum_tag
-            
+
             if self.config["fits"].get("correlation run name", None) is None:
                 config_fit["fits"]["correlation run name"] = self.config[
                     "correlations"
@@ -2495,8 +2495,6 @@ class Bookkeeper:
 
     def get_fit_tasker(
         self,
-        auto_correlations: List[str] = [],
-        cross_correlations: List[str] = [],
         system: Optional[str] = None,
         wait_for: Optional[Tasker | ChainedTasker | int | List[int]] = None,
         # vega_extra_args: Dict = dict(),
@@ -2507,11 +2505,6 @@ class Bookkeeper:
         """Method to get a Tasker object to run vega with correlation data.
 
         Args:
-            auto_correlations: List of auto-correlations to include in the vega
-                fits. The format of the strings should be 'lya.lya-lya.lya'.
-                This is to allow splitting.
-            cross_correlations: List of cross-correlations to include in the vega
-                fits. The format of the strings should be 'lya.lya'.
             system: Shell to use for job. 'slurm_cori' to use slurm scripts on
                 cori, 'slurm_perlmutter' to use slurm scripts on perlmutter,
                 'bash' to run it in login nodes or computer shell.
@@ -2519,14 +2512,11 @@ class Bookkeeper:
             wait_for: In NERSC, wait for a given job to finish before running
                 the current one. Could be a  Tasker object or a slurm jobid
                 (int). (Default: None, won't wait for anything).
-            # vega_extra_args : Set extra options for each vega config file
-            #     The format should be a dict of dicts: wanting to change
-            #     "num masks" in "masks" section one should pass
-            #     {'num masks': {'masks': value}}.
             slurm_header_extra_args: Change slurm header default options if
                 needed (time, qos, etc...). Use a dictionary with the format
                 {'option_name': 'option_value'}.
             overwrite: Overwrite files in destination.
+            skip_sent: Skip the run if fit output already present.
 
         Returns:
             Tasker: Tasker object to run vega.
@@ -2552,188 +2542,7 @@ class Bookkeeper:
         ):
             return DummyTasker()
 
-        ini_files = []
-        input_files = []
-
-        config = self.generate_fit_configuration()
-
-        if self.config["fits"].get("auto correlations", None) is not None:
-            auto_correlations += self.config["fits"]["auto correlations"].split(" ")
-        if self.config["fits"].get("cross correlations", None) is not None:
-            cross_correlations += self.config["fits"]["cross correlations"].split(" ")
-
-        export_files_auto = []
-
-        # Set because there can be repeated values.
-        for auto_correlation in set(auto_correlations):
-            absorber, region, absorber2, region2 = auto_correlation.replace(
-                "-", "."
-            ).split(".")
-            region = self.validate_region(region)
-            absorber = self.validate_absorber(absorber)
-            region2 = self.validate_region(region2)
-            absorber2 = self.validate_absorber(absorber2)
-
-            export_file = self.paths.exp_cf_fname(absorber, region, absorber2, region2)
-            export_files_auto.append(export_file)
-
-            metals_file = self.paths.metal_fname(absorber, region, absorber2, region2)
-            distortion_file = self.paths.dmat_fname(
-                absorber, region, absorber2, region2
-            )
-
-            args = DictUtils.merge_dicts(
-                config,
-                {
-                    "fits": {
-                        "extra args": {
-                            "vega_auto": {
-                                "data": {
-                                    "name": f"{absorber}{region}x{absorber2}{region2}",
-                                    "tracer1": absorber_igm[absorber],
-                                    "filename": export_file,
-                                    "tracer2": absorber_igm[absorber2],
-                                },
-                                "metals": {
-                                    "filename": metals_file,
-                                },
-                            }
-                        }
-                    }
-                },
-            )
-            input_files.append(export_file)
-
-            if self.config["fits"].get("distortion", True):
-                args["fits"]["extra args"]["vega_auto"]["data"][
-                    "distortion-file"
-                ] = distortion_file
-                input_files.append(distortion_file)
-
-            vega_args = self.generate_extra_args(
-                config=args,
-                default_config=self.defaults,
-                section="fits",
-                extra_args=dict(),
-                command="vega_auto.py",  # The use of .py only for using same function
-                region=region,
-                absorber=absorber,
-                region2=region2,
-                absorber2=absorber2,
-            )
-
-            filename = self.paths.fit_auto_fname(absorber, region, absorber2, region2)
-            self.write_ini(vega_args, filename)
-            ini_files.append(str(filename))
-
-            if vega_args.get("metals", None) is not None:
-                input_files.append(metals_file)
-
-        export_files_cross = []
-
-        # Set because there can be repeated values.
-        for cross_correlation in set(cross_correlations):
-            absorber, region = cross_correlation.split(".")
-            region = self.validate_region(region)
-            absorber = self.validate_absorber(absorber)
-
-            export_file = self.paths.exp_xcf_fname(absorber, region)
-            export_files_cross.append(export_file)
-
-            metals_file = self.paths.xmetal_fname(absorber, region)
-            distortion_file = self.paths.xdmat_fname(absorber, region)
-
-            args = DictUtils.merge_dicts(
-                config,
-                {
-                    "fits": {
-                        "extra args": {
-                            "vega_cross": {
-                                "data": {
-                                    "name": f"qsox{absorber}{region}",
-                                    "tracer2": absorber_igm[absorber],
-                                    "filename": export_file,
-                                },
-                                "metals": {
-                                    "filename": metals_file,
-                                },
-                            }
-                        }
-                    }
-                },
-            )
-            input_files.append(export_file)
-
-            if self.config["fits"].get("distortion", True):
-                args["fits"]["extra args"]["vega_cross"]["data"][
-                    "distortion-file"
-                ] = distortion_file
-                input_files.append(distortion_file)
-
-            vega_args = self.generate_extra_args(
-                config=args,
-                default_config=self.defaults,
-                section="fits",
-                extra_args=dict(),
-                command="vega_cross.py",  # The use of .py only for using same function
-                region=region,
-                absorber=absorber,
-            )
-
-            filename = self.paths.fit_cross_fname(absorber, region)
-            self.write_ini(vega_args, filename)
-            ini_files.append(str(filename))
-
-            if vega_args.get("metals", None) is not None:
-                input_files.append(metals_file)
-
-        # Now the main file
-        args = DictUtils.merge_dicts(
-            config,
-            {
-                "fits": {
-                    "extra args": {
-                        "vega_main": {
-                            "data sets": {
-                                "ini files": " ".join(ini_files),
-                            },
-                            "output": {"filename": self.paths.fit_out_fname()},
-                        }
-                    }
-                }
-            },
-        )
-
-        if self.config["fits"].get("compute zeff", False):
-            zeff = compute_zeff(
-                cf_files=export_files_auto,
-                xcf_files=export_files_cross,
-                rmin_cf=config["fits"]["rmin cf"],
-                rmax_cf=config["fits"]["rmax cf"],
-                rmin_xcf=config["fits"]["rmin xcf"],
-                rmax_xcf=config["fits"]["rmax xcf"],
-            )
-            args["fits"]["extra args"]["vega main"]["data sets"]["zeff"] = zeff
-            logger.info(f"Using computed zeff: {zeff:.2f}")
-
-        vega_args = self.generate_extra_args(
-            config=args,
-            default_config=self.defaults,
-            section="fits",
-            extra_args=dict(),
-            command="vega_main.py",  # The .py needed to make use of same function
-        )
-
-        if (
-            "fiducial" not in vega_args
-            or vega_args["fiducial"].get("filename", None) is None
-        ):
-            vega_args["fiducial"]["filename"] = "PlanckDR16/PlanckDR16.fits"
-
-        filename = self.paths.fit_main_fname()
-        self.write_ini(vega_args, filename)
-
-        ini_files.append(str(filename))
+        input_files = self.write_fit_configuration()
 
         # Now slurm args
         command = "run_vega.py"
@@ -2766,6 +2575,95 @@ class Bookkeeper:
             in_files=input_files,
             wait_for=wait_for,
             out_file=self.paths.fit_out_fname(),
+        )
+
+    def get_sampler_tasker(
+        self,
+        auto_correlations: List[str] = [],
+        cross_correlations: List[str] = [],
+        system: Optional[str] = None,
+        wait_for: Optional[Tasker | ChainedTasker | int | List[int]] = None,
+        slurm_header_extra_args: Dict = dict(),
+        overwrite: bool = False,
+        skip_sent: bool = False,
+    ) -> Tasker | DummyTasker:
+        """Method to get a Tasker object to run vega sampler with correlation data.
+
+        Args:
+            system: Shell to use for job. 'slurm_cori' to use slurm scripts on
+                cori, 'slurm_perlmutter' to use slurm scripts on perlmutter,
+                'bash' to run it in login nodes or computer shell.
+                Default: None, read from config file.
+            wait_for: In NERSC, wait for a given job to finish before running
+                the current one. Could be a  Tasker object or a slurm jobid
+                (int). (Default: None, won't wait for anything).
+            slurm_header_extra_args: Change slurm header default options if
+                needed (time, qos, etc...). Use a dictionary with the format
+                {'option_name': 'option_value'}.
+            overwrite: Overwrite files in destination.
+            skip_sent: Skip the run if sampler output already present.
+
+        Returns:
+            Tasker: Tasker object to run vega sampler.
+        """
+        if self.defaults_diff != {}:
+            raise ValueError(
+                "Default values changed since last run of the "
+                f"bookkeeper. Remove the file:\n\n {self.paths.defaults_file} "
+                "\n\n to be able to write jobs (with the new default "
+                f"values\). Defaults diff:\n\n"
+                f"{DictUtils.print_dict(self.defaults_diff)}"
+            )
+
+        job_name = "vega_sampler"
+
+        updated_system = self.generate_system_arg(system)
+        if self.check_existing_output_file(
+            self.paths.sampler_out_path() / "checkfile?",
+            job_name,
+            skip_sent,
+            overwrite,
+            updated_system,
+        ):
+            return DummyTasker()
+
+        input_files = self.write_fit_configuration()
+
+        command = "run_vega_mpi.py"
+        updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
+            config=self.config,
+            default_config=self.defaults,
+            section="fits",
+            slurm_args=slurm_header_extra_args,
+            command=command,
+        )
+
+        slurm_header_args = {
+            "job-name": job_name,
+            "output": str(self.paths.fits_path / f"logs/{job_name}-%j.out"),
+            "error": str(self.paths.fits_path / f"logs/{job_name}-%j.err"),
+        }
+
+        slurm_header_args = DictUtils.merge_dicts(
+            slurm_header_args,
+            updated_slurm_header_extra_args,
+        )
+
+        if self.config["fits"].get("sampler environment", None) is None:
+            environment = self.config["general"]["conda environment"]
+        else:
+            environment = self.config["fits"]["sampler environment"]
+
+        return get_Tasker(updated_system)(
+            command=command,
+            command_args={"": str(self.paths.fit_main_fname().resolve())},
+            slurm_header_args=slurm_header_args,
+            environment=environment,
+            run_file=self.paths.fits_path / f"scripts/run_{job_name}.sh",
+            jobid_log_file=self.paths.fits_path / f"logs/jobids.log",
+            in_files=input_files,
+            wait_for=wait_for,
+            out_file=self.paths.sampler_out_path() / "checkfile?",
         )
 
     def generate_fit_configuration(self) -> Dict:
@@ -2975,6 +2873,189 @@ class Bookkeeper:
 
         config["fits"]["extra args"] = args
         return config
+
+    def write_fit_configuration(self) -> List[Path]:
+        """
+        Method to generate and write vega configuration files from bookkeeper config.
+
+        Returns:
+            List of input files, needed by the Tasker instance to correctly
+            set up dependencies.
+        """
+        ini_files = []
+        input_files = []
+
+        config = self.generate_fit_configuration()
+
+        if self.config["fits"].get("auto correlations", None) is not None:
+            auto_correlations = self.config["fits"]["auto correlations"].split(" ")
+        else:
+            auto_correlations = []
+        if self.config["fits"].get("cross correlations", None) is not None:
+            cross_correlations = self.config["fits"]["cross correlations"].split(" ")
+        else:
+            cross_correlations = []
+
+        export_files_auto = []
+
+        # Set because there can be repeated values.
+        for auto_correlation in set(auto_correlations):
+            absorber, region, absorber2, region2 = auto_correlation.replace(
+                "-", "."
+            ).split(".")
+            region = self.validate_region(region)
+            absorber = self.validate_absorber(absorber)
+            region2 = self.validate_region(region2)
+            absorber2 = self.validate_absorber(absorber2)
+
+            export_file = self.paths.exp_cf_fname(absorber, region, absorber2, region2)
+            export_files_auto.append(export_file)
+
+            metals_file = self.paths.metal_fname(absorber, region, absorber2, region2)
+            distortion_file = self.paths.dmat_fname(
+                absorber, region, absorber2, region2
+            )
+
+            args = DictUtils.merge_dicts(
+                config,
+                {
+                    "fits": {
+                        "extra args": {
+                            "vega_auto": {
+                                "data": {
+                                    "name": f"{absorber}{region}x{absorber2}{region2}",
+                                    "tracer1": absorber_igm[absorber],
+                                    "filename": export_file,
+                                    "tracer2": absorber_igm[absorber2],
+                                },
+                                "metals": {
+                                    "filename": metals_file,
+                                },
+                            }
+                        }
+                    }
+                },
+            )
+            input_files.append(export_file)
+
+            if self.config["fits"].get("distortion", True):
+                args["fits"]["extra args"]["vega_auto"]["data"][
+                    "distortion-file"
+                ] = distortion_file
+                input_files.append(distortion_file)
+
+            vega_args = self.generate_extra_args(
+                config=args,
+                default_config=self.defaults,
+                section="fits",
+                extra_args=dict(),
+                command="vega_auto.py",  # The use of .py only for using same function
+                region=region,
+                absorber=absorber,
+                region2=region2,
+                absorber2=absorber2,
+            )
+
+            filename = self.paths.fit_auto_fname(absorber, region, absorber2, region2)
+            self.write_ini(vega_args, filename)
+            ini_files.append(str(filename))
+
+            if vega_args.get("metals", None) is not None:
+                input_files.append(metals_file)
+
+        export_files_cross = []
+
+        # Set because there can be repeated values.
+        for cross_correlation in set(cross_correlations):
+            absorber, region = cross_correlation.split(".")
+            region = self.validate_region(region)
+            absorber = self.validate_absorber(absorber)
+
+            export_file = self.paths.exp_xcf_fname(absorber, region)
+            export_files_cross.append(export_file)
+
+            metals_file = self.paths.xmetal_fname(absorber, region)
+            distortion_file = self.paths.xdmat_fname(absorber, region)
+
+            args = DictUtils.merge_dicts(
+                config,
+                {
+                    "fits": {
+                        "extra args": {
+                            "vega_cross": {
+                                "data": {
+                                    "name": f"qsox{absorber}{region}",
+                                    "tracer2": absorber_igm[absorber],
+                                    "filename": export_file,
+                                },
+                                "metals": {
+                                    "filename": metals_file,
+                                },
+                            }
+                        }
+                    }
+                },
+            )
+            input_files.append(export_file)
+
+            if self.config["fits"].get("distortion", True):
+                args["fits"]["extra args"]["vega_cross"]["data"][
+                    "distortion-file"
+                ] = distortion_file
+                input_files.append(distortion_file)
+
+            vega_args = self.generate_extra_args(
+                config=args,
+                default_config=self.defaults,
+                section="fits",
+                extra_args=dict(),
+                command="vega_cross.py",  # The use of .py only for using same function
+                region=region,
+                absorber=absorber,
+            )
+
+            filename = self.paths.fit_cross_fname(absorber, region)
+            self.write_ini(vega_args, filename)
+            ini_files.append(str(filename))
+
+            if vega_args.get("metals", None) is not None:
+                input_files.append(metals_file)
+
+        # Now the main file
+        args = DictUtils.merge_dicts(
+            config,
+            {
+                "fits": {
+                    "extra args": {
+                        "vega_main": {
+                            "data sets": {
+                                "ini files": " ".join(ini_files),
+                            },
+                            "output": {"filename": self.paths.fit_out_fname()},
+                        }
+                    }
+                }
+            },
+        )
+
+        vega_args = self.generate_extra_args(
+            config=args,
+            default_config=self.defaults,
+            section="fits",
+            extra_args=dict(),
+            command="vega_main.py",  # The .py needed to make use of same function
+        )
+
+        if (
+            "fiducial" not in vega_args
+            or vega_args["fiducial"].get("filename", None) is None
+        ):
+            vega_args["fiducial"]["filename"] = "PlanckDR16/PlanckDR16.fits"
+
+        filename = self.paths.fit_main_fname()
+        self.write_ini(vega_args, filename)
+
+        return input_files
 
     def check_existing_output_file(
         self, file: Path, job_name: str, skip_sent: bool, overwrite: bool, system: str
@@ -3717,7 +3798,9 @@ class PathBuilder:
         region2 = region if region2 is None else region2
         absorber2 = absorber if absorber2 is None else absorber2
 
-        name = self.fits_path / "configs" / f"{absorber}{region}x{absorber2}{region2}.ini"
+        name = (
+            self.fits_path / "configs" / f"{absorber}{region}x{absorber2}{region2}.ini"
+        )
         return name.parent / name.name.replace("(", "").replace(")", "")
 
     def fit_cross_fname(self, absorber: str, region: str) -> Path:
@@ -3748,3 +3831,11 @@ class PathBuilder:
             Path: Path to fit output file.
         """
         return self.fits_path / "results" / "fit_output.fits"
+
+    def sampler_out_path(self) -> Path:
+        """Method to get the path to the sampler output foler
+
+        Returns:
+            Path to sampler output folder.
+        """
+        return self.fits_path / "results" / "sampler"

@@ -28,6 +28,7 @@ setuptools.setup(
             "picca_bookkeeper_run_convert_deltas = picca_bookkeeper.scripts.run_convert_deltas:main",
             "picca_bookkeeper_run_add_extra_deltas_data = picca_bookkeeper.scripts.run_add_extra_deltas_data:main",
             "picca_bookkeeper_run_fit = picca_bookkeeper.scripts.run_fit:main",
+            "picca_bookkeeper_run_sampler = picca_bookkeeper.scripts.run_sampler:main",
             "picca_bookkeeper_run_full_analysis = picca_bookkeeper.scripts.run_full_analysis:main",
             "picca_bookkeeper_convert_deltas = picca_bookkeeper.scripts.convert_deltas_format:main",
             "picca_bookkeeper_mix_DLA_catalogues = picca_bookkeeper.scripts.mix_DLA_catalogues:main",

@@ -237,11 +237,14 @@ fits:
   # This is the user-friendly name for the fit run
   run name: default
 
+  # These are the correlations to use. If running the full analysis, 
+  # the correspondent deltas and correlations will be computed
   auto correlations: lya.lya-lya.lya lya.lya-lya.lyb
   cross correlations: lya.lya 
 
-  # Compute zeff directly from correlation export files
-  compute zeff: False
+  # Whether to use a different environment for sampler. If empty, the general
+  # environment will be used. The one below is mantained by Andrei Cuceu.
+  sampler environment: /global/common/software/desi/users/acuceu/stable_vega/activate_vega.sh
 
   distortion: True # Whether to use distortion matrix
   bao: True
@@ -277,8 +280,12 @@ fits:
     #     ap:
     #     at:
 
-  # There is only one script (run_vega.py)
   slurm args:
-    run_vega:
-      mail-type: fail
-      mail-user: user@host.com
+    run_vega: # minimizer args
+      qos: shared
+      ntasks: 1
+      cpus-per-task: 8
+
+    run_vega_mpi: # sampler args
+      nodes: 2
+      ntasks: 128

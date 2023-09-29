@@ -12,9 +12,9 @@ import numpy as np
 from picca_bookkeeper import bookkeeper
 from picca_bookkeeper.bookkeeper import Bookkeeper
 from picca_bookkeeper.scripts.run_cf import main as run_cf
-from picca_bookkeeper.scripts.run_delta_extraction import \
-    main as run_delta_extraction
+from picca_bookkeeper.scripts.run_delta_extraction import main as run_delta_extraction
 from picca_bookkeeper.scripts.run_fit import main as run_fit
+from picca_bookkeeper.scripts.run_sampler import main as run_sampler
 from picca_bookkeeper.scripts.run_xcf import main as run_xcf
 
 if TYPE_CHECKING:
@@ -118,7 +118,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
     ########################################
     ## Running all the correlations needed
     ########################################
-    if not(bookkeeper.config.get("fits", dict()).get("metals", True)) or args.no_metal:
+    if not (bookkeeper.config.get("fits", dict()).get("metals", True)) or args.no_metal:
         no_metal = True
     else:
         no_metal = False
@@ -170,8 +170,6 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
         fit_args = argparse.Namespace(
             bookkeeper_config=args.bookkeeper_config,
             overwrite_config=False,
-            auto_correlations=args.auto_correlations,
-            cross_correlations=args.cross_correlations,
             only_write=args.only_write,
             wait_for=args.wait_for,
             log_level=args.log_level,
@@ -179,6 +177,18 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
             skip_sent=args.skip_sent,
         )
         run_fit(fit_args)
+
+    if args.sampler:
+        sampler_args = argparse.Namespace(
+            bookkeeper_config=args.bookkeeper_config,
+            overwrite_config=False,
+            only_write=args.only_write,
+            wait_for=args.wait_for,
+            log_level=args.log_level,
+            overwrite=args.overwrite,
+            skip_sent=args.skip_sent,
+        )
+        run_sampler(sampler_args)
 
 
 def get_args() -> argparse.Namespace:
@@ -231,6 +241,8 @@ def get_args() -> argparse.Namespace:
     )
 
     parser.add_argument("--no-fits", action="store_true", help="Don't measure fits.")
+
+    parser.add_argument("--sampler", action="store_true", help="Run the sampler.")
 
     parser.add_argument(
         "--no-dmat", action="store_true", help="Do not use distortion matrix."

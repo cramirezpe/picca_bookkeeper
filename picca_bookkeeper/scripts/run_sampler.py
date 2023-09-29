@@ -1,4 +1,4 @@
-""" Script to run vega fit given a bookkeeper config file"""
+""" Script to run vega sampler given a bookkeeper config file"""
 from __future__ import annotations
 
 import argparse
@@ -25,22 +25,22 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
         format="%(levelname)s:%(message)s",
     )
 
-    logger.info("Adding fit.")
+    logger.info("Adding sampler.")
 
     bookkeeper = Bookkeeper(
         args.bookkeeper_config, overwrite_config=args.overwrite_config
     )
 
-    fit = bookkeeper.get_fit_tasker(
+    sampler = bookkeeper.get_sampler_tasker(
         wait_for=args.wait_for,
         overwrite=args.overwrite,
         skip_sent=args.skip_sent,
     )
 
-    fit.write_job()
+    sampler.write_job()
     if not args.only_write:
-        fit.send_job()
-        logger.info(f"Sent fit:\n\t{fit.jobid}")
+        sampler.send_job()
+        logger.info(f"Sent fit:\n\t{sampler.jobid}")
 
 
 def get_args() -> argparse.Namespace:
