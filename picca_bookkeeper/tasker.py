@@ -393,7 +393,6 @@ class SlurmPerlmutterTasker(SlurmTasker):
         "time": "00:30:00",
         "constraint": "cpu",
         "account": "desi",
-        "cpus-per-task": 128,
     }
 
     default_srun_options = {

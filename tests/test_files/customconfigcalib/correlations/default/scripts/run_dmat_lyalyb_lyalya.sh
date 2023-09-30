@@ -5,7 +5,6 @@
 #SBATCH --time 02:00:00
 #SBATCH --constraint cpu
 #SBATCH --account desi
-#SBATCH --cpus-per-task 128
 #SBATCH --job-name dmat_lyalyb_lyalya
 #SBATCH --output /picca_bookkeeper/tests/test_files/output/guadalupe/main/afterburn_v0/dMdB20_2.mgii_r.0.0_0/correlations/default/logs/dmat_lyalyb_lyalya-%j.out
 #SBATCH --error /picca_bookkeeper/tests/test_files/output/guadalupe/main/afterburn_v0/dMdB20_2.mgii_r.0.0_0/correlations/default/logs/dmat_lyalyb_lyalya-%j.err

@@ -5,7 +5,6 @@
 #SBATCH --time 00:30:00
 #SBATCH --constraint cpu
 #SBATCH --account desi
-#SBATCH --cpus-per-task 128
 #SBATCH --job-name raw_deltas_lya
 #SBATCH --output /picca_bookkeeper/tests/test_files/output/v9.0.0/desi-2.0-1000/LyaCoLoRe/raw_0.0.0.0_0/logs/raw_deltas_lya-%j.out
 #SBATCH --error /picca_bookkeeper/tests/test_files/output/v9.0.0/desi-2.0-1000/LyaCoLoRe/raw_0.0.0.0_0/logs/raw_deltas_lya-%j.err
