@@ -361,6 +361,7 @@ class Bookkeeper:
                 "run name",
                 "auto correlations",
                 "cross correlations",
+                "sampler environment",
                 "bao",
                 "hcd",
                 "distortion",
@@ -488,9 +489,24 @@ class Bookkeeper:
                 ):
                     args = DictUtils.merge_dicts(args, config["slurm args"][section])
 
+            # remove args marked as remove_
+            for section in sections:
+                if "remove_" + section in config["slurm args"] and isinstance(
+                    config["slurm args"]["remove_" + section], dict
+                ): 
+                    args = DictUtils.remove_matching(
+                        args, config["slurm args"]["remove_" + section]
+                    )
+                
+
         for section in sections:
             if section in slurm_args and isinstance(slurm_args[section], dict):
                 args = DictUtils.merge_dicts(args, slurm_args[section])
+
+            if "remove_" + section in slurm_args and isinstance(
+                slurm_args["remove_" + section], dict
+            ):
+                args = DictUtils.remove_matching(args, slurm_args["remove_" + section])
 
         return args
 
@@ -3465,7 +3481,7 @@ class PathBuilder:
 
     def check_fit_directories(self) -> None:
         """Method to create basic directories in fits directory."""
-        for folder in ("scripts", "results", "logs", "configs"):
+        for folder in ("scripts", "results", "logs", "configs", "results/sampler"):
             (self.fits_path / folder).mkdir(exist_ok=True, parents=True)
 
     def deltas_path(

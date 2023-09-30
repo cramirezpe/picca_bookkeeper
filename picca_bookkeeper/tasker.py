@@ -290,10 +290,16 @@ class SlurmTasker(Tasker):
             text = f"export OMP_NUM_THREADS={self.OMP_threads}\n"
         else:
             text = ""
+
+        if "sh" in self.environment:
+            activate = ""
+        else:
+            activate = "activate "
+
         text += textwrap.dedent(
             f"""
 module load python
-source activate {self.environment}
+source {activate}{self.environment}
 umask 0002
 
 """
@@ -431,10 +437,15 @@ class BashTasker(Tasker):
 
         Returns:
             str: environmental options."""
+        if "sh" in self.environment:
+            activate = ""
+        else:
+            activate = "activate "
+
         return textwrap.dedent(
             f"""
 module load python
-source activate {self.environment}
+source {activate}{self.environment}
 umask 0002
 """
         )
