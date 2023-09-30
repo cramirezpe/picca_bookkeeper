@@ -15,4 +15,4 @@ umask 0002
 
 
 command="picca_delta_extraction.py /picca_bookkeeper/tests/test_files/output/guadalupe/main/afterburn_v0/dMdB20_2.mgii_r.1.2_0/configs/delta_extraction_lyb.ini"
-srun --nodes 1 --ntasks 1 $command
+srun  $command
