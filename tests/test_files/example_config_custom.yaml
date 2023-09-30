@@ -126,7 +126,8 @@ correlations:
 fits:
   run name: default
   
-  
+  auto correlations: lya.lyb-lya.lya
+  cross correlations: lya.lyb 
 
 
   # Slurm arguments to be used by the bookkeeper

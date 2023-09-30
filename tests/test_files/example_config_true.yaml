@@ -37,3 +37,6 @@ correlations:
 
 fits:
   run name: default
+
+  auto correlations: lya.lyb-lya.lya
+  cross correlations: lya.lyb 

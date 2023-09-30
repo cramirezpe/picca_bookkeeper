@@ -379,6 +379,12 @@ class SlurmCoriTasker(SlurmTasker):
         "cpus-per-task": 128,
     }
 
+    default_srun_options = {
+        "nodes": 1,  # N
+        "ntasks": 1,  # n
+        "cpus-per-task": 128,
+    }
+
 
 class SlurmPerlmutterTasker(SlurmTasker):
     default_header = {

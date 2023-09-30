@@ -141,7 +141,9 @@ fits:
   run name: default
   
   
-  
+  auto correlations: lya.lya-lya.lya
+  cross correlations: lya.lya 
+
 
 
   # Slurm arguments to be used by the bookkeeper

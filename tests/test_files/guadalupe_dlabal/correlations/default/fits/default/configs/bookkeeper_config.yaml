@@ -10,3 +10,5 @@ fits:
   delta extraction: dMdB20_2.mgii_r.1.2_0
   correlation run name: default
   run name: default
+  auto correlations: lya.lyb-lya.lya
+  cross correlations: lya.lyb

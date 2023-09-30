@@ -13,8 +13,7 @@
 module load python
 source activate picca
 umask 0002
-export OMP_NUM_THREADS=128
 
 
 command="picca_cf.py --in-dir /picca_bookkeeper/tests/test_files/output/guadalupe/main/afterburn_v0/dMdB20_2.mgii_r.0.0_0/results/lya/Delta --out /picca_bookkeeper/tests/test_files/output/guadalupe/main/afterburn_v0/dMdB20_2.mgii_r.0.0_0/correlations/default/results/lyalya_lyalya/cf.fits.gz --lambda-abs LYA --nproc 256 --rp-min 0 --rp-max 300 --rt-max 200 --np 75 --nt 50 --fid-Or 7.975e-05 --rebin-factor 3"
-srun --nodes 1 --ntasks 1 --cpus-per-task 128 $command
+srun --nodes 1 --ntasks 1 $command

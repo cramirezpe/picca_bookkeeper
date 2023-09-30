@@ -10,6 +10,8 @@ fits:
   delta extraction: dMdB20_2.mgii_r.0.0_0
   correlation run name: default
   run name: nondefault
+  auto correlations: lya.lya-lya.lya
+  cross correlations: lya.lya
   metals: false
   extra args:
     remove_vega_main:

@@ -1,7 +1,9 @@
 from pathlib import Path
+import argparse
 import unittest
 import shutil
 from picca_bookkeeper.bookkeeper import Bookkeeper
+from picca_bookkeeper.scripts.run_full_analysis import main as run_full
 import random
 import codecs
 from unittest.mock import patch
@@ -34,92 +36,30 @@ def mock_run(command, shell, capture_output):
     return Out()
 
 
-def write_full_analysis(
-    bookkeeper, calib=False, region="lya", region2=None, xregion=None
-):
-    if calib:
-        calib = bookkeeper.get_calibration_extraction_tasker()
-        calib.write_job()
-        calib.send_job()
+def write_full_analysis(config_path, args=dict()):
+    args = argparse.Namespace(**{
+        **dict(
+            bookkeeper_config = config_path,
+            overwrite = False,
+            overwrite_config = False,
+            skip_sent = False,
+            auto_correlations = [],
+            cross_correlations = [],
+            no_deltas=False,
+            no_correlations = False,
+            no_fits = False,
+            sampler = False,
+            no_dmat = False,
+            no_metal = False,
+            debug= False,
+            only_write= False,
+            wait_for = None,
+            log_level = "CRITICAL",
+        ),
+        **args,
+    })
 
-    deltas = bookkeeper.get_delta_extraction_tasker(
-        region=region,
-    )
-    
-    deltas.write_job()
-    deltas.send_job()
-
-    if region2 is not None:
-        deltas2 = bookkeeper.get_delta_extraction_tasker(region=region2)
-        deltas2.write_job()
-        deltas2.send_job()
-        wait_for = [deltas, deltas2]
-    else:
-        wait_for = deltas
-
-    cf = bookkeeper.get_cf_tasker(
-        region=region,
-        region2=region2,
-        wait_for=wait_for,
-    )
-
-    if xregion is None:
-        xregion = region
-    xcf = bookkeeper.get_xcf_tasker(
-        region=xregion,
-        wait_for=wait_for,
-    )
-
-    dmat = bookkeeper.get_dmat_tasker(
-        region=region,
-        region2=region2,
-        wait_for=wait_for,
-    )
-
-    xdmat = bookkeeper.get_xdmat_tasker(
-        region=xregion,
-        wait_for=wait_for,
-    )
-
-    metal = bookkeeper.get_metal_tasker(
-        region=region,
-        region2=region2,
-        wait_for=wait_for,
-    )
-
-    xmetal = bookkeeper.get_xmetal_tasker(
-        region=xregion,
-        wait_for=wait_for,
-    )
-
-    for task in (cf, dmat, metal, xcf, xdmat, xmetal):
-        task.write_job()
-        task.send_job()
-
-    cf_exp = bookkeeper.get_cf_exp_tasker(
-        region=region,
-        region2=region2,
-        wait_for=[cf, dmat, metal],
-    )
-
-    xcf_exp = bookkeeper.get_xcf_exp_tasker(
-        region=xregion,
-    )
-
-    for task in (cf_exp, xcf_exp):
-        task.write_job()
-        task.send_job()
-
-    if region2 is None:
-        region2 = region
-        
-    fit = bookkeeper.get_fit_tasker(
-        auto_correlations=[f"lya.{region}-lya.{region2}"],
-        cross_correlations=[f"lya.{xregion}"],
-    )
-
-    fit.write_job()
-    fit.send_job()
+    run_full(args)
 
 
 def copy_config_substitute(config, out_name="output"):
@@ -266,7 +206,7 @@ class TestBookkeeper(unittest.TestCase):
         test_files = THIS_DIR / "test_files" / "guadalupe"
         bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
-        write_full_analysis(bookkeeper, calib=True)
+        write_full_analysis(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
         self.replace_paths_bookkeeper_output(bookkeeper.paths)
         if "UPDATE_TESTS" in os.environ and os.environ["UPDATE_TESTS"] == "True":
@@ -285,7 +225,7 @@ class TestBookkeeper(unittest.TestCase):
         test_files = THIS_DIR / "test_files" / "guadalupe_perlmutter"
         bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
-        write_full_analysis(bookkeeper, calib=True)
+        write_full_analysis(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
         self.replace_paths_bookkeeper_output(bookkeeper.paths)
         if "UPDATE_TESTS" in os.environ and os.environ["UPDATE_TESTS"] == "True":
@@ -333,7 +273,7 @@ class TestBookkeeper(unittest.TestCase):
         test_files = THIS_DIR / "test_files" / "guadalupe_tracer"
         bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
-        write_full_analysis(bookkeeper, calib=True)
+        write_full_analysis(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
         self.replace_paths_bookkeeper_output(bookkeeper.paths)
         if "UPDATE_TESTS" in os.environ and os.environ["UPDATE_TESTS"] == "True":
@@ -346,11 +286,11 @@ class TestBookkeeper(unittest.TestCase):
         side_effect=mock_get_3d_catalog,
     )
     def test_example_calib(self, mock_func_1, mock_func_2):
-        copy_config_substitute(self.files_path / "example_config_guadalupe.yaml")
+        copy_config_substitute(self.files_path / "example_config_guadalupe_lyb.yaml")
         test_files = THIS_DIR / "test_files" / "calib"
         bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
-        write_full_analysis(bookkeeper, calib=True, region="lyb", region2="lya")
+        write_full_analysis(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
         self.replace_paths_bookkeeper_output(bookkeeper.paths)
         if "UPDATE_TESTS" in os.environ and os.environ["UPDATE_TESTS"] == "True":
@@ -367,7 +307,7 @@ class TestBookkeeper(unittest.TestCase):
         test_files = THIS_DIR / "test_files" / "calib_diff_path"
         bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
-        write_full_analysis(bookkeeper, calib=True, region="lyb", region2="lya")
+        write_full_analysis(THIS_DIR / "test_files" / "output" / "tmp.yaml")
         bookkeeper.paths.deltas_log_path(None, calib_step=1).mkdir(
             exist_ok=True, parents=True
         )
@@ -399,7 +339,7 @@ class TestBookkeeper(unittest.TestCase):
 
         bookkeeper2 = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
-        write_full_analysis(bookkeeper2, calib=True, region="lyb", region2="lya")
+        write_full_analysis(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
         self.replace_paths_bookkeeper_output(bookkeeper2.paths)
         if "UPDATE_TESTS" in os.environ and os.environ["UPDATE_TESTS"] == "True":
@@ -412,13 +352,11 @@ class TestBookkeeper(unittest.TestCase):
         side_effect=mock_get_3d_catalog,
     )
     def test_example_copy_files(self, mock_func_1, mock_func_2):
-        copy_config_substitute(self.files_path / "example_config_guadalupe.yaml")
+        copy_config_substitute(self.files_path / "example_config_guadalupe_lyb.yaml")
         test_files = THIS_DIR / "test_files" / "copy_correlation_files"
         bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
-        write_full_analysis(
-            bookkeeper, calib=True, region="lya", region2="lyb", xregion="lyb"
-        )
+        write_full_analysis(THIS_DIR / "test_files" / "output" / "tmp.yaml")
         bookkeeper.paths.deltas_log_path(None, calib_step=1).mkdir(
             exist_ok=True, parents=True
         )
@@ -493,7 +431,7 @@ class TestBookkeeper(unittest.TestCase):
 
         bookkeeper2 = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
-        write_full_analysis(bookkeeper2, calib=True, region="lya", region2="lyb", xregion="lyb")
+        write_full_analysis(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
         assert(
             (bookkeeper2.paths.deltas_path('lyb') / "Delta-1.fits.gz").read_text() == "1231"
@@ -535,11 +473,11 @@ class TestBookkeeper(unittest.TestCase):
         side_effect=mock_get_3d_catalog,
     )
     def test_run_only_correlation_on_another_bookkeeper(self, mock_func_1, mock_func_2):
-        copy_config_substitute(self.files_path / "example_config_guadalupe.yaml")
+        copy_config_substitute(self.files_path / "example_config_guadalupe_lyb.yaml")
         test_files = THIS_DIR / "test_files" / "second_correlation"
         bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
-        write_full_analysis(bookkeeper, calib=True, region="lyb", region2="lya")
+        write_full_analysis(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
         # Now failing run
         copy_config_substitute(
@@ -607,7 +545,7 @@ class TestBookkeeper(unittest.TestCase):
         test_files = THIS_DIR / "test_files" / "second_fit"
         bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
-        write_full_analysis(bookkeeper, calib=True, region="lyb", region2="lya")
+        write_full_analysis(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
         # Now failing run
         copy_config_substitute(
@@ -650,10 +588,7 @@ class TestBookkeeper(unittest.TestCase):
 
         bookkeeper2 = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
-        fit = bookkeeper2.get_fit_tasker(
-            auto_correlations=["lya.lyb-lya.lya"],
-            cross_correlations=["lya.lyb"],
-        )
+        fit = bookkeeper2.get_fit_tasker()
 
         fit.write_job()
         fit.send_job()
@@ -673,7 +608,7 @@ class TestBookkeeper(unittest.TestCase):
         test_files = THIS_DIR / "test_files" / "customconfig"
         bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
-        write_full_analysis(bookkeeper, calib=False, region="lyb", region2="lya")
+        write_full_analysis(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
         self.replace_paths_bookkeeper_output(bookkeeper.paths)
         if "UPDATE_TESTS" in os.environ and os.environ["UPDATE_TESTS"] == "True":
@@ -691,7 +626,10 @@ class TestBookkeeper(unittest.TestCase):
         bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
         with self.assertRaises(ValueError) as cm:
-            write_full_analysis(bookkeeper, calib=True, region="lyb", region2="lya")
+            calib = bookkeeper.get_calibration_extraction_tasker()
+            calib.write_job()
+            calib.send_job()
+
         self.assertEqual(
             "Trying to run calibration with calib=0 in config file.", str(cm.exception)
         )
@@ -729,7 +667,7 @@ class TestBookkeeper(unittest.TestCase):
             str(cm.exception),
         )
 
-        write_full_analysis(bookkeeper, calib=True, region="lyb", region2="lya")
+        write_full_analysis(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
         self.replace_paths_bookkeeper_output(bookkeeper.paths)
         if "UPDATE_TESTS" in os.environ and os.environ["UPDATE_TESTS"] == "True":
@@ -750,7 +688,7 @@ class TestBookkeeper(unittest.TestCase):
         bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
         with self.assertRaises(ValueError) as cm:
-            write_full_analysis(bookkeeper, calib=True, region="lyb", region2="lya")
+            write_full_analysis(THIS_DIR / "test_files" / "output" / "tmp.yaml")
         self.assertEqual(
             "Calibration corrections added by user with calib option != 10",
             str(cm.exception),
@@ -768,7 +706,7 @@ class TestBookkeeper(unittest.TestCase):
         test_files = THIS_DIR / "test_files" / "guadalupe_dlabal"
         bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
-        write_full_analysis(bookkeeper, calib=True, region="lyb", region2="lya")
+        write_full_analysis(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
         self.replace_paths_bookkeeper_output(bookkeeper.paths)
         if "UPDATE_TESTS" in os.environ and os.environ["UPDATE_TESTS"] == "True":
@@ -787,7 +725,7 @@ class TestBookkeeper(unittest.TestCase):
         bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
         with self.assertRaises(ValueError) as cm:
-            write_full_analysis(bookkeeper, calib=True, region="lyb", region2="lya")
+            write_full_analysis(THIS_DIR / "test_files" / "output" / "tmp.yaml")
         self.assertEqual("DlaMask set by user with dla option != 0", str(cm.exception))
 
     @patch("picca_bookkeeper.tasker.run", side_effect=mock_run)
@@ -802,7 +740,7 @@ class TestBookkeeper(unittest.TestCase):
         bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
         with self.assertRaises(ValueError) as cm:
-            write_full_analysis(bookkeeper, calib=True, region="lyb", region2="lya")
+            write_full_analysis(THIS_DIR / "test_files" / "output" / "tmp.yaml")
         self.assertEqual("BalMask set by user with bal option !=0", str(cm.exception))
 
     @patch("picca_bookkeeper.tasker.run", side_effect=mock_run)
@@ -850,7 +788,12 @@ class TestBookkeeper(unittest.TestCase):
         ] = dict()
 
         with self.assertRaises(ValueError) as cm:
-            write_full_analysis(bookkeeper, calib=False, region="lyb", region2="lya")
+            deltas = bookkeeper.get_delta_extraction_tasker(
+                region="lya",
+            )
+            
+            deltas.write_job()
+            deltas.send_job()
         self.assertEqual(
             "Should define expected flux and raw statistics file in extra args section in order to run TrueContinuum",
             str(cm.exception),
@@ -866,7 +809,7 @@ class TestBookkeeper(unittest.TestCase):
         test_files = THIS_DIR / "test_files" / "true"
         bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
-        write_full_analysis(bookkeeper, calib=False, region="lyb", region2="lya")
+        write_full_analysis(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
         self.replace_paths_bookkeeper_output(bookkeeper.paths)
         if "UPDATE_TESTS" in os.environ and os.environ["UPDATE_TESTS"] == "True":

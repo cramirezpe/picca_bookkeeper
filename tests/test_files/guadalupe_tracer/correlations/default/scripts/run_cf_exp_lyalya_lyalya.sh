@@ -13,7 +13,6 @@
 module load python
 source activate picca
 umask 0002
-export OMP_NUM_THREADS=128
 
 export HDF5_USE_FILE_LOCKING=FALSE
 

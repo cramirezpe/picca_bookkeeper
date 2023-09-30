@@ -10,6 +10,8 @@ fits:
   delta extraction: dMdB20_2.mgii_r.0.0_0
   correlation run name: default
   run name: default
+  auto correlations: lya.lyb-lya.lya
+  cross correlations: lya.lyb
   extra args:
     picca_convert_transmission:
       nspec: 30
