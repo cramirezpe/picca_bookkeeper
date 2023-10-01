@@ -301,8 +301,8 @@ class FitPlots:
             colnames = ffile["MODEL"].get_colnames()
             if f"{region}x{region2}_MODEL" in colnames:
                 field = f"{region}x{region2}_MODEL"
-            elif f"{absorber}{region}x{absorber}{region}" in colnames:
-                field = f"{absorber}{region}x{absorber}{region}"
+            elif f"{absorber}{region}x{absorber}{region}_MODEL" in colnames:
+                field = f"{absorber}{region}x{absorber}{region}_MODEL"
             else:
                 raise ValueError(
                     f"Unable to find compatible card for:\n"
@@ -619,8 +619,8 @@ class FitPlots:
             colnames = ffile["MODEL"].get_colnames()
             if f"{region}x{region2}_MODEL" in colnames:
                 field = f"{region}x{region2}_MODEL"
-            elif f"{absorber}{region}x{absorber}{region}" in colnames:
-                field = f"{absorber}{region}x{absorber}{region}"
+            elif f"{absorber}{region}x{absorber}{region}_MODEL" in colnames:
+                field = f"{absorber}{region}x{absorber}{region}_MODEL"
             else:
                 raise ValueError(
                     f"Unable to find compatible card for:\n"
