@@ -283,9 +283,9 @@ fits:
   slurm args:
     run_vega: # minimizer args
       qos: shared
-      ntasks: 1
+      ntasks-per-node: 1
       cpus-per-task: 8
 
     run_vega_mpi: # sampler args
       nodes: 2
-      ntasks: 128
+      ntasks-per-node: 128 # Use always per-node within the bookkeeper!
