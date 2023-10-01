@@ -2634,7 +2634,7 @@ class Bookkeeper:
 
         updated_system = self.generate_system_arg(system)
         if self.check_existing_output_file(
-            self.paths.sampler_out_path() / "checkfile?",
+            self.paths.sampler_out_path() / "jobidfile",
             job_name,
             skip_sent,
             overwrite,
@@ -2678,7 +2678,7 @@ class Bookkeeper:
             jobid_log_file=self.paths.fits_path / f"logs/jobids.log",
             in_files=input_files,
             wait_for=wait_for,
-            out_file=self.paths.sampler_out_path() / "checkfile?",
+            out_file=self.paths.sampler_out_path() / "jobidfile",
             force_OMP_threads=1,
         )
 
