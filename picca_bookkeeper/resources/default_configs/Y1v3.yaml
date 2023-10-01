@@ -1,0 +1,397 @@
+# This is the configuration to be used as a baseline for
+# the Lyman alpha Workshop Sept 2023
+delta extraction:  
+  extra args:      
+    picca_delta_extraction:
+      data:
+        lambda min: 3600
+        lambda max: 5772
+        wave solution: lin
+        delta lambda: 0.8
+        minimum number pixels in forest: 150
+
+      expected flux:
+        type: Dr16FixedFudgeExpectedFlux
+        fudge value: 0
+        var lss mod: 7.5
+        limit var lss: (0, 0.4)
+
+    picca_delta_extraction_ciii:
+      expected flux:
+        var lss mod: 1
+    
+    picca_delta_extraction_lya:
+      data:
+        lambda max rest frame: 1205.0
+
+  slurm args:
+    picca_convert_transmission:
+      time: "03:30:00"
+      qos: regular
+      cpus-per-task: 256
+      exclusive: ""
+    
+    picca_delta_extraction:
+      time: "03:30:00"
+      qos: regular
+      cpus-per-task: 256
+      exclusive: ""
+
+
+correlations:
+  fast metals: True
+
+  extra args:
+    picca_cf:
+      rp-min: 0
+      rp-max: 200
+      rt-max: 200
+      np: 50
+      nt: 50
+      fid-Or: 7.963e-5
+      fid-Om: 0.315
+      rebin-factor: 3
+
+    picca_dmat:
+      rej: 0.99
+      rp-min: 0
+      rp-max: 300
+      rt-max: 200
+      np: 75
+      nt: 50
+      fid-Or: 7.963e-5
+      fid-Om: 0.315
+      rebin-factor: 3
+      coef-binning-model: 2
+
+    picca_fast_metal_dmat:
+      abs-igm: "SiII(1190) SiII(1193) SiIII(1207) SiII(1260) CIV(eff)"
+      rp-min: 0
+      rp-max: 300
+      rt-max: 200
+      np: 75
+      nt: 50
+      fid-Or: 7.963e-5
+      fid-Om: 0.315
+      rebin-factor: 3
+      coef-binning-model: 2
+
+    picca_metal_dmat:
+      rej: 0.999
+      abs-igm: "SiII(1190) SiII(1193) SiIII(1207) SiII(1260) CIV(eff)"
+      rp-min: 0
+      rp-max: 300
+      rt-max: 200
+      np: 75
+      nt: 50
+      fid-Or: 7.963e-5
+      fid-Om: 0.315
+      rebin-factor: 3
+      coef-binning-model: 2
+
+    picca_xcf:
+      mode: desi_healpix
+      nside: 16
+      rp-min: -200
+      rp-max: 200
+      rt-max: 200
+      np: 100
+      nt: 50
+      fid-Or: 7.963e-5
+      fid-Om: 0.315
+      rebin-factor: 3
+
+    picca_export_lyalya_lyalyb:
+      smooth-per-r-par: ""
+
+    picca_xdmat:
+      mode: "desi_healpix"
+      rej: 0.99
+      nside: 16
+      rp-min: -300
+      rp-max: 300
+      rt-max: 200
+      np: 150
+      nt: 50
+      fid-Or: 7.963e-5
+      fid-Om: 0.315
+      rebin-factor: 3
+      coef-binning-model: 2
+
+    picca_fast_metal_xdmat:
+      mode: "desi_healpix"
+      abs-igm: "SiII(1190) SiII(1193) SiIII(1207) SiII(1260)"
+      rp-min: -300
+      rp-max: 300
+      rt-max: 200
+      np: 150
+      nt: 50
+      fid-Or: 7.963e-5
+      fid-Om: 0.315
+      rebin-factor: 3
+      coef-binning-model: 2
+
+    picca_metal_xdmat:
+      mode: "desi_healpix"
+      rej: 0.999
+      abs-igm: "SiII(1190) SiII(1193) SiIII(1207) SiII(1260)"
+      rp-min: -300
+      rp-max: 300
+      rt-max: 200
+      np: 150
+      nt: 50
+      fid-Or: 7.963e-5
+      fid-Om: 0.315
+      rebin-factor: 3
+      coef-binning-model: 2
+
+  slurm args:
+    picca_cf:
+      qos: regular
+      time: "04:00:00"
+      cpus-per-task: 256
+      exclusive: ""
+
+    picca_dmat:
+      qos: regular
+      time: "04:00:00"
+      cpus-per-task: 256
+      exclusive: ""
+
+    picca_export:
+      qos: regular
+      time: "00:20:00"
+      cpus-per-task: 1
+      exclusive: ""
+
+    picca_fast_metal_dmat:
+      qos: regular
+      time: "01:00:00"
+      cpus-per-task: 256
+      exclusive: ""
+
+    picca_metal_dmat:
+      qos: regular
+      time: "10:00:00"
+      cpus-per-task: 256
+      exclusive: ""
+
+    picca_xcf:
+      qos: regular
+      time: "03:00:00"
+      cpus-per-task: 256
+      exclusive: ""
+
+    picca_xdmat:
+      qos: regular
+      time: "03:00:00"
+      cpus-per-task: 256
+      exclusive: ""
+
+    picca_fast_metal_xdmat:
+      qos: regular
+      time: "01:00:00"
+      cpus-per-task: 256
+      exclusive: ""
+
+    picca_metal_xdmat:
+      qos: regular
+      time: "10:00:00"
+      cpus-per-task: 256
+      exclusive: ""
+
+
+fits:
+  auto correlations: lya.lya-lya.lya lya.lya-lya.lyb
+  cross correlations: lya.lya lya.lyb
+
+  bao: True
+  hcd: True
+  metals: True
+  sky: True
+  qso rad: True
+  rmin cf:
+  rmax cf: 
+  rmin xcf:
+  rmax xcf:
+
+  extra args:
+    vega_auto:
+      data:
+        tracer1: LYA
+        tracer2: LYA
+        tracer1-type: continuous
+        tracer2-type: continuous
+      
+      cuts:
+        rp-min: 0.
+        rp-max: +200.
+        rt-min: 0.
+        rt-max: 200.
+        r-min: 10.
+        r-max: 180.
+        mu-min: 0.
+        mu-max: +1.
+
+      model:
+        model-hcd: Rogers2018
+        z evol LYA: bias_vs_z_std
+        small scale nl: dnl_arinyo
+        fast_metals: True
+        desi-instrumental-systematics: True
+
+      metals:
+        z evol: bias_vs_z_std
+        in tracer1: SiII(1260) SiIII(1207) SiII(1193) SiII(1190) CIV(eff)
+        in tracer2: SiII(1260) SiIII(1207) SiII(1193) SiII(1190) CIV(eff)
+
+    vega_auto_lyalya_lyalya:
+      data:
+        name: lyaxlya
+
+    vega_auto_lyalya_lyalyb:
+      data:
+        name: lyaxlyb     
+
+    vega_cross:
+      data:
+        tracer1: QSO
+        tracer2: LYA
+        tracer1-type: discrete
+        tracer2-type: continuous
+
+      cuts:
+        rp-min: -200.
+        rp-max: +200.
+        rt-min: 0.
+        rt-max: 200.
+        r-min: 10.
+        r-max: 180.
+        mu-min: -1.
+        mu-max: +1.
+
+      model:
+        model-hcd: Rogers2018
+        z evol LYA: bias_vs_z_std
+        z evol QSO: bias_vs_z_std
+        fast_metals: True
+        velocity dispersion: lorentz
+        radiation effects: True
+
+      metals:
+        z evol: bias_vs_z_std
+        velocity dispersion: lorentz
+        in tracer2: SiII(1260) SiIII(1207) SiII(1193) SiII(1190) CIV(eff)
+        
+    vega_cross_lyalya:
+      data:
+        name: qsoxlya
+
+    vega_cross_lyalyb:
+      data:
+        name: qsoxlyb
+
+    vega_main:
+      data sets:
+        zeff: 2.34588
+
+      fiducial:
+        filename: "Planck18/Planck18_z_2.406.fits"
+
+      cosmo-fit type:
+        cosmo fit func: ap_at
+        full-shape: False
+        full-shape-alpha: False
+        smooth-scaling: False
+
+      control:
+        sampler: True
+
+      output:
+        filename: combined.fits
+        overwrite: True
+
+      Polychord:
+        seed: 2
+        num_live: 400
+        num_repeats: 16
+        path:
+        name: com
+        do_clustering: True
+        resume: True
+        boost_posterior: 3
+
+      sample:
+        ap: True
+        at: True
+        bias_LYA: True
+        beta_LYA: True
+        bias_hcd: True
+        beta_hcd: True
+        bias_QSO: True
+        sigma_velo_disp_lorentz_QSO: True
+        drp_QSO: True
+        qso_rad_strength: True
+        bias_eta_SiII(1190): True
+        bias_eta_SiII(1193): True
+        bias_eta_SiIII(1207): True
+        bias_eta_SiII(1260): True
+        desi_inst_sys_amp: True
+        bias_eta_CIV(eff): True
+
+      priors:
+        beta_hcd: gaussian 0.5 0.09
+        bias_eta_CIV(eff): gaussian -0.012 0.009
+
+      parameters:
+        ap: 1
+        at: 1
+        sigmaNL_per: 3.24
+        sigmaNL_par: 6.36984
+        bao_amp: 1.
+        bias_LYA: -0.1179427863409476
+        beta_LYA: 1.67
+        alpha_LYA: 2.9
+        bias_QSO: 3.823847195586528
+        bias_eta_QSO: 1
+        growth_rate: 0.97
+        alpha_QSO: 1.44
+        dnl_arinyo_q1: 0.8558
+        dnl_arinyo_kv: 1.11454
+        dnl_arinyo_av: 0.5378
+        dnl_arinyo_bv: 1.607
+        dnl_arinyo_kp: 19.47
+        bias_hcd: -0.05
+        beta_hcd: 0.7
+        L0_hcd: 7
+        drp_QSO: 0.0
+        sigma_velo_disp_lorentz_QSO: 6.86
+        qso_rad_strength: 0.74
+        qso_rad_asymmetry: 0.
+        qso_rad_lifetime: 9e99
+        qso_rad_decrease: 300.
+        bias_eta_SiII(1190): -0.0026
+        beta_SiII(1190): 0.5
+        alpha_SiII(1190): 1.
+        bias_eta_SiII(1193): -0.0012
+        beta_SiII(1193): 0.5
+        alpha_SiII(1193): 1.
+        bias_eta_SiIII(1207): -0.0037
+        beta_SiIII(1207): 0.5
+        alpha_SiIII(1207): 1.
+        bias_eta_SiII(1260): -0.0023
+        beta_SiII(1260): 0.5
+        alpha_SiII(1260): 1.
+        bias_eta_CIV(eff): -0.005
+        beta_CIV(eff): 0.27
+        alpha_CIV(eff): 1.
+        desi_inst_sys_amp: 1e-4
+
+         
+
+  slurm args:
+    run_vega:
+      qos: shared
+      ntasks: 1
+      time: "01:30:00"
+      cpus-per-task: 20

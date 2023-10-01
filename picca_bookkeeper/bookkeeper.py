@@ -493,11 +493,10 @@ class Bookkeeper:
             for section in sections:
                 if "remove_" + section in config["slurm args"] and isinstance(
                     config["slurm args"]["remove_" + section], dict
-                ): 
+                ):
                     args = DictUtils.remove_matching(
                         args, config["slurm args"]["remove_" + section]
                     )
-                
 
         for section in sections:
             if section in slurm_args and isinstance(slurm_args[section], dict):
@@ -2789,6 +2788,13 @@ class Bookkeeper:
             )
 
         if not config["fits"]["metals"]:
+            remove_from_sampled = dict()
+            for metal in "SiII(1190)", "SiII(1193)", "SiII(1260)", "SiIII(1207)":
+                if f"bias_eta_{metal}" in config["fits"].get("extra args", dict()).get(
+                    "vega_main", dict()
+                ).get("sample", dict()):
+                    remove_from_sampled[metal] = ""
+
             args = DictUtils.merge_dicts(
                 args,
                 {
@@ -2799,12 +2805,7 @@ class Bookkeeper:
                         "metals": "",
                     },
                     "remove_vega_main": {
-                        "sample": {
-                            "bias_eta_SiII(1190)": "",
-                            "bias_eta_SiII(1193)": "",
-                            "bias_eta_SiII(1260)": "",
-                            "bias_eta_SiIII(1207)": "",
-                        }
+                        "sample": remove_from_sampled,
                     },
                 },
             )

@@ -297,8 +297,21 @@ class FitPlots:
             )
 
         with fitsio.FITS(fit_file) as ffile:
+            colnames = ffile["MODEL"].get_colnames()
+            if f"{region}x{region2}_MODEL" in colnames:
+                field = f"{region}x{region2}_MODEL"
+            elif f"{absorber}{region}x{absorber}{region}" in colnames:
+                field = f"{absorber}{region}x{absorber}{region}"
+            else:
+                raise ValueError(
+                    f"Unable to find compatible card for:\n"
+                    f"\tregion:{region}\n\tabsorber:{absorber}"
+                    f"\tregion2:{region2}\n\tabosrber2:{absorber2}",
+                    colnames,
+                )
+
             model = np.trim_zeros(
-                ffile["MODEL"][f"{region}x{region2}_MODEL"].read(),
+                ffile["MODEL"][field].read(),
                 "b",
             )
 
@@ -438,8 +451,20 @@ class FitPlots:
             )
 
         with fitsio.FITS(fit_file) as ffile:
+            colnames = ffile["MODEL"].get_colnames()
+            if f"qsox{region}_MODEL" in colnames:
+                field = f"qsox{region}_MODEL"
+            elif f"qsox{absorber}{region}_MODEL" in colnames:
+                field = f"qsox{absorber}{region}_MODEL"
+            else:
+                raise ValueError(
+                    f"Unable to find compatible card for:\n"
+                    f"\tregion:{region}\n\tabsorber:{absorber}",
+                    colnames,
+                )
+
             model = np.trim_zeros(
-                ffile["MODEL"][f"qsox{region}_MODEL"].read(),
+                ffile["MODEL"][field].read(),
                 "b",
             )
 
@@ -589,8 +614,21 @@ class FitPlots:
             N_t = cor_header["NT"]
 
         with fitsio.FITS(fit_file) as ffile:
+            colnames = ffile["MODEL"].get_colnames()
+            if f"{region}x{region2}_MODEL" in colnames:
+                field = f"{region}x{region2}_MODEL"
+            elif f"{absorber}{region}x{absorber}{region}" in colnames:
+                field = f"{absorber}{region}x{absorber}{region}"
+            else:
+                raise ValueError(
+                    f"Unable to find compatible card for:\n"
+                    f"\tregion:{region}\n\tabsorber:{absorber}"
+                    f"\tregion2:{region2}\n\tabosrber2:{absorber2}",
+                    colnames,
+                )
+
             model = np.trim_zeros(
-                ffile["MODEL"][f"{region}x{region2}_MODEL"].read(),
+                ffile["MODEL"][field].read(),
                 "b",
             )
 
@@ -749,8 +787,20 @@ class FitPlots:
             N_t = cor_header["NT"]
 
         with fitsio.FITS(fit_file) as ffile:
+            colnames = ffile["MODEL"].get_colnames()
+            if f"qsox{region}_MODEL" in colnames:
+                field = f"qsox{region}_MODEL"
+            elif f"qsox{absorber}{region}_MODEL" in colnames:
+                field = f"qsox{absorber}{region}_MODEL"
+            else:
+                raise ValueError(
+                    f"Unable to find compatible card for:\n"
+                    f"\tregion:{region}\n\tabsorber:{absorber}",
+                    colnames,
+                )
+
             model = np.trim_zeros(
-                ffile["MODEL"][f"qsox{region}_MODEL"].read(),
+                ffile["MODEL"][field].read(),
                 "b",
             )
 
@@ -877,12 +927,12 @@ class FitPlots:
             if param in ("ap", "at"):
                 ax.axvspan(
                     value - error,
-                    value - error/3,
+                    value - error / 3,
                     alpha=0.2,
                     color="red",
                 )
                 ax.axvspan(
-                    value + error/3,
+                    value + error / 3,
                     value + error,
                     alpha=0.2,
                     color="red",
