@@ -80,6 +80,7 @@ class CorrelationPlots:
             wedge = Wedge(
                 rp=(cor_header["RPMIN"], cor_header["RPMAX"], cor_header["NP"]),
                 rt=(cor_header.get("RTMIN", 0), cor_header["RTMAX"], cor_header["NT"]),
+                r=(cor_header.get("RTMIN", 0), cor_header["RTMAX"], cor_header["NT"]),
                 mu=(mumin, mumax),
             )
         data_wedge = wedge(da, co)
@@ -332,6 +333,7 @@ class CorrelationPlots:
             wedge = Wedge(
                 rp=(cor_header["RPMIN"], cor_header["RPMAX"], cor_header["NP"]),
                 rt=(cor_header.get("RTMIN", 0), cor_header["RTMAX"], cor_header["NT"]),
+                r=(cor_header.get("RTMIN", 0), cor_header["RTMAX"], cor_header["NT"]),
                 mu=(mumin, mumax),
                 abs_mu=True,
             )
@@ -536,6 +538,7 @@ class CorrelationPlots:
             wedge = Wedge(
                 rp=(cor_header["RPMIN"], cor_header["RPMAX"], cor_header["NP"]),
                 rt=(cor_header.get("RTMIN", 0), cor_header["RTMAX"], cor_header["NT"]),
+                r=(cor_header.get("RTMIN", 0), cor_header["RTMAX"], cor_header["NT"]),
                 mu=(mumin, mumax),
             )
         data_wedge = wedge(da, co)
@@ -645,6 +648,7 @@ class CorrelationPlots:
             wedge = Wedge(
                 rp=(cor_header["RPMIN"], cor_header["RPMAX"], cor_header["NP"]),
                 rt=(cor_header.get("RTMIN", 0), cor_header["RTMAX"], cor_header["NT"]),
+                r=(cor_header.get("RTMIN", 0), cor_header["RTMAX"], cor_header["NT"]),
                 mu=(mumin, mumax),
                 abs_mu=True,
             )
