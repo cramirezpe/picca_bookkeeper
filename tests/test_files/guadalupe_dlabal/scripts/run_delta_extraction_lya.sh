@@ -5,6 +5,7 @@
 #SBATCH --time 02:00:00
 #SBATCH --constraint cpu
 #SBATCH --account desi
+#SBATCH --ntasks-per-node 1
 #SBATCH --job-name delta_extraction_lya
 #SBATCH --output /picca_bookkeeper/tests/test_files/output/guadalupe/main/afterburn_v0/dMdB20_2.mgii_r.1.2_0/logs/delta_extraction_lya-%j.out
 #SBATCH --error /picca_bookkeeper/tests/test_files/output/guadalupe/main/afterburn_v0/dMdB20_2.mgii_r.1.2_0/logs/delta_extraction_lya-%j.err

@@ -5,6 +5,7 @@
 #SBATCH --time 03:30:00
 #SBATCH --constraint cpu
 #SBATCH --account desi
+#SBATCH --ntasks-per-node 1
 #SBATCH --job-name delta_extraction_lyb
 #SBATCH --output /picca_bookkeeper/tests/test_files/output/v9.0.0/desi-2.0-1000/LyaCoLoRe/True_0.0.0.0_0/logs/delta_extraction_lyb-%j.out
 #SBATCH --error /picca_bookkeeper/tests/test_files/output/v9.0.0/desi-2.0-1000/LyaCoLoRe/True_0.0.0.0_0/logs/delta_extraction_lyb-%j.err
