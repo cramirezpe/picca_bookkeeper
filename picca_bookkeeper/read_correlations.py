@@ -153,6 +153,143 @@ class CorrelationPlots:
         )
 
     @staticmethod
+    def rp(
+        bookkeeper: Optional[Bookkeeper],
+        region: str = "lya",
+        auto: Optional[bool] = False,
+        region2: Optional[str] = None,
+        absorber: str = "lya",
+        absorber2: Optional[str] = None,
+        correlation_file: Path | str = "",
+        rtmin: float = 0,
+        rtmax: float = 4,
+        rebin: Optional[int] = None,
+        ax: Optional[Axes] = None,
+        plot_kwargs: Dict = dict(),
+        just_return_values: bool = False,
+        output_prefix: Optional[Path | str] = None,
+        save_data: bool = False,
+        save_plot: bool = False,
+        save_dict: Dict = dict(),
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+        """
+        Plotting correlation function in defined wedge.
+
+        Arguments:
+        ----------
+        bookkeeper: bookkeeper object to use for collect data.
+        region: region to use.
+        auto: Show auto-correlation (not cross).
+        region2: if set use different second region.
+        absorber: absorber to use.
+        absorber2: if set use different second absorber.
+        correlation_file: Provide path to correlation file alternatively.
+        rtmin: in Mpc/h.
+        rtmax: in Mpc/h
+        ax: axis where to draw the plot, if None, it'll be created.
+        plot_kwargs: extra kwargs to sent to the plotting function.
+        output_prefix: Save the plot under this file structure (Default: None, plot not saved)
+        save_data: Save the data into a npz file under the output_prefix file structure. (Default: False).
+        save_plot: Save the plot into a png file. (Default: False).
+        save_dict: Extra information to save in the npz file if save_data option is True. (Default: Empty dict)
+        """
+        if output_prefix is not None:
+            output_prefix = Path(output_prefix)
+
+        if isinstance(bookkeeper, Bookkeeper):
+            if auto:
+                correlation_file = bookkeeper.paths.exp_cf_fname(
+                    absorber, region, absorber2, region2
+                )
+                name = "cf_rp"
+            else:
+                correlation_file = bookkeeper.paths.exp_xcf_fname(absorber, region)
+                name = "xcf_rp"
+
+        with fitsio.FITS(correlation_file) as ffile:
+            try:
+                da = ffile["COR"]["DA"][:]
+            except ValueError:
+                da = ffile["COR"]["DA_BLIND"][:]
+            co = ffile["COR"]["CO"][:]
+            nb = ffile["COR"]["NB"][:]
+            rp = ffile["COR"]["RP"][:]
+            rt = ffile["COR"]["RT"][:]
+
+            cor_header = ffile["COR"].read_header()
+            nrp, nrt = cor_header["NP"], cor_header["NT"]
+
+        mat = da.reshape(nrp, nrt)
+        errmat = np.sqrt(np.diag(co)).reshape(nrp, nrt)
+        nmat = nb.reshape(nrp, nrt)
+
+        rt = rt.reshape(nrp, nrt)
+        rp = rp.reshape(nrp, nrt)
+
+        w = (rt >= rtmin) & (rt <= rtmax)
+        nmat[~w] = 0
+
+        if rebin is not None:
+            if nrp % rebin != 0:
+                raise ValueError("NP should be divisible by rebin, NP: ", nrt)
+
+            mat = mat.reshape(nrp // rebin, -1)
+            errmat = errmat.reshape(nrp // rebin, -1)
+            nmat = nmat.reshape(nrp // rebin, -1)
+            rp = rp.reshape(nrp // rebin, -1)
+
+        rp = np.average(rp, weights=nmat, axis=1)
+        data = np.average(mat, weights=nmat, axis=1)
+        error = np.sqrt(np.average(errmat**2, weights=nmat**2, axis=1))
+        nb = np.sum(nmat, axis=1)
+
+        if just_return_values:
+            return (rp, data, error, nb)
+
+        if (save_data or save_plot) and output_prefix is None:
+            raise ValueError("Set output_prefix in order to save data.")
+        if save_data:
+            data_dict = {}
+        if ax is None:
+            fig, ax = plt.subplots()
+
+        ax.errorbar(
+            rp,
+            data,
+            yerr=error,
+            **plot_kwargs,
+        )
+        ax.grid(visible=True)
+        ax.set_title(
+            rf"${rtmin} < r_\perp < {rtmax} \, \, [\mathrm{{Mpc \, h^{{-1}}}}]$"
+        )
+        ax.set_xlabel(r"$r_\parallel  \, [\mathrm{{Mpc \, h^{{-1}}  }}]$")
+        ax.set_ylabel(r"$\xi(r) \, [\mathrm{{Mpc \, h^{{-1}}  }}]$")
+        if save_data:
+            data_dict["rp"] = rp
+            data_dict["data"] = data
+            data_dict["errors"] = error
+            data_dict["nb"] = nb
+            # data_dict['wedge_data'] = data_wedge
+
+        plt.tight_layout()
+
+        if output_prefix is not None:
+            if save_plot:
+                plt.savefig(
+                    output_prefix.parent / (output_prefix.name + f"-plot_{name}.png"),
+                )
+            if save_data:
+                np.savez(
+                    output_prefix.parent / (output_prefix.name + f"-plot_{name}.npz"),
+                    **{**save_dict, **data_dict},
+                )
+        elif save_data or save_plot:
+            raise ValueError("Set output_prefix in order to save data.")
+
+        return (rp, data, error, nb)
+
+    @staticmethod
     def compare_cfs(
         bkp1: Bookkeeper,
         bkp2: Optional[Bookkeeper] = None,

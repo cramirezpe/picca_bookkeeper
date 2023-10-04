@@ -106,7 +106,16 @@ class ReadFits:
             self.nparams = hdul["BESTFIT"].read_header()["NAXIS2"]
 
             self.ndata = 0
-            for x in "lyaxlya", "lyaxlyb", "qsoxlya", "qsoxlyb":
+            for x in (
+                "lyaxlya",
+                "lyaxlyb",
+                "qsoxlya",
+                "qsoxlyb",
+                "lyalyaxlyalya",
+                "lyalyaxlyalyb",
+                "qsoxlyalya",
+                "qsoxlyalyb",
+            ):
                 label = f"{x}_MASK"
                 if label in hdul["MODEL"].get_colnames():
                     self.ndata += hdul["MODEL"][f"{x}_MASK"].read().sum()
@@ -715,6 +724,193 @@ class FitPlots:
         return extent, mat
 
     @staticmethod
+    def rp_model(
+        bookkeeper: Optional[Bookkeeper] = None,
+        fit_file: Path | str = "",
+        correlation_file: Path | str = "",
+        auto: Optional[bool] = False,
+        region: str = "lya",
+        region2: Optional[str] = None,
+        absorber: str = "lya",
+        absorber2: Optional[str] = None,
+        rtmin: float = 0,
+        rtmax: float = 1,
+        ax: Axes = None,
+        r_factor: int = 2,
+        plot_kwargs: Dict = dict(),
+        just_return_values: bool = False,
+        output_prefix: Optional[Path | str] = None,
+        save_data: bool = False,
+        save_dict: Dict = dict(),
+    ) -> Tuple[np.ndarray, np.ndarray]:
+        """
+        Plot fit correlation function model.
+
+        Args:
+            bookkeeper: Bookkeeper object ot use for collecting data.
+            fit_file: Vega fit output file (Needed if no bookkeeper provided).
+            correlation_file: Correlation output fits file (Needed if no bookkeeper
+                provided).
+            auto. Use auto-correlation
+            region: region to use.
+            region2: if set use different second region.
+            absorber: absorber to use.
+            absorber2: if set use different second absorber.
+            mumin: wedge min value.
+            mumax: wedge max value.
+            ax: axis where to draw the plot, if None, it'll be created.
+            r_factor: exponential factor to apply to distance r.
+            plot_kwargs: extra kwargs to sent to the plotting function.
+            output_prefix: Save the plot under this file structure (Default: None,
+                plot not saved)
+            save_data: Save the data into a npz file under the output_prefix file
+                structure. (Default: False).
+            save_dict: Extra information to save in the npz file if save_data option
+                is True. (Default: Empty dict)
+        """
+        if output_prefix is not None:
+            output_prefix = Path(output_prefix)
+
+        if fit_file != "" or correlation_file != "":
+            if not (fit_file == "" and correlation_file == ""):
+                raise ValueError(
+                    "Should provide fit_file and correlation_file at the same"
+                    "time or use a bookkeeper"
+                )
+
+        if not isinstance(bookkeeper, Bookkeeper):
+            if not Path(fit_file).is_file() or not Path(correlation_file).is_file():
+                raise ValueError(
+                    "Should provide fit_file and correlation_file at the same"
+                    "time or use a bookkeeper"
+                )
+
+        if isinstance(bookkeeper, Bookkeeper):
+            fit_file = bookkeeper.paths.fit_out_fname()
+            if auto:
+                correlation_file = bookkeeper.paths.exp_cf_fname(
+                    absorber, region, absorber2, region2
+                )
+                name = "cf_rp"
+            else:
+                correlation_file = bookkeeper.paths.exp_xcf_fname(
+                    absorber,
+                    region,
+                )
+                name = "xcf_rp"
+
+        with fitsio.FITS(correlation_file) as ffile:
+            co = ffile["COR"]["CO"][:]
+            nb = ffile["COR"]["NB"][:]
+
+            cor_header = ffile["COR"].read_header()
+
+            N_p = cor_header["NP"]
+            N_t = cor_header["NT"]
+            rp = ffile["COR"]["RP"][:]
+            rt = ffile["COR"]["RT"][:]
+
+            cor_header = ffile["COR"].read_header()
+
+        nmat = nb.reshape(N_p, N_t)
+        rt = rt.reshape(N_p, N_t)
+        rp = rp.reshape(N_p, N_t)
+
+        w = (rt >= rtmin) & (rt <= rtmax)
+        nmat[~w] = 0
+
+        with fitsio.FITS(fit_file) as ffile:
+            colnames = ffile["MODEL"].get_colnames()
+            if auto:
+                if f"{region}x{region2}_MODEL" in colnames:
+                    field = f"{region}x{region2}_MODEL"
+                elif f"{absorber}{region}x{absorber}{region}_MODEL" in colnames:
+                    field = f"{absorber}{region}x{absorber}{region}_MODEL"
+                else:
+                    raise ValueError(
+                        f"Unable to find compatible card for:\n"
+                        f"\tregion:{region}\n\tabsorber:{absorber}"
+                        f"\tregion2:{region2}\n\absorber2:{absorber2}",
+                        colnames,
+                    )
+            else:
+                if f"qsox{region}_MODEL" in colnames:
+                    field = f"qsox{region}_MODEL"
+                elif f"qsox{absorber}{region}_MODEL" in colnames:
+                    field = f"qsox{absorber}{region}_MODEL"
+                else:
+                    raise ValueError(
+                        f"Unable to find compatible card for:\n"
+                        f"\tregion:{region}\n\tabsorber:{absorber}"
+                        f"\tregion2:{region2}\n\absorber2:{absorber2}",
+                        colnames,
+                    )
+
+            model = np.trim_zeros(
+                ffile["MODEL"][field].read(),
+                "b",
+            )
+
+        if model.size != co.shape[0]:
+            # What we do here is to use NT from data as the valid
+            # NT for the model. Then we reshape model to remove
+            # values above rp_data_max.
+            logger.warning(
+                "Model size is different to data size, "
+                "assuming NT is the same for both"
+            )
+
+            if model.size % N_t != 0:
+                raise ValueError("Unable to set NP for model.")
+
+            model_np = model.size // N_t
+            remove_idx = (model_np - N_p) // 2
+            # this reshapes into data size
+            model = model.reshape(model_np, N_t)[remove_idx:-remove_idx, :].reshape(-1)
+
+        mat = model.reshape(N_p, N_t)
+        data = np.average(mat, weights=nmat, axis=1)
+        rp = np.average(rp, weights=nmat, axis=1)
+
+        if just_return_values:
+            return (
+                rp,
+                data,
+            )
+
+        if save_data and output_prefix is None:
+            raise ValueError("Set output_prefix in order to save data.")
+        if save_data:
+            data_dict = {}
+        if ax is None:
+            fig, ax = plt.subplots()
+
+        ax.plot(
+            rp,
+            data,
+            **plot_kwargs,
+        )
+        ax.grid(visible=True)
+        ax.set_xlabel(r"$r_\parallel  \, [\mathrm{{Mpc \, h^{{-1}}  }}]$")
+        ax.set_ylabel(r"$\xi(r) \, [\mathrm{{Mpc \, h^{{-1}}  }}]$")
+        ax.set_title(
+            rf"${rtmin} < r_\perp < {rtmax} \, \, [\mathrm{{Mpc \, h^{{-1}}}}]$"
+        )
+
+        if save_data:
+            data_dict["rp"] = rp
+            data_dict["data"] = data
+
+        plt.tight_layout()
+        if save_data and output_prefix is not None:
+            np.savez(
+                output_prefix.parent / (output_prefix.name + f"-plot_{name}_model.npz"),
+                **{**save_dict, **data_dict},
+            )
+
+        return (rp, data)
+
+    @staticmethod
     def xcf_model_map(
         bookkeeper: Optional[Bookkeeper] = None,
         fit_file: Path | str = "",
@@ -917,7 +1113,7 @@ class FitPlots:
 
         handles = []
 
-        if reference is not None:
+        if reference is not None and param in reference.values.keys():
             value = reference.values.get(param, None)
             error = reference.errors.get(param, None)
             ax.axvspan(
