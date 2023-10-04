@@ -223,11 +223,13 @@ class CorrelationPlots:
         errmat = np.sqrt(np.diag(co)).reshape(nrp, nrt)
         nmat = nb.reshape(nrp, nrt)
 
+        weights = np.copy(1/errmat**2) #1 / errmat**2
+
         rt = rt.reshape(nrp, nrt)
         rp = rp.reshape(nrp, nrt)
 
         w = (rt >= rtmin) & (rt <= rtmax)
-        nmat[~w] = 0
+        weights[~w] = 0
 
         if rebin is not None:
             if nrp % rebin != 0:
@@ -238,9 +240,9 @@ class CorrelationPlots:
             nmat = nmat.reshape(nrp // rebin, -1)
             rp = rp.reshape(nrp // rebin, -1)
 
-        rp = np.average(rp, weights=nmat, axis=1)
-        data = np.average(mat, weights=nmat, axis=1)
-        error = np.sqrt(np.average(errmat**2, weights=nmat**2, axis=1))
+        rp = np.average(rp, weights=weights, axis=1)
+        data = np.average(mat, weights=weights, axis=1)
+        error = np.sqrt(np.average(errmat**2, weights=weights**2, axis=1))
         nb = np.sum(nmat, axis=1)
 
         if just_return_values:

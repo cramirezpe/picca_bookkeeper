@@ -270,6 +270,11 @@ class FitPlots:
         if output_prefix is not None:
             output_prefix = Path(output_prefix)
 
+        if region2 is None:
+            region2 = region
+        if absorber2 is None:
+            absorber2 = absorber
+
         if fit_file != "" or correlation_file != "":
             if not (fit_file == "" and correlation_file == ""):
                 raise ValueError(
@@ -594,6 +599,12 @@ class FitPlots:
         if output_prefix is not None:
             output_prefix = Path(output_prefix)
 
+        if region2 is None:
+            region2 = region
+        if absorber2 is None:
+            absorber2 = absorber
+
+
         if fit_file != "" or correlation_file != "":
             if not (fit_file == "" and correlation_file == ""):
                 raise ValueError(
@@ -771,6 +782,11 @@ class FitPlots:
         if output_prefix is not None:
             output_prefix = Path(output_prefix)
 
+        if region2 is None:
+            region2 = region
+        if absorber2 is None:
+            absorber2 = absorber
+
         if fit_file != "" or correlation_file != "":
             if not (fit_file == "" and correlation_file == ""):
                 raise ValueError(
@@ -809,15 +825,16 @@ class FitPlots:
             N_t = cor_header["NT"]
             rp = ffile["COR"]["RP"][:]
             rt = ffile["COR"]["RT"][:]
+            co = ffile["COR"]["CO"][:]
 
             cor_header = ffile["COR"].read_header()
 
-        nmat = nb.reshape(N_p, N_t)
+        weights = 1 / np.diag(co).reshape(N_p, N_t)
         rt = rt.reshape(N_p, N_t)
         rp = rp.reshape(N_p, N_t)
 
         w = (rt >= rtmin) & (rt <= rtmax)
-        nmat[~w] = 0
+        weights[~w] = 0
 
         with fitsio.FITS(fit_file) as ffile:
             colnames = ffile["MODEL"].get_colnames()
@@ -864,13 +881,18 @@ class FitPlots:
                 raise ValueError("Unable to set NP for model.")
 
             model_np = model.size // N_t
-            remove_idx = (model_np - N_p) // 2
-            # this reshapes into data size
-            model = model.reshape(model_np, N_t)[remove_idx:-remove_idx, :].reshape(-1)
+            if auto:            
+                # this reshapes into data size
+                model = model.reshape(model_np, N_t)[:N_p, :].reshape(-1)
+
+            else:
+                remove_idx = (model_np - N_p) // 2
+                # this reshapes into data size
+                model = model.reshape(model_np, N_t)[remove_idx:-remove_idx, :].reshape(-1)
 
         mat = model.reshape(N_p, N_t)
-        data = np.average(mat, weights=nmat, axis=1)
-        rp = np.average(rp, weights=nmat, axis=1)
+        data = np.average(mat, weights=weights, axis=1)
+        rp = np.average(rp, weights=weights, axis=1)
 
         if just_return_values:
             return (
