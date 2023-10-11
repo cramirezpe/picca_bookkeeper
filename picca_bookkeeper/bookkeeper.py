@@ -3107,7 +3107,7 @@ class Bookkeeper:
                 if size < 40:
                     jobid = int(file.read_text().splitlines()[0])
                     status = get_Tasker(system).get_jobid_status(jobid)
-                    if status not in ("RUNNING", "PENDING", "REQUEUED", "SUSPENDED"):
+                    if status not in ("COMPLETED", "RUNNING", "PENDING", "REQUEUED", "SUSPENDED"):
                         return False
                 logger.info(f"{job_name}: skipping already run:\n\t{str(file)}")
                 return True
