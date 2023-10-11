@@ -74,7 +74,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
         config=bookkeeper.config,
         default_config=bookkeeper.defaults,
         section="delta extraction",
-        slurm_args=slurm_header_args,
+        slurm_args={command: slurm_header_args},
         command=command,
         region=region,
     )
@@ -118,7 +118,6 @@ def get_args() -> argparse.Namespace:
     parser.add_argument(
         "--region",
         type=str,
-        choices=["lya", "lyb", "calibration_1", "calibration_2"],
         default="lya",
         help="Region to compute deltas in",
     )
