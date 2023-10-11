@@ -239,6 +239,7 @@ class CorrelationPlots:
             errmat = errmat.reshape(nrp // rebin, -1)
             nmat = nmat.reshape(nrp // rebin, -1)
             rp = rp.reshape(nrp // rebin, -1)
+            weights = weights.reshape(nrp // rebin, -1)
 
         rp = np.average(rp, weights=weights, axis=1)
         data = np.average(mat, weights=weights, axis=1)
