@@ -40,6 +40,7 @@ setuptools.setup(
             "picca_bookkeeper_cancel_jobids = picca_bookkeeper.scripts.cancel_jobids_from_file:main",
             "picca_bookkeeper_build_full_config = picca_bookkeeper.scripts.build_full_config:main",
             "picca_bookkeeper_fix_bookkeeper_links = picca_bookkeeper.scripts.fix_bookkeeper_links:main",
+            "picca_bookkeeper_compute_zeff = picca_bookkeeper.scripts.compute_zeff:main",
         ]
     },
     classifiers=[
