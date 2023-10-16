@@ -46,31 +46,31 @@ def find_qso_pixel(los_id: int, catalog: str | Path) -> Tuple[int, str]:
 
 
 def compute_zeff(
-    cf_files: List[Path],
-    xcf_files: List[Path],
-    rmin_cf: float = 10,
-    rmax_cf: float = 300,
-    rmin_xcf: float = 10,
-    rmax_xcf: float = 300,
+    export_files: List[Path],
+    rmins: List[float] | float = 0,
+    rmaxs: List[float] | float = 1000,
 ) -> float:
     """Compute zeff from a set of export files"""
+    if not isinstance(rmins, list) or len(rmins) == 1:
+        rmins = [rmins for file in export_files]
+    
+    if not isinstance(rmaxs, list) or len(rmaxs) == 1:
+        rmaxs = [rmaxs for file in export_files]
+    
     zeff_list = []
     weights = []
-    for export_files, rmin, rmax in zip(
-        [cf_files, xcf_files], [rmin_cf, rmin_xcf], [rmax_cf, rmax_xcf]
-    ):
-        for export_file in export_files:
-            with fitsio.FITS(export_file) as hdul:
-                r_arr = np.sqrt(hdul[1].read()["RP"] ** 2 + hdul[1].read()["RT"] ** 2)
-                cells = (r_arr > rmin) * (r_arr < rmax)
+    for export_file, rmin, rmax in zip(export_files, rmins, rmaxs):
+        with fitsio.FITS(export_file) as hdul:
+            r_arr = np.sqrt(hdul[1].read()["RP"] ** 2 + hdul[1].read()["RT"] ** 2)
+            cells = (r_arr > rmin) * (r_arr < rmax)
 
-                zeff = np.average(
-                    hdul[1].read()["Z"][cells], weights=hdul[1].read()["NB"][cells]
-                )
-                weight = np.sum(hdul[1].read()["NB"][cells])
+            zeff = np.average(
+                hdul[1].read()["Z"][cells], weights=hdul[1].read()["NB"][cells]
+            )
+            weight = np.sum(hdul[1].read()["NB"][cells])
 
-            zeff_list.append(zeff)
-            weights.append(weight)
+        zeff_list.append(zeff)
+        weights.append(weight)
 
     return np.average(zeff_list, weights=weights)
 

@@ -26,19 +26,14 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
         format="%(levelname)s:%(message)s",
     )
 
-    auto_files = "\n\t".join(map(str, args.auto_correlations))
-    cross_files = "\n\t".join(map(str, args.cross_correlations))
+    file_names = "\n\t".join(map(str, args.export_files))
 
-    logger.info(f"Auto-correlation files:\n\t{auto_files}")
-    logger.info(f"Cross-correlation files:\n\t{cross_files}")
+    logger.info(f"Files:\n\t{file_names}")
 
     zeff = compute_zeff(
-        cf_files=args.auto_correlations,
-        xcf_files=args.cross_correlations,
-        rmin_cf=args.rmin_cf,
-        rmax_cf=args.rmax_cf,
-        rmin_xcf=args.rmin_xcf,
-        rmax_xcf=args.rmax_xcf,
+        export_files=args.export_files,
+        rmins=args.rmins,
+        rmaxs=args.rmaxs,
     )
 
     print("Computed zeff: ", zeff)
@@ -48,47 +43,26 @@ def getArgs() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
-        "--auto-correlations",
+        "export_files",
         type=Path,
-        nargs="+",
+        nargs="*",
         default=[],
-        help="auto-correlation export files.",
     )
 
     parser.add_argument(
-        "--cross-correlations",
-        type=Path,
+        "--rmins",
+        type=float,
         nargs="+",
-        default=[],
-        help="cross-correlation export files",
+        default=0,
+        help="Minimum distances.",
     )
 
     parser.add_argument(
-        "--rmin-cf",
+        "--rmaxs",
         type=float,
-        default=10,
-        help="Minimum distance for auto-correlations.",
-    )
-
-    parser.add_argument(
-        "--rmin-xcf",
-        type=float,
-        default=10,
-        help="Minimum distance for cross-correlations.",
-    )
-
-    parser.add_argument(
-        "--rmax-cf",
-        type=float,
+        nargs="+",
         default=300,
-        help="Maximum distance for auto-correlations.",
-    )
-
-    parser.add_argument(
-        "--rmax-xcf",
-        type=float,
-        default=300,
-        help="Maximum distance for auto-correlations.",
+        help="Maximum distances.",
     )
 
     parser.add_argument(
