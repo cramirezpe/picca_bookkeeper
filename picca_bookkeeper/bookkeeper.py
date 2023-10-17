@@ -3199,6 +3199,21 @@ class Bookkeeper:
             },
         )
 
+        # Check precomputed zeff and others.
+        if self.config["fits"].get("compute zeff", False):
+            if self.paths.fit_computed_params_out().is_file():
+                if self.paths.fit_computed_params_out().stat().st_size > 19:
+                    # If the output file is filled, then I update config
+                    args = DictUtils.merge_dicts(
+                        args,
+                        yaml.safe_load(
+                            self.paths.fit_computed_params_out().read_text()
+                        ),
+                    )
+                else:
+                    # Otherwise it generates a dependency
+                    input_files.append(self.paths.fit_computed_params_out())
+
         vega_args = self.generate_extra_args(
             config=args,
             default_config=self.defaults,
@@ -3212,21 +3227,6 @@ class Bookkeeper:
             or vega_args["fiducial"].get("filename", None) is None
         ):
             vega_args["fiducial"]["filename"] = "PlanckDR16/PlanckDR16.fits"
-
-        # Check precomputed zeff and others.
-        if self.config["fits"].get("compute zeff", False):
-            if self.paths.fit_computed_params_out().is_file():
-                if self.paths.fit_computed_params_out().stat().st_size > 19:
-                    # If the output file is filled, then I update config
-                    vega_args = DictUtils.merge_dicts(
-                        vega_args,
-                        yaml.safe_load(
-                            self.paths.fit_computed_params_out().read_text()
-                        ),
-                    )
-                else:
-                    # Otherwise it generates a dependency
-                    input_files.append(self.paths.fit_computed_params_out())
 
         filename = self.paths.fit_main_fname()
         self.write_ini(vega_args, filename)
