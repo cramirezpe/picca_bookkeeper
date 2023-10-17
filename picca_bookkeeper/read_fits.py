@@ -106,19 +106,10 @@ class ReadFits:
             self.nparams = hdul["BESTFIT"].read_header()["NAXIS2"]
 
             self.ndata = 0
-            for x in (
-                "lyaxlya",
-                "lyaxlyb",
-                "qsoxlya",
-                "qsoxlyb",
-                "lyalyaxlyalya",
-                "lyalyaxlyalyb",
-                "qsoxlyalya",
-                "qsoxlyalyb",
-            ):
-                label = f"{x}_MASK"
-                if label in hdul["MODEL"].get_colnames():
-                    self.ndata += hdul["MODEL"][f"{x}_MASK"].read().sum()
+            columns = hdul["MODEL"].get_colnames()
+            for column in hdul["MODEL"].get_colnames():
+                if "MODEL" not in column and column[-4:] == "MASK":
+                    self.ndata += hdul["MODEL"][column].read().sum()
 
             self.pvalue = 1 - sp.stats.chi2.cdf(self.chi2, self.ndata - self.nparams)
 
