@@ -223,7 +223,7 @@ class CorrelationPlots:
         errmat = np.sqrt(np.diag(co)).reshape(nrp, nrt)
         nmat = nb.reshape(nrp, nrt)
 
-        weights = np.copy(1/errmat**2) #1 / errmat**2
+        weights = np.copy(1 / errmat**2)  # 1 / errmat**2
 
         rt = rt.reshape(nrp, nrt)
         rp = rp.reshape(nrp, nrt)

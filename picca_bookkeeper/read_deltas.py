@@ -21,7 +21,6 @@ if TYPE_CHECKING:
     from typing import Any, Dict, List, Optional, Tuple
 
     from picca_bookkeeper.hints import Axes, wave_grid, wave_grid_int, wave_grid_rf
-    
 
 
 class ReadDeltas:

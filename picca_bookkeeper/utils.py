@@ -52,11 +52,11 @@ def compute_zeff(
 ) -> float:
     """Compute zeff from a set of export files"""
     if not isinstance(rmins, list) or (isinstance(rmins, list) and len(rmins) == 1):
-        rmins = [rmins for file in export_files] # type: ignore
-    
+        rmins = [rmins for file in export_files]  # type: ignore
+
     if not isinstance(rmaxs, list) or (isinstance(rmaxs, list) and len(rmaxs) == 1):
-        rmaxs = [rmaxs for file in export_files] # type: ignore
-    
+        rmaxs = [rmaxs for file in export_files]  # type: ignore
+
     zeff_list = []
     weights = []
     for export_file, rmin, rmax in zip(export_files, rmins, rmaxs):

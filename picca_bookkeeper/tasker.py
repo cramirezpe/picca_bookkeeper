@@ -407,8 +407,7 @@ class SlurmPerlmutterTasker(SlurmTasker):
         "ntasks-per-node": 1,
     }
 
-    default_srun_options = {
-    }
+    default_srun_options = {}
 
 
 class BashTasker(Tasker):

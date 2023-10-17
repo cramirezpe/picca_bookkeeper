@@ -604,7 +604,6 @@ class FitPlots:
         if absorber2 is None:
             absorber2 = absorber
 
-
         if fit_file != "" or correlation_file != "":
             if not (fit_file == "" and correlation_file == ""):
                 raise ValueError(
@@ -881,14 +880,16 @@ class FitPlots:
                 raise ValueError("Unable to set NP for model.")
 
             model_np = model.size // N_t
-            if auto:            
+            if auto:
                 # this reshapes into data size
                 model = model.reshape(model_np, N_t)[:N_p, :].reshape(-1)
 
             else:
                 remove_idx = (model_np - N_p) // 2
                 # this reshapes into data size
-                model = model.reshape(model_np, N_t)[remove_idx:-remove_idx, :].reshape(-1)
+                model = model.reshape(model_np, N_t)[remove_idx:-remove_idx, :].reshape(
+                    -1
+                )
 
         mat = model.reshape(N_p, N_t)
         data = np.average(mat, weights=weights, axis=1)
