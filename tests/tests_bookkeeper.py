@@ -138,10 +138,10 @@ class TestBookkeeper(unittest.TestCase):
 
     def test_config_read(self):
         with self.assertRaises(FileNotFoundError):
-            bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "fake_cfg.yaml")
+            bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "fake_cfg.yaml", read_mode=False)
 
         copy_config_substitute(self.files_path / "example_config_guadalupe.yaml")
-        bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
+        bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml", read_mode=False)
 
         with self.assertRaises(ValueError):
             bookkeeper.validate_region("lyc")
@@ -149,7 +149,7 @@ class TestBookkeeper(unittest.TestCase):
     # @patch("builtins.input", return_value="yes")
     # def test_config_overwrite_on_yes(self, mock_print):
     #     copy_config_substitute(self.files_path / "example_config_guadalupe.yaml")
-    #     bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
+    #     bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml", read_mode=False)
 
     #     copy_config_substitute(
     #         self.files_path / "example_config_guadalupe_conflict.yaml"
@@ -168,7 +168,7 @@ class TestBookkeeper(unittest.TestCase):
     # @patch("builtins.input", return_value="no")
     # def test_config_overwrite_exit_on_no(self, mock_print):
     #     copy_config_substitute(self.files_path / "example_config_guadalupe.yaml")
-    #     bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
+    #     bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml", read_mode=False)
 
     #     copy_config_substitute(
     #         self.files_path / "example_config_guadalupe_conflict.yaml"
@@ -186,7 +186,7 @@ class TestBookkeeper(unittest.TestCase):
     #         return THIS_DIR / "test_files" / "dummy_catalog.fits"
 
     #     with patch("picca_bookkeeper.bookkeeper.get_quasar_catalog", side_effect=side_effect):
-    #         bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
+    #         bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml", read_mode=False)
 
     #     def side_effect(*args, **kwargs):
     #         return THIS_DIR / "test_files" / "alt_cat" / "dummy_catalog.fits"
@@ -194,7 +194,7 @@ class TestBookkeeper(unittest.TestCase):
     #     with patch(
     #         "picca_bookkeeper.bookkeeper.get_quasar_catalog", side_effect=side_effect
     #     ), self.assertRaises(FileExistsError):
-    #         bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
+    #         bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml", read_mode=False)
 
     @patch("picca_bookkeeper.tasker.run", side_effect=mock_run)
     @patch(
@@ -204,7 +204,7 @@ class TestBookkeeper(unittest.TestCase):
     def test_example_guadalupe(self, mock_func_1, mock_func_2):
         copy_config_substitute(self.files_path / "example_config_guadalupe.yaml")
         test_files = THIS_DIR / "test_files" / "guadalupe"
-        bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
+        bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml", read_mode=False)
 
         write_full_analysis(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
@@ -223,7 +223,7 @@ class TestBookkeeper(unittest.TestCase):
             self.files_path / "example_config_guadalupe_perlmutter.yaml"
         )
         test_files = THIS_DIR / "test_files" / "guadalupe_perlmutter"
-        bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
+        bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml", read_mode=False)
 
         write_full_analysis(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
@@ -243,7 +243,7 @@ class TestBookkeeper(unittest.TestCase):
             self.files_path / "example_config_guadalupe_perlmutter_compute_zeff.yaml"
         )
         test_files = THIS_DIR / "test_files" / "guadalupe_perlmutter_compute_zeff"
-        bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
+        bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml", read_mode=False)
 
         write_full_analysis(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
@@ -262,7 +262,7 @@ class TestBookkeeper(unittest.TestCase):
             self.files_path / "example_config_guadalupe_sampler.yaml"
         )
         test_files = THIS_DIR / "test_files" / "guadalupe_sampler"
-        bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
+        bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml", read_mode=False)
 
         write_full_analysis(THIS_DIR / "test_files" / "output" / "tmp.yaml", args=dict(sampler=True))
 
@@ -278,7 +278,7 @@ class TestBookkeeper(unittest.TestCase):
     )
     def test_invalid_calib(self, mock_func_1, mock_func_2):
         copy_config_substitute(self.files_path / "example_config_guadalupe.yaml")
-        bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
+        bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml", read_mode=False)
 
         bookkeeper.config["delta extraction"]["calib"] = 11
         with self.assertRaises(ValueError) as cm:
@@ -293,7 +293,7 @@ class TestBookkeeper(unittest.TestCase):
     # def test_custom_calib(self, mock_func_1, mock_func_2):
     #     copy_config_substitute(self.files_path / "example_config_custom_calib_with_custom.yaml")
     #     test_files = THIS_DIR / "test_files" / "calib_custom_custom"
-    #     bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
+    #     bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml", read_mode=False)
 
     #     write_full_analysis(bookkeeper, calib=True)
 
@@ -310,7 +310,7 @@ class TestBookkeeper(unittest.TestCase):
     def test_example_guadalupe_custom_tracer_cat(self, mock_func_1, mock_func_2):
         copy_config_substitute(self.files_path / "example_config_guadalupe_tracer.yaml")
         test_files = THIS_DIR / "test_files" / "guadalupe_tracer"
-        bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
+        bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml", read_mode=False)
 
         write_full_analysis(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
@@ -327,7 +327,7 @@ class TestBookkeeper(unittest.TestCase):
     def test_example_calib(self, mock_func_1, mock_func_2):
         copy_config_substitute(self.files_path / "example_config_guadalupe_lyb.yaml")
         test_files = THIS_DIR / "test_files" / "calib"
-        bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
+        bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml", read_mode=False)
 
         write_full_analysis(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
@@ -344,7 +344,7 @@ class TestBookkeeper(unittest.TestCase):
     def test_example_calib_diff_path(self, mock_func_1, mock_func_2):
         copy_config_substitute(self.files_path / "example_config_guadalupe.yaml")
         test_files = THIS_DIR / "test_files" / "calib_diff_path"
-        bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
+        bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml", read_mode=False)
 
         write_full_analysis(THIS_DIR / "test_files" / "output" / "tmp.yaml")
         bookkeeper.paths.deltas_log_path(None, calib_step=1).mkdir(
@@ -376,7 +376,7 @@ class TestBookkeeper(unittest.TestCase):
         with open(THIS_DIR / "test_files" / "output" / "tmp.yaml", "w") as file:
             file.write(filedata)
 
-        bookkeeper2 = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
+        bookkeeper2 = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml", read_mode=False)
 
         write_full_analysis(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
@@ -393,7 +393,7 @@ class TestBookkeeper(unittest.TestCase):
     def test_example_copy_files(self, mock_func_1, mock_func_2):
         copy_config_substitute(self.files_path / "example_config_guadalupe_lyb.yaml")
         test_files = THIS_DIR / "test_files" / "copy_correlation_files"
-        bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
+        bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml", read_mode=False)
 
         write_full_analysis(THIS_DIR / "test_files" / "output" / "tmp.yaml")
         bookkeeper.paths.deltas_log_path(None, calib_step=1).mkdir(
@@ -468,7 +468,7 @@ class TestBookkeeper(unittest.TestCase):
         with open(THIS_DIR / "test_files" / "output" / "tmp.yaml", "w") as file:
             file.write(filedata)
 
-        bookkeeper2 = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
+        bookkeeper2 = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml", read_mode=False)
 
         write_full_analysis(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
@@ -514,7 +514,7 @@ class TestBookkeeper(unittest.TestCase):
     def test_example_copy_full_files(self, mock_func_1, mock_func_2):
         copy_config_substitute(self.files_path / "example_config_guadalupe_lyb.yaml")
         test_files = THIS_DIR / "test_files" / "copy_correlation_files_full"
-        bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
+        bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml", read_mode=False)
 
         write_full_analysis(THIS_DIR / "test_files" / "output" / "tmp.yaml")
         bookkeeper.paths.deltas_log_path(None, calib_step=1).mkdir(
@@ -571,7 +571,7 @@ class TestBookkeeper(unittest.TestCase):
         with open(THIS_DIR / "test_files" / "output" / "tmp.yaml", "w") as file:
             file.write(filedata)
 
-        bookkeeper2 = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
+        bookkeeper2 = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml", read_mode=False)
 
         write_full_analysis(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
@@ -614,10 +614,10 @@ class TestBookkeeper(unittest.TestCase):
         "picca_bookkeeper.bookkeeper.get_quasar_catalog",
         side_effect=mock_get_3d_catalog,
     )
-    def test_run_only_correlation_on_another_bookkeeper(self, mock_func_1, mock_func_2):
+    def test_run_only_correlation_on_another_Bookkeeper(self, mock_func_1, mock_func_2, read_mode=False):
         copy_config_substitute(self.files_path / "example_config_guadalupe_lyb.yaml")
         test_files = THIS_DIR / "test_files" / "second_correlation"
-        bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
+        bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml", read_mode=False)
 
         write_full_analysis(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
@@ -630,7 +630,7 @@ class TestBookkeeper(unittest.TestCase):
             filedata = file.read()
 
         with self.assertRaises(ValueError) as cm:
-            bookkeeper2 = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
+            bookkeeper2 = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml", read_mode=False)
         self.assertEqual(
             "delta extraction section of config file should match delta extraction "
             "section from file already in the bookkeeper.",
@@ -646,7 +646,7 @@ class TestBookkeeper(unittest.TestCase):
             filedata = file.read()
 
         with self.assertRaises(ValueError) as cm:
-            bookkeeper2 = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
+            bookkeeper2 = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml", read_mode=False)
         self.assertEqual(
             "correlations section of config file should match correlation section "
             "from file already in the bookkeeper.",
@@ -661,7 +661,7 @@ class TestBookkeeper(unittest.TestCase):
         with open(THIS_DIR / "test_files" / "output" / "tmp.yaml", "r") as file:
             filedata = file.read()
 
-        bookkeeper2 = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
+        bookkeeper2 = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml", read_mode=False)
 
         cf = bookkeeper2.get_cf_tasker(
             region="lyb",
@@ -682,10 +682,10 @@ class TestBookkeeper(unittest.TestCase):
         "picca_bookkeeper.bookkeeper.get_quasar_catalog",
         side_effect=mock_get_3d_catalog,
     )
-    def test_run_only_fit_on_another_bookkeeper(self, mock_func_1, mock_func_2):
+    def test_run_only_fit_on_another_Bookkeeper(self, mock_func_1, mock_func_2, read_mode=False):
         copy_config_substitute(self.files_path / "example_config_guadalupe.yaml")
         test_files = THIS_DIR / "test_files" / "second_fit"
-        bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
+        bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml", read_mode=False)
 
         write_full_analysis(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
@@ -698,7 +698,7 @@ class TestBookkeeper(unittest.TestCase):
             filedata = file.read()
 
         with self.assertRaises(ValueError) as cm:
-            bookkeeper2 = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
+            bookkeeper2 = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml", read_mode=False)
         self.assertEqual(
             "correlations section of config file should match correlation section from "
             "file already in the bookkeeper.",
@@ -714,7 +714,7 @@ class TestBookkeeper(unittest.TestCase):
             filedata = file.read()
 
         with self.assertRaises(ValueError) as cm:
-            bookkeeper2 = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
+            bookkeeper2 = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml", read_mode=False)
         self.assertEqual(
             "fits section of config file should match fits section from file already in the bookkeeper.",
             str(cm.exception)[0:90],
@@ -728,7 +728,7 @@ class TestBookkeeper(unittest.TestCase):
         with open(THIS_DIR / "test_files" / "output" / "tmp.yaml", "r") as file:
             filedata = file.read()
 
-        bookkeeper2 = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
+        bookkeeper2 = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml", read_mode=False)
 
         fit = bookkeeper2.get_fit_tasker()
 
@@ -748,7 +748,7 @@ class TestBookkeeper(unittest.TestCase):
     def test_example_custom(self, mock_func_1, mock_func_2):
         copy_config_substitute(self.files_path / "example_config_custom.yaml")
         test_files = THIS_DIR / "test_files" / "customconfig"
-        bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
+        bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml", read_mode=False)
 
         write_full_analysis(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
@@ -765,7 +765,7 @@ class TestBookkeeper(unittest.TestCase):
     def test_example_custom_raise_if_calib(self, mock_func_1, mock_func_2):
         copy_config_substitute(self.files_path / "example_config_custom.yaml")
         test_files = THIS_DIR / "test_files" / "customconfig"
-        bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
+        bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml", read_mode=False)
 
         with self.assertRaises(ValueError) as cm:
             calib = bookkeeper.get_calibration_extraction_tasker()
@@ -796,7 +796,7 @@ class TestBookkeeper(unittest.TestCase):
     def test_example_custom_calib(self, mock_func_1, mock_func_2):
         copy_config_substitute(self.files_path / "example_config_custom_calib.yaml")
         test_files = THIS_DIR / "test_files" / "customconfigcalib"
-        bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
+        bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml", read_mode=False)
 
         with self.assertRaises(FileNotFoundError) as cm:
             deltas = bookkeeper.get_delta_extraction_tasker(
@@ -827,7 +827,7 @@ class TestBookkeeper(unittest.TestCase):
         copy_config_substitute(
             self.files_path / "example_config_custom_calib_with_calib_corrections.yaml"
         )
-        bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
+        bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml", read_mode=False)
 
         with self.assertRaises(ValueError) as cm:
             write_full_analysis(THIS_DIR / "test_files" / "output" / "tmp.yaml")
@@ -846,7 +846,7 @@ class TestBookkeeper(unittest.TestCase):
             self.files_path / "example_config_guadalupe_dla_bal.yaml"
         )
         test_files = THIS_DIR / "test_files" / "guadalupe_dlabal"
-        bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
+        bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml", read_mode=False)
 
         write_full_analysis(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
@@ -864,7 +864,7 @@ class TestBookkeeper(unittest.TestCase):
         copy_config_substitute(
             self.files_path / "example_config_guadalupe_dla_bal_dla_fail.yaml"
         )
-        bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
+        bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml", read_mode=False)
 
         with self.assertRaises(ValueError) as cm:
             write_full_analysis(THIS_DIR / "test_files" / "output" / "tmp.yaml")
@@ -879,7 +879,7 @@ class TestBookkeeper(unittest.TestCase):
         copy_config_substitute(
             self.files_path / "example_config_guadalupe_dla_bal_bal_fail.yaml"
         )
-        bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
+        bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml", read_mode=False)
 
         with self.assertRaises(ValueError) as cm:
             write_full_analysis(THIS_DIR / "test_files" / "output" / "tmp.yaml")
@@ -893,7 +893,7 @@ class TestBookkeeper(unittest.TestCase):
     def test_raw(self, mock_func_1, mock_func_2):
         copy_config_substitute(self.files_path / "example_config_raw.yaml")
         test_files = THIS_DIR / "test_files" / "raw"
-        bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
+        bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml", read_mode=False)
 
         with self.assertRaises(ValueError) as cm:
             deltas = bookkeeper.get_delta_extraction_tasker(region="lya")
@@ -923,7 +923,7 @@ class TestBookkeeper(unittest.TestCase):
     def test_true_failing(self, mock_func_1, mock_func_2):
         copy_config_substitute(self.files_path / "example_config_true.yaml")
         test_files = THIS_DIR / "test_files" / "true"
-        bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
+        bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml", read_mode=False)
 
         bookkeeper.config["delta extraction"]["extra args"]["picca_delta_extraction"][
             "expected flux"
@@ -949,7 +949,7 @@ class TestBookkeeper(unittest.TestCase):
     def test_true(self, mock_func_1, mock_func_2):
         copy_config_substitute(self.files_path / "example_config_true.yaml")
         test_files = THIS_DIR / "test_files" / "true"
-        bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
+        bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml", read_mode=False)
 
         write_full_analysis(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
@@ -960,7 +960,7 @@ class TestBookkeeper(unittest.TestCase):
 
     def test_bookkeeper_paths(self):
         copy_config_substitute(self.files_path / "example_config_guadalupe.yaml")
-        bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
+        bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml", read_mode=False)
 
         out = bookkeeper.paths
 

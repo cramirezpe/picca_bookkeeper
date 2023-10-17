@@ -97,7 +97,7 @@ class Bookkeeper:
         self,
         config_path: str | Path,
         overwrite_config: bool = False,
-        read_mode: bool = False,
+        read_mode: bool = True,
     ):
         """
         Args:
@@ -120,6 +120,8 @@ class Bookkeeper:
             self.config = yaml.safe_load(file)
 
         self.paths = PathBuilder(self.config)
+
+        self.read_mode = read_mode
 
         # Potentially could add fits things here
         # Defining dicts containing all information.
@@ -155,7 +157,7 @@ class Bookkeeper:
 
         self.paths = PathBuilder(self.config)
 
-        if read_mode:
+        if self.read_mode:
             # Next steps imply writting on bookkeeper destination
             # for read_mode we can finish here.
             return
@@ -902,6 +904,8 @@ class Bookkeeper:
         Returns:
             Tasker: Tasker object to run delta extraction.
         """
+        if self.read_mode:
+            raise ValueError("Initialize bookkeeper without read_mode to run jobs.")
         if self.defaults_diff != {}:
             raise ValueError(
                 "Default values changed since last run of the "
@@ -1029,6 +1033,8 @@ class Bookkeeper:
         """
         copied_attributes: Path | None
 
+        if self.read_mode:
+            raise ValueError("Initialize bookkeeper without read_mode to run jobs.")
         if self.defaults_diff != {}:
             raise ValueError(
                 "Default values changed since last run of the "
@@ -1217,6 +1223,8 @@ class Bookkeeper:
         Returns:
             Tasker: Tasker object to run delta extraction for calibration.
         """
+        if self.read_mode:
+            raise ValueError("Initialize bookkeeper without read_mode to run jobs.")
         steps = []
         region = self.config["delta extraction"].get("calib region", 0)
         if region in (0, "", None):
@@ -1318,6 +1326,8 @@ class Bookkeeper:
         Returns:
             Tasker: Tasker object to run forest-forest correlation.
         """
+        if self.read_mode:
+            raise ValueError("Initialize bookkeeper without read_mode to run jobs.")
         if self.defaults_diff != {}:
             raise ValueError(
                 "Default values changed since last run of the "
@@ -1484,6 +1494,8 @@ class Bookkeeper:
         Returns:
             Tasker: Tasker object to run forest-forest correlation.
         """
+        if self.read_mode:
+            raise ValueError("Initialize bookkeeper without read_mode to run jobs.")
         if self.defaults_diff != {}:
             raise ValueError(
                 "Default values changed since last run of the "
@@ -1649,6 +1661,8 @@ class Bookkeeper:
         Returns:
             Tasker: Tasker object to run forest-forest correlation.
         """
+        if self.read_mode:
+            raise ValueError("Initialize bookkeeper without read_mode to run jobs.")
         if self.defaults_diff != {}:
             raise ValueError(
                 "Default values changed since last run of the "
@@ -1804,6 +1818,8 @@ class Bookkeeper:
         Returns:
             Tasker: Tasker object to run forest-forest correlation.
         """
+        if self.read_mode:
+            raise ValueError("Initialize bookkeeper without read_mode to run jobs.")
         if self.defaults_diff != {}:
             raise ValueError(
                 "Default values changed since last run of the "
@@ -1973,6 +1989,8 @@ class Bookkeeper:
         Returns:
             Tasker: Tasker object to run forest-forest correlation.
         """
+        if self.read_mode:
+            raise ValueError("Initialize bookkeeper without read_mode to run jobs.")
         if self.defaults_diff != {}:
             raise ValueError(
                 "Default values changed since last run of the "
@@ -2121,6 +2139,8 @@ class Bookkeeper:
         Returns:
             Tasker: Tasker object to run forest-quasar distortion matrix.
         """
+        if self.read_mode:
+            raise ValueError("Initialize bookkeeper without read_mode to run jobs.")
         if self.defaults_diff != {}:
             raise ValueError(
                 "Default values changed since last run of the "
@@ -2240,6 +2260,8 @@ class Bookkeeper:
         overwrite: bool = False,
         skip_sent: bool = False,
     ) -> Tasker:
+        if self.read_mode:
+            raise ValueError("Initialize bookkeeper without read_mode to run jobs.")
         """Method to get a Tasker object to run forest-quasar correlation export with
         picca.
 
@@ -2414,6 +2436,8 @@ class Bookkeeper:
         Returns:
             Tasker: Tasker object to run forest-forest correlation.
         """
+        if self.read_mode:
+            raise ValueError("Initialize bookkeeper without read_mode to run jobs.")
         region = self.validate_region(region)
         absorber = self.validate_absorber(absorber)
         job_name = f"xmetal_{absorber}{region}"
@@ -2565,6 +2589,8 @@ class Bookkeeper:
         Returns:
             Tasker: Tasker object to run correct_config_zeff.
         """
+        if self.read_mode:
+            raise ValueError("Initialize bookkeeper without read_mode to run jobs.")
         if self.defaults_diff != {}:
             raise ValueError(
                 "Default values changed since last run of the "
@@ -2665,6 +2691,8 @@ class Bookkeeper:
         Returns:
             Tasker: Tasker object to run vega.
         """
+        if self.read_mode:
+            raise ValueError("Initialize bookkeeper without read_mode to run jobs.")
         if self.defaults_diff != {}:
             raise ValueError(
                 "Default values changed since last run of the "
@@ -2750,6 +2778,8 @@ class Bookkeeper:
         Returns:
             Tasker: Tasker object to run vega sampler.
         """
+        if self.read_mode:
+            raise ValueError("Initialize bookkeeper without read_mode to run jobs.")
         if self.defaults_diff != {}:
             raise ValueError(
                 "Default values changed since last run of the "

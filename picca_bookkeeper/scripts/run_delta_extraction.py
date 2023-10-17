@@ -28,7 +28,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
     )
 
     bookkeeper = Bookkeeper(
-        args.bookkeeper_config, overwrite_config=args.overwrite_config
+        args.bookkeeper_config, overwrite_config=args.overwrite_config, read_mode=False,
     )
 
     continuum_type = bookkeeper.config["delta extraction"]["prefix"]

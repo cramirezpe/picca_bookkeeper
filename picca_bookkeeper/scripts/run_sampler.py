@@ -28,7 +28,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
     logger.info("Adding sampler.")
 
     bookkeeper = Bookkeeper(
-        args.bookkeeper_config, overwrite_config=args.overwrite_config
+        args.bookkeeper_config, overwrite_config=args.overwrite_config, read_mode=False,
     )
 
     if bookkeeper.config["fits"].get("compute zeff", False):

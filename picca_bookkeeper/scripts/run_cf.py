@@ -22,7 +22,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
         args = get_args()
 
     bookkeeper = Bookkeeper(
-        args.bookkeeper_config, overwrite_config=args.overwrite_config
+        args.bookkeeper_config, overwrite_config=args.overwrite_config, read_mode=False,
     )
 
     level = logging.getLevelName(args.log_level)

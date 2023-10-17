@@ -30,7 +30,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
     logger.info(f"Adding cross-correlation: {args.absorber}{args.region}_qso")
 
     bookkeeper = Bookkeeper(
-        args.bookkeeper_config, overwrite_config=args.overwrite_config
+        args.bookkeeper_config, overwrite_config=args.overwrite_config,  read_mode=False,
     )
 
     xcf = bookkeeper.get_xcf_tasker(
