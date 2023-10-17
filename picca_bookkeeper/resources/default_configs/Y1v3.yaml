@@ -259,7 +259,6 @@ fits:
 
 
     vega_cross:
-
       cuts:
         rp-min: -200.
         rp-max: +200.

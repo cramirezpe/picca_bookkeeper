@@ -2593,7 +2593,7 @@ class Bookkeeper:
 
 
         if self.config["fits"].get("compute zeff", False):
-            compute_zeff_command = "picca_bookkeeper_correct_config_zeff " + str(self.paths.fit_main_fname().resolve()) + " --ini-file"
+            compute_zeff_command = "picca_bookkeeper_correct_config_zeff " + str(self.paths.fit_main_fname().resolve()) + " --ini-input"
             
             if self.config["fits"].get("bias_QSO from zeff", False):
                 compute_zeff_command += " --apply-edmond-qso-bias"
@@ -3675,7 +3675,8 @@ class PathBuilder:
             parent = self.config["correlations"].get("link correlations", None)
             if parent is not None:
                 parent = Path(parent)
-                corr = parent / (qso + name) / filename
+                folder_name = (qso + name).replace('(', '').replace(')', '')
+                corr = parent / folder_name / filename
 
                 if corr.is_file():
                     file = corr
