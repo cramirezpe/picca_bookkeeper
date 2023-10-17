@@ -97,6 +97,9 @@ delta extraction:
   # the paths to Deltas and to delta-attributes file
   deltas:
     # lya: /global/cfs/cdirs/desicollab/science/lya/y1-kp6/iron-IFAE-tests/iron/main/QSO_cat_iron_main_dark_healpix_v0/CRP23_1.ciii.1.2_0/results/lya/Delta /global/cfs/cdirs/desicollab/science/lya/y1-kp6/iron-IFAE-tests/iron/main/QSO_cat_iron_main_dark_healpix_v0/CRP23_1.ciii.1.2_0/results/lya/Log/delta_attributes.fits.gz
+
+  # If we want to link all the deltas from another realisation.
+  #link deltas: /global/cfs/cdirs/desicollab/science/lya/y1-kp6/iron-IFAE-tests/iron/main/QSO_cat_iron_main_dark_healpix_v0/CRP23_1.ciii.1.2_0/results/
     
   # line masking to be applied in the continuum fitting process.
   mask file:
@@ -192,6 +195,8 @@ correlations:
     lyalya: /global/cfs/cdirs/desicollab/users/cramirez/iron-analyses/iron/main/QSO_cat_iron_main_dark_healpix_v0/CRP23_1.ciii.1.2_0/correlations/default/results/qso_lyalya/xmetal.fits.gz
     lyalyb: /global/cfs/cdirs/desicollab/users/cramirez/iron-analyses/iron/main/QSO_cat_iron_main_dark_healpix_v0/CRP23_1.ciii.1.2_0/correlations/default/results/qso_lyalyb/xmetal.fits.gz
 
+  # If we want to link everything from a bookkeeper realisation
+  # link correlations: /global/cfs/cdirs/desicollab/users/cramirez/iron-analyses/iron/main/QSO_cat_iron_main_dark_healpix_v0/CRP23_1.ciii.1.2_0/correlations/default/results/
 
   extra args:
     picca_cf:
@@ -245,6 +250,9 @@ fits:
   # Whether to use a different environment for sampler. If empty, the general
   # environment will be used. The one below is mantained by Andrei Cuceu.
   sampler environment: /global/common/software/desi/users/acuceu/stable_vega/activate_vega.sh
+
+  # If we want to compute zeff right before the fit
+  compute zeff: True
 
   distortion: True # Whether to use distortion matrix
   bao: True

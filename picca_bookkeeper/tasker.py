@@ -56,6 +56,7 @@ class Tasker:
             Use a dictionary with the format {'option_name': 'option_value'}
         command (str): Command to be run in the job.
         command_args (str): Arguments to the command.
+        precommand (str): Instruction to run right before the command.
         environment (str): Conda/python environment to load before running the command.
         environmental_variables (dict): Environmental variables to set before running the job.
             Format: {'environmental_variable': 'value'}.
@@ -87,6 +88,7 @@ class Tasker:
         in_files: List[Path] | List[str] = list[Path](),
         out_file: Optional[Path | str] = None,
         force_OMP_threads: Optional[int] = None,
+        precommand: str = "",
     ):
         """
         Args:
@@ -125,6 +127,7 @@ class Tasker:
         self.in_files = in_files
         self.out_file = out_file
         self.OMP_threads = force_OMP_threads
+        self.precommand = precommand
 
         self.jobid: Optional[int] = None
 
@@ -307,6 +310,8 @@ umask 0002
         for key, value in self.environmental_variables.items():
             text += f"export {key}={value}\n"
 
+        text += self.precommand + "\n"
+
         return text
 
     def _make_run_command(self) -> str:
@@ -443,13 +448,18 @@ class BashTasker(Tasker):
         else:
             activate = "activate "
 
-        return textwrap.dedent(
+        text = textwrap.dedent(
             f"""
 module load python
 source {activate}{self.environment}
 umask 0002
+
 """
         )
+
+        text += self.precommand + "\n"
+
+        return text
 
     def _make_run_command(self) -> str:
         """Method to genearte the run command line.

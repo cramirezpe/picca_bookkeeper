@@ -333,6 +333,7 @@ class Bookkeeper:
                 "suffix",
                 "calibration data",
                 "deltas",
+                "link deltas",
                 "mask file",
                 "dla catalog",
                 "bal catalog",
@@ -344,6 +345,7 @@ class Bookkeeper:
                 "run name",
                 "catalog tracer",
                 "fast metals",
+                "link correlations",
                 "cf files",
                 "cf exp files",
                 "xcf files",
@@ -361,6 +363,8 @@ class Bookkeeper:
                 "run name",
                 "auto correlations",
                 "cross correlations",
+                "compute zeff",
+                "bias_QSO from zeff",
                 "sampler environment",
                 "bao",
                 "hcd",
@@ -1024,6 +1028,8 @@ class Bookkeeper:
         Returns:
             Tasker: Tasker object to run delta extraction.
         """
+        copied_attributes: Path | None
+
         if self.defaults_diff != {}:
             raise ValueError(
                 "Default values changed since last run of the "
@@ -1050,7 +1056,12 @@ class Bookkeeper:
 
         # Check if calibration data needs to be copied:
         if calib_step is not None:
-            copied_attributes = self.paths.copied_calib_attributes(calib_step)
+            copy_deltas_paths = self.paths.copied_deltas_files(f"calibration_{calib_step}")
+            if copy_deltas_paths is not None:
+                copied_attributes = copy_deltas_paths[1]
+            else:
+                copied_attributes = self.paths.copied_calib_attributes(calib_step)
+            
             if copied_attributes is not None:
                 filename = self.paths.delta_attributes_file(None, calib_step)
                 filename.unlink(missing_ok=True)
@@ -1327,8 +1338,9 @@ class Bookkeeper:
 
         # Check if output already there
         updated_system = self.generate_system_arg(system)
+        output_filename = self.paths.cf_fname(absorber, region, absorber2, region2)
         if self.check_existing_output_file(
-            self.paths.cf_fname(absorber, region, absorber2, region2),
+            output_filename,
             job_name,
             skip_sent,
             overwrite,
@@ -1337,13 +1349,12 @@ class Bookkeeper:
             return DummyTasker()
 
         copy_cf_file = self.paths.copied_correlation_file(
-            "cf files", absorber, region, absorber2, region2
+            "cf files", absorber, region, absorber2, region2, output_filename.name,
         )
         if copy_cf_file is not None:
-            filename = self.paths.cf_fname(absorber, region, absorber2, region2)
-            filename.unlink(missing_ok=True)
-            filename.parent.mkdir(exist_ok=True, parents=True)
-            filename.symlink_to(copy_cf_file)
+            output_filename.unlink(missing_ok=True)
+            output_filename.parent.mkdir(exist_ok=True, parents=True)
+            output_filename.symlink_to(copy_cf_file)
 
             return DummyTasker()
 
@@ -1384,7 +1395,7 @@ class Bookkeeper:
 
         args = {
             "in-dir": str(self.paths.deltas_path(region)),
-            "out": str(self.paths.cf_fname(absorber, region, absorber2, region2)),
+            "out": str(output_filename),
             "lambda-abs": absorber_igm[absorber],
         }
 
@@ -1405,7 +1416,7 @@ class Bookkeeper:
                 dict(nspec=1000),
             )
 
-        self.paths.cf_fname(absorber, region, absorber2, region2).parent.mkdir(
+        output_filename.parent.mkdir(
             exist_ok=True, parents=True
         )
 
@@ -1421,7 +1432,7 @@ class Bookkeeper:
                 self.paths.delta_attributes_file(region_)
                 for region_ in (region, region2)
             ],
-            out_file=self.paths.cf_fname(absorber, region, absorber2, region2),
+            out_file=output_filename,
         )
 
     def get_dmat_tasker(
@@ -1488,10 +1499,11 @@ class Bookkeeper:
         job_name = f"dmat_{absorber}{region}_{absorber2}{region2}"
         job_name = job_name.replace("(", "").replace(")", "")
 
+        output_filename = self.paths.dmat_fname(absorber, region, absorber2, region2)
         # Check if output already there
         updated_system = self.generate_system_arg(system)
         if self.check_existing_output_file(
-            self.paths.dmat_fname(absorber, region, absorber2, region2),
+            output_filename,
             job_name,
             skip_sent,
             overwrite,
@@ -1500,13 +1512,12 @@ class Bookkeeper:
             return DummyTasker()
 
         copy_dmat_file = self.paths.copied_correlation_file(
-            "distortion matrices", absorber, region, absorber2, region2
+            "distortion matrices", absorber, region, absorber2, region2, output_filename.name
         )
         if copy_dmat_file is not None:
-            filename = self.paths.dmat_fname(absorber, region, absorber2, region2)
-            filename.unlink(missing_ok=True)
-            filename.parent.mkdir(exist_ok=True, parents=True)
-            filename.symlink_to(copy_dmat_file)
+            output_filename.unlink(missing_ok=True)
+            output_filename.parent.mkdir(exist_ok=True, parents=True)
+            output_filename.symlink_to(copy_dmat_file)
 
             return DummyTasker()
 
@@ -1547,7 +1558,7 @@ class Bookkeeper:
 
         args = {
             "in-dir": str(self.paths.deltas_path(region)),
-            "out": str(self.paths.dmat_fname(absorber, region, absorber2, region2)),
+            "out": str(output_filename),
             "lambda-abs": absorber_igm[absorber],
         }
 
@@ -1566,7 +1577,7 @@ class Bookkeeper:
             )
             args = DictUtils.merge_dicts(args, dict(nspec=1000))
 
-        self.paths.dmat_fname(absorber, region, absorber2, region2).parent.mkdir(
+        output_filename.parent.mkdir(
             exist_ok=True,
             parents=True,
         )
@@ -1583,7 +1594,7 @@ class Bookkeeper:
                 self.paths.delta_attributes_file(region_)
                 for region_ in (region, region2)
             ],
-            out_file=self.paths.dmat_fname(absorber, region, absorber2, region2),
+            out_file=output_filename,
         )
 
     def get_cf_exp_tasker(
@@ -1648,10 +1659,11 @@ class Bookkeeper:
         job_name = f"cf_exp_{absorber}{region}_{absorber2}{region2}"
         job_name = job_name.replace("(", "").replace(")", "")
 
+        output_filename = self.paths.exp_cf_fname(absorber, region, absorber2, region2)
         # Check if output already there
         updated_system = self.generate_system_arg(system)
         if self.check_existing_output_file(
-            self.paths.exp_cf_fname(absorber, region, absorber2, region2),
+            output_filename,
             job_name,
             skip_sent,
             overwrite,
@@ -1660,13 +1672,12 @@ class Bookkeeper:
             return DummyTasker()
 
         copy_cf_exp_file = self.paths.copied_correlation_file(
-            "cf exp files", absorber, region, absorber2, region2
+            "cf exp files", absorber, region, absorber2, region2, output_filename.name
         )
         if copy_cf_exp_file is not None:
-            filename = self.paths.exp_cf_fname(absorber, region, absorber2, region2)
-            filename.unlink(missing_ok=True)
-            filename.parent.mkdir(exist_ok=True, parents=True)
-            filename.symlink_to(copy_cf_exp_file)
+            output_filename.unlink(missing_ok=True)
+            output_filename.parent.mkdir(exist_ok=True, parents=True)
+            output_filename.symlink_to(copy_cf_exp_file)
 
             return DummyTasker()
 
@@ -1707,7 +1718,7 @@ class Bookkeeper:
 
         args = {
             "data": str(self.paths.cf_fname(absorber, region, absorber2, region2)),
-            "out": str(self.paths.exp_cf_fname(absorber, region, absorber2, region2)),
+            "out": str(output_filename),
         }
 
         args = DictUtils.merge_dicts(args, updated_extra_args)
@@ -1722,7 +1733,7 @@ class Bookkeeper:
             "HDF5_USE_FILE_LOCKING": "FALSE",
         }
 
-        self.paths.exp_cf_fname(absorber, region, absorber2, region2).parent.mkdir(
+        output_filename.parent.mkdir(
             exist_ok=True, parents=True
         )
 
@@ -1738,7 +1749,7 @@ class Bookkeeper:
             in_files=[
                 self.paths.cf_fname(absorber, region, absorber2, region2),
             ],
-            out_file=self.paths.exp_cf_fname(absorber, region, absorber2, region2),
+            out_file=output_filename,
         )
 
     def get_metal_tasker(
@@ -1807,8 +1818,9 @@ class Bookkeeper:
 
         # Check if output already there
         updated_system = self.generate_system_arg(system)
+        output_filename = self.paths.metal_fname(absorber, region, absorber2, region2)
         if self.check_existing_output_file(
-            self.paths.metal_fname(absorber, region, absorber2, region2),
+            output_filename,
             job_name,
             skip_sent,
             overwrite,
@@ -1819,13 +1831,12 @@ class Bookkeeper:
         # If metal matrices are provided, we just copy them into the bookkeeper
         # as if they were computed.
         copy_metal_matrix = self.paths.copied_correlation_file(
-            "metal matrices", absorber, region, absorber2, region2
+            "metal matrices", absorber, region, absorber2, region2, output_filename.name
         )
         if copy_metal_matrix is not None:
-            filename = self.paths.metal_fname(absorber, region, absorber2, region2)
-            filename.unlink(missing_ok=True)
-            filename.parent.mkdir(exist_ok=True, parents=True)
-            filename.symlink_to(copy_metal_matrix)
+            output_filename.unlink(missing_ok=True)
+            output_filename.parent.mkdir(exist_ok=True, parents=True)
+            output_filename.symlink_to(copy_metal_matrix)
 
             return DummyTasker()
 
@@ -1885,7 +1896,7 @@ class Bookkeeper:
             if region2 != region:
                 args["in-dir2"] = str(self.paths.deltas_path(region2))
 
-        args["out"] = str(self.paths.metal_fname(absorber, region, absorber2, region2))
+        args["out"] = str(output_filename)
         args["lambda-abs"] = absorber_igm[absorber]
 
         if absorber2 != absorber:
@@ -1900,7 +1911,7 @@ class Bookkeeper:
             )
             args = DictUtils.merge_dicts(args, dict(nspec=1000))
 
-        self.paths.metal_fname(absorber, region, absorber2, region2).parent.mkdir(
+        output_filename.parent.mkdir(
             exist_ok=True, parents=True
         )
 
@@ -1916,7 +1927,7 @@ class Bookkeeper:
                 self.paths.delta_attributes_file(region_)
                 for region_ in (region, region2)
             ],
-            out_file=self.paths.metal_fname(absorber, region, absorber2, region2),
+            out_file=output_filename,
         )
 
     def get_xcf_tasker(
@@ -1973,8 +1984,9 @@ class Bookkeeper:
 
         # Check if output already there
         updated_system = self.generate_system_arg(system)
+        output_filename = self.paths.xcf_fname(absorber, region)
         if self.check_existing_output_file(
-            self.paths.xcf_fname(absorber, region),
+            output_filename,
             job_name,
             skip_sent,
             overwrite,
@@ -1983,13 +1995,12 @@ class Bookkeeper:
             return DummyTasker()
 
         copy_xcf_file = self.paths.copied_correlation_file(
-            "xcf files", absorber, region, None, None
+            "xcf files", absorber, region, None, None, output_filename.name,
         )
         if copy_xcf_file is not None:
-            filename = self.paths.xcf_fname(absorber, region)
-            filename.unlink(missing_ok=True)
-            filename.parent.mkdir(exist_ok=True, parents=True)
-            filename.symlink_to(copy_xcf_file)
+            output_filename.unlink(missing_ok=True)
+            output_filename.parent.mkdir(exist_ok=True, parents=True)
+            output_filename.symlink_to(copy_xcf_file)
 
             return DummyTasker()
 
@@ -2029,7 +2040,7 @@ class Bookkeeper:
         args = {
             "in-dir": str(self.paths.deltas_path(region)),
             "drq": str(drq),
-            "out": str(self.paths.xcf_fname(absorber, region)),
+            "out": str(output_filename),
             "lambda-abs": absorber_igm[absorber],
         }
 
@@ -2044,7 +2055,7 @@ class Bookkeeper:
                 dict(nspec=1000),
             )
 
-        self.paths.xcf_fname(absorber, region).parent.mkdir(exist_ok=True, parents=True)
+        output_filename.parent.mkdir(exist_ok=True, parents=True)
 
         return get_Tasker(updated_system)(
             command=command,
@@ -2057,7 +2068,7 @@ class Bookkeeper:
             in_files=[
                 self.paths.delta_attributes_file(region),
             ],
-            out_file=self.paths.xcf_fname(absorber, region),
+            out_file=output_filename,
         )
 
     def get_xdmat_tasker(
@@ -2116,8 +2127,9 @@ class Bookkeeper:
 
         # Check if output already there
         updated_system = self.generate_system_arg(system)
+        output_filename = self.paths.xdmat_fname(absorber, region)
         if self.check_existing_output_file(
-            self.paths.xdmat_fname(absorber, region),
+            output_filename,
             job_name,
             skip_sent,
             overwrite,
@@ -2126,13 +2138,12 @@ class Bookkeeper:
             return DummyTasker()
 
         copy_xdmat_file = self.paths.copied_correlation_file(
-            "xdistortion matrices", absorber, region, None, None
+            "xdistortion matrices", absorber, region, None, None, output_filename.name,
         )
         if copy_xdmat_file is not None:
-            filename = self.paths.xdmat_fname(absorber, region)
-            filename.unlink(missing_ok=True)
-            filename.parent.mkdir(exist_ok=True, parents=True)
-            filename.symlink_to(copy_xdmat_file)
+            output_filename.unlink(missing_ok=True)
+            output_filename.parent.mkdir(exist_ok=True, parents=True)
+            output_filename.symlink_to(copy_xdmat_file)
 
             return DummyTasker()
 
@@ -2172,7 +2183,7 @@ class Bookkeeper:
         args = {
             "in-dir": str(self.paths.deltas_path(region)),
             "drq": str(drq),
-            "out": str(self.paths.xdmat_fname(absorber, region)),
+            "out": str(output_filename),
             "lambda-abs": absorber_igm[absorber],
         }
 
@@ -2186,7 +2197,7 @@ class Bookkeeper:
                 args,
                 dict(nspec=1000),
             )
-        self.paths.xdmat_fname(absorber, region).parent.mkdir(
+        output_filename.parent.mkdir(
             exist_ok=True, parents=True
         )
 
@@ -2201,7 +2212,7 @@ class Bookkeeper:
             in_files=[
                 self.paths.delta_attributes_file(region),
             ],
-            out_file=self.paths.xdmat_fname(absorber, region),
+            out_file=output_filename,
         )
 
     def get_xcf_exp_tasker(
@@ -2258,8 +2269,9 @@ class Bookkeeper:
 
         # Check if output already there
         updated_system = self.generate_system_arg(system)
+        output_filename = self.paths.exp_xcf_fname(absorber, region)
         if self.check_existing_output_file(
-            self.paths.exp_xcf_fname(absorber, region),
+            output_filename,
             job_name,
             skip_sent,
             overwrite,
@@ -2268,13 +2280,12 @@ class Bookkeeper:
             return DummyTasker()
 
         copy_xcf_exp_file = self.paths.copied_correlation_file(
-            "xcf exp files", absorber, region, None, None
+            "xcf exp files", absorber, region, None, None, output_filename.name, 
         )
         if copy_xcf_exp_file is not None:
-            filename = self.paths.exp_xcf_fname(absorber, region)
-            filename.unlink(missing_ok=True)
-            filename.parent.mkdir(exist_ok=True, parents=True)
-            filename.symlink_to(copy_xcf_exp_file)
+            output_filename.unlink(missing_ok=True)
+            output_filename.parent.mkdir(exist_ok=True, parents=True)
+            output_filename.symlink_to(copy_xcf_exp_file)
 
             return DummyTasker()
 
@@ -2313,7 +2324,7 @@ class Bookkeeper:
 
         args = {
             "data": str(self.paths.xcf_fname(absorber, region)),
-            "out": str(self.paths.exp_xcf_fname(absorber, region)),
+            "out": str(output_filename),
             "blind-corr-type": "qsoxlya",
         }
 
@@ -2329,7 +2340,7 @@ class Bookkeeper:
             "HDF5_USE_FILE_LOCKING": "FALSE",
         }
 
-        self.paths.exp_xcf_fname(absorber, region).parent.mkdir(
+        output_filename.parent.mkdir(
             exist_ok=True, parents=True
         )
 
@@ -2345,7 +2356,7 @@ class Bookkeeper:
             in_files=[
                 self.paths.xcf_fname(absorber, region),
             ],
-            out_file=self.paths.exp_xcf_fname(absorber, region),
+            out_file=output_filename,
         )
 
     def get_xmetal_tasker(
@@ -2394,8 +2405,9 @@ class Bookkeeper:
 
         # Check if output already there
         updated_system = self.generate_system_arg(system)
+        output_filename = self.paths.xmetal_fname(absorber, region)
         if self.check_existing_output_file(
-            self.paths.xmetal_fname(absorber, region),
+            output_filename,
             job_name,
             skip_sent,
             overwrite,
@@ -2404,13 +2416,12 @@ class Bookkeeper:
             return DummyTasker()
 
         copy_metal_matrix = self.paths.copied_correlation_file(
-            "xmetal matrices", absorber, region, None, None
+            "xmetal matrices", absorber, region, None, None, output_filename.name,
         )
         if copy_metal_matrix is not None:
-            filename = self.paths.xmetal_fname(absorber, region)
-            filename.unlink(missing_ok=True)
-            filename.parent.mkdir(exist_ok=True, parents=True)
-            filename.symlink_to(copy_metal_matrix)
+            output_filename.unlink(missing_ok=True)
+            output_filename.parent.mkdir(exist_ok=True, parents=True)
+            output_filename.symlink_to(copy_metal_matrix)
 
             return DummyTasker()
 
@@ -2471,7 +2482,7 @@ class Bookkeeper:
             args["in-dir"] = str(self.paths.deltas_path(region))
 
         args["drq"] = str(drq)
-        args["out"] = str(self.paths.xmetal_fname(absorber, region))
+        args["out"] = str(output_filename)
         args["lambda-abs"] = absorber_igm[absorber]
 
         args = DictUtils.merge_dicts(args, updated_extra_args)
@@ -2489,7 +2500,7 @@ class Bookkeeper:
                 dict(nspec=1000),
             )
 
-        self.paths.xmetal_fname(absorber, region).parent.mkdir(
+        output_filename.parent.mkdir(
             exist_ok=True, parents=True
         )
 
@@ -2505,7 +2516,7 @@ class Bookkeeper:
             in_files=[
                 self.paths.delta_attributes_file(region),
             ],
-            out_file=self.paths.xmetal_fname(absorber, region),
+            out_file=output_filename,
         )
 
     def get_fit_tasker(
@@ -2580,9 +2591,19 @@ class Bookkeeper:
             updated_slurm_header_extra_args,
         )
 
+
+        if self.config["fits"].get("compute zeff", False):
+            compute_zeff_command = "picca_bookkeeper_correct_config_zeff " + str(self.paths.fit_main_fname().resolve()) + " --ini-file"
+            
+            if self.config["fits"].get("bias_QSO from zeff", False):
+                compute_zeff_command += " --apply-edmond-qso-bias"
+        else:
+            compute_zeff_command = ""
+
         return get_Tasker(updated_system)(
             command=command,
             command_args={"": str(self.paths.fit_main_fname().resolve())},
+            precommand=compute_zeff_command,
             slurm_header_args=slurm_header_args,
             environment=self.config["general"]["conda environment"],
             run_file=self.paths.fits_path / f"scripts/run_{job_name}.sh",
@@ -2643,6 +2664,7 @@ class Bookkeeper:
             return DummyTasker()
 
         input_files = self.write_fit_configuration()
+        input_files.append(self.paths.fit_out_fname())
 
         command = "run_vega_mpi.py"
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
@@ -2789,7 +2811,7 @@ class Bookkeeper:
 
         if not config["fits"]["metals"]:
             remove_from_sampled = dict()
-            for metal in "SiII(1190)", "SiII(1193)", "SiII(1260)", "SiIII(1207)":
+            for metal in "SiII(1190)", "SiII(1193)", "SiII(1260)", "SiIII(1207)", "CIV(eff)":
                 if f"bias_eta_{metal}" in config["fits"].get("extra args", dict()).get(
                     "vega_main", dict()
                 ).get("sample", dict()):
@@ -2942,9 +2964,11 @@ class Bookkeeper:
                             "vega_auto": {
                                 "data": {
                                     "name": f"{absorber}{region}x{absorber2}{region2}",
-                                    "tracer1": absorber_igm[absorber],
                                     "filename": export_file,
+                                    "tracer1": absorber_igm[absorber],
                                     "tracer2": absorber_igm[absorber2],
+                                    "tracer1-type": "continuous",
+                                    "tracer2-type": "continuous",
                                 },
                                 "metals": {
                                     "filename": metals_file,
@@ -3003,7 +3027,10 @@ class Bookkeeper:
                             "vega_cross": {
                                 "data": {
                                     "name": f"qsox{absorber}{region}",
+                                    "tracer1": "QSO",
                                     "tracer2": absorber_igm[absorber],
+                                    "tracer1-type": "discrete",
+                                    "tracer2-type": "continuous",
                                     "filename": export_file,
                                 },
                                 "metals": {
@@ -3577,6 +3604,17 @@ class PathBuilder:
         """
         files = self.config["delta extraction"].get("deltas", dict()).get(region, None)
 
+        if files is None:
+            parent = self.config["delta extraction"].get("link deltas", None)
+            if parent is not None:
+                parent = Path(parent) 
+
+                deltas = parent / region / "Delta"
+                attributes = parent / region / "Log/delta_attributes.fits.gz"
+
+                if deltas.is_dir() and attributes.is_file():
+                    files = str(parent / region / "Delta") + " " + str(parent / region / "Log/delta_attributes.fits.gz")
+
         if files is not None:
             files = files.split(" ")
             if len(files) != 2:
@@ -3609,6 +3647,7 @@ class PathBuilder:
         region: str,
         absorber2: Optional[str],
         region2: Optional[str],
+        filename: Optional[str],
     ) -> Path:
         """Method to get a correlation file to copy given in the bookkeeper config
 
@@ -3618,16 +3657,28 @@ class PathBuilder:
             region2: Second region used (if cross-correlation).
             absorber: First absorber
             absorber2: Second absorber
+            filename: Filename to tried being read from linked correlations.
 
         Returns:
             Path: Path to file
         """
         if absorber2 is None:
             name = f"{absorber}{region}"
+            qso = "qso_"
         else:
             name = f"{absorber}{region}_{absorber2}{region2}"
+            qso = ""
 
         file = self.config["correlations"].get(subsection, dict()).get(name, None)
+
+        if file is None:
+            parent = self.config["correlations"].get("link correlations", None)
+            if parent is not None:
+                parent = Path(parent)
+                corr = parent / (qso + name) / filename
+
+                if corr.is_file():
+                    file = corr
 
         if file is not None:
             if not Path(file).is_file():
@@ -3860,3 +3911,7 @@ class PathBuilder:
             Path to sampler output folder.
         """
         return self.fits_path / "results" / "sampler"
+
+    def compute_zeff_out_fname(self) -> Path:
+        """Method to get the path of the computed zeff output file"""
+        return self.fits_path / "configs" / ".zeff.status"

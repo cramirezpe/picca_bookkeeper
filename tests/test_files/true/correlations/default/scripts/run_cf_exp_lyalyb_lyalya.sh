@@ -16,5 +16,6 @@ umask 0002
 
 export HDF5_USE_FILE_LOCKING=FALSE
 
+
 command="picca_export.py --data /picca_bookkeeper/tests/test_files/output/v9.0.0/desi-2.0-1000/LyaCoLoRe/True_0.0.0.0_0/correlations/default/results/lyalyb_lyalya/cf.fits.gz --out /picca_bookkeeper/tests/test_files/output/v9.0.0/desi-2.0-1000/LyaCoLoRe/True_0.0.0.0_0/correlations/default/results/lyalyb_lyalya/cf_exp.fits.gz"
 srun  $command

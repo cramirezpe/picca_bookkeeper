@@ -17,5 +17,6 @@ source activate picca_add_tests
 umask 0002
 
 
+
 command="run_vega.py /picca_bookkeeper/tests/test_files/output/v9.0.0/desi-2.0-1000/LyaCoLoRe/True_0.0.0.0_0/correlations/default/fits/default/configs/main.ini"
 srun  $command

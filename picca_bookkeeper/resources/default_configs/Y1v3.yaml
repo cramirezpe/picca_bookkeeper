@@ -1,5 +1,8 @@
-# This is the configuration to be used as a baseline for
-# the Lyman alpha Workshop Sept 2023
+# This is the configuration matching Julien's 5-2
+# but I'm setting alpha_CIV(eff) = 0.0
+# because then I remove evolution and that 
+# simplifies analyses. Also this is something my
+# analyses of evolution of bias_eta_CIV(eff) support.
 delta extraction:  
   extra args:      
     picca_delta_extraction:
@@ -89,6 +92,9 @@ correlations:
       rebin-factor: 3
       coef-binning-model: 2
 
+    picca_fast_metal_dmat_lyaciv_lyaciv:
+      abs-igm: "CIV(eff)"
+
     picca_xcf:
       mode: desi_healpix
       nside: 16
@@ -130,6 +136,9 @@ correlations:
       fid-Om: 0.315
       rebin-factor: 3
       coef-binning-model: 2
+
+    picca_fast_metal_xdmat_lyaciv:
+      abs-igm: "CIV(eff)"
 
     picca_metal_xdmat:
       mode: "desi_healpix"
@@ -217,12 +226,6 @@ fits:
 
   extra args:
     vega_auto:
-      data:
-        tracer1: LYA
-        tracer2: LYA
-        tracer1-type: continuous
-        tracer2-type: continuous
-      
       cuts:
         rp-min: 0.
         rp-max: +200.
@@ -245,20 +248,17 @@ fits:
         in tracer1: SiII(1260) SiIII(1207) SiII(1193) SiII(1190) CIV(eff)
         in tracer2: SiII(1260) SiIII(1207) SiII(1193) SiII(1190) CIV(eff)
 
-    vega_auto_lyalya_lyalya:
-      data:
-        name: lyaxlya
+    vega_auto_lyaciv_lya_civ:
+      metals:
+        in tracer1: CIV(eff)
+        in tracer2: CIV(eff)
+      
+    vega_cross_lyaciv:
+      metals:
+        in tracer2: CIV(eff)
 
-    vega_auto_lyalya_lyalyb:
-      data:
-        name: lyaxlyb     
 
     vega_cross:
-      data:
-        tracer1: QSO
-        tracer2: LYA
-        tracer1-type: discrete
-        tracer2-type: continuous
 
       cuts:
         rp-min: -200.
@@ -282,14 +282,6 @@ fits:
         z evol: bias_vs_z_std
         velocity dispersion: lorentz
         in tracer2: SiII(1260) SiIII(1207) SiII(1193) SiII(1190) CIV(eff)
-        
-    vega_cross_lyalya:
-      data:
-        name: qsoxlya
-
-    vega_cross_lyalyb:
-      data:
-        name: qsoxlyb
 
     vega_main:
       data sets:
@@ -326,10 +318,10 @@ fits:
         at: True
         bias_LYA: True
         beta_LYA: True
-        bias_hcd: True
+        bias_hcd: -0.5 0.5
         beta_hcd: True
         bias_QSO: True
-        sigma_velo_disp_lorentz_QSO: True
+        sigma_velo_disp_lorentz_QSO: 0. 20.
         drp_QSO: True
         qso_rad_strength: True
         bias_eta_SiII(1190): True
@@ -341,18 +333,18 @@ fits:
 
       priors:
         beta_hcd: gaussian 0.5 0.09
-        bias_eta_CIV(eff): gaussian -0.012 0.009
+        bias_eta_CIV(eff): gaussian -0.016 0.0007
 
       parameters:
         ap: 1
         at: 1
         sigmaNL_per: 3.24
         sigmaNL_par: 6.36984
-        bao_amp: 1.
-        bias_LYA: -0.1179427863409476
+        bao_amp: 1.0
+        bias_LYA: -0.117
         beta_LYA: 1.67
         alpha_LYA: 2.9
-        bias_QSO: 3.823847195586528
+        bias_QSO: 3.823
         bias_eta_QSO: 1
         growth_rate: 0.97
         alpha_QSO: 1.44
@@ -363,7 +355,7 @@ fits:
         dnl_arinyo_kp: 19.47
         bias_hcd: -0.05
         beta_hcd: 0.7
-        L0_hcd: 7
+        L0_hcd: 5
         drp_QSO: 0.0
         sigma_velo_disp_lorentz_QSO: 6.86
         qso_rad_strength: 0.74
@@ -383,11 +375,9 @@ fits:
         beta_SiII(1260): 0.5
         alpha_SiII(1260): 1.
         bias_eta_CIV(eff): -0.005
-        beta_CIV(eff): 0.27
-        alpha_CIV(eff): 1.
+        beta_CIV(eff): 0.5
+        alpha_CIV(eff): 0.
         desi_inst_sys_amp: 1e-4
-
-         
 
   slurm args:
     run_vega:
@@ -395,3 +385,9 @@ fits:
       ntasks: 1
       time: "01:30:00"
       cpus-per-task: 20
+
+    picca_bookkeeper_correct_config_zeff:
+      qos: shared
+      ntasks: 1
+      time: "00:04:00"
+      cpus-per-task: 5

@@ -58,7 +58,7 @@ def write_full_analysis(config_path, args=dict()):
         ),
         **args,
     })
-
+    
     run_full(args)
 
 
