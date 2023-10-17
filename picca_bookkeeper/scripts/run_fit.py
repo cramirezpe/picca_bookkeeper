@@ -53,6 +53,8 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
         fit.send_job()
         logger.info(f"Sent fit:\n\t{fit.jobid}")
 
+    logger.info(f"Fit location: {bookkeeper.paths.fits_path}")
+
 
 def get_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()

@@ -45,6 +45,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
     logger.info("Obtaining export files.")
     # Identifying which correlations are affected:
     main_config = configparser.ConfigParser()
+    main_config.optionxform = str
     main_config.read(main_file)
 
     ini_files = main_config["data sets"].get("ini files").split(" ")
@@ -113,7 +114,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
 
         computed_parameters_config["fits"]["extra args"]["vega_main"]["parameters"][
             "bias_QSO"
-        ] = qso_bias # type: ignore
+        ] = float(qso_bias) # type: ignore
 
     # convert main into dict, add changes, write main into main.ini
     main_dict = {s: dict(main_config.items(s)) for s in main_config.sections()}
