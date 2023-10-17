@@ -31,6 +31,17 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
         args.bookkeeper_config, overwrite_config=args.overwrite_config
     )
 
+    if bookkeeper.config["fits"].get("compute zeff", False):
+        compute_zeff = bookkeeper.get_compute_zeff_tasker(
+            wait_for=args.wait_for,
+            overwrite=args.overwrite,
+            skip_sent=args.skip_sent,
+        )
+        compute_zeff.write_job()
+        if not args.only_write:
+            compute_zeff.send_job()
+            logger.info(f"Sent compute zeff:\n\t{compute_zeff.jobid}")
+
     sampler = bookkeeper.get_sampler_tasker(
         wait_for=args.wait_for,
         overwrite=args.overwrite,

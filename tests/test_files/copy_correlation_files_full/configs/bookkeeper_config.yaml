@@ -1,0 +1,16 @@
+general:
+  conda environment: picca
+data:
+  bookkeeper dir: /picca_bookkeeper/tests/test_files/output
+  healpix data:
+  release: guadalupe
+  survey: main
+  catalog: afterburn_v0
+delta extraction:
+  prefix: dMdB20
+  calib: 2
+  calib region: mgii_r
+  dla: 0
+  bal: 0
+  suffix: copy_corrs_full
+  link deltas: /picca_bookkeeper/tests/test_files/output/guadalupe/main/afterburn_v0/dMdB20_2.mgii_r.0.0_0/results

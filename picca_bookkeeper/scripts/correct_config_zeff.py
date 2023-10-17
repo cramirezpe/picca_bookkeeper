@@ -6,6 +6,7 @@ import configparser
 import logging
 import re
 import sys
+import yaml
 from pathlib import Path
 from subprocess import run
 from typing import TYPE_CHECKING
@@ -15,12 +16,14 @@ import numpy as np
 
 from picca_bookkeeper.bookkeeper import Bookkeeper
 from picca_bookkeeper.utils import compute_zeff
+from picca_bookkeeper.scripts.run_fit import main as run_fit
 
 if TYPE_CHECKING:
     from typing import Optional
 
 
 logger = logging.getLogger(__name__)
+
 
 def main(args: Optional[argparse.Namespace] = None) -> None:
     if args is None:
@@ -44,7 +47,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
     main_config = configparser.ConfigParser()
     main_config.read(main_file)
 
-    ini_files = main_config["data sets"].get("ini files").split(' ')
+    ini_files = main_config["data sets"].get("ini files").split(" ")
 
     zeff_list = []
     weights = []
@@ -62,7 +65,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
 
         with fitsio.FITS(export_file) as hdul:
             r = np.sqrt(hdul[1].read()["RP"] ** 2 + hdul[1].read()["RT"] ** 2)
-            
+
             w = hdul["COR"].read()["RP"] >= rp_min
             w &= hdul["COR"].read()["RP"] <= rp_max
             w &= hdul["COR"].read()["RT"] >= rt_min
@@ -72,11 +75,9 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
 
             co = hdul["COR"]["CO"][:]
 
-            inverse_variance = 1/ np.diag(co)
+            inverse_variance = 1 / np.diag(co)
 
-            zeff = np.average(
-                hdul[1].read()["Z"][w], weights=inverse_variance[w]
-            )
+            zeff = np.average(hdul[1].read()["Z"][w], weights=inverse_variance[w])
             weight = np.sum(inverse_variance[w])
 
         logger.info(
@@ -92,78 +93,59 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
 
     logger.info(f"zeff: {zeff}")
 
-    (Path(main_file).parent / ".zeff.status").write_text("COMPLETED")
-            
+    computed_parameters_config = {
+        "fits": {
+            "extra args": {
+                "vega_main": {
+                    "data sets": {
+                        "zeff": float(zeff),
+                    },
+                    "parameters": {},
+                }
+            }
+        }
+    }
 
-    # Apply change to main.ini
-    pattern = re.compile(r'zeff.*$', re.MULTILINE)
-    main_file.write_text(
-        pattern.sub(f'zeff = {zeff}', main_file.read_text())
-    )
-
-    
-    if not args.ini_input:
-        # Apply change to input bookkeeper_config.yaml
-        if args.bookkeeper_config.is_file():
-            args.bookkeeper_config.write_text(
-                pattern.sub(f'zeff: {zeff}', args.bookkeeper_config.read_text())
-            )
-        else:
-            logger.warn("Input bookkeeper config file moved.")
-
-        # And also to stored bookkeeper
-        bookkeeper.paths.fit_config_file.write_text(
-            pattern.sub(f'zeff: {zeff}', bookkeeper.paths.fit_config_file.read_text())
-        )
-        
     if args.apply_edmond_qso_bias:
-        qso_bias = 0.214 * ( (1 + zeff)**2 - 6.565) + 2.206
+        qso_bias = 0.214 * ((1 + zeff) ** 2 - 6.565) + 2.206
 
         logger.info(f"bias_QSO: {qso_bias}")
 
+        computed_parameters_config["fits"]["extra args"]["vega_main"]["parameters"][
+            "bias_QSO"
+        ] = qso_bias # type: ignore
 
-        # get value
-        qso_bias_ini = main_config["parameters"].get("bias_QSO", None)
-        
-        if qso_bias_ini is None:
-            raise ValueError("bias_QSO not defined in ini.")
+    # convert main into dict, add changes, write main into main.ini
+    main_dict = {s: dict(main_config.items(s)) for s in main_config.sections()}
+    main_dict["data sets"]["zeff"] = zeff
+    if args.apply_edmond_qso_bias:
+        main_dict["parameters"]["bias_QSO"] = qso_bias
+    Bookkeeper.write_ini(main_dict, main_file)
 
-
-        if not args.ini_input:
-            # Apply change to input bookkeeper_config.yaml
-            pattern = re.compile(rf'bias_QSO\s*:\s*{re.escape(qso_bias_ini)}.*', re.MULTILINE)
-
-            # if not pattern.search(bookkeeper.paths.fit_config_file.read_text()):
-            #     raise ValueError("bias_QSO not defined in bookkeeper config.")
-
-            if args.bookkeeper_config.is_file():
-                args.bookkeeper_config.write_text(
-                    pattern.sub(f"bias_QSO: {qso_bias}", args.bookkeeper_config.read_text())
-                )
-            else:
-                logger.warn("Input bookkeeper config file moved.")
-
-            # And also to stored bookkeeper
-            bookkeeper.paths.fit_config_file.write_text(
-                pattern.sub(f"bias_QSO: {qso_bias}", bookkeeper.paths.fit_config_file.read_text())
-            )
-
-
-        ## Apply change to main.ini
-        pattern = re.compile(rf'bias_QSO\s*=\s*{re.escape(qso_bias_ini)}.*', re.MULTILINE)
-
-        main_file.write_text(
-            pattern.sub(f'bias_QSO = {qso_bias}', main_file.read_text())
-        )
+    # Now I save computed_parameters so next time I run bookkeeper this step can be
+    # skipped. But only if bookkeeper available:
+    if not args.ini_input:
+        with open(bookkeeper.paths.fit_computed_params_out(), "w") as f:
+            yaml.safe_dump(computed_parameters_config, f, sort_keys=False)
 
 
 def get_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
-    parser.add_argument("bookkeeper_config", type=Path, help="Path to bookkeeper file to use.")
+    parser.add_argument(
+        "bookkeeper_config", type=Path, help="Path to bookkeeper file to use."
+    )
 
-    parser.add_argument("--ini-input", action="store_true", help="Use main.ini file as input instead of bookkeeper config.")
+    parser.add_argument(
+        "--ini-input",
+        action="store_true",
+        help="Use main.ini file as input instead of bookkeeper config.",
+    )
 
-    parser.add_argument("--apply-edmond-qso-bias", action="store_true", help="Apply Edmond derived quasar bias evolution to set bias_QSO.")
+    parser.add_argument(
+        "--apply-edmond-qso-bias",
+        action="store_true",
+        help="Apply Edmond derived quasar bias evolution to set bias_QSO.",
+    )
 
     parser.add_argument(
         "--log-level",

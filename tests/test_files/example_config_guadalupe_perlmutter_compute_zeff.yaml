@@ -1,0 +1,31 @@
+general:
+  conda environment: picca
+  system: slurm_perlmutter
+  
+data:
+  bookkeeper dir: results_directory
+  
+  healpix data:
+  release: guadalupe
+  survey: main
+  catalog: afterburn_v0
+   
+  
+delta extraction:
+  prefix: dMdB20
+  calib: 2
+  calib region: mgii_r
+  dla: 0
+  bal: 0
+  suffix: 0
+
+correlations:
+  catalog tracer:
+  run name: default
+fits:
+  run name: default
+
+  auto correlations: lya.lya-lya.lya
+  cross correlations: lya.lya 
+
+  compute zeff: True

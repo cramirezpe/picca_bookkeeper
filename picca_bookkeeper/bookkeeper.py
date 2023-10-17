@@ -364,7 +364,6 @@ class Bookkeeper:
                 "auto correlations",
                 "cross correlations",
                 "compute zeff",
-                "bias_QSO from zeff",
                 "sampler environment",
                 "bao",
                 "hcd",
@@ -2519,6 +2518,105 @@ class Bookkeeper:
             out_file=output_filename,
         )
 
+    def get_compute_zeff_tasker(
+        self,
+        system: Optional[str] = None,
+        wait_for: Optional[Tasker | ChainedTasker | int | List[int]] = None,
+        slurm_header_extra_args: Dict = dict(),
+        overwrite: bool = False,
+        skip_sent: bool = False,
+    ) -> Tasker | DummyTasker:
+        """Method to get a Tasker object to run correct_config_zeff
+
+        Args:
+            system: Shell to use for job. 'slurm_cori' to use slurm scripts on
+                cori, 'slurm_perlmutter' to use slurm scripts on perlmutter,
+                'bash' to run it in login nodes or computer shell.
+                Default: None, read from config file.
+            wait_for: In NERSC, wait for a given job to finish before running
+                the current one. Could be a  Tasker object or a slurm jobid
+                (int). (Default: None, won't wait for anything).
+            slurm_header_extra_args: Change slurm header default options if
+                needed (time, qos, etc...). Use a dictionary with the format
+                {'option_name': 'option_value'}.
+            overwrite: Overwrite files in destination.
+            skip_sent: Skip the run if fit output already present.
+
+        Returns:
+            Tasker: Tasker object to run correct_config_zeff.
+        """
+        if self.defaults_diff != {}:
+            raise ValueError(
+                "Default values changed since last run of the "
+                f"bookkeeper. Remove the file:\n\n {self.paths.defaults_file} "
+                "\n\n to be able to write jobs (with the new default "
+                f"values\). Defaults diff:\n\n"
+                f"{DictUtils.print_dict(self.defaults_diff)}"
+            )
+
+        job_name = "correct_config_zeff"
+
+        command = "picca_bookkeeper_correct_config_zeff"
+
+        updated_system = self.generate_system_arg(system)
+        if self.check_existing_output_file(
+            self.paths.fit_computed_params_out(),
+            job_name,
+            skip_sent,
+            overwrite,
+            updated_system,
+        ):
+            return DummyTasker()
+
+        input_files = self.write_fit_configuration()
+        # Remove dependency on itself
+        if self.paths.fit_computed_params_out() in input_files:
+            input_files.remove(self.paths.fit_computed_params_out())
+
+        updated_extra_args = self.generate_extra_args(
+            config=self.config,
+            default_config=self.defaults,
+            extra_args=dict(),
+            section="fits",
+            command=command,
+        )
+        updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
+            config=self.config,
+            default_config=self.defaults,
+            section="fits",
+            slurm_args=slurm_header_extra_args,
+            command=command,
+        )
+
+        slurm_header_args = {
+            "job-name": job_name,
+            "output": str(self.paths.fits_path / f"logs/{job_name}-%j.out"),
+            "error": str(self.paths.fits_path / f"logs/{job_name}-%j.err"),
+        }
+
+        slurm_header_args = DictUtils.merge_dicts(
+            slurm_header_args,
+            updated_slurm_header_extra_args,
+        )
+
+        args = {
+            "": self.paths.fit_config_file,
+        }
+
+        args = DictUtils.merge_dicts(args, updated_extra_args)
+
+        return get_Tasker(updated_system)(
+            command=command,
+            command_args=args,
+            slurm_header_args=slurm_header_args,
+            environment=self.config["general"]["conda environment"],
+            run_file=self.paths.fits_path / f"scripts/run_{job_name}.sh",
+            jobid_log_file=self.paths.fits_path / f"logs/jobids.log",
+            in_files=input_files,
+            wait_for=wait_for,
+            out_file=self.paths.fit_computed_params_out(),
+        )
+
     def get_fit_tasker(
         self,
         system: Optional[str] = None,
@@ -2591,19 +2689,9 @@ class Bookkeeper:
             updated_slurm_header_extra_args,
         )
 
-
-        if self.config["fits"].get("compute zeff", False):
-            compute_zeff_command = "picca_bookkeeper_correct_config_zeff " + str(self.paths.fit_main_fname().resolve()) + " --ini-input"
-            
-            if self.config["fits"].get("bias_QSO from zeff", False):
-                compute_zeff_command += " --apply-edmond-qso-bias"
-        else:
-            compute_zeff_command = ""
-
         return get_Tasker(updated_system)(
             command=command,
             command_args={"": str(self.paths.fit_main_fname().resolve())},
-            precommand=compute_zeff_command,
             slurm_header_args=slurm_header_args,
             environment=self.config["general"]["conda environment"],
             run_file=self.paths.fits_path / f"scripts/run_{job_name}.sh",
@@ -2664,7 +2752,6 @@ class Bookkeeper:
             return DummyTasker()
 
         input_files = self.write_fit_configuration()
-        input_files.append(self.paths.fit_out_fname())
 
         command = "run_vega_mpi.py"
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
@@ -3100,6 +3187,19 @@ class Bookkeeper:
         ):
             vega_args["fiducial"]["filename"] = "PlanckDR16/PlanckDR16.fits"
 
+        # Check precomputed zeff and others.
+        if self.config["fits"].get("compute zeff", False):
+            if self.paths.fit_computed_params_out().is_file():
+                if self.paths.fit_computed_params_out().stat().st_size > 19:
+                    # If the output file is filled, then I update config
+                    vega_args = DictUtils.merge_dicts(
+                        vega_args,
+                        yaml.safe_load(self.paths.fit_computed_params_out().read_text()),
+                    )
+                else:
+                    # Otherwise it generates a dependency
+                    input_files.append(self.paths.fit_computed_params_out())
+                
         filename = self.paths.fit_main_fname()
         self.write_ini(vega_args, filename)
 
@@ -3913,6 +4013,6 @@ class PathBuilder:
         """
         return self.fits_path / "results" / "sampler"
 
-    def compute_zeff_out_fname(self) -> Path:
+    def fit_computed_params_out(self) -> Path:
         """Method to get the path of the computed zeff output file"""
-        return self.fits_path / "configs" / ".zeff.status"
+        return self.fits_path / "results" / "computed_parameters.yaml"

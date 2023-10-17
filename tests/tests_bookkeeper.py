@@ -232,6 +232,26 @@ class TestBookkeeper(unittest.TestCase):
             self.update_test_output(test_files, bookkeeper.paths.run_path)
         self.compare_bookkeeper_output(test_files, bookkeeper.paths.run_path)
 
+
+    @patch("picca_bookkeeper.tasker.run", side_effect=mock_run)
+    @patch(
+        "picca_bookkeeper.bookkeeper.get_quasar_catalog",
+        side_effect=mock_get_3d_catalog,
+    )
+    def test_example_guadalupe_perlmutter_compute_zeff(self, mock_func_1, mock_func_2):
+        copy_config_substitute(
+            self.files_path / "example_config_guadalupe_perlmutter_compute_zeff.yaml"
+        )
+        test_files = THIS_DIR / "test_files" / "guadalupe_perlmutter_compute_zeff"
+        bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
+
+        write_full_analysis(THIS_DIR / "test_files" / "output" / "tmp.yaml")
+
+        self.replace_paths_bookkeeper_output(bookkeeper.paths)
+        if "UPDATE_TESTS" in os.environ and os.environ["UPDATE_TESTS"] == "True":
+            self.update_test_output(test_files, bookkeeper.paths.run_path)
+        self.compare_bookkeeper_output(test_files, bookkeeper.paths.run_path)
+
     @patch("picca_bookkeeper.tasker.run", side_effect=mock_run)
     @patch(
         "picca_bookkeeper.bookkeeper.get_quasar_catalog",
@@ -444,6 +464,109 @@ class TestBookkeeper(unittest.TestCase):
             "xmetallyalyb:",
             f"lyalyb: {str(bookkeeper.paths.xmetal_fname(absorber, region2))}",
         )
+
+        with open(THIS_DIR / "test_files" / "output" / "tmp.yaml", "w") as file:
+            file.write(filedata)
+
+        bookkeeper2 = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
+
+        write_full_analysis(THIS_DIR / "test_files" / "output" / "tmp.yaml")
+
+        assert(
+            (bookkeeper2.paths.deltas_path('lyb') / "Delta-1.fits.gz").read_text() == "1231"
+        )
+
+        assert(
+            bookkeeper2.paths.delta_attributes_file("lyb").read_text() == "3452"
+        )
+
+        assert (
+            bookkeeper2.paths.cf_fname(absorber, region, absorber2, region2).read_text()
+            == "10"
+        )
+        assert (
+            bookkeeper2.paths.dmat_fname(
+                absorber, region, absorber2, region2
+            ).read_text()
+            == "20"
+        )
+        assert (
+            bookkeeper2.paths.metal_fname(
+                absorber, region, absorber2, region2
+            ).read_text()
+            == "30"
+        )
+
+        assert bookkeeper2.paths.xcf_fname(absorber, region2).read_text() == "40"
+        assert bookkeeper2.paths.xdmat_fname(absorber, region2).read_text() == "50"
+        assert bookkeeper2.paths.xmetal_fname(absorber, region2).read_text() == "60"
+
+        self.replace_paths_bookkeeper_output(bookkeeper2.paths)
+        if "UPDATE_TESTS" in os.environ and os.environ["UPDATE_TESTS"] == "True":
+            self.update_test_output(test_files, bookkeeper2.paths.run_path)
+        self.compare_bookkeeper_output(test_files, bookkeeper2.paths.run_path)
+
+    @patch("picca_bookkeeper.tasker.run", side_effect=mock_run)
+    @patch(
+        "picca_bookkeeper.bookkeeper.get_quasar_catalog",
+        side_effect=mock_get_3d_catalog,
+    )
+    def test_example_copy_full_files(self, mock_func_1, mock_func_2):
+        copy_config_substitute(self.files_path / "example_config_guadalupe_lyb.yaml")
+        test_files = THIS_DIR / "test_files" / "copy_correlation_files_full"
+        bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml")
+
+        write_full_analysis(THIS_DIR / "test_files" / "output" / "tmp.yaml")
+        bookkeeper.paths.deltas_log_path(None, calib_step=1).mkdir(
+            exist_ok=True, parents=True
+        )
+        
+        bookkeeper.paths.deltas_path("lyb").mkdir(exist_ok=True, parents=True)
+        bookkeeper.paths.delta_attributes_file("lyb").parent.mkdir(exist_ok=True, parents=True)
+        (bookkeeper.paths.deltas_path("lyb") / "Delta-1.fits.gz").write_text("1231")
+        bookkeeper.paths.delta_attributes_file("lyb").write_text("3452")
+
+        absorber = "lya"
+        region = "lya"
+        absorber2 = "lya"
+        region2 = "lyb"
+        bookkeeper.paths.cf_fname(absorber, region, absorber2, region2).parent.mkdir(
+            exist_ok=True, parents=True
+        )
+        bookkeeper.paths.cf_fname(absorber, region, absorber2, region2).write_text(
+            "10"
+        )
+        bookkeeper.paths.dmat_fname(absorber, region, absorber2, region2).write_text(
+            "20"
+        )
+        bookkeeper.paths.metal_fname(absorber, region, absorber2, region2).write_text(
+            "30"
+        )
+
+        bookkeeper.paths.xcf_fname(absorber, region).parent.mkdir(
+            exist_ok=True, parents=True
+        )
+        bookkeeper.paths.xcf_fname(absorber, region2).write_text("40")
+        bookkeeper.paths.xdmat_fname(absorber, region2).write_text("50")
+        bookkeeper.paths.xmetal_fname(absorber, region2).write_text("60")
+
+        copy_config_substitute(
+            self.files_path / "example_config_guadalupe_calib_copy_corrs_full.yaml"
+        )
+
+        with open(THIS_DIR / "test_files" / "output" / "tmp.yaml", "r") as file:
+            filedata = file.read()
+
+        filedata = filedata.replace(
+            "link deltas:",
+            f"link deltas: {str(bookkeeper.paths.run_path / 'results')}"
+        )
+
+        filedata = filedata.replace(
+            "link correlations:",
+            f"link correlations: {str(bookkeeper.paths.correlations_path / 'results')}"
+        )
+
 
         with open(THIS_DIR / "test_files" / "output" / "tmp.yaml", "w") as file:
             file.write(filedata)

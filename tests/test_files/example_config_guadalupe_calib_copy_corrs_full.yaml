@@ -1,0 +1,34 @@
+general:
+  conda environment: picca
+  
+data:
+  bookkeeper dir: results_directory
+  
+  healpix data:
+  release: guadalupe
+  survey: main
+  catalog: afterburn_v0
+   
+  
+delta extraction:
+  prefix: dMdB20
+  calib: 2
+  calib region: mgii_r
+  dla: 0
+  bal: 0
+  suffix: copy_corrs_full
+
+  link deltas:
+
+  
+correlations:
+  catalog tracer:
+  run name: default
+
+  link correlations:
+
+fits:
+  run name: default
+
+  auto correlations: lya.lya-lya.lyb
+  cross correlations: lya.lyb

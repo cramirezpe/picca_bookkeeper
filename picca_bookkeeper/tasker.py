@@ -158,7 +158,7 @@ class Tasker:
                 raise FileNotFoundError("Input file for run not found", str(file))
 
             size = file.stat().st_size
-            if size > 1 and size < 40:
+            if size > 1 and size < 20:
                 self.wait_for_ids.append(int(Path(file).read_text().splitlines()[0]))
 
     def _make_command(self) -> str:
