@@ -166,6 +166,7 @@ class ReadFits:
         params: List[str] = ["ap", "at", "bias_LYA", "beta_LYA"],
         params_names: Optional[List[str]] = None,
         precision: int = 3,
+        float_presentation: str = "f",
     ) -> pd.DataFrame:
         if params_names is None:
             params_names = params
@@ -186,24 +187,24 @@ class ReadFits:
                 if param in fit.values.keys():
                     if param == "ap":
                         row.append(
-                            rf"{fit.values[param]:+.{precision}f} "
-                            rf"± {fit.errors[param]:.{precision}f}"
+                            rf"{fit.values[param]:+.{precision}{float_presentation}} "
+                            rf"± {fit.errors[param]:.{precision}{float_presentation}}"
                         )
                     elif param == "at":
                         row.append(
-                            rf"{fit.values[param]:+.{precision}f} "
-                            rf"± {fit.errors[param]:.{precision}f}"
+                            rf"{fit.values[param]:+.{precision}{float_presentation}} "
+                            rf"± {fit.errors[param]:.{precision}{float_presentation}}"
                         )
                     else:
                         row.append(
-                            rf"{fit.values[param]:.{precision}f} "
-                            rf"± {fit.errors[param]:.{precision}f}"
+                            rf"{fit.values[param]:.{precision}{float_presentation}} "
+                            rf"± {fit.errors[param]:.{precision}{float_presentation}}"
                         )
                 else:
                     row.append("")
 
-            row.append(f"{fit.chi2:.{precision}f}/({fit.ndata}-{fit.nparams})")
-            row.append(f"{fit.pvalue:.{precision}f}")
+            row.append(f"{fit.chi2:.{precision}{float_presentation}}/({fit.ndata}-{fit.nparams})")
+            row.append(f"{fit.pvalue:.{precision}{float_presentation}}")
 
             rows.append(row)
 

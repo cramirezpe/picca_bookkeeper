@@ -33,10 +33,11 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
         bookkeeper = Bookkeeper(
             bookkeeper_config,
             read_mode=False,
+            overwrite_config=args.overwrite_config,
         )
         logger.info(f"Adding fit:{bookkeeper.paths.fits_path}")
 
-        if bookkeeper.config["fits"].get("compute zeff", False):
+        if bookkeeper.config["fits"].get("compute zeff", False) and not args.skip_zeff:
             computed_params_file = bookkeeper.paths.fit_computed_params_out()
             if (
                 not computed_params_file.is_file()
@@ -53,7 +54,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
                     compute_zeff.slurm_header_args["error"], "w"
                 ) as err:
                     retcode = run(commands, stdout=out, stderr=err)
-                logger.info(f"\tcompute zeff: {retcode}")
+                logger.info(f"\tcompute zeff: {retcode.returncode}")
 
         fit = bookkeeper.get_fit_tasker(
             overwrite=True,
@@ -65,7 +66,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
                 fit.slurm_header_args["error"], "w"
             ) as err:
                 retcode = run(commands, stdout=out, stderr=err)
-            logger.info(f"\tfit: {retcode}")
+            logger.info(f"\tfit: {retcode.returncode}")
         else:
             logger.info(f"\tfit already finished.")
 
@@ -81,6 +82,18 @@ def get_args() -> argparse.Namespace:
 
     parser.add_argument(
         "--overwrite", action="store_true", help="Force overwrite output data."
+    )
+
+    parser.add_argument(
+        "--overwrite-config",
+        action="store_true",
+        help="Force overwrite bookkeeper config.",
+    )
+
+    parser.add_argument(
+        "--skip-zeff",
+        action="store_true",
+        help="Skip computation of zeff and related quantities."
     )
 
     parser.add_argument(
