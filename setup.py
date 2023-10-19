@@ -43,6 +43,7 @@ setuptools.setup(
             "picca_bookkeeper_compute_zeff = picca_bookkeeper.scripts.compute_zeff:main",
             "picca_bookkeeper_correct_config_zeff = picca_bookkeeper.scripts.correct_config_zeff:main",
             "picca_bookkeeper_run_multiple_fits = picca_bookkeeper.scripts.run_multiple_fits:main",
+            "picca_bookkeeper_unblind_correlations = picca_bookkeeper.scripts.unblind_correlations:main",
         ]
     },
     classifiers=[

@@ -40,6 +40,10 @@ data:
   # or could be a full path to a catalog
   catalog: afterburn_v0
 
+  # Unblind correlations. Only use this if you are allowed to!
+  unblind: False
+
+
 
 delta extraction:  
   # The structure of folders and sub-folders is the following:

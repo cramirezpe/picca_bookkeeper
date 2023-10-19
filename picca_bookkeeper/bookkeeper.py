@@ -345,6 +345,7 @@ class Bookkeeper:
             "correlations": [
                 "delta extraction",
                 "run name",
+                "unblind",
                 "catalog tracer",
                 "fast metals",
                 "link correlations",
@@ -1758,18 +1759,38 @@ class Bookkeeper:
 
         output_filename.parent.mkdir(exist_ok=True, parents=True)
 
+        in_files = [
+            self.paths.cf_fname(absorber, region, absorber2, region2),
+        ]
+
+        if self.config["correlations"].get("unblind", False):
+            logger.warn("CORRELATIONS WILL BE UNBLINDED, BE CAREFUL.")
+            precommand = f"picca_bookkeeper_unblind_correlations"
+            
+            cf_file = str(self.paths.cf_fname(absorber, region, absorber2, region2))
+            precommand += f" --cf {cf_file}"
+            if self.config["fits"].get("distortion", True):
+                dmat_file = str(self.paths.dmat_fname(absorber, region, absorber2, region2))
+                precommand += f" --dmat {dmat_file}"
+                in_files.append(dmat_file)
+            if self.config["fits"].get("metals", True):
+                metal_file = str(self.paths.metal_fname(absorber, region, absorber2, region2))
+                precommand += f" --metal-dmat {metal_file}"
+                in_files.append(metal_file)
+        else:
+            precommand = ""
+
         return get_Tasker(updated_system)(
             command=command,
             command_args=args,
+            precommand=precommand,
             slurm_header_args=slurm_header_args,
             environment=self.config["general"]["conda environment"],
             environmental_variables=environmental_variables,
             run_file=self.paths.correlations_path / f"scripts/run_{job_name}.sh",
             jobid_log_file=self.paths.correlations_path / f"logs/jobids.log",
             wait_for=wait_for,
-            in_files=[
-                self.paths.cf_fname(absorber, region, absorber2, region2),
-            ],
+            in_files=in_files,
             out_file=output_filename,
         )
 
@@ -2382,18 +2403,38 @@ class Bookkeeper:
 
         output_filename.parent.mkdir(exist_ok=True, parents=True)
 
+        in_files = [
+            self.paths.xcf_fname(absorber, region),
+        ]
+
+        if self.config["correlations"].get("unblind", False):
+            logger.warn("CORRELATIONS WILL BE UNBLINDED, BE CAREFUL.")
+            precommand = f"picca_bookkeeper_unblind_correlations"
+            
+            xcf_file = str(self.paths.xcf_fname(absorber, region))
+            precommand += f" --cf {xcf_file}"
+            if self.config["fits"].get("distortion", True):
+                xdmat_file = str(self.paths.xdmat_fname(absorber, region))
+                precommand += f" --dmat {xdmat_file}"
+                in_files.append(xdmat_file)
+            if self.config["fits"].get("metals", True):
+                xmetal_file = str(self.paths.metal_fname(absorber, region))
+                precommand += f" --metal-dmat {xmetal_file}"
+                in_files.append(xmetal_file)
+        else:
+            precommand = ""
+
         return get_Tasker(updated_system)(
             command=command,
             command_args=args,
+            precommand=precommand,
             slurm_header_args=slurm_header_args,
             environment=self.config["general"]["conda environment"],
             environmental_variables=environmental_variables,
             run_file=self.paths.correlations_path / f"scripts/run_{job_name}.sh",
             jobid_log_file=self.paths.correlations_path / f"logs/jobids.log",
             wait_for=wait_for,
-            in_files=[
-                self.paths.xcf_fname(absorber, region),
-            ],
+            in_files=in_files,
             out_file=output_filename,
         )
 
