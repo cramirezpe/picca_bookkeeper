@@ -220,16 +220,16 @@ class ReadDeltas:
         )
         pool.close()
 
-        self.deltas_arr = np.vstack(np.asarray(self.statistics).T[0])
-        self.var_pipe_arr = np.vstack(np.asarray(self.statistics).T[1])
-        self.weights_arr = np.vstack(np.asarray(self.statistics).T[2])
-        self.lambda_rf_arr = np.vstack(np.asarray(self.statistics).T[3])
-        self.id_arr = np.concatenate(np.asarray(self.statistics).T[4])
-        self.cont_arr = np.vstack(np.asarray(self.statistics).T[5])
-        self.flux_arr = np.vstack(np.asarray(self.statistics).T[6])
-        self.flux_ivar_arr = np.vstack(np.asarray(self.statistics).T[7])
-        self.z_arr = np.concatenate(np.asarray(self.statistics).T[8])
-        self.meansnr_arr = np.concatenate(np.asarray(self.statistics).T[9])
+        self.deltas_arr = np.vstack(np.asarray(self.statistics, dtype="object").T[0])
+        self.var_pipe_arr = np.vstack(np.asarray(self.statistics, dtype="object").T[1])
+        self.weights_arr = np.vstack(np.asarray(self.statistics, dtype="object").T[2])
+        self.lambda_rf_arr = np.vstack(np.asarray(self.statistics, dtype="object").T[3])
+        self.id_arr = np.concatenate(np.asarray(self.statistics, dtype="object").T[4])
+        self.cont_arr = np.vstack(np.asarray(self.statistics, dtype="object").T[5])
+        self.flux_arr = np.vstack(np.asarray(self.statistics, dtype="object").T[6])
+        self.flux_ivar_arr = np.vstack(np.asarray(self.statistics, dtype="object").T[7])
+        self.z_arr = np.concatenate(np.asarray(self.statistics, dtype="object").T[8])
+        self.meansnr_arr = np.concatenate(np.asarray(self.statistics, dtype="object").T[9])
         self.deltas2_arr = self.deltas_arr**2
 
     def get_file_statistics(
