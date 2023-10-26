@@ -31,12 +31,17 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
         args.bookkeeper_config, overwrite_config=args.overwrite_config, read_mode=False,
     )
 
-    continuum_type = bookkeeper.config["delta extraction"]["prefix"]
+    config = DictUtils.merge_dicts(
+        bookkeeper.defaults,
+        bookkeeper.config,
+    )
+
+    continuum_type = config["delta extraction"]["prefix"]
 
     if args.only_calibration or (
         (
             str(continuum_type) not in ("raw", "True")
-            and bookkeeper.config["delta extraction"]["calib"] != 0
+            and config["delta extraction"]["calib"] != 0
             and not args.skip_calibration
         )
     ):

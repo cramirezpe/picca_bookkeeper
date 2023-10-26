@@ -35,9 +35,15 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
             read_mode=False,
             overwrite_config=args.overwrite_config,
         )
+
+        config = DictUtils.merge_dicts(
+            bookkeeper.defaults,
+            bookkeeper.config,
+        )
+
         logger.info(f"Adding fit:{bookkeeper.paths.fits_path}")
 
-        if bookkeeper.config["fits"].get("compute zeff", False) and not args.skip_zeff:
+        if config["fits"].get("compute zeff", False) and not args.skip_zeff:
             computed_params_file = bookkeeper.paths.fit_computed_params_out()
             if (
                 not computed_params_file.is_file()

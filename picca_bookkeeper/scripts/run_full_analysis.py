@@ -11,6 +11,7 @@ import numpy as np
 
 from picca_bookkeeper import bookkeeper
 from picca_bookkeeper.bookkeeper import Bookkeeper
+from picca_bookkeeper.dict_utils import DictUtils
 from picca_bookkeeper.scripts.run_cf import main as run_cf
 from picca_bookkeeper.scripts.run_delta_extraction import main as run_delta_extraction
 from picca_bookkeeper.scripts.run_fit import main as run_fit
@@ -36,7 +37,13 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
     bookkeeper = Bookkeeper(
         args.bookkeeper_config, overwrite_config=args.overwrite_config, read_mode=False,
     )
-    continuum_type = bookkeeper.config["delta extraction"]["prefix"]
+
+    config = DictUtils.merge_dicts(
+        bookkeeper.defaults,
+        bookkeeper.config,
+    )
+
+    continuum_type = config["delta extraction"]["prefix"]
 
     ########################################
     ## Identifying needed runs from names
@@ -45,8 +52,8 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
 
     autos = []
     auto_correlations = args.auto_correlations
-    if bookkeeper.config.get("fits", dict()).get("auto correlations", None) is not None:
-        auto_correlations += bookkeeper.config["fits"]["auto correlations"].split(" ")
+    if config.get("fits", dict()).get("auto correlations", None) is not None:
+        auto_correlations += config["fits"]["auto correlations"].split(" ")
     for auto in auto_correlations:
         absorber, region, absorber2, region2 = auto.replace("-", ".").split(".")
 
@@ -62,10 +69,10 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
     crosses = []
     cross_correlations = args.cross_correlations
     if (
-        bookkeeper.config.get("fits", dict()).get("cross correlations", None)
+        config.get("fits", dict()).get("cross correlations", None)
         is not None
     ):
-        cross_correlations += bookkeeper.config["fits"]["cross correlations"].split(" ")
+        cross_correlations += config["fits"]["cross correlations"].split(" ")
     for cross in cross_correlations:
         absorber, region = cross.split(".")
         region = bookkeeper.validate_region(region)
@@ -81,7 +88,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
     ## and then all the deltas needed.
     ########################################
     if not args.no_deltas:
-        if (str(continuum_type) not in ("raw", "True")) and bookkeeper.config[
+        if (str(continuum_type) not in ("raw", "True")) and config[
             "delta extraction"
         ]["calib"] != 0:
             calib_args = argparse.Namespace(
@@ -118,7 +125,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
     ########################################
     ## Running all the correlations needed
     ########################################
-    if not (bookkeeper.config.get("fits", dict()).get("metals", True)) or args.no_metal:
+    if not (config.get("fits", dict()).get("metals", True)) or args.no_metal:
         no_metal = True
     else:
         no_metal = False

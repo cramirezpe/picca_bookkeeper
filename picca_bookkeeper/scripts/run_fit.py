@@ -31,7 +31,12 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
         args.bookkeeper_config, overwrite_config=args.overwrite_config, read_mode=False,
     )
 
-    if bookkeeper.config["fits"].get("compute zeff", False):
+    config = DictUtils.merge_dicts(
+        bookkeeper.defaults,
+        bookkeeper.config,
+    )
+
+    if config["fits"].get("compute zeff", False):
         compute_zeff = bookkeeper.get_compute_zeff_tasker(
             wait_for=args.wait_for,
             overwrite=args.overwrite,
