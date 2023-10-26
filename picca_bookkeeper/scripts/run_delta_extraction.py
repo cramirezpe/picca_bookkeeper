@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from picca_bookkeeper.bookkeeper import Bookkeeper
+from picca_bookkeeper.dict_utils import DictUtils
 from picca_bookkeeper.tasker import Tasker
 
 if TYPE_CHECKING:

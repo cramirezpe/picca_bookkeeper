@@ -11,6 +11,7 @@ from subprocess import run
 from typing import TYPE_CHECKING
 
 from picca_bookkeeper.bookkeeper import Bookkeeper
+from picca_bookkeeper.dict_utils import DictUtils
 
 if TYPE_CHECKING:
     from typing import Optional
