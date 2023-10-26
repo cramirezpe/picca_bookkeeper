@@ -298,6 +298,11 @@ class Bookkeeper:
                 self.paths.defaults_file,
             )
 
+        self.config = DictUtils.merge_dicts(
+            self.defaults,
+            self.config,
+        )
+
     @staticmethod
     def write_ini(config: Dict, file: Path | str) -> None:
         """Safely save a dictionary into an .ini file
@@ -349,6 +354,7 @@ class Bookkeeper:
                 "catalog tracer",
                 "fast metals",
                 "link correlations",
+                "link metals",
                 "cf files",
                 "cf exp files",
                 "xcf files",
@@ -433,7 +439,6 @@ class Bookkeeper:
     def generate_slurm_header_extra_args(
         self,
         config: Dict,
-        default_config: Dict,
         section: str,
         slurm_args: Dict,
         command: str,
@@ -446,7 +451,6 @@ class Bookkeeper:
 
         Args:
             config: bookkeeper config to look into.
-            default_config: deafults config to look into.
             section: Section name to look into.
             slurm_args: Slurm args passed through the get_tasker method. They
                 should be prioritized.
@@ -462,7 +466,6 @@ class Bookkeeper:
             args = dict()
 
         config = copy.deepcopy(config[section])
-        default_config = copy.deepcopy(default_config[section])
 
         sections = ["general", command.split(".py")[0]]
 
@@ -476,17 +479,6 @@ class Bookkeeper:
 
         if region2 != "":
             sections[-1] += f"_{absorber2}{region2}"
-
-        if "slurm args" in default_config.keys() and isinstance(
-            default_config["slurm args"], dict
-        ):
-            for section in sections:
-                if section in default_config["slurm args"] and isinstance(
-                    default_config["slurm args"][section], dict
-                ):
-                    args = DictUtils.merge_dicts(
-                        args, default_config["slurm args"][section]
-                    )
 
         if "slurm args" in config.keys() and isinstance(config["slurm args"], dict):
             for section in sections:
@@ -518,7 +510,6 @@ class Bookkeeper:
     def generate_extra_args(
         self,
         config: Dict,
-        default_config: Dict,
         section: str,
         extra_args: Dict,
         command: str,
@@ -531,7 +522,6 @@ class Bookkeeper:
 
         Args:
             config: Section of the bookkeeper config to look into.
-            default_config: Section of the deafults config to look into.
             section: Section name to look into.
             extra_args: extra args passed through the get_tasker method. They
                 should be prioritized.
@@ -542,7 +532,6 @@ class Bookkeeper:
             absorber2: Second absorber to use for correlations.
         """
         config = copy.deepcopy(config[section])
-        default_config = copy.deepcopy(default_config[section])
 
         sections = [command.split(".py")[0]]
 
@@ -558,17 +547,6 @@ class Bookkeeper:
             sections[-1] += f"_{absorber2}{region2}"
 
         args: Dict = dict()
-        if "extra args" in default_config.keys() and isinstance(
-            default_config["extra args"], dict
-        ):
-            for section in sections:
-                if section in default_config["extra args"] and isinstance(
-                    default_config["extra args"][section], dict
-                ):
-                    args = DictUtils.merge_dicts(
-                        args, default_config["extra args"][section]
-                    )
-
         if "extra args" in config.keys() and isinstance(config["extra args"], dict):
             for section in sections:
                 if section in config["extra args"] and isinstance(
@@ -933,7 +911,6 @@ class Bookkeeper:
 
         updated_extra_args = self.generate_extra_args(
             config=self.config,
-            default_config=self.defaults,
             section="delta extraction",
             extra_args=extra_args,
             command=command,
@@ -941,7 +918,6 @@ class Bookkeeper:
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
             config=self.config,
-            default_config=self.defaults,
             section="delta extraction",
             slurm_args=slurm_header_extra_args,
             command=command,
@@ -1097,7 +1073,6 @@ class Bookkeeper:
 
         updated_extra_args = self.generate_extra_args(
             config=self.config,
-            default_config=self.defaults,
             section="delta extraction",
             extra_args=extra_args,
             command=command,
@@ -1105,7 +1080,6 @@ class Bookkeeper:
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
             config=self.config,
-            default_config=self.defaults,
             section="delta extraction",
             slurm_args=slurm_header_extra_args,
             command=command,
@@ -1379,7 +1353,6 @@ class Bookkeeper:
 
         updated_extra_args = self.generate_extra_args(
             config=self.config,
-            default_config=self.defaults,
             section="correlations",
             extra_args=extra_args,
             command=command,
@@ -1390,7 +1363,6 @@ class Bookkeeper:
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
             config=self.config,
-            default_config=self.defaults,
             section="correlations",
             slurm_args=slurm_header_extra_args,
             command=command,
@@ -1547,7 +1519,6 @@ class Bookkeeper:
 
         updated_extra_args = self.generate_extra_args(
             config=self.config,
-            default_config=self.defaults,
             section="correlations",
             extra_args=extra_args,
             command=command,
@@ -1558,7 +1529,6 @@ class Bookkeeper:
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
             config=self.config,
-            default_config=self.defaults,
             section="correlations",
             slurm_args=slurm_header_extra_args,
             command=command,
@@ -1709,7 +1679,6 @@ class Bookkeeper:
 
         updated_extra_args = self.generate_extra_args(
             config=self.config,
-            default_config=self.defaults,
             section="correlations",
             extra_args=extra_args,
             command=command,
@@ -1720,7 +1689,6 @@ class Bookkeeper:
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
             config=self.config,
-            default_config=self.defaults,
             section="correlations",
             slurm_args=slurm_header_extra_args,
             command=command,
@@ -1884,9 +1852,7 @@ class Bookkeeper:
 
             return DummyTasker()
 
-        if self.config["correlations"].get(
-            "fast metals", self.defaults["correlations"].get("fast metals", False)
-        ):
+        if self.config["correlations"].get("fast metals", False):
             fast_metal = True
             command = "picca_fast_metal_dmat.py"
         else:
@@ -1895,7 +1861,6 @@ class Bookkeeper:
 
         updated_extra_args = self.generate_extra_args(
             config=self.config,
-            default_config=self.defaults,
             section="correlations",
             extra_args=extra_args,
             command=command,
@@ -1906,7 +1871,6 @@ class Bookkeeper:
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
             config=self.config,
-            default_config=self.defaults,
             section="correlations",
             slurm_args=slurm_header_extra_args,
             command=command,
@@ -2057,7 +2021,6 @@ class Bookkeeper:
 
         updated_extra_args = self.generate_extra_args(
             config=self.config,
-            default_config=self.defaults,
             section="correlations",
             extra_args=extra_args,
             command=command,
@@ -2066,7 +2029,6 @@ class Bookkeeper:
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
             config=self.config,
-            default_config=self.defaults,
             section="correlations",
             slurm_args=slurm_header_extra_args,
             command=command,
@@ -2207,7 +2169,6 @@ class Bookkeeper:
 
         updated_extra_args = self.generate_extra_args(
             config=self.config,
-            default_config=self.defaults,
             section="correlations",
             extra_args=extra_args,
             command=command,
@@ -2216,7 +2177,6 @@ class Bookkeeper:
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
             config=self.config,
-            default_config=self.defaults,
             section="correlations",
             slurm_args=slurm_header_extra_args,
             command=command,
@@ -2356,7 +2316,6 @@ class Bookkeeper:
 
         updated_extra_args = self.generate_extra_args(
             config=self.config,
-            default_config=self.defaults,
             section="correlations",
             extra_args=extra_args,
             command=command,
@@ -2365,7 +2324,6 @@ class Bookkeeper:
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
             config=self.config,
-            default_config=self.defaults,
             section="correlations",
             slurm_args=slurm_header_extra_args,
             command=command,
@@ -2520,9 +2478,7 @@ class Bookkeeper:
                 f"{DictUtils.print_dict(self.defaults_diff)}"
             )
 
-        if self.config["correlations"].get(
-            "fast metals", self.defaults["correlations"].get("fast metals", False)
-        ):
+        if self.config["correlations"].get("fast metals", False):
             fast_metal = True
             command = "picca_fast_metal_xdmat.py"
         else:
@@ -2531,7 +2487,6 @@ class Bookkeeper:
 
         updated_extra_args = self.generate_extra_args(
             config=self.config,
-            default_config=self.defaults,
             section="correlations",
             extra_args=extra_args,
             command=command,
@@ -2540,7 +2495,6 @@ class Bookkeeper:
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
             config=self.config,
-            default_config=self.defaults,
             section="correlations",
             slurm_args=slurm_header_extra_args,
             command=command,
@@ -2662,14 +2616,12 @@ class Bookkeeper:
 
         updated_extra_args = self.generate_extra_args(
             config=self.config,
-            default_config=self.defaults,
             extra_args=dict(),
             section="fits",
             command=command,
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
             config=self.config,
-            default_config=self.defaults,
             section="fits",
             slurm_args=slurm_header_extra_args,
             command=command,
@@ -2761,7 +2713,6 @@ class Bookkeeper:
         command = "run_vega.py"
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
             config=self.config,
-            default_config=self.defaults,
             section="fits",
             slurm_args=slurm_header_extra_args,
             command=command,
@@ -2847,7 +2798,6 @@ class Bookkeeper:
         command = "run_vega_mpi.py"
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
             config=self.config,
-            default_config=self.defaults,
             section="fits",
             slurm_args=slurm_header_extra_args,
             command=command,
@@ -2890,18 +2840,6 @@ class Bookkeeper:
         config = DictUtils.merge_dicts(
             {
                 "fits": {
-                    "auto correlations": self.defaults["fits"]["auto correlations"],
-                    "cross correlations": self.defaults["fits"]["cross correlations"],
-                    "sampler environment": self.defaults["fits"].get("sampler environment", None),
-                    "bao": self.defaults["fits"]["bao"],
-                    "hcd": self.defaults["fits"]["hcd"],
-                    "metals": self.defaults["fits"]["metals"],
-                    "sky": self.defaults["fits"]["sky"],
-                    "qso rad": self.defaults["fits"]["qso rad"],
-                    "rmin cf": self.defaults["fits"]["rmin cf"],
-                    "rmax cf": self.defaults["fits"]["rmax cf"],
-                    "rmin xcf": self.defaults["fits"]["rmin xcf"],
-                    "rmax xcf": self.defaults["fits"]["rmax xcf"],
                     "extra args": {},
                 },
             },
@@ -3173,7 +3111,6 @@ class Bookkeeper:
 
             vega_args = self.generate_extra_args(
                 config=args,
-                default_config=self.defaults,
                 section="fits",
                 extra_args=dict(),
                 command="vega_auto.py",  # The use of .py only for using same function
@@ -3236,7 +3173,6 @@ class Bookkeeper:
 
             vega_args = self.generate_extra_args(
                 config=args,
-                default_config=self.defaults,
                 section="fits",
                 extra_args=dict(),
                 command="vega_cross.py",  # The use of .py only for using same function
@@ -3288,7 +3224,6 @@ class Bookkeeper:
 
         vega_args = self.generate_extra_args(
             config=args,
-            default_config=self.defaults,
             section="fits",
             extra_args=dict(),
             command="vega_main.py",  # The .py needed to make use of same function
@@ -3890,6 +3825,27 @@ class PathBuilder:
 
                 if corr.is_file():
                     file = corr
+        
+        if file is None and subsection in ("metal matrices", "xmetal matrices"):
+            parent = self.config["correlations"].get("link metals", None)
+            if parent is not None:
+                parent = Path(parent)
+                folder_name = (qso + name).replace("(", "").replace(")", "")
+                corr = parent / folder_name / filename
+
+                if corr.is_file():
+                    file = corr
+        
+        if file is None and subsection in ("distortion matrices", "xdistortion matrices"):
+            parent = self.config["correlations"].get("link metals", None)
+            if parent is not None:
+                parent = Path(parent)
+                folder_name = (qso + name).replace("(", "").replace(")", "")
+                corr = parent / folder_name / filename
+
+                if corr.is_file():
+                    file = corr
+
 
         if file is not None:
             if not Path(file).is_file():
