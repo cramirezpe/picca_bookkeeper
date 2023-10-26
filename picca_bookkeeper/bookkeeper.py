@@ -2892,6 +2892,7 @@ class Bookkeeper:
                 "fits": {
                     "auto correlations": self.defaults["fits"]["auto correlations"],
                     "cross correlations": self.defaults["fits"]["cross correlations"],
+                    "sampler environment": self.defaults["fits"].get("sampler environment", None),
                     "bao": self.defaults["fits"]["bao"],
                     "hcd": self.defaults["fits"]["hcd"],
                     "metals": self.defaults["fits"]["metals"],
@@ -3111,12 +3112,12 @@ class Bookkeeper:
 
         config = self.generate_fit_configuration()
 
-        if self.config["fits"].get("auto correlations", None) is not None:
-            auto_correlations = self.config["fits"]["auto correlations"].split(" ")
+        if config["fits"].get("auto correlations", None) is not None:
+            auto_correlations = config["fits"]["auto correlations"].split(" ")
         else:
             auto_correlations = []
-        if self.config["fits"].get("cross correlations", None) is not None:
-            cross_correlations = self.config["fits"]["cross correlations"].split(" ")
+        if config["fits"].get("cross correlations", None) is not None:
+            cross_correlations = config["fits"]["cross correlations"].split(" ")
         else:
             cross_correlations = []
 
@@ -3164,7 +3165,7 @@ class Bookkeeper:
             )
             input_files.append(export_file)
 
-            if self.config["fits"].get("distortion", True):
+            if config["fits"].get("distortion", True):
                 args["fits"]["extra args"]["vega_auto"]["data"][
                     "distortion-file"
                 ] = distortion_file
