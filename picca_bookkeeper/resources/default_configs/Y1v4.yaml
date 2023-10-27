@@ -40,6 +40,15 @@ delta extraction:
         qos: regular
         cpus-per-task: 256
 
+      ciii:
+        time: "02:30:00"
+
+      lya:
+        time: "02:00:00"
+
+      lyb:
+        time: "01:30:00"
+
 
 correlations:
   fast metals: True
@@ -170,24 +179,36 @@ correlations:
         qos: regular
         time: "04:00:00"
         cpus-per-task: 256
+      
+      lyalya_lyalya:
+        time: "00:40:00"
+
+      lyalya_lyalyb:
+        time: "00:20:00"
 
     picca_dmat:
       general:
         qos: regular
         time: "04:00:00"
         cpus-per-task: 256
+      
+      lyalya_lyalya:
+        time: "02:20:00"
+
+      lyalya_lyalyb:
+        time: "01:20:00"
 
     picca_export:
       general:
         qos: regular
-        time: "00:20:00"
+        time: "00:15:00"
         cpus-per-task: 1
 
     picca_fast_metal_dmat:
       general:
         qos: regular
-        time: "01:00:00"
-        cpus-per-task: 256
+        time: "00:20:00"
+        cpus-per-task: 256     
 
     picca_metal_dmat:
       general:
@@ -198,8 +219,14 @@ correlations:
     picca_xcf:
       general:
         qos: regular
-        time: "03:00:00"
+        time: "01:00:00"
         cpus-per-task: 256
+
+      lyalya:
+        time: "00:40:00"
+
+      lyalyb:
+        time: "00:20:00"
 
     picca_xdmat:
       general:
@@ -207,16 +234,22 @@ correlations:
         time: "03:00:00"
         cpus-per-task: 256
 
+      lyalya:
+        time: "01:00:00"
+
+      lyalyb:
+        time: "00:40:00"
+
     picca_fast_metal_xdmat:
       general:
         qos: regular
-        time: "01:00:00"
+        time: "00:10:00"
         cpus-per-task: 256
 
     picca_metal_xdmat:
       general:
         qos: regular
-        time: "10:00:00"
+        time: "00:20:00"
         cpus-per-task: 256
 
 
