@@ -26,6 +26,8 @@ correlations:
   run name: default
 
   link correlations:
+  link distortion matrices:
+  link metals:
 
 fits:
   run name: default

@@ -27,7 +27,7 @@ class DictUtils:
         result = copy.deepcopy(dict1)
 
         for key, value in dict2.items():
-            if key == "*":
+            if key == "all":
                 # special case, apply remove match to all keys in same level.
                 for key1 in result.keys():
                     result[key1] = DictUtils.remove_matching(result.get(key1, {}), value) # type: ignore

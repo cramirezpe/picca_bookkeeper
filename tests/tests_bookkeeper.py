@@ -567,6 +567,15 @@ class TestBookkeeper(unittest.TestCase):
             f"link correlations: {str(bookkeeper.paths.correlations_path / 'results')}"
         )
 
+        filedata = filedata.replace(
+            "link distortion matrices:",
+            f"link distortion matrices: {str(bookkeeper.paths.correlations_path / 'results')}"
+        )
+        filedata = filedata.replace(
+            "link metals:",
+            f"link metals: {str(bookkeeper.paths.correlations_path / 'results')}"
+        )
+
 
         with open(THIS_DIR / "test_files" / "output" / "tmp.yaml", "w") as file:
             file.write(filedata)

@@ -365,6 +365,7 @@ class Bookkeeper:
                 "catalog tracer",
                 "fast metals",
                 "link correlations",
+                "link distortion matrices",
                 "link metals",
                 "cf files",
                 "cf exp files",
@@ -497,7 +498,7 @@ class Bookkeeper:
         if "slurm args" in self.config["general"]:
             args = self.config["general"].get("slurm args", dict())
 
-        for subcommand in ("general", region_subcommand):
+        for subcommand in ("general", region_subcommand, "all"):
             if config.get("slurm args", None) is not None and config["slurm args"].get(command_name, None) is not None and config["slurm args"][command_name].get(subcommand, None) is not None:
                 args = DictUtils.merge_dicts(
                     args,
@@ -545,7 +546,7 @@ class Bookkeeper:
             region_subcommand += f"_{absorber2}{region2}"
             
         args: Dict = dict()
-        for subcommand in ("general", region_subcommand):
+        for subcommand in ("general", region_subcommand, "all"):
             if config.get("extra args", None) is not None and config["extra args"].get(command_name, None) is not None and config["extra args"][command_name].get(subcommand, None) is not None:
                 args = DictUtils.merge_dicts(
                     args,
@@ -2772,14 +2773,14 @@ class Bookkeeper:
                         },
                     },
                     "vega_auto": {
-                        "*": {
+                        "all": {
                             "model": {
                                 "model-hcd": "",
                             }
                         },
                     },
                     "vega_cross": {
-                        "*": {
+                        "all": {
                             "model": {
                                 "model-hcd": "",
                             }
@@ -2806,17 +2807,19 @@ class Bookkeeper:
                 args,
                 {
                     "vega_auto": {
-                        "*": {
+                        "all": {
                             "metals": "",
                         },
                     },
                     "vega_cross": {
-                        "*": {
+                        "all": {
                             "metals": "",
                         },
                     },
                     "vega_main": {
-                        "sample": remove_from_sampled,
+                        "all": {
+                            "sample": remove_from_sampled,
+                        }
                     },
                 },
             )
@@ -2826,9 +2829,11 @@ class Bookkeeper:
                 args,
                 {
                     "vega_main": {
-                        "sample": {
-                            "desi_inst_sys_amp": "",
-                        }
+                        "all": {
+                            "sample": {
+                                "desi_inst_sys_amp": "",
+                            }
+                        },
                     },
                 }
 
@@ -2837,8 +2842,10 @@ class Bookkeeper:
                 args,
                 {
                     "vega_main": {
-                        "parameters": {
-                            "desi_inst_sys_amp": "0",
+                        "all": {
+                            "parameters": {
+                                "desi_inst_sys_amp": "0",
+                            }
                         }
                     },
                 },
@@ -2849,8 +2856,10 @@ class Bookkeeper:
                 args,
                 {
                     "vega_main": {
-                        "sample": {
-                            "qso_rad_strength": "",
+                        "all": {
+                            "sample": {
+                                "qso_rad_strength": "",
+                            }
                         }
                     },
                 }
@@ -2859,9 +2868,11 @@ class Bookkeeper:
                 args,
                 {
                     "vega_main": {
-                        "parameters": {
-                            "qso_rad_strength": "0",
-                        }
+                        "all": {
+                            "parameters": {
+                                "qso_rad_strength": "0",
+                            }
+                        },
                     },
                 },
             )
@@ -2871,8 +2882,10 @@ class Bookkeeper:
                 args,
                 {
                     "vega_auto": {
-                        "cuts": {
-                            "r-min": str(config["fits"]["rmin cf"]),
+                        "all": {
+                            "cuts": {
+                                "r-min": str(config["fits"]["rmin cf"]),
+                            }
                         }
                     }
                 },
@@ -2882,8 +2895,10 @@ class Bookkeeper:
                 args,
                 {
                     "vega_auto": {
-                        "cuts": {
-                            "r-max": str(config["fits"]["rmax cf"]),
+                        "all": {
+                            "cuts": {
+                                "r-max": str(config["fits"]["rmax cf"]),
+                            }
                         }
                     }
                 },
@@ -2893,8 +2908,10 @@ class Bookkeeper:
                 args,
                 {
                     "vega_cross": {
-                        "cuts": {
-                            "r-min": str(config["fits"]["rmin xcf"]),
+                        "all": {
+                            "cuts": {
+                                "r-min": str(config["fits"]["rmin xcf"]),
+                            }
                         }
                     }
                 },
@@ -2904,8 +2921,10 @@ class Bookkeeper:
                 args,
                 {
                     "vega_cross": {
-                        "cuts": {
-                            "r-max": str(config["fits"]["rmax xcf"]),
+                        "all": {
+                            "cuts": {
+                                "r-max": str(config["fits"]["rmax xcf"]),
+                            }
                         }
                     }
                 },
@@ -3720,7 +3739,7 @@ class PathBuilder:
 
         file = self.config["correlations"].get(subsection, dict()).get(name, None)
 
-        if file is None:
+        if file is None and subsection in ("cf files", "cf exp files", "xcf files", "xcf exp files"):
             parent = self.config["correlations"].get("link correlations", None)
             if parent is not None:
                 parent = Path(parent)
@@ -3741,7 +3760,7 @@ class PathBuilder:
                     file = corr
         
         if file is None and subsection in ("distortion matrices", "xdistortion matrices"):
-            parent = self.config["correlations"].get("link metals", None)
+            parent = self.config["correlations"].get("link distortion matrices", None)
             if parent is not None:
                 parent = Path(parent)
                 folder_name = (qso + name).replace("(", "").replace(")", "")

@@ -116,7 +116,7 @@ delta extraction:
   # match the section name with the name of the scripts under picca.bin
   extra args:
     picca_delta_extraction:
-      # Affecting all regions
+      # Default value for all regions
       general:
         expected flux:
           type: Dr16FixedFudgeExpectedFlux # This to deactivate fudge.
@@ -129,6 +129,10 @@ delta extraction:
       # The values set here will extend the ones defined in picca_delta_extraction
       # for the ciii region only.
       ciii:
+
+      # To force the change even if there are specific defaults for some regions
+      # use all
+      # all:
 
     # Scripts with terminal args are also compatible
     picca_convert_transmission:
@@ -203,14 +207,14 @@ correlations:
     lyalya: /global/cfs/cdirs/desicollab/users/cramirez/iron-analyses/iron/main/QSO_cat_iron_main_dark_healpix_v0/CRP23_1.ciii.1.2_0/correlations/default/results/qso_lyalya/xmetal.fits.gz
     lyalyb: /global/cfs/cdirs/desicollab/users/cramirez/iron-analyses/iron/main/QSO_cat_iron_main_dark_healpix_v0/CRP23_1.ciii.1.2_0/correlations/default/results/qso_lyalyb/xmetal.fits.gz
 
-  # If we want to link everything from a bookkeeper realisation
+  # If we want to link correlations and exports from a bookkeeper realisation
   # link correlations: /global/cfs/cdirs/desicollab/users/cramirez/iron-analyses/iron/main/QSO_cat_iron_main_dark_healpix_v0/CRP23_1.ciii.1.2_0/correlations/default/results/
 
   # Use this instead of link correlations to only link metals
   # link metals: /global/cfs/cdirs/desicollab/users/cramirez/iron-analyses/iron/main/QSO_cat_iron_main_dark_healpix_v0/CRP23_1.ciii.1.2_0/correlations/default/results/
 
   # Use this instead of link correlations to only link dmats
-  # link dmats: /global/cfs/cdirs/desicollab/users/cramirez/iron-analyses/iron/main/QSO_cat_iron_main_dark_healpix_v0/CRP23_1.ciii.1.2_0/correlations/default/results/
+  # link distortion matrices: /global/cfs/cdirs/desicollab/users/cramirez/iron-analyses/iron/main/QSO_cat_iron_main_dark_healpix_v0/CRP23_1.ciii.1.2_0/correlations/default/results/
 
   extra args:
     picca_cf:
