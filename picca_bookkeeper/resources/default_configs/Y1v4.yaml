@@ -90,7 +90,6 @@ correlations:
         fid-Om: 0.315
         rebin-factor: 3
         coef-binning-model: 2
-        relevant-metals: ""
 
     picca_metal_dmat:
       general:
@@ -105,7 +104,6 @@ correlations:
         fid-Om: 0.315
         rebin-factor: 3
         coef-binning-model: 2
-        relevant-metals: ""
 
       lyaciv_lyaciv:
         abs-igm: "CIV(eff)"
@@ -172,6 +170,21 @@ correlations:
         fid-Om: 0.315
         rebin-factor: 3
         coef-binning-model: 2
+    
+    picca_export:
+      lyalya_lyalya:
+        blind-corr-type: lyaxlya
+      
+      lyalya_lyalyb:
+        blind-corr-type: lyaxlyb
+        smooth-per-r-par: ""
+
+      lyalya:
+        blind-corr-type: qsoxlyb
+        
+      lyalyb:
+        blind-corr-type: qsoxlyb
+
 
   slurm args:
     picca_cf:

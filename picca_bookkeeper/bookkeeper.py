@@ -1627,12 +1627,6 @@ class Bookkeeper:
 
         args = DictUtils.merge_dicts(args, updated_extra_args)
 
-        if (
-            self.paths.config["data"]["survey"] == "main"
-            or self.paths.config["data"]["survey"] == "all"
-        ):
-            args["blind-corr-type"] = "lyaxlya"
-
         environmental_variables = {
             "HDF5_USE_FILE_LOCKING": "FALSE",
         }
@@ -2213,16 +2207,9 @@ class Bookkeeper:
         args = {
             "data": str(self.paths.xcf_fname(absorber, region)),
             "out": str(output_filename),
-            "blind-corr-type": "qsoxlya",
         }
 
         args = DictUtils.merge_dicts(args, updated_extra_args)
-
-        if (
-            self.paths.config["data"]["survey"] == "main"
-            or self.paths.config["data"]["survey"] == "all"
-        ):
-            args["blind-corr-type"] = "qsoxlya"
 
         environmental_variables = {
             "HDF5_USE_FILE_LOCKING": "FALSE",
