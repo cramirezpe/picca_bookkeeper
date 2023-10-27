@@ -61,20 +61,10 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
         region = f"calibration_{calib_step}"
 
     job_name = f"add_extra_deltas_data_{region}"
-    slurm_header_args = {
-        "qos": "regular",
-        "nodes": "1",
-        "time": "01:00:00",
-        "job-name": job_name,
-        "output": str(bookkeeper.paths.run_path / f"logs/{job_name}-%j.out"),
-        "error": str(bookkeeper.paths.run_path / f"logs/{job_name}-%j.err"),
-    }
 
     updated_slurm_header_args = bookkeeper.generate_slurm_header_extra_args(
         config=bookkeeper.config,
-        default_config=bookkeeper.defaults,
         section="delta extraction",
-        slurm_args={command: slurm_header_args},
         command=command,
         region=region,
     )

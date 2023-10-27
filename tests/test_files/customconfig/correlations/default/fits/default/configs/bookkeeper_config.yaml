@@ -1,5 +1,8 @@
 general:
   conda environment: picca
+  slurm args:
+    mail-type: fail
+    mail-user: user@host.com
 data:
   bookkeeper dir: /picca_bookkeeper/tests/test_files/output
   healpix data:
@@ -14,22 +17,25 @@ fits:
   cross correlations: lya.lyb
   extra args:
     picca_convert_transmission:
-      nspec: 30
+      general:
+        nspec: 30
     picca_delta_extraction:
-      expected flux:
-        type: Dr16ExpectedFlux
-      corrections:
-        num corrections: 1
-        type 0: DustCorrection
-      correction arguments 0:
-        filename: /file/dust
-      data:
-        wave solution: lin
+      general:
+        expected flux:
+          type: Dr16ExpectedFlux
+        corrections:
+          num corrections: 1
+          type 0: DustCorrection
+        correction arguments 0:
+          filename: /file/dust
+        data:
+          wave solution: lin
     picca_cf:
     picca_xcf:
     picca_dmat:
-      np: 20
-      nt: 18
+      general:
+        np: 20
+        nt: 18
     picca_xdmat:
     picca_metal_dmat:
     picca_export:
@@ -39,10 +45,12 @@ fits:
       mail-type: fail
       mail-user: user@host.com
     picca_delta_extraction:
-      time: 00:16:00
-      qos: regular
+      general:
+        time: 00:16:00
+        qos: regular
     picca_cf:
-      time: 00:12:12
+      general:
+        time: 00:12:12
     picca_xcf:
     picca_dmat:
     picca_xdmat:

@@ -27,10 +27,15 @@ class DictUtils:
         result = copy.deepcopy(dict1)
 
         for key, value in dict2.items():
-            if isinstance(value, collections.abc.Mapping):
-                result[key] = DictUtils.remove_matching(result.get(key, {}), value)  # type: ignore
-            elif key in result:
-                result.pop(key)
+            if key == "*":
+                # special case, apply remove match to all keys in same level.
+                for key1 in result.keys():
+                    result[key1] = DictUtils.remove_matching(result.get(key1, {}), value) # type: ignore
+            else:        
+                if isinstance(value, collections.abc.Mapping):
+                    result[key] = DictUtils.remove_matching(result.get(key, {}), value)  # type: ignore
+                elif key in result:
+                    result.pop(key)
 
         return result
 
@@ -62,6 +67,29 @@ class DictUtils:
         while True:
             for key, value in result.items():
                 if value == "" or value == {} or value is None:
+                    result.pop(key)
+                    break
+                elif isinstance(value, collections.abc.Mapping):
+                    result[key] = DictUtils.remove_empty(value)  # type: ignore
+            else:
+                # This trick allows for repeating the function until
+                # input and outut are the same: all empty strings have
+                # been removed.
+                # This happens because the function in one iteration may
+                # remove all items in one dict, and then we need an
+                # extra iteration to remove the dict itself.
+                if result != config:
+                    result = DictUtils.remove_empty(result)
+                return result
+
+    @staticmethod
+    def remove_none(config: Dict) -> Dict:
+        """Function to remove Nones from dict"""
+        result = copy.deepcopy(config)
+
+        while True:
+            for key, value in result.items():
+                if value is None:
                     result.pop(key)
                     break
                 elif isinstance(value, collections.abc.Mapping):

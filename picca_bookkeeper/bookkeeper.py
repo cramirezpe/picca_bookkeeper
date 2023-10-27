@@ -298,8 +298,17 @@ class Bookkeeper:
                 self.paths.defaults_file,
             )
 
+        defaults_with_removed = copy.deepcopy(self.defaults)
+
+        for section in "delta extraction", "correlations", "fits":
+            for remove_subsection, subsection in zip(("remove default args", "remove default slurm args"), ("extra args", "slurm args")):
+                defaults_with_removed.get(section, dict())[subsection] = DictUtils.remove_matching(
+                    defaults_with_removed.get(section, dict()).get(subsection, dict()),
+                    self.config.get(section, dict()).get(remove_subsection, dict()),
+                )        
+
         self.config = DictUtils.merge_dicts(
-            self.defaults,
+            defaults_with_removed,
             self.config,
         )
 
@@ -346,6 +355,8 @@ class Bookkeeper:
                 "bal catalog",
                 "extra args",
                 "slurm args",
+                "remove default args",
+                "remove slurm args",
             ],
             "correlations": [
                 "delta extraction",
@@ -365,6 +376,8 @@ class Bookkeeper:
                 "xmetal matrices",
                 "extra args",
                 "slurm args",
+                "remove default args",
+                "remove slurm args",
             ],
             "fits": [
                 "delta extraction",
@@ -386,6 +399,8 @@ class Bookkeeper:
                 "rmax xcf",
                 "extra args",
                 "slurm args",
+                "remove default args",
+                "remove slurm args",
             ],
         }
 
@@ -440,7 +455,6 @@ class Bookkeeper:
         self,
         config: Dict,
         section: str,
-        slurm_args: Dict,
         command: str,
         region: Optional[str] = None,
         absorber: Optional[str] = None,
@@ -452,8 +466,6 @@ class Bookkeeper:
         Args:
             config: bookkeeper config to look into.
             section: Section name to look into.
-            slurm_args: Slurm args passed through the get_tasker method. They
-                should be prioritized.
             command: Picca command to be run.
             region: Specify region where the command will be run.
             absorber: First absorber to use for correlations.
@@ -467,43 +479,30 @@ class Bookkeeper:
 
         config = copy.deepcopy(config[section])
 
-        sections = ["general", command.split(".py")[0]]
+        command_name = command.split(".py")[0]
 
         absorber = "" if absorber is None else absorber
         absorber2 = "" if absorber2 is None else absorber2
         region = "" if region is None else region
-        region2 = "" if region2 is None else region2
-
+        region2 = "" if region2 is None else region2        
+        
+        region_subcommand = None
         if region != "":
-            sections.append(command.split(".py")[0] + f"_{absorber}{region}")
-
+            region_subcommand = f"{absorber}{region}"
+        
         if region2 != "":
-            sections[-1] += f"_{absorber2}{region2}"
+            region_subcommand += f"_{absorber2}{region2}"
 
-        if "slurm args" in config.keys() and isinstance(config["slurm args"], dict):
-            for section in sections:
-                if section in config["slurm args"] and isinstance(
-                    config["slurm args"][section], dict
-                ):
-                    args = DictUtils.merge_dicts(args, config["slurm args"][section])
+        args: Dict = dict()
+        if "slurm args" in self.config["general"]:
+            args = self.config["general"].get("slurm args", dict())
 
-            # remove args marked as remove_
-            for section in sections:
-                if "remove_" + section in config["slurm args"] and isinstance(
-                    config["slurm args"]["remove_" + section], dict
-                ):
-                    args = DictUtils.remove_matching(
-                        args, config["slurm args"]["remove_" + section]
-                    )
-
-        for section in sections:
-            if section in slurm_args and isinstance(slurm_args[section], dict):
-                args = DictUtils.merge_dicts(args, slurm_args[section])
-
-            if "remove_" + section in slurm_args and isinstance(
-                slurm_args["remove_" + section], dict
-            ):
-                args = DictUtils.remove_matching(args, slurm_args["remove_" + section])
+        for subcommand in ("general", region_subcommand):
+            if config.get("slurm args", None) is not None and config["slurm args"].get(command_name, None) is not None and config["slurm args"][command_name].get(subcommand, None) is not None:
+                args = DictUtils.merge_dicts(
+                    args,
+                    config["slurm args"][command_name][subcommand],
+                )
 
         return args
 
@@ -511,7 +510,6 @@ class Bookkeeper:
         self,
         config: Dict,
         section: str,
-        extra_args: Dict,
         command: str,
         region: Optional[str] = None,
         absorber: Optional[str] = None,
@@ -523,7 +521,6 @@ class Bookkeeper:
         Args:
             config: Section of the bookkeeper config to look into.
             section: Section name to look into.
-            extra_args: extra args passed through the get_tasker method. They
                 should be prioritized.
             command: picca command to be run.
             region: specify region where the command will be run.
@@ -533,44 +530,28 @@ class Bookkeeper:
         """
         config = copy.deepcopy(config[section])
 
-        sections = [command.split(".py")[0]]
+        command_name = command.split(".py")[0]
 
         absorber = "" if absorber is None else absorber
         absorber2 = "" if absorber2 is None else absorber2
         region = "" if region is None else region
         region2 = "" if region2 is None else region2
 
+        region_subcommand = None
         if region != "":
-            sections.append(command.split(".py")[0] + f"_{absorber}{region}")
-
+            region_subcommand = f"{absorber}{region}"
+        
         if region2 != "":
-            sections[-1] += f"_{absorber2}{region2}"
-
+            region_subcommand += f"_{absorber2}{region2}"
+            
         args: Dict = dict()
-        if "extra args" in config.keys() and isinstance(config["extra args"], dict):
-            for section in sections:
-                if section in config["extra args"] and isinstance(
-                    config["extra args"][section], dict
-                ):
-                    args = DictUtils.merge_dicts(args, config["extra args"][section])
+        for subcommand in ("general", region_subcommand):
+            if config.get("extra args", None) is not None and config["extra args"].get(command_name, None) is not None and config["extra args"][command_name].get(subcommand, None) is not None:
+                args = DictUtils.merge_dicts(
+                    args,
+                    config["extra args"][command_name][subcommand],
+                )
 
-            # remove args marked as remove_
-            for section in sections:
-                if "remove_" + section in config["extra args"] and isinstance(
-                    config["extra args"]["remove_" + section], dict
-                ):
-                    args = DictUtils.remove_matching(
-                        args, config["extra args"]["remove_" + section]
-                    )
-
-        for section in sections:
-            if section in extra_args and isinstance(extra_args[section], dict):
-                args = DictUtils.merge_dicts(args, extra_args[section])
-
-            if "remove_" + section in extra_args and isinstance(
-                extra_args["remove_" + section], dict
-            ):
-                args = DictUtils.remove_matching(args, extra_args["remove_" + section])
 
         return args
 
@@ -852,8 +833,6 @@ class Bookkeeper:
         system: Optional[str] = None,
         debug: bool = False,
         wait_for: Optional[Tasker | ChainedTasker | int | List[int]] = None,
-        slurm_header_extra_args: Dict = dict(),
-        extra_args: Dict = dict(),
         overwrite: bool = False,
         skip_sent: bool = False,
     ) -> Tasker:
@@ -869,13 +848,6 @@ class Bookkeeper:
             wait_for: In NERSC, wait for a given job to finish before running
                 the current one. Could be a  Tasker object or a slurm jobid
                 (int). (Default: None, won't wait for anything).
-            slurm_header_extra_args (dict, optional): Change slurm header
-                default options if needed (time, qos, etc...). Use a
-                dictionary with the format {'option_name': 'option_value'}.
-            extra_args : Send extra arguments to
-                picca_deltas.py script. Use a dictionary with the format
-                {'argument_name', 'argument_value'}. Use {'argument_name': ''}
-                if a action-like option is used.
             overwrite: Overwrite files in destination.
             skip_sent: Skip this and return a DummyTasker if the run was already
                 sent before.
@@ -912,14 +884,12 @@ class Bookkeeper:
         updated_extra_args = self.generate_extra_args(
             config=self.config,
             section="delta extraction",
-            extra_args=extra_args,
             command=command,
             region=region,
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
             config=self.config,
             section="delta extraction",
-            slurm_args=slurm_header_extra_args,
             command=command,
             region=region,
         )
@@ -974,8 +944,6 @@ class Bookkeeper:
         system: Optional[str] = None,
         debug: bool = False,
         wait_for: Optional[Tasker | ChainedTasker | int | List[int]] = None,
-        slurm_header_extra_args: Dict = dict(),
-        extra_args: Dict = dict(),
         calib_step: Optional[int] = None,
         overwrite: bool = False,
         skip_sent: bool = False,
@@ -993,13 +961,6 @@ class Bookkeeper:
             wait_for: In NERSC, wait for a given job to finish before running
                 the current one. Could be a  Tasker object or a slurm jobid
                 (int). (Default: None, won't wait for anything).
-            slurm_header_extra_args: Change slurm header default options if
-                needed (time, qos, etc...). Use a dictionary with the format
-                {'option_name': 'option_value'}.
-            extra_args: Set extra options for picca delta extraction.
-                The format should be a dict of dicts: wanting to change
-                "num masks" in "masks" section one should pass
-                {'num masks': {'masks': value}}.
             calib_step: Calibration step. Default: None, no calibration
             overwrite: Overwrite files in destination.
             skip_sent: Skip this and return a DummyTasker if the run
@@ -1074,14 +1035,12 @@ class Bookkeeper:
         updated_extra_args = self.generate_extra_args(
             config=self.config,
             section="delta extraction",
-            extra_args=extra_args,
             command=command,
             region=region,
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
             config=self.config,
             section="delta extraction",
-            slurm_args=slurm_header_extra_args,
             command=command,
             region=region,
         )
@@ -1167,8 +1126,6 @@ class Bookkeeper:
         system: Optional[str] = None,
         debug: bool = False,
         wait_for: Optional[Tasker | ChainedTasker | int | List[int]] = None,
-        slurm_header_extra_args: Dict = dict(),
-        extra_args: Dict = dict(),
         overwrite: bool = False,
         skip_sent: bool = False,
     ) -> ChainedTasker:
@@ -1184,13 +1141,6 @@ class Bookkeeper:
             wait_for (Tasker or int, optional): In NERSC, wait for a given job
                 to finish before running the current one. Could be a  Tasker object
                 or a slurm jobid (int). (Default: None, won't wait for anything).
-            slurm_header_extra_args (dict, optional): Change slurm header
-                default options if needed (time, qos, etc...). Use a dictionary
-                with the format {'option_name': 'option_value'}.
-            extra_args : Send extra arguments to
-                picca_deltas.py script. Use a dictionary with the format
-                {'argument_name', 'argument_value'}. Use {'argument_name': ''}
-                if a action-like option is used.
             overwrite: Overwrite files in destination.
             skip_sent: Skip this and return a DummyTasker if the run
                 was already sent before.
@@ -1218,8 +1168,6 @@ class Bookkeeper:
                     system=system,
                     debug=debug,
                     wait_for=wait_for,
-                    slurm_header_extra_args=slurm_header_extra_args,
-                    extra_args=extra_args,
                     calib_step=1,
                     overwrite=overwrite,
                     skip_sent=skip_sent,
@@ -1231,8 +1179,6 @@ class Bookkeeper:
                     system=system,
                     debug=debug,
                     wait_for=steps[0],
-                    slurm_header_extra_args=slurm_header_extra_args,
-                    extra_args=extra_args,
                     calib_step=2,
                     overwrite=overwrite,
                     skip_sent=skip_sent,
@@ -1245,8 +1191,6 @@ class Bookkeeper:
                     system=system,
                     debug=debug,
                     wait_for=wait_for,
-                    slurm_header_extra_args=slurm_header_extra_args,
-                    extra_args=extra_args,
                     calib_step=1,
                     overwrite=overwrite,
                     skip_sent=skip_sent,
@@ -1266,8 +1210,6 @@ class Bookkeeper:
         system: Optional[str] = None,
         debug: bool = False,
         wait_for: Optional[Tasker | ChainedTasker | int | List[int]] = None,
-        slurm_header_extra_args: Dict = dict(),
-        extra_args: Dict = dict(),
         overwrite: bool = False,
         skip_sent: bool = False,
     ) -> Tasker:
@@ -1287,13 +1229,6 @@ class Bookkeeper:
             wait_for: In NERSC, wait for a given job to finish before running
                 the current one. Could be a  Tasker object or a slurm jobid
                 (int). (Default: None, won't wait for anything).
-            slurm_header_extra_args (dict, optional): Change slurm header
-                default options if needed (time, qos, etc...). Use a
-                dictionary with the format {'option_name': 'option_value'}.
-            extra_args : Send extra arguments to
-                picca_deltas.py script. Use a dictionary with the format
-                {'argument_name', 'argument_value'}. Use {'argument_name': ''}
-                if a action-like option is used.
             overwrite: Overwrite files in destination.
             skip_sent: Skip this and return a DummyTasker if the run
                 was already sent before.
@@ -1354,7 +1289,6 @@ class Bookkeeper:
         updated_extra_args = self.generate_extra_args(
             config=self.config,
             section="correlations",
-            extra_args=extra_args,
             command=command,
             region=region,
             absorber=absorber,
@@ -1364,7 +1298,6 @@ class Bookkeeper:
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
             config=self.config,
             section="correlations",
-            slurm_args=slurm_header_extra_args,
             command=command,
             region=region,
             absorber=absorber,
@@ -1431,8 +1364,6 @@ class Bookkeeper:
         system: Optional[str] = None,
         debug: bool = False,
         wait_for: Optional[Tasker | ChainedTasker | int | List[int]] = None,
-        slurm_header_extra_args: Dict = dict(),
-        extra_args: Dict = dict(),
         overwrite: bool = False,
         skip_sent: bool = False,
     ) -> Tasker:
@@ -1453,13 +1384,6 @@ class Bookkeeper:
             wait_for: In NERSC, wait for a given job to finish before running
                 the current one. Could be a  Tasker object or a slurm jobid
                 (int). (Default: None, won't wait for anything).
-            slurm_header_extra_args (dict, optional): Change slurm header
-                default options if needed (time, qos, etc...). Use a
-                dictionary with the format {'option_name': 'option_value'}.
-            extra_args : Send extra arguments to
-                picca_deltas.py script. Use a dictionary with the format
-                {'argument_name', 'argument_value'}. Use {'argument_name': ''}
-                if a action-like option is used.
             overwrite: Overwrite files in destination.
             skip_sent: Skip this and return a DummyTasker if the run
                 was already sent before.
@@ -1520,7 +1444,6 @@ class Bookkeeper:
         updated_extra_args = self.generate_extra_args(
             config=self.config,
             section="correlations",
-            extra_args=extra_args,
             command=command,
             region=region,
             absorber=absorber,
@@ -1530,7 +1453,6 @@ class Bookkeeper:
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
             config=self.config,
             section="correlations",
-            slurm_args=slurm_header_extra_args,
             command=command,
             region=region,
             absorber=absorber,
@@ -1597,8 +1519,6 @@ class Bookkeeper:
         absorber2: Optional[str] = None,
         system: Optional[str] = None,
         wait_for: Optional[Tasker | ChainedTasker | int | List[int]] = None,
-        slurm_header_extra_args: Dict = dict(),
-        extra_args: Dict = dict(),
         overwrite: bool = False,
         skip_sent: bool = False,
     ) -> Tasker:
@@ -1618,13 +1538,6 @@ class Bookkeeper:
             wait_for: In NERSC, wait for a given job to finish before running
                 the current one. Could be a  Tasker object or a slurm jobid
                 (int). (Default: None, won't wait for anything).
-            slurm_header_extra_args (dict, optional): Change slurm header
-                default options if needed (time, qos, etc...). Use a
-                dictionary with the format {'option_name': 'option_value'}.
-            extra_args : Send extra arguments to
-                picca_deltas.py script. Use a dictionary with the format
-                {'argument_name', 'argument_value'}. Use {'argument_name': ''}
-                if a action-like option is used.
             overwrite: Overwrite files in destination.
             skip_sent: Skip this and return a DummyTasker if the run
                 was already sent before.
@@ -1680,7 +1593,6 @@ class Bookkeeper:
         updated_extra_args = self.generate_extra_args(
             config=self.config,
             section="correlations",
-            extra_args=extra_args,
             command=command,
             region=region,
             absorber=absorber,
@@ -1690,7 +1602,6 @@ class Bookkeeper:
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
             config=self.config,
             section="correlations",
-            slurm_args=slurm_header_extra_args,
             command=command,
             region=region,
             absorber=absorber,
@@ -1771,8 +1682,6 @@ class Bookkeeper:
         system: Optional[str] = None,
         debug: bool = False,
         wait_for: Optional[Tasker | ChainedTasker | int | List[int]] = None,
-        slurm_header_extra_args: Dict = dict(),
-        extra_args: Dict = dict(),
         overwrite: bool = False,
         skip_sent: bool = False,
     ) -> Tasker:
@@ -1793,13 +1702,6 @@ class Bookkeeper:
             wait_for: In NERSC, wait for a given job to finish before running
                 the current one. Could be a  Tasker object or a slurm jobid
                 (int). (Default: None, won't wait for anything).
-            slurm_header_extra_args (dict, optional): Change slurm header
-                default options if needed (time, qos, etc...). Use a
-                dictionary with the format {'option_name': 'option_value'}.
-            extra_args : Send extra arguments to
-                picca_deltas.py script. Use a dictionary with the format
-                {'argument_name', 'argument_value'}. Use {'argument_name': ''}
-                if a action-like option is used.
             overwrite: Overwrite files in destination.
             skip_sent: Skip this and return a DummyTasker if the run
                 was already sent before.
@@ -1862,7 +1764,6 @@ class Bookkeeper:
         updated_extra_args = self.generate_extra_args(
             config=self.config,
             section="correlations",
-            extra_args=extra_args,
             command=command,
             region=region,
             absorber=absorber,
@@ -1872,7 +1773,6 @@ class Bookkeeper:
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
             config=self.config,
             section="correlations",
-            slurm_args=slurm_header_extra_args,
             command=command,
             region=region,
             absorber=absorber,
@@ -1943,8 +1843,6 @@ class Bookkeeper:
         system: Optional[str] = None,
         debug: bool = False,
         wait_for: Optional[Tasker | ChainedTasker | int | List[int]] = None,
-        slurm_header_extra_args: Dict = dict(),
-        extra_args: Dict = dict(),
         overwrite: bool = False,
         skip_sent: bool = False,
     ) -> Tasker:
@@ -1960,13 +1858,6 @@ class Bookkeeper:
             wait_for: In NERSC, wait for a given job to finish before running
                 the current one. Could be a  Tasker object or a slurm jobid
                 (int). (Default: None, won't wait for anything).
-            slurm_header_extra_args (dict, optional): Change slurm header
-                default options if needed (time, qos, etc...). Use a
-                dictionary with the format {'option_name': 'option_value'}.
-            extra_args : Send extra arguments to
-                picca_deltas.py script. Use a dictionary with the format
-                {'argument_name', 'argument_value'}. Use {'argument_name': ''}
-                if a action-like option is used.
             overwrite: Overwrite files in destination.
             skip_sent: Skip this and return a DummyTasker if the run
                 was already sent before.
@@ -2022,7 +1913,6 @@ class Bookkeeper:
         updated_extra_args = self.generate_extra_args(
             config=self.config,
             section="correlations",
-            extra_args=extra_args,
             command=command,
             region=region,
             absorber=absorber,
@@ -2030,7 +1920,6 @@ class Bookkeeper:
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
             config=self.config,
             section="correlations",
-            slurm_args=slurm_header_extra_args,
             command=command,
             region=region,
             absorber=absorber,
@@ -2089,8 +1978,6 @@ class Bookkeeper:
         system: Optional[str] = None,
         debug: bool = False,
         wait_for: Optional[Tasker | ChainedTasker | int | List[int]] = None,
-        slurm_header_extra_args: Dict = dict(),
-        extra_args: Dict = dict(),
         overwrite: bool = False,
         skip_sent: bool = False,
     ) -> Tasker:
@@ -2109,12 +1996,6 @@ class Bookkeeper:
             wait_for (Tasker or int, optional): In NERSC, wait for a given job to
                 finish before running the current one. Could be a  Tasker object
                 or a slurm jobid (int). (Default: None, won't wait for anything).
-            slurm_header_extra_args (dict, optional): Change slurm header default
-                options if needed (time, qos, etc...). Use a dictionary with the
-                format {'option_name': 'option_value'}.
-            extra_args : Send extra arguments to picca_deltas.py script.
-                Use a dictionary with the format {'argument_name', 'argument_value'}.
-                Use {'argument_name': ''} if a action-like option is used.
             overwrite: Overwrite files in destination.
             skip_sent: Skip this and return a DummyTasker if the run
                 was already sent before.
@@ -2170,7 +2051,6 @@ class Bookkeeper:
         updated_extra_args = self.generate_extra_args(
             config=self.config,
             section="correlations",
-            extra_args=extra_args,
             command=command,
             region=region,
             absorber=absorber,
@@ -2178,7 +2058,6 @@ class Bookkeeper:
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
             config=self.config,
             section="correlations",
-            slurm_args=slurm_header_extra_args,
             command=command,
             region=region,
             absorber=absorber,
@@ -2236,8 +2115,6 @@ class Bookkeeper:
         system: Optional[str] = None,
         debug: bool = False,
         wait_for: Optional[Tasker | ChainedTasker | int | List[int]] = None,
-        slurm_header_extra_args: Dict = dict(),
-        extra_args: Dict = dict(),
         overwrite: bool = False,
         skip_sent: bool = False,
     ) -> Tasker:
@@ -2256,13 +2133,6 @@ class Bookkeeper:
             wait_for: In NERSC, wait for a given job to finish before running
                 the current one. Could be a  Tasker object or a slurm jobid
                 (int). (Default: None, won't wait for anything).
-            slurm_header_extra_args (dict, optional): Change slurm header
-                default options if needed (time, qos, etc...). Use a
-                dictionary with the format {'option_name': 'option_value'}.
-            extra_args : Send extra arguments to
-                picca_deltas.py script. Use a dictionary with the format
-                {'argument_name', 'argument_value'}. Use {'argument_name': ''}
-                if a action-like option is used.
             overwrite: Overwrite files in destination.
             skip_sent: Skip this and return a DummyTasker if the run
                 was already sent before.
@@ -2317,7 +2187,6 @@ class Bookkeeper:
         updated_extra_args = self.generate_extra_args(
             config=self.config,
             section="correlations",
-            extra_args=extra_args,
             command=command,
             region=region,
             absorber=absorber,
@@ -2325,7 +2194,6 @@ class Bookkeeper:
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
             config=self.config,
             section="correlations",
-            slurm_args=slurm_header_extra_args,
             command=command,
             region=region,
             absorber=absorber,
@@ -2403,8 +2271,6 @@ class Bookkeeper:
         system: Optional[str] = None,
         debug: bool = False,
         wait_for: Optional[Tasker | ChainedTasker | int | List[int]] = None,
-        slurm_header_extra_args: Dict = dict(),
-        extra_args: Dict = dict(),
         overwrite: bool = False,
         skip_sent: bool = False,
     ) -> Tasker:
@@ -2421,13 +2287,6 @@ class Bookkeeper:
             wait_for: In NERSC, wait for a given job to finish before running
                 the current one. Could be a  Tasker object or a slurm jobid
                 (int). (Default: None, won't wait for anything).
-            slurm_header_extra_args (dict, optional): Change slurm header
-                default options if needed (time, qos, etc...). Use a
-                dictionary with the format {'option_name': 'option_value'}.
-            extra_args : Send extra arguments to
-                picca_deltas.py script. Use a dictionary with the format
-                {'argument_name', 'argument_value'}. Use {'argument_name': ''}
-                if a action-like option is used.
             overwrite: Overwrite files in destination.
             skip_sent: Skip this and return a DummyTasker if the run
                 was already sent before.
@@ -2488,7 +2347,6 @@ class Bookkeeper:
         updated_extra_args = self.generate_extra_args(
             config=self.config,
             section="correlations",
-            extra_args=extra_args,
             command=command,
             region=region,
             absorber=absorber,
@@ -2496,7 +2354,6 @@ class Bookkeeper:
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
             config=self.config,
             section="correlations",
-            slurm_args=slurm_header_extra_args,
             command=command,
             region=region,
             absorber=absorber,
@@ -2561,7 +2418,6 @@ class Bookkeeper:
         self,
         system: Optional[str] = None,
         wait_for: Optional[Tasker | ChainedTasker | int | List[int]] = None,
-        slurm_header_extra_args: Dict = dict(),
         overwrite: bool = False,
         skip_sent: bool = False,
     ) -> Tasker | DummyTasker:
@@ -2575,9 +2431,6 @@ class Bookkeeper:
             wait_for: In NERSC, wait for a given job to finish before running
                 the current one. Could be a  Tasker object or a slurm jobid
                 (int). (Default: None, won't wait for anything).
-            slurm_header_extra_args: Change slurm header default options if
-                needed (time, qos, etc...). Use a dictionary with the format
-                {'option_name': 'option_value'}.
             overwrite: Overwrite files in destination.
             skip_sent: Skip the run if fit output already present.
 
@@ -2616,14 +2469,12 @@ class Bookkeeper:
 
         updated_extra_args = self.generate_extra_args(
             config=self.config,
-            extra_args=dict(),
             section="fits",
             command=command,
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
             config=self.config,
             section="fits",
-            slurm_args=slurm_header_extra_args,
             command=command,
         )
 
@@ -2660,8 +2511,6 @@ class Bookkeeper:
         self,
         system: Optional[str] = None,
         wait_for: Optional[Tasker | ChainedTasker | int | List[int]] = None,
-        # vega_extra_args: Dict = dict(),
-        slurm_header_extra_args: Dict = dict(),
         overwrite: bool = False,
         skip_sent: bool = False,
     ) -> Tasker | DummyTasker:
@@ -2675,9 +2524,6 @@ class Bookkeeper:
             wait_for: In NERSC, wait for a given job to finish before running
                 the current one. Could be a  Tasker object or a slurm jobid
                 (int). (Default: None, won't wait for anything).
-            slurm_header_extra_args: Change slurm header default options if
-                needed (time, qos, etc...). Use a dictionary with the format
-                {'option_name': 'option_value'}.
             overwrite: Overwrite files in destination.
             skip_sent: Skip the run if fit output already present.
 
@@ -2714,7 +2560,6 @@ class Bookkeeper:
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
             config=self.config,
             section="fits",
-            slurm_args=slurm_header_extra_args,
             command=command,
         )
 
@@ -2747,7 +2592,6 @@ class Bookkeeper:
         cross_correlations: List[str] = [],
         system: Optional[str] = None,
         wait_for: Optional[Tasker | ChainedTasker | int | List[int]] = None,
-        slurm_header_extra_args: Dict = dict(),
         overwrite: bool = False,
         skip_sent: bool = False,
     ) -> Tasker | DummyTasker:
@@ -2761,9 +2605,6 @@ class Bookkeeper:
             wait_for: In NERSC, wait for a given job to finish before running
                 the current one. Could be a  Tasker object or a slurm jobid
                 (int). (Default: None, won't wait for anything).
-            slurm_header_extra_args: Change slurm header default options if
-                needed (time, qos, etc...). Use a dictionary with the format
-                {'option_name': 'option_value'}.
             overwrite: Overwrite files in destination.
             skip_sent: Skip the run if sampler output already present.
 
@@ -2799,7 +2640,6 @@ class Bookkeeper:
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
             config=self.config,
             section="fits",
-            slurm_args=slurm_header_extra_args,
             command=command,
         )
 
@@ -2841,6 +2681,7 @@ class Bookkeeper:
             {
                 "fits": {
                     "extra args": {},
+                    "remove default args": {},
                 },
             },
             self.config,
@@ -2860,67 +2701,88 @@ class Bookkeeper:
         args = DictUtils.merge_dicts(
             {
                 "vega_auto": {
-                    "data": {},
-                    "cuts": {},
-                    "model": {},
-                    "metals": {},
+                    "general": {
+                        "data": {},
+                        "cuts": {},
+                        "model": {},
+                        "metals": {},
+                    }
                 },
                 "vega_cross": {
-                    "data": {},
-                    "cuts": {},
-                    "model": {},
-                    "metals": {},
+                    "general": {
+                        "data": {},
+                        "cuts": {},
+                        "model": {},
+                        "metals": {},
+                    }
                 },
                 "vega_main": {
-                    "data sets": {},
-                    "cosmo-fit type": {},
-                    "fiducial": {},
-                    "control": {},
-                    "output": {},
-                    "Polychord": {},
-                    "sample": {},
-                    "parameters": {},
+                    "general": {
+                        "data sets": {},
+                        "cosmo-fit type": {},
+                        "fiducial": {},
+                        "control": {},
+                        "output": {},
+                        "Polychord": {},
+                        "sample": {},
+                        "parameters": {},
+                    }
                 },
             },
             config["fits"]["extra args"],
         )
 
         if not config["fits"]["bao"]:
+            args = DictUtils.remove_matching(
+                args,
+                {
+                    "vega_main": {
+                        "general": {
+                            "sample": {
+                                "ap": "",
+                                "at": "",
+                            }
+                        }
+                    }
+                }
+            )
             args = DictUtils.merge_dicts(
                 args,
                 {
-                    "remove_vega_main": {  # This removes fields
-                        "sample": {
-                            "ap": "",
-                            "at": "",
-                        }
-                    },
                     "vega_main": {  # This adds/modifies fields
-                        "parameters": {
-                            "bao_amp": 0,
+                        "general" : {
+                            "parameters": {
+                                "bao_amp": 0,
+                            }
                         }
                     },
                 },
             )
 
         if not config["fits"]["hcd"]:
-            args = DictUtils.merge_dicts(
+            args = DictUtils.remove_matching(
                 args,
                 {
-                    "remove_vega_main": {
-                        "sample": {
-                            "bias_hcd": "",
-                            "beta_hcd": "",
-                        }
+                    "vega_main": {
+                        "general" : {
+                            "sample": {
+                                "bias_hcd": "",
+                                "beta_hcd": "",
+                            }
+                        },
                     },
-                    "remove_vega_auto": {
-                        "model": {
-                            "model-hcd": "",
-                        }
+                    "vega_auto": {
+                        "*": {
+                            "model": {
+                                "model-hcd": "",
+                            }
+                        },
                     },
-                    "remove_vega_cross": {
-                        "model": {
-                            "model-hcd": "",
+                    "vega_cross": {
+                        "*": {
+                            "model": {
+                                "model-hcd": "",
+                            }
                         }
                     },
                 },
@@ -2938,32 +2800,42 @@ class Bookkeeper:
                 if f"bias_eta_{metal}" in config["fits"].get("extra args", dict()).get(
                     "vega_main", dict()
                 ).get("sample", dict()):
-                    remove_from_sampled[metal] = ""
-
-            args = DictUtils.merge_dicts(
+                    remove_from_sampled[metal] = "" 
+            
+            args = DictUtils.remove_matching(
                 args,
                 {
-                    "remove_vega_auto": {
-                        "metals": "",
+                    "vega_auto": {
+                        "*": {
+                            "metals": "",
+                        },
                     },
-                    "remove_vega_cross": {
-                        "metals": "",
+                    "vega_cross": {
+                        "*": {
+                            "metals": "",
+                        },
                     },
-                    "remove_vega_main": {
+                    "vega_main": {
                         "sample": remove_from_sampled,
                     },
                 },
             )
 
         if not config["fits"]["sky"]:
-            args = DictUtils.merge_dicts(
+            args = DictUtils.remove_matching(
                 args,
                 {
-                    "remove_vega_main": {
+                    "vega_main": {
                         "sample": {
                             "desi_inst_sys_amp": "",
                         }
                     },
+                }
+
+            )
+            args = DictUtils.merge_dicts(
+                args,
+                {
                     "vega_main": {
                         "parameters": {
                             "desi_inst_sys_amp": "0",
@@ -2973,14 +2845,19 @@ class Bookkeeper:
             )
 
         if not config["fits"]["qso rad"]:
-            args = DictUtils.merge_dicts(
+            args = DictUtils.remove_matching(
                 args,
                 {
-                    "remove_vega_main": {
+                    "vega_main": {
                         "sample": {
                             "qso_rad_strength": "",
                         }
                     },
+                }
+            )
+            args = DictUtils.merge_dicts(
+                args,
+                {
                     "vega_main": {
                         "parameters": {
                             "qso_rad_strength": "0",
@@ -3085,26 +2962,43 @@ class Bookkeeper:
                     "fits": {
                         "extra args": {
                             "vega_auto": {
-                                "data": {
-                                    "name": f"{absorber}{region}x{absorber2}{region2}",
-                                    "filename": export_file,
-                                    "tracer1": absorber_igm[absorber],
-                                    "tracer2": absorber_igm[absorber2],
-                                    "tracer1-type": "continuous",
-                                    "tracer2-type": "continuous",
-                                },
-                                "metals": {
-                                    "filename": metals_file,
-                                },
+                                "general": {
+                                    "data": {
+                                        "name": f"{absorber}{region}x{absorber2}{region2}",
+                                        "filename": export_file,
+                                        "tracer1": absorber_igm[absorber],
+                                        "tracer2": absorber_igm[absorber2],
+                                        "tracer1-type": "continuous",
+                                        "tracer2-type": "continuous",
+                                    },
+                                    "metals": {},
+                                }
                             }
                         }
                     }
                 },
-            )
+            )            
+            if config["fits"].get("metals", True):
+                args = DictUtils.merge_dicts(
+                    args,
+                    {
+                        "fits": {
+                            "extra args": {
+                                "vega_auto" : {
+                                    "general": {
+                                        "metals": {
+                                            "filename": metals_file,
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                )
             input_files.append(export_file)
 
             if config["fits"].get("distortion", True):
-                args["fits"]["extra args"]["vega_auto"]["data"][
+                args["fits"]["extra args"]["vega_auto"]["general"]["data"][
                     "distortion-file"
                 ] = distortion_file
                 input_files.append(distortion_file)
@@ -3112,7 +3006,6 @@ class Bookkeeper:
             vega_args = self.generate_extra_args(
                 config=args,
                 section="fits",
-                extra_args=dict(),
                 command="vega_auto.py",  # The use of .py only for using same function
                 region=region,
                 absorber=absorber,
@@ -3147,26 +3040,43 @@ class Bookkeeper:
                     "fits": {
                         "extra args": {
                             "vega_cross": {
-                                "data": {
-                                    "name": f"qsox{absorber}{region}",
-                                    "tracer1": "QSO",
-                                    "tracer2": absorber_igm[absorber],
-                                    "tracer1-type": "discrete",
-                                    "tracer2-type": "continuous",
-                                    "filename": export_file,
-                                },
-                                "metals": {
-                                    "filename": metals_file,
-                                },
+                                "general": {
+                                    "data": {
+                                        "name": f"qsox{absorber}{region}",
+                                        "tracer1": "QSO",
+                                        "tracer2": absorber_igm[absorber],
+                                        "tracer1-type": "discrete",
+                                        "tracer2-type": "continuous",
+                                        "filename": export_file,
+                                    },
+                                }
                             }
                         }
                     }
                 },
             )
+
+            if config["fits"].get("metals", True):
+                args = DictUtils.merge_dicts(
+                    args,
+                    {
+                        "fits": {
+                            "extra args": {
+                                "vega_cross" : {
+                                    "general": {
+                                        "metals": {
+                                            "filename": metals_file,
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                )
             input_files.append(export_file)
 
             if self.config["fits"].get("distortion", True):
-                args["fits"]["extra args"]["vega_cross"]["data"][
+                args["fits"]["extra args"]["vega_cross"]["general"]["data"][
                     "distortion-file"
                 ] = distortion_file
                 input_files.append(distortion_file)
@@ -3174,7 +3084,6 @@ class Bookkeeper:
             vega_args = self.generate_extra_args(
                 config=args,
                 section="fits",
-                extra_args=dict(),
                 command="vega_cross.py",  # The use of .py only for using same function
                 region=region,
                 absorber=absorber,
@@ -3194,13 +3103,15 @@ class Bookkeeper:
                 "fits": {
                     "extra args": {
                         "vega_main": {
-                            "data sets": {
-                                "ini files": " ".join(ini_files),
-                            },
-                            "Polychord": {
-                                "path": self.paths.sampler_out_path(),
-                            },
-                            "output": {"filename": self.paths.fit_out_fname()},
+                            "general": {
+                                "data sets": {
+                                    "ini files": " ".join(ini_files),
+                                },
+                                "Polychord": {
+                                    "path": self.paths.sampler_out_path(),
+                                },
+                                "output": {"filename": self.paths.fit_out_fname()},
+                            }
                         }
                     }
                 }
@@ -3225,15 +3136,8 @@ class Bookkeeper:
         vega_args = self.generate_extra_args(
             config=args,
             section="fits",
-            extra_args=dict(),
             command="vega_main.py",  # The .py needed to make use of same function
         )
-
-        if (
-            "fiducial" not in vega_args
-            or vega_args["fiducial"].get("filename", None) is None
-        ):
-            vega_args["fiducial"]["filename"] = "PlanckDR16/PlanckDR16.fits"
 
         filename = self.paths.fit_main_fname()
         self.write_ini(vega_args, filename)

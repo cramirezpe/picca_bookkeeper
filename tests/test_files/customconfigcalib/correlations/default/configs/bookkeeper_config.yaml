@@ -1,5 +1,8 @@
 general:
   conda environment: picca
+  slurm args:
+    mail-type: fail
+    mail-user: user@host.com
 data:
   bookkeeper dir: /picca_bookkeeper/tests/test_files/output
   healpix data:

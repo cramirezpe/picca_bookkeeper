@@ -61,7 +61,7 @@ class Plots:
             bins=776,
         )
 
-        extent = [xedges[0], xedges[-1], yedges[0], yedges[-1]]
+        extent = (xedges[0], xedges[-1], yedges[0], yedges[-1])
 
         if save_data:
             data_dict["histogram-heatmap"] = heatmap
@@ -209,7 +209,7 @@ class Plots:
             normed=False,
         )
 
-        extent = [xedges[0], xedges[-1], yedges[0], yedges[-1]]
+        extent = (xedges[0], xedges[-1], yedges[0], yedges[-1])
 
         if save_data:
             data_dict["histogram-heatmap"] = heatmap
@@ -665,7 +665,7 @@ class Plots:
     @staticmethod
     def var_residual(
         analysis: Type[ReadDeltas],
-        fig: Figure = None,
-        ax: Axes = None,
+        fig: Optional[Figure] = None,
+        ax: Optional[Axes] = None,
     ) -> None:
         pass

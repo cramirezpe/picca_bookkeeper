@@ -3,6 +3,10 @@ general:
   #something that would be activated as:
   # source activate picca
   conda environment: picca
+
+  slurm args:
+    mail-type: fail
+    mail-user: user@host.com
   
 data:
   # Define the ouput_dir where the results will be stored on.
@@ -60,15 +64,23 @@ delta extraction:
       mail-type: fail
       mail-user: user@host.com
     picca_delta_extraction:
-      time: "00:16:00"
-      qos: regular
+      general:
+        time: "00:16:00"
+        qos: regular
+
+      lya:
+        time: "00:16:00"
+        
+      lyb:
+        time: "00:16:00"
 
     picca_cf:
     
     picca_xcf:
     
     picca_cf:
-      time: "00:12:12"
+      general:
+        time: "00:12:12"
 
     picca_dmat:
 
@@ -83,30 +95,34 @@ delta extraction:
   # extra args to be used by the bookkeeper
   extra args:
     picca_convert_transmission:
-      nspec: 30
+      general:
+        nspec: 30
     
     picca_delta_extraction:
-      expected flux:
-        type: Dr16ExpectedFlux
-      corrections: 
-        num corrections: 1
-        type 0: DustCorrection
-      correction arguments 0:
-        filename: /file/dust
-      data:
-        wave solution: lin
+      general:
+        expected flux:
+          type: Dr16ExpectedFlux
+        corrections: 
+          num corrections: 1
+          type 0: DustCorrection
+        correction arguments 0:
+          filename: /file/dust
+        data:
+          wave solution: lin
     
     picca_cf:
-      no project:
-      nside: 32
+      general:
+        no project:
+        nside: 32
     
     picca_xcf:
     
     picca_cf:
 
     picca_dmat:
-      np: 20
-      nt: 18
+      general:
+        np: 20
+        nt: 18
 
     picca_xdmat:
 
@@ -136,15 +152,17 @@ fits:
       mail-type: fail
       mail-user: user@host.com
     picca_delta_extraction:
-      time: "00:16:00"
-      qos: regular
+      general:
+        time: "00:16:00"
+        qos: regular
 
     picca_cf:
     
     picca_xcf:
     
     picca_cf:
-      time: "00:12:12"
+      general:
+        time: "00:12:12"
 
     picca_dmat:
 
@@ -159,30 +177,34 @@ fits:
   # extra args to be used by the bookkeeper
   extra args:
     picca_convert_transmission:
-      nspec: 30
+      general:
+        nspec: 30
     
     picca_delta_extraction:
-      expected flux:
-        type: Dr16ExpectedFlux
-      corrections: 
-        num corrections: 1
-        type 0: DustCorrection
-      correction arguments 0:
-        filename: /file/dust
-      data:
-        wave solution: lin
+      general:
+        expected flux:
+          type: Dr16ExpectedFlux
+        corrections: 
+          num corrections: 1
+          type 0: DustCorrection
+        correction arguments 0:
+          filename: /file/dust
+        data:
+          wave solution: lin
     
     picca_cf:
-      no project:
-      nside: 32
+      general:
+        no project:
+        nside: 32
     
     picca_xcf:
     
     picca_cf:
 
     picca_dmat:
-      np: 20
-      nt: 18
+      general:
+        np: 20
+        nt: 18
 
     picca_xdmat:
 

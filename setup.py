@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="picca_bookkeeper",
-    version="3.0.0",
+    version="4.0.0",
     author="",
     author_email="user@host.com",
     description="Tool to run picca scripts on early 3D DESI measurements",

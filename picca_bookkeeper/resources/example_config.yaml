@@ -116,21 +116,24 @@ delta extraction:
   # match the section name with the name of the scripts under picca.bin
   extra args:
     picca_delta_extraction:
-      expected flux:
-        type: Dr16FixedFudgeExpectedFlux # This to deactivate fudge.
-        fudge value: 0
-      data:
-        wave solution: lin # This is an example, wave solution is set to lin by default in the bookkeeper.
+      # Affecting all regions
+      general:
+        expected flux:
+          type: Dr16FixedFudgeExpectedFlux # This to deactivate fudge.
+          fudge value: 0
+        data:
+          wave solution: lin # This is an example, wave solution is set to lin by default in the bookkeeper.
 
-    # To affect an specific region use 
-    # remember fo follow the region names in picca_bookkeeper.Bookkeeper.forest_regions
-    # The values set here will overlap the ones defined in picca_delta_extraction
-    # for the ciii region only.
-    picca_delta_extraction_ciii:
+      # To affect an specific region use 
+      # remember fo follow the region names in picca_bookkeeper.Bookkeeper.forest_regions
+      # The values set here will extend the ones defined in picca_delta_extraction
+      # for the ciii region only.
+      ciii:
 
     # Scripts with terminal args are also compatible
     picca_convert_transmission:
-      nspec: 30
+      general:
+        nspec: 30
     # use-splines: ""# use empty string for action args like no-project.
 
     
@@ -139,8 +142,9 @@ delta extraction:
     general:
     
     picca_delta_extraction:
-      time: "00:16:00"
-      qos: debug
+      general:
+        time: "00:16:00"
+        qos: debug
 
 correlations:
   # If a delta extraction is defined in the same config file (as the current one), 
@@ -188,13 +192,13 @@ correlations:
   # For auto-, one should provide the two absorbers and regions
   metal matrices: 
     # Use all to use same matrix for all analyses
-    all: 
+    general: 
     # or specify regions/absorbers
     lyalya_lyalya: /global/cfs/cdirs/desicollab/users/cramirez/iron-analyses/iron/main/QSO_cat_iron_main_dark_healpix_v0/CRP23_1.ciii.1.2_0/correlations/default/results/lyalya_lyalya/metal.fits.gz 
     lyalya_lyalyb: /global/cfs/cdirs/desicollab/users/cramirez/iron-analyses/iron/main/QSO_cat_iron_main_dark_healpix_v0/CRP23_1.ciii.1.2_0/correlations/default/results/lyalya_lyalyb/metal.fits.gz 
 
   xmetal matrices:
-    all:
+    general:
     # For cross-, only one absorber/region is needed.
     lyalya: /global/cfs/cdirs/desicollab/users/cramirez/iron-analyses/iron/main/QSO_cat_iron_main_dark_healpix_v0/CRP23_1.ciii.1.2_0/correlations/default/results/qso_lyalya/xmetal.fits.gz
     lyalyb: /global/cfs/cdirs/desicollab/users/cramirez/iron-analyses/iron/main/QSO_cat_iron_main_dark_healpix_v0/CRP23_1.ciii.1.2_0/correlations/default/results/qso_lyalyb/xmetal.fits.gz
@@ -210,16 +214,17 @@ correlations:
 
   extra args:
     picca_cf:
-      nside: 16
-    # no-project: "" # use empty string for action args like no-project.
+      general:
+        nside: 16
+        # no-project: "" # use empty string for action args like no-project.
 
-    # To affect an specific region use the following format
-    # remember fo follow the region names in picca_bookkeeper.Bookkeeper.forest_regions
-    # The values set here will overlap the ones defined in picca_cf, so both will be applied
-    picca_cf_lyalya_lyalya:
+      # To affect an specific region use the following format
+      # remember fo follow the region names in picca_bookkeeper.Bookkeeper.forest_regions
+      # The values set here will overlap the ones defined in picca_cf, so both will be applied
+      lyalya_lyalya:
 
-    # lyalyb: Lyman alpha in the lyman beta forest.
-    picca_cf_lyalya_lyalyb:
+      # lyalyb: Lyman alpha in the lyman beta forest.
+      lyalya_lyalyb:
 
     picca_xcf:
 
@@ -237,7 +242,9 @@ correlations:
     picca_export:
 
   slurm args:
-    general: 
+    picca_cf:
+      general:
+        #
 
 fits:
   # If a delta extraction is defined in the same config file (as the current one), 
@@ -282,28 +289,37 @@ fits:
       data:
         tracer1-type: continuous
 
-    vega_auto_lyalya_lyalya:
+    vega_auto:
+      general:
+      
+      lyalya_lyalya:
 
     vega_cross:
+      general:
 
-    vega_cross_lyalya:
+      lyalya:
 
     vega_main:
+      general:
 
-    ## Uncomment this to remove certain configuration parameters from the fit
-    ## This will remove ap and at from sample section in vega main
-    # effectively removing BAO fitting
-    # remove_vega_main:
-    #   sample:
-    #     ap:
-    #     at:
+  ## Uncomment this to remove certain configuration parameters from the fit
+  ## that were included in the defaults.
+  ## This will remove ap and at from sample section in vega main
+  # effectively removing BAO fitting
+  # remove default args:
+  #   vega_main:
+  #     sample:
+  #       ap:
+  #       at:
 
   slurm args:
     run_vega: # minimizer args
-      qos: shared
-      ntasks-per-node: 1
-      cpus-per-task: 8
+      general:
+        qos: shared
+        ntasks-per-node: 1
+        cpus-per-task: 8
 
     run_vega_mpi: # sampler args
-      nodes: 2
-      ntasks-per-node: 128 # Use always per-node within the bookkeeper!
+      general:
+        nodes: 2
+        ntasks-per-node: 128 # Use always per-node within the bookkeeper!

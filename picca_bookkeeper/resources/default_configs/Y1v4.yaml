@@ -1,12 +1,10 @@
-# This is the configuration matching Julien's 5-2
-# but I'm setting alpha_CIV(eff) = 0.0
-# because then I remove evolution and that 
-# simplifies analyses. Also this is something my
-# analyses of evolution of bias_eta_CIV(eff) support.
-delta extraction:  
-  extra args:    
-    general:  
-      picca_delta_extraction:
+# This is the configuration matching Julien's 5-2-1
+# but I'm fixing L0_hcd.
+# This is supposed to be the baseline analysis for Y1
+delta extraction: 
+  extra args:
+    picca_delta_extraction:
+      general:
         data:
           lambda min: 3600
           lambda max: 5772
@@ -20,13 +18,14 @@ delta extraction:
           var lss mod: 7.5
           limit var lss: (0, 0.4)
 
-    ciii:
-      expected flux:
-        var lss mod: 1
+      ciii:
+        expected flux:
+          var lss mod: 1
+
+      lya:
+        data:
+          lambda max rest frame: 1205.0
     
-    lya:
-      data:
-        lambda max rest frame: 1205.0
 
   slurm args:
     picca_convert_transmission:
@@ -82,9 +81,7 @@ correlations:
         fid-Om: 0.315
         rebin-factor: 3
         coef-binning-model: 2
-
-      lyaciv_layciv:
-        abs-igm: "CIV(eff)"
+        relevant-metals: ""
 
     picca_metal_dmat:
       general:
@@ -99,8 +96,9 @@ correlations:
         fid-Om: 0.315
         rebin-factor: 3
         coef-binning-model: 2
+        relevant-metals: ""
 
-      lyaciv_layciv:
+      lyaciv_lyaciv:
         abs-igm: "CIV(eff)"
 
     picca_xcf:
@@ -116,7 +114,6 @@ correlations:
         fid-Om: 0.315
         rebin-factor: 3
 
-    picca_export:
       lyalya_lyalyb:
         smooth-per-r-par: ""
 
@@ -148,7 +145,7 @@ correlations:
         fid-Om: 0.315
         rebin-factor: 3
         coef-binning-model: 2
-      
+
       lyaciv:
         abs-igm: "CIV(eff)"
 
@@ -198,7 +195,6 @@ correlations:
         time: "10:00:00"
         cpus-per-task: 256
 
-
     picca_xcf:
       general:
         qos: regular
@@ -209,13 +205,14 @@ correlations:
       general:
         qos: regular
         time: "03:00:00"
-        cpus-per-task: 256    
+        cpus-per-task: 256
 
-      picca_fast_metal_xdmat:
-        general:
-          qos: regular
-          time: "01:00:00"
-          cpus-per-task: 256
+    picca_fast_metal_xdmat:
+      general:
+        qos: regular
+        time: "01:00:00"
+        cpus-per-task: 256
+
     picca_metal_xdmat:
       general:
         qos: regular
@@ -226,6 +223,10 @@ correlations:
 fits:
   auto correlations: lya.lya-lya.lya lya.lya-lya.lyb
   cross correlations: lya.lya lya.lyb
+
+  sampler environment: /global/common/software/desi/users/acuceu/stable_vega/activate_vega.sh
+
+  compute zeff: True
 
   bao: True
   hcd: True
@@ -239,7 +240,7 @@ fits:
 
   extra args:
     vega_auto:
-      general:        
+      general:
         cuts:
           rp-min: 0.
           rp-max: +200.
@@ -262,10 +263,15 @@ fits:
           in tracer1: SiII(1260) SiIII(1207) SiII(1193) SiII(1190) CIV(eff)
           in tracer2: SiII(1260) SiIII(1207) SiII(1193) SiII(1190) CIV(eff)
 
-      lyaciv_lyaciv:
+      lyaciv_lya_civ:
         metals:
           in tracer1: CIV(eff)
           in tracer2: CIV(eff)
+      
+      lyaciv:
+        metals:
+          in tracer2: CIV(eff)
+
 
     vega_cross:
       general:
@@ -292,15 +298,10 @@ fits:
           velocity dispersion: lorentz
           in tracer2: SiII(1260) SiIII(1207) SiII(1193) SiII(1190) CIV(eff)
 
-      lyaciv:
-        metals:
-          in tracer2: CIV(eff)
-
-
     vega_main:
       general:
         data sets:
-          zeff: 2.34588
+          zeff: 2.3461262005144476
 
         fiducial:
           filename: "Planck18/Planck18_z_2.406.fits"
@@ -309,7 +310,7 @@ fits:
           cosmo fit func: ap_at
           full-shape: False
           full-shape-alpha: False
-          smoooth-scaling: False
+          smooth-scaling: False
 
         control:
           sampler: True
@@ -346,53 +347,53 @@ fits:
           desi_inst_sys_amp: True
           bias_eta_CIV(eff): True
 
-        priors:
-          beta_hcd: gaussian 0.5 0.09
-          bias_eta_CIV(eff): gaussian -0.016 0.0007
+      priors:
+        beta_hcd: gaussian 0.5 0.09
+        bias_eta_CIV(eff): gaussian -0.0093 0.0008
 
-        parameters:
-          ap: 1
-          at: 1
-          sigmaNL_per: 3.24
-          sigmaNL_par: 6.36984
-          bao_amp: 1.0
-          bias_LYA: -0.117
-          beta_LYA: 1.67
-          alpha_LYA: 2.9
-          bias_QSO: 3.823
-          bias_eta_QSO: 1
-          growth_rate: 0.97
-          alpha_QSO: 1.44
-          dnl_arinyo_q1: 0.8558
-          dnl_arinyo_kv: 1.11454
-          dnl_arinyo_av: 0.5378
-          dnl_arinyo_bv: 1.607
-          dnl_arinyo_kp: 19.47
-          bias_hcd: -0.05
-          beta_hcd: 0.7
-          L0_hcd: 5
-          drp_QSO: 0.0
-          sigma_velo_disp_lorentz_QSO: 6.86
-          qso_rad_strength: 0.74
-          qso_rad_asymmetry: 0.
-          qso_rad_lifetime: 9e99
-          qso_rad_decrease: 300.
-          bias_eta_SiII(1190): -0.0026
-          beta_SiII(1190): 0.5
-          alpha_SiII(1190): 1.
-          bias_eta_SiII(1193): -0.0012
-          beta_SiII(1193): 0.5
-          alpha_SiII(1193): 1.
-          bias_eta_SiIII(1207): -0.0037
-          beta_SiIII(1207): 0.5
-          alpha_SiIII(1207): 1.
-          bias_eta_SiII(1260): -0.0023
-          beta_SiII(1260): 0.5
-          alpha_SiII(1260): 1.
-          bias_eta_CIV(eff): -0.005
-          beta_CIV(eff): 0.5
-          alpha_CIV(eff): 0.
-          desi_inst_sys_amp: 1e-4
+      parameters:
+        ap: 1
+        at: 1
+        sigmaNL_per: 3.24
+        sigmaNL_par: 6.36984
+        bao_amp: 1.0
+        bias_LYA: -0.117
+        beta_LYA: 1.67
+        alpha_LYA: 2.9
+        bias_QSO: 3.823
+        bias_eta_QSO: 1
+        growth_rate: 0.97
+        alpha_QSO: 1.44
+        dnl_arinyo_q1: 0.8558
+        dnl_arinyo_kv: 1.11454
+        dnl_arinyo_av: 0.5378
+        dnl_arinyo_bv: 1.607
+        dnl_arinyo_kp: 19.47
+        bias_hcd: -0.05
+        beta_hcd: 0.7
+        L0_hcd: 6.5
+        drp_QSO: 0.0
+        sigma_velo_disp_lorentz_QSO: 6.86
+        qso_rad_strength: 0.74
+        qso_rad_asymmetry: 0.
+        qso_rad_lifetime: 9e99
+        qso_rad_decrease: 300.
+        bias_eta_SiII(1190): -0.0026
+        beta_SiII(1190): 0.5
+        alpha_SiII(1190): 1.
+        bias_eta_SiII(1193): -0.0012
+        beta_SiII(1193): 0.5
+        alpha_SiII(1193): 1.
+        bias_eta_SiIII(1207): -0.0037
+        beta_SiIII(1207): 0.5
+        alpha_SiIII(1207): 1.
+        bias_eta_SiII(1260): -0.0023
+        beta_SiII(1260): 0.5
+        alpha_SiII(1260): 1.
+        bias_eta_CIV(eff): -0.0093
+        beta_CIV(eff): 0.5
+        alpha_CIV(eff): 0.
+        desi_inst_sys_amp: 1e-4
 
   slurm args:
     run_vega:

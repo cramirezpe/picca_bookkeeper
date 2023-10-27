@@ -16,10 +16,12 @@ fits:
   sampler environment: /global/common/software/desi/users/acuceu/stable_vega/activate_vega.sh
   extra args:
     vega_main:
-      Polychord:
-        num_live: 400
-        num_repeats: 16
+      general:
+        Polychord:
+          num_live: 400
+          num_repeats: 16
   slurm args:
     run_vega_mpi:
-      nodes: 2
-      ntasks-per-node: 192
+      general:
+        nodes: 2
+        ntasks-per-node: 192

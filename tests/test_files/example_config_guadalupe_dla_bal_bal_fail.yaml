@@ -24,9 +24,10 @@ delta extraction:
     picca_convert_transmission:
 
     picca_delta_extraction:
-      masks:
-        num masks: 1
-        type 0: BalMask
+      general:
+        masks:
+          num masks: 1
+          type 0: BalMask
 
     picca_deltas:
     

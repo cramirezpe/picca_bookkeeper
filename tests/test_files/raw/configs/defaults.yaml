@@ -1,126 +1,142 @@
 delta extraction:
   extra args:
-    picca_delta_extraction:
-      data:
-        type: DesisimMocks
-        lambda min: 3600
-        lambda max: 5500
-        wave solution: lin
-        minimum number pixels in forest: 150
-      expected flux:
-        type: Dr16FixedFudgeExpectedFlux
-        fudge value: 0
-        var lss mod: 7.5
+    general:
+      picca_delta_extraction:
+        data:
+          type: DesisimMocks
+          lambda min: 3600
+          lambda max: 5500
+          wave solution: lin
+          minimum number pixels in forest: 150
+        expected flux:
+          type: Dr16FixedFudgeExpectedFlux
+          fudge value: 0
+          var lss mod: 7.5
   slurm args:
     picca_convert_transmission:
-      time: 03:30:00
-      qos: regular
+      general:
+        time: 03:30:00
+        qos: regular
     picca_delta_extraction:
-      time: 03:30:00
-      qos: regular
+      general:
+        time: 03:30:00
+        qos: regular
 correlations:
   extra args:
     picca_cf:
-      nproc: 256
-      rp-min: 0
-      rp-max: 200
-      rt-max: 200
-      np: 50
-      nt: 50
-      fid-Or: 7.975e-05
-      rebin-factor: 3
-      z-max-sources: 3.79
-      no-project: ''
+      general:
+        nproc: 256
+        rp-min: 0
+        rp-max: 200
+        rt-max: 200
+        np: 50
+        nt: 50
+        fid-Or: 7.975e-05
+        rebin-factor: 3
+        z-max-sources: 3.79
+        no-project: ''
     picca_dmat:
-      nproc: 256
-      rej: 0.99
-      rp-min: 0
-      rp-max: 300
-      rt-max: 200
-      np: 75
-      nt: 50
-      fid-Or: 7.975e-05
-      rebin-factor: 3
-      z-max-sources: 3.79
-      no-project: ''
+      general:
+        nproc: 256
+        rej: 0.99
+        rp-min: 0
+        rp-max: 300
+        rt-max: 200
+        np: 75
+        nt: 50
+        fid-Or: 7.975e-05
+        rebin-factor: 3
+        z-max-sources: 3.79
+        no-project: ''
     picca_metal_dmat:
-      nproc: 256
-      rej: 0.999
-      abs-igm: SiII(1260) SiIII(1207) SiII(1193) SiII(1190)
-      rp-min: 0
-      rp-max: 200
-      rt-max: 200
-      np: 50
-      nt: 50
-      fid-Or: 7.975e-05
-      rebin-factor: 3
-      z-max-sources: 3.79
-    picca_metal_dmat_lyalyb_lyalya:
-      abs-igm: SiII(1260) SiIII(1207) SiII(1193) SiII(1190)
-    picca_metal_dmat_lyalya_lyalyb:
-      abs-igm: SiII(1260) SiIII(1207) SiII(1193) SiII(1190)
+      general:
+        nproc: 256
+        rej: 0.999
+        abs-igm: SiII(1260) SiIII(1207) SiII(1193) SiII(1190)
+        rp-min: 0
+        rp-max: 200
+        rt-max: 200
+        np: 50
+        nt: 50
+        fid-Or: 7.975e-05
+        rebin-factor: 3
+        z-max-sources: 3.79
+      lyalya_lyalyb:
+        abs-igm: SiII (1260) SiIII(1207) SiII(1193) SiII(1190)
+      lyalyb_lyalya:
+        abs-igm: SiII(1260) SiIII(1207) SiII(1193) SiII(1190)
     picca_xcf:
-      nproc: 256
-      nside: 16
-      rp-min: -200
-      rp-max: 200
-      rt-max: 200
-      np: 100
-      nt: 50
-      fid-Or: 7.975e-05
-      rebin-factor: 3
-      z-max-sources: 3.79
-      mode: desi_mocks
-      no-project: ''
-      no-remove-mean-lambda-obs: ''
+      general:
+        nproc: 256
+        nside: 16
+        rp-min: -200
+        rp-max: 200
+        rt-max: 200
+        np: 100
+        nt: 50
+        fid-Or: 7.975e-05
+        rebin-factor: 3
+        z-max-sources: 3.79
+        mode: desi_mocks
+        no-project: ''
+        no-remove-mean-lambda-obs: ''
     picca_xdmat:
-      nproc: 256
-      rej: 0.99
-      nside: 16
-      rp-min: -300
-      rp-max: 300
-      rt-max: 200
-      np: 150
-      nt: 50
-      fid-Or: 7.975e-05
-      rebin-factor: 3
-      z-max-sources: 3.79
-      mode: desi_mocks
+      general:
+        nproc: 256
+        rej: 0.99
+        nside: 16
+        rp-min: -300
+        rp-max: 300
+        rt-max: 200
+        np: 150
+        nt: 50
+        fid-Or: 7.975e-05
+        rebin-factor: 3
+        z-max-sources: 3.79
+        mode: desi_mocks
     picca_metal_xdmat:
-      nproc: 256
-      rej: 0.999
-      abs-igm: SiII(1260) SiIII(1207) SiII(1193) SiII(1190)
-      rp-min: -200
-      rp-max: 200
-      rt-max: 200
-      np: 100
-      nt: 50
-      fid-Or: 7.975e-05
-      rebin-factor: 3
-      z-max-sources: 3.79
-      mode: desi_mocks
+      general:
+        nproc: 256
+        rej: 0.999
+        abs-igm: SiII(1260) SiIII(1207) SiII(1193) SiII(1190)
+        rp-min: -300
+        rp-max: 300
+        rt-max: 200
+        np: 150
+        nt: 50
+        fid-Or: 7.975e-05
+        rebin-factor: 3
+        z-max-sources: 3.79
+        mode: desi_mocks
   slurm args:
     picca_cf:
-      qos: regular
-      time: 04:00:00
+      general:
+        qos: regular
+        time: 04:00:00
     picca_dmat:
-      qos: regular
-      time: 04:00:00
+      general:
+        qos: regular
+        time: 04:00:00
     picca_export:
-      qos: regular
-      time: 00:20:00
+      general:
+        qos: regular
+        time: 00:20:00
     picca_metal_dmat:
-      qos: regular
-      time: '10:00:00'
+      general:
+        qos: regular
+        time: '10:00:00'
     picca_xcf:
-      qos: regular
-      time: 03:00:00
+      general:
+        qos: regular
+        time: 03:00:00
     picca_xdmat:
-      qos: regular
-      time: 03:00:00
+      general:
+        qos: regular
+        time: 03:00:00
     picca_metal_xdmat:
-      qos: regular
-      time: '10:00:00'
+      general:
+        qos: regular
+        time: '10:00:00'
 fits:
   auto correlations: lya.lya-lya.lya
   cross correlations: lya.lya
@@ -135,160 +151,152 @@ fits:
   rmax xcf:
   extra args:
     vega_auto:
-      data:
-        tracer1-type: continuous
-        tracer2-type: continuous
-      cuts:
-        rp-min: 0.0
-        rp-max: 200.0
-        rt-min: 0.0
-        rt-max: 200.0
-        r-min: 10.0
-        r-max: 180.0
-        mu-min: 0.0
-        mu-max: 1.0
-      model:
-        model-hcd: Rogers2018
-        z evol LYA: bias_vs_z_std
-        small scale nl: dnl_arinyo
-        ell-max: 6
-        desi-instrumental-systematics: true
-      metals:
-        z evol: bias_vs_z_std
-    vega_auto_lyalya_lyalya:
-      data:
-        name: lyaxlya
-        tracer1: LYA
-        tracer2: LYA
-      metals:
-        in tracer1: SiII(1260) SiIII(1207) SiII(1193) SiII(1190)
-        in tracer2: SiII(1260) SiIII(1207) SiII(1193) SiII(1190)
-    vega_auto_lyalya_lyalyb:
-      data:
-        name: lyaxlyb
-        tracer1: LYA
-        tracer2: LYA
-      metals:
-        in tracer1: SiII(1260) SiIII(1207) SiII(1193) SiII(1190)
-        in tracer2: SiII(1260) SiIII(1207) SiII(1193) SiII(1190)
+      general:
+        data:
+          tracer1-type: continuous
+          tracer2-type: continuous
+        cuts:
+          rp-min: 0.0
+          rp-max: 200.0
+          rt-min: 0.0
+          rt-max: 200.0
+          r-min: 10.0
+          r-max: 180.0
+          mu-min: 0.0
+          mu-max: 1.0
+        model:
+          model-hcd: Rogers2018
+          z evol LYA: bias_vs_z_std
+          small scale nl: dnl_arinyo
+          ell-max: 6
+          desi-instrumental-systematics: true
+        metals:
+          z evol: bias_vs_z_std
+      lyalya_lyalya:
+        metals:
+          in tracer1: SiII(1260) SiIII(1207) SiII(1193) SiII(1190)
+          in tracer2: SiII(1260) SiIII(1207) SiII(1193) SiII(1190)
+      lyalya_lyalyb:
+        metals:
+          in tracer1: SiII(1260) SiIII(1207) SiII(1193) SiII(1190)
+          in tracer2: SiII(1260) SiIII(1207) SiII(1193) SiII(1190)
     vega_cross:
-      data:
-        tracer1: QSO
-        tracer1-type: discrete
-        tracer2-type: continuous
-      cuts:
-        rp-min: -200.0
-        rp-max: 200.0
-        rt-min: 0.0
-        rt-max: 200.0
-        r-min: 10.0
-        r-max: 180.0
-        mu-min: -1.0
-        mu-max: 1.0
-      model:
-        model-hcd: Rogers2018
-        z evol LYA: bias_vs_z_std
-        z evol QSO: bias_vs_z_std
-        ell-max: 6
-        velocity dispersion: lorentz
-        radiation effects: true
-      metals:
-        z evol: bias_vs_z_std
-        velocity dispersion: lorentz
-    vega_cross_lyalya:
-      data:
-        name: qsoxlya
-        tracer2: LYA
-      metals:
-        in tracer2: SiII(1260) SiIII(1207) SiII(1193) SiII(1190)
-    vega_cross_lyalyb:
-      data:
-        name: qsoxlyb
-        tracer2: LYA
-      metals:
-        in tracer2: SiII(1260) SiIII(1207) SiII(1193) SiII(1190)
+      general:
+        data:
+          tracer1: QSO
+          tracer1-type: discrete
+          tracer2-type: continuous
+        cuts:
+          rp-min: -200.0
+          rp-max: 200.0
+          rt-min: 0.0
+          rt-max: 200.0
+          r-min: 10.0
+          r-max: 180.0
+          mu-min: -1.0
+          mu-max: 1.0
+        model:
+          model-hcd: Rogers2018
+          z evol LYA: bias_vs_z_std
+          z evol QSO: bias_vs_z_std
+          ell-max: 6
+          velocity dispersion: lorentz
+          radiation effects: true
+        metals:
+          z evol: bias_vs_z_std
+          velocity dispersion: lorentz
+      lyalya:
+        metals:
+          in tracer2: SiII(1260) SiIII(1207) SiII(1193) SiII(1190)
+      lyalyb:
+        metals:
+          in tracer2: SiII(1260) SiIII(1207) SiII(1193) SiII(1190)
     vega_main:
-      data sets:
-        zeff: 2.35
-      cosmo-fit type:
-        cosmo fit func: ap_at
-      control:
-        sampler: true
-        chi2: true
-      output:
-        filename: combined.fits
-        overwrite: true
-      Polychord:
-        seed: 2
-        num_live: 256
-        num_repeats: 13
-        path:
-        name: com
-        resume: true
-        boost_posterior: 3
-      sample:
-        ap: true
-        at: true
-        bias_LYA: true
-        beta_LYA: true
-        bias_QSO: true
-        bias_hcd: true
-        beta_hcd: true
-        drp_QSO: true
-        sigma_velo_disp_lorentz_QSO: true
-        bias_eta_SiII(1260): true
-        bias_eta_SiIII(1207): true
-        bias_eta_SiII(1193): true
-        bias_eta_SiII(1190): true
-        qso_rad_strength: true
-        desi_inst_sys_amp: 0 3e-3 3e-4 1e-4
-      priors:
-        beta_hcd: gaussian 0.5 0.09
-      parameters:
-        ap: 1.0
-        at: 1.0
-        bias_LYA: -0.1
-        beta_LYA: 1.6689842055246313
-        alpha_LYA: 2.9
-        bias_QSO: 3.5
-        bias_hcd: -0.05229593809709332
-        beta_hcd: 0.5
-        L0_hcd: 10.0
-        bias_eta_SiII(1260): -0.0026756210856865984
-        beta_SiII(1260): 0.5
-        alpha_SiII(1260): 1.0
-        bias_eta_SiIII(1207): -0.004500501963425506
-        beta_SiIII(1207): 0.5
-        alpha_SiIII(1207): 1.0
-        bias_eta_SiII(1193): -0.0020176237974432443
-        beta_SiII(1193): 0.5
-        alpha_SiII(1193): 1.0
-        bias_eta_SiII(1190): -0.002938954583714029
-        beta_SiII(1190): 0.5
-        alpha_SiII(1190): 1.0
-        bias_eta_CIV(eff): -0.005210131497292769
-        beta_CIV(eff): 0.27
-        alpha_CIV(eff): 1.0
-        desi_inst_sys_amp: 0.0003189935987295203
-        bao_amp: 1.0
-        sigmaNL_per: 3.24
-        sigmaNL_par: 6.36984
-        growth_rate: 0.970386193694752
-        bias_eta_QSO: 1.0
-        alpha_QSO: 1.44
-        drp_QSO: 0.2540594873990489
-        sigma_velo_disp_lorentz_QSO: 7.772443711873628
-        qso_rad_strength: 0.7386158105819112
-        qso_rad_asymmetry: 0.0
-        qso_rad_lifetime: 9e99
-        qso_rad_decrease: 300.0
-        dnl_arinyo_q1: 0.8558
-        dnl_arinyo_kv: 1.11454
-        dnl_arinyo_av: 0.5378
-        dnl_arinyo_bv: 1.607
-        dnl_arinyo_kp: 19.47
+      general:
+        data sets:
+          zeff: 2.35
+        fiducial:
+          filename: Planck18/Planck18_z_2.406.fits
+        cosmo-fit type:
+          cosmo fit func: ap_at
+        control:
+          sampler: true
+          chi2: true
+        output:
+          filename: combined.fits
+          overwrite: true
+        Polychord:
+          seed: 2
+          num_live: 256
+          num_repeats: 13
+          path:
+          name: com
+          resume: true
+          boost_posterior: 3
+        sample:
+          ap: true
+          at: true
+          bias_LYA: true
+          beta_LYA: true
+          bias_QSO: true
+          bias_hcd: true
+          beta_hcd: true
+          drp_QSO: true
+          sigma_velo_disp_lorentz_QSO: true
+          bias_eta_SiII(1260): true
+          bias_eta_SiIII(1207): true
+          bias_eta_SiII(1193): true
+          bias_eta_SiII(1190): true
+          qso_rad_strength: true
+          desi_inst_sys_amp: 0 3e-3 3e-4 1e-4
+        priors:
+          beta_hcd: gaussian 0.5 0.09
+        parameters:
+          ap: 1.0
+          at: 1.0
+          bias_LYA: -0.1
+          beta_LYA: 1.6689842055246313
+          alpha_LYA: 2.9
+          bias_QSO: 3.5
+          bias_hcd: -0.05229593809709332
+          beta_hcd: 0.5
+          L0_hcd: 10.0
+          bias_eta_SiII(1260): -0.0026756210856865984
+          beta_SiII(1260): 0.5
+          alpha_SiII(1260): 1.0
+          bias_eta_SiIII(1207): -0.004500501963425506
+          beta_SiIII(1207): 0.5
+          alpha_SiIII(1207): 1.0
+          bias_eta_SiII(1193): -0.0020176237974432443
+          beta_SiII(1193): 0.5
+          alpha_SiII(1193): 1.0
+          bias_eta_SiII(1190): -0.002938954583714029
+          beta_SiII(1190): 0.5
+          alpha_SiII(1190): 1.0
+          bias_eta_CIV(eff): -0.005210131497292769
+          beta_CIV(eff): 0.27
+          alpha_CIV(eff): 1.0
+          desi_inst_sys_amp: 0.0003189935987295203
+          bao_amp: 1.0
+          sigmaNL_per: 3.24
+          sigmaNL_par: 6.36984
+          growth_rate: 0.970386193694752
+          bias_eta_QSO: 1.0
+          alpha_QSO: 1.44
+          drp_QSO: 0.2540594873990489
+          sigma_velo_disp_lorentz_QSO: 7.772443711873628
+          qso_rad_strength: 0.7386158105819112
+          qso_rad_asymmetry: 0.0
+          qso_rad_lifetime: 9e99
+          qso_rad_decrease: 300.0
+          dnl_arinyo_q1: 0.8558
+          dnl_arinyo_kv: 1.11454
+          dnl_arinyo_av: 0.5378
+          dnl_arinyo_bv: 1.607
+          dnl_arinyo_kp: 19.47
   slurm args:
     run_vega:
-      qos: shared
-      ntasks: 1
-      cpus-per-task: 8
+      general:
+        qos: shared
+        ntasks: 1
+        cpus-per-task: 8

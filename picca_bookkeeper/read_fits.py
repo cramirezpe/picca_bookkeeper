@@ -19,7 +19,7 @@ from vega.plots.wedges import Wedge
 from picca_bookkeeper.bookkeeper import Bookkeeper
 
 if TYPE_CHECKING:
-    from typing import Dict, List, Optional, Tuple, Type
+    from typing import Any, Dict, List, Optional, Tuple, Type
 
     from picca_bookkeeper.hints import Axes, Figure
 
@@ -227,7 +227,7 @@ class FitPlots:
         absorber2: Optional[str] = None,
         mumin: float = 0,
         mumax: float = 1,
-        ax: Axes = None,
+        ax: Optional[Axes] = None,
         r_factor: int = 2,
         plot_kwargs: Dict = dict(),
         just_return_values: bool = False,
@@ -390,7 +390,7 @@ class FitPlots:
         absorber: str = "lya",
         mumin: float = 0,
         mumax: float = 1,
-        ax: Axes = None,
+        ax: Optional[Axes] = None,
         r_factor: int = 2,
         plot_kwargs: Dict = dict(),
         just_return_values: bool = False,
@@ -551,18 +551,18 @@ class FitPlots:
         region2: Optional[str] = None,
         absorber: str = "lya",
         absorber2: Optional[str] = None,
-        ax: Axes = None,
+        ax: Optional[Axes] = None,
         r_factor: int = 2,
         vmin: float = -0.04,
         vmax: float = 0.04,
-        fig: Figure = None,
+        fig: Optional[Figure] = None,
         plot_kwargs: Dict = dict(),
         just_return_values: bool = False,
         output_prefix: Optional[Path | str] = None,
         save_data: bool = False,
         save_plot: bool = False,
         save_dict: Dict = dict(),
-    ) -> Tuple[List[float], np.ndarray]:
+    ) -> Tuple[Tuple[float, ...], np.ndarray]:
         """
         Plot fit correlation function model.
 
@@ -661,12 +661,13 @@ class FitPlots:
             # this reshapes into data size
             model = model.reshape(model_np, N_t)[:N_p, :].reshape(-1)
 
-        extent = [
-            cor_header.get("RTMIN", 0),
+        extent: tuple[float, ...]
+        extent = (
+            cor_header.get("RTMIN", 0.),
             cor_header["RTMAX"],
             cor_header["RPMIN"],
             cor_header["RPMAX"],
-        ]
+        )
         r = np.sqrt(rp**2 + rt**2)
         nrp, nrt = cor_header["NP"], cor_header["NT"]
         r = r.reshape(nrp, nrt)
@@ -737,7 +738,7 @@ class FitPlots:
         absorber2: Optional[str] = None,
         rtmin: float = 0,
         rtmax: float = 1,
-        ax: Axes = None,
+        ax: Optional[Axes] = None,
         r_factor: int = 2,
         plot_kwargs: Dict = dict(),
         just_return_values: bool = False,
@@ -932,18 +933,18 @@ class FitPlots:
         correlation_file: Path | str = "",
         region: str = "lya",
         absorber: str = "lya",
-        ax: Axes = None,
+        ax: Optional[Axes] = None,
         r_factor: int = 2,
         vmin: float = -0.4,
         vmax: float = 0.4,
-        fig: Figure = None,
+        fig: Optional[Figure] = None,
         plot_kwargs: Dict = dict(),
         just_return_values: bool = False,
         output_prefix: Optional[Path | str] = None,
         save_data: bool = False,
         save_plot: bool = False,
         save_dict: Dict = dict(),
-    ) -> Tuple[List[float], np.ndarray]:
+    ) -> Tuple[Tuple[float, ...], np.ndarray]:
         """
         Plot fit correlation function model.
 
@@ -1036,12 +1037,13 @@ class FitPlots:
             # this reshapes into data size
             model = model.reshape(model_np, N_t)[remove_idx:-remove_idx, :].reshape(-1)
 
-        extent = [
+        extent: tuple[float, ...]
+        extent = (
             cor_header.get("RTMIN", 0),
             cor_header["RTMAX"],
             cor_header["RPMIN"],
             cor_header["RPMAX"],
-        ]
+        )
         r = np.sqrt(rp**2 + rt**2)
         nrp, nrt = cor_header["NP"], cor_header["NT"]
         r = r.reshape(nrp, nrt)
@@ -1108,7 +1110,7 @@ class FitPlots:
         ax: Optional[Axes] = None,
         plot_kwargs: Dict = dict(),
         reference: Optional[ReadFits] = None,
-    ) -> List[matplotlib.container.Container]:
+    ) -> List[matplotlib.container.Container | Any]:
         """
         Args:
             readfits: List of readfits objects to show in the plot.
@@ -1189,10 +1191,10 @@ class FitPlots:
     @staticmethod
     def plot_p_value_from_fit(
         readfits: List[ReadFits],
-        ax: Axes = None,
+        ax: Optional[Axes] = None,
         plot_kwargs: Dict = dict(),
         reference: Optional[ReadFits] = None,
-    ) -> List[matplotlib.container.Container]:
+    ) -> List[matplotlib.container.Container | Any]:
         """
         Args:
             readfits: List of readfits objects to show in the plot.

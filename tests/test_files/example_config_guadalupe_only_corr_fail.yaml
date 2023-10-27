@@ -29,7 +29,8 @@ correlations:
 
   extra args:
     picca_cf:
-      nside: 128
+      general:
+        nside: 128
 fits:
   run name: default
 

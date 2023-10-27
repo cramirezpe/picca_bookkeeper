@@ -45,7 +45,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
     logger.info("Obtaining export files.")
     # Identifying which correlations are affected:
     main_config = configparser.ConfigParser()
-    main_config.optionxform = str
+    main_config.optionxform = str # type: ignore
     main_config.read(main_file)
 
     ini_files = main_config["data sets"].get("ini files").split(" ")

@@ -13,8 +13,9 @@ fits:
   auto correlations: lya.lya-lya.lya
   cross correlations: lya.lya
   metals: false
-  extra args:
-    remove_vega_main:
-      sample:
-        ap:
-        at:
+  remove default args:
+    vega_main:
+      general:
+        sample:
+          ap:
+          at:

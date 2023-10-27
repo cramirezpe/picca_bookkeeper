@@ -1,5 +1,8 @@
 general:
   conda environment: picca
+  slurm args:
+    mail-type: fail
+    mail-user: mail@host.es
 data:
   bookkeeper dir: /picca_bookkeeper/tests/test_files/output
   healpix data:
@@ -14,10 +17,11 @@ fits:
   cross correlations: lya.lya
   extra args:
     picca_convert_transmission:
-      linear-spacing: true
-      lambda-min: 3600
-      lambda-max: 5500
-      delta-lambda: 0.8
+      general:
+        linear-spacing: true
+        lambda-min: 3600
+        lambda-max: 5500
+        delta-lambda: 0.8
     picca_delta_extraction:
     picca_deltas:
     picca_cf:
@@ -32,9 +36,11 @@ fits:
       mail-type: fail
       mail-user: mail@host.es
     picca_convert_transmission:
-      time: 00:30:00
+      general:
+        time: 00:30:00
     picca_delta_extraction:
-      time: 00:30:00
+      general:
+        time: 00:30:00
     picca_deltas:
     picca_cf:
     picca_xcf:

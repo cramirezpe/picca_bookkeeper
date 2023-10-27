@@ -1,6 +1,9 @@
 general:
   conda environment: picca
 
+  slurm args:
+      mail-type: fail
+      mail-user: mail@host.es
 data:
   bookkeeper dir: results_directory
   
@@ -24,14 +27,15 @@ delta extraction:
   # Slurm arguments to be used by the bookkeeper
   slurm args:
     general:
-      mail-type: fail
-      mail-user: mail@host.es
 
     picca_convert_transmission:
-      time: "00:30:00"
+      general:
+        time: "00:30:00"
 
     picca_delta_extraction:
-      time: "00:30:00"
+      general:
+        time: "00:30:00"
+
     picca_deltas:
 
     picca_cf:
@@ -53,17 +57,19 @@ delta extraction:
   # extra args to be used by the bookkeeper
   extra args:
     picca_convert_transmission:
-      linear-spacing: True
-      lambda-min: 3600
-      lambda-max: 5500
-      delta-lambda: 0.8
+      general:
+        linear-spacing: True
+        lambda-min: 3600
+        lambda-max: 5500
+        delta-lambda: 0.8
 
     picca_delta_extraction:
 
     picca_deltas:
 
     picca_cf:
-      nside: 16
+      general:
+        nside: 16
 
     picca_xcf:
 
@@ -99,10 +105,12 @@ fits:
       mail-user: mail@host.es
 
     picca_convert_transmission:
-      time: "00:30:00"
+      general:
+        time: "00:30:00"
 
     picca_delta_extraction:
-      time: "00:30:00"
+      general:
+        time: "00:30:00"
     picca_deltas:
 
     picca_cf:
@@ -124,17 +132,19 @@ fits:
   # extra args to be used by the bookkeeper
   extra args:
     picca_convert_transmission:
-      linear-spacing: True
-      lambda-min: 3600
-      lambda-max: 5500
-      delta-lambda: 0.8
+      general:
+        linear-spacing: True
+        lambda-min: 3600
+        lambda-max: 5500
+        delta-lambda: 0.8
 
     picca_delta_extraction:
 
     picca_deltas:
 
     picca_cf:
-      nside: 16
+      general:
+        nside: 16
 
     picca_xcf:
 

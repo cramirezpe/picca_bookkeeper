@@ -20,11 +20,10 @@ delta extraction:
 
     # extra args to be used by the bookkeeper
   extra args:
-    picca_convert_transmission:
-
     picca_delta_extraction:
-      expected flux:
-        raw statistics file: /global/cfs/cdirs/desi/users/mail/Continuum_fitting/picca_runs/v9.0.0/raw/v9.0.0_cat_reduced/raw_0.0.0_0/deltas/lya/Delta-stats.fits.gz
+      general:
+        expected flux:
+          raw statistics file: /global/cfs/cdirs/desi/users/mail/Continuum_fitting/picca_runs/v9.0.0/raw/v9.0.0_cat_reduced/raw_0.0.0_0/deltas/lya/Delta-stats.fits.gz
 
     picca_deltas:
 

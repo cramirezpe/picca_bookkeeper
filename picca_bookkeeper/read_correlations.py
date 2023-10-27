@@ -557,7 +557,7 @@ class CorrelationPlots:
     #     correlation_file: Path | str = None,
     #     mumin: float = 0,
     #     mumax: float = 1,
-    #     ax: Axes = None,
+    #     ax: Optional[Axes] = None,
     #     r_factor: int = 2,
     #     plot_kwargs: Dict = dict(),
     #     just_return_values: bool = False,
@@ -632,7 +632,7 @@ class CorrelationPlots:
         mumin: float = 0,
         mumax: float = 1,
         r_factor: int = 2,
-        ax: Axes = None,
+        ax: Optional[Axes] = None,
         plot_kwargs: Dict = dict(),
         just_return_values: bool = False,
         output_prefix: Optional[Path | str] = None,
@@ -859,7 +859,7 @@ class CorrelationPlots:
     #     correlation_file: Path | str = None,
     #     mumin: float = 0,
     #     mumax: float = 1,
-    #     ax: Axes = None,
+    #     ax: Optional[Axes] = None,
     #     r_factor: int = 2,
     #     plot_kwargs: Dict = dict(),
     #     just_return_values: bool = False,
@@ -933,7 +933,7 @@ class CorrelationPlots:
         r_factor: int = 2,
         vmin: float = -0.04,
         vmax: float = 0.04,
-        fig: Figure = None,
+        fig: Optional[Figure] = None,
         ax: Optional[Axes] = None,
         plot_kwargs: Dict = dict(),
         just_return_values: bool = False,
@@ -941,7 +941,7 @@ class CorrelationPlots:
         save_data: bool = False,
         save_plot: bool = False,
         save_dict: Dict = dict(),
-    ) -> Tuple[List[float], np.ndarray, np.ndarray, np.ndarray]:
+    ) -> Tuple[Tuple[float, ...], np.ndarray, np.ndarray, np.ndarray]:
         """
         Plotting correlation heatmap.
 
@@ -981,12 +981,13 @@ class CorrelationPlots:
 
             cor_header = ffile["COR"].read_header()
 
-        extent = [
+        extent: tuple[float, ...]
+        extent = (
             cor_header.get("RTMIN", 0),
             cor_header["RTMAX"],
             cor_header["RPMIN"],
             cor_header["RPMAX"],
-        ]
+        )
         r = np.sqrt(rp**2 + rt**2)
         nrp, nrt = cor_header["NP"], cor_header["NT"]
         r = r.reshape(nrp, nrt)
@@ -1064,7 +1065,7 @@ class CorrelationPlots:
         save_data: bool = False,
         save_plot: bool = False,
         save_dict: Dict = dict(),
-    ) -> Tuple[List[float], np.ndarray, np.ndarray, np.ndarray]:
+    ) -> Tuple[Tuple[float, ...], np.ndarray, np.ndarray, np.ndarray]:
         """
         Plotting correlation heatmap.
 
@@ -1094,12 +1095,13 @@ class CorrelationPlots:
 
             cor_header = ffile["COR"].read_header()
 
-        extent = [
+        extent: tuple[float, ...]
+        extent = (
             cor_header.get("RTMIN", 0),
             cor_header["RTMAX"],
             cor_header["RPMIN"],
             cor_header["RPMAX"],
-        ]
+        )
         r = np.sqrt(rp**2 + rt**2)
         nrp, nrt = cor_header["NP"], cor_header["NT"]
         r = r.reshape(nrp, nrt)

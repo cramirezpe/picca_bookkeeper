@@ -12,4 +12,5 @@ correlations:
   catalog tracer:
   extra args:
     picca_cf:
-      nside: 128
+      general:
+        nside: 128

@@ -920,32 +920,6 @@ class TestBookkeeper(unittest.TestCase):
         "picca_bookkeeper.bookkeeper.get_quasar_catalog",
         side_effect=mock_get_3d_catalog,
     )
-    def test_true_failing(self, mock_func_1, mock_func_2):
-        copy_config_substitute(self.files_path / "example_config_true.yaml")
-        test_files = THIS_DIR / "test_files" / "true"
-        bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml", read_mode=False)
-
-        bookkeeper.config["delta extraction"]["extra args"]["picca_delta_extraction"][
-            "expected flux"
-        ] = dict()
-
-        with self.assertRaises(ValueError) as cm:
-            deltas = bookkeeper.get_delta_extraction_tasker(
-                region="lya",
-            )
-            
-            deltas.write_job()
-            deltas.send_job()
-        self.assertEqual(
-            "Should define expected flux and raw statistics file in extra args section in order to run TrueContinuum",
-            str(cm.exception),
-        )
-
-    @patch("picca_bookkeeper.tasker.run", side_effect=mock_run)
-    @patch(
-        "picca_bookkeeper.bookkeeper.get_quasar_catalog",
-        side_effect=mock_get_3d_catalog,
-    )
     def test_true(self, mock_func_1, mock_func_2):
         copy_config_substitute(self.files_path / "example_config_true.yaml")
         test_files = THIS_DIR / "test_files" / "true"

@@ -12,7 +12,8 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 if TYPE_CHECKING:
-    from typing import Any, Dict, List, Optional, Self, Type
+    from typing import Any, Dict, List, Optional, Type
+    from typing_extensions import Self
 
 logger = logging.getLogger(__name__)
 

@@ -25,5 +25,6 @@ fits:
 
   extra args:
     vega_cross:
-      data:
-        tracer: QSA
+      general:
+        data:
+          tracer: QSA
