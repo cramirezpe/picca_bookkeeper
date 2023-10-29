@@ -45,6 +45,21 @@ correlations:
         nt: 50
         fid-Or: 7.975e-05
         rebin-factor: 3
+    picca_export:
+      lyalya_lyalya:
+        blind-corr-type: lyaxlya
+      lyalya_lyalyb:
+        blind-corr-type: lyaxlyb
+        smooth-per-r-par: ''
+      lyalyb_lyalya:
+        blind-corr-type: lyaxlyb
+        smooth-per-r-par: ''
+      lyalya:
+        blind-corr-type: qsoxlya
+      lyalyb:
+        blind-corr-type: qsoxlyb
+      lyblya:
+        blind-corr-type: qsoxlyb
     picca_metal_dmat:
       general:
         nproc: 256
