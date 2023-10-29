@@ -180,7 +180,7 @@ correlations:
         smooth-per-r-par: ""
 
       lyalya:
-        blind-corr-type: qsoxlyb
+        blind-corr-type: qsoxlya
         
       lyalyb:
         blind-corr-type: qsoxlyb
