@@ -52,7 +52,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
 
     autos = []
     auto_correlations = args.auto_correlations
-    if config.get("fits", dict()).get("auto correlations", None) is not None:
+    if config.get("fits", dict()).get("auto correlations", None) not in (None, ""):
         auto_correlations += config["fits"]["auto correlations"].split(" ")
     for auto in auto_correlations:
         absorber, region, absorber2, region2 = auto.replace("-", ".").split(".")
@@ -69,8 +69,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
     crosses = []
     cross_correlations = args.cross_correlations
     if (
-        config.get("fits", dict()).get("cross correlations", None)
-        is not None
+        config.get("fits", dict()).get("cross correlations", None) not in (None, "")
     ):
         cross_correlations += config["fits"]["cross correlations"].split(" ")
     for cross in cross_correlations:

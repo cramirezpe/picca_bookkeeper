@@ -2981,11 +2981,11 @@ class Bookkeeper:
 
         config = self.generate_fit_configuration()
 
-        if config["fits"].get("auto correlations", None) is not None:
+        if config["fits"].get("auto correlations", None) not in (None, ""):
             auto_correlations = config["fits"]["auto correlations"].split(" ")
         else:
             auto_correlations = []
-        if config["fits"].get("cross correlations", None) is not None:
+        if config["fits"].get("cross correlations", None) not in (None, ""):
             cross_correlations = config["fits"]["cross correlations"].split(" ")
         else:
             cross_correlations = []
