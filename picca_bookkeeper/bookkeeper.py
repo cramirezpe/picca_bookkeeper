@@ -179,36 +179,35 @@ class Bookkeeper:
         # Potentially could add fits things here.
         # Copy bookkeeper configuration into destination
         # If bookkeeper included delta
-        if config_type == "deltas":
-            config_delta = copy.deepcopy(self.config)
-            config_delta.pop("correlations", None)
-            config_delta.pop("fits", None)
+        config_delta = copy.deepcopy(self.config)
+        config_delta.pop("correlations", None)
+        config_delta.pop("fits", None)
 
-            if not self.paths.delta_config_file.is_file():
-                self.write_bookkeeper(config_delta, self.paths.delta_config_file)
-            elif filecmp.cmp(self.paths.delta_config_file, config_path):
-                # If files are the same we can continue
-                pass
-            elif overwrite_config:
-                # If we want to directly overwrite the config file in destination
+        if not self.paths.delta_config_file.is_file():
+            self.write_bookkeeper(config_delta, self.paths.delta_config_file)
+        elif filecmp.cmp(self.paths.delta_config_file, config_path):
+            # If files are the same we can continue
+            pass
+        elif overwrite_config and config_type == "deltas":
+            # If we want to directly overwrite the config file in destination
+            self.write_bookkeeper(config_delta, self.paths.delta_config_file)
+        else:
+            comparison = PathBuilder.compare_config_files(
+                config_path, self.paths.delta_config_file, "delta extraction"
+            )
+            if comparison == dict():
+                # They are the same
                 self.write_bookkeeper(config_delta, self.paths.delta_config_file)
             else:
-                comparison = PathBuilder.compare_config_files(
-                    config_path, self.paths.delta_config_file, "delta extraction"
-                )
-                if comparison == dict():
-                    # They are the same
-                    self.write_bookkeeper(config_delta, self.paths.delta_config_file)
-                else:
-                    raise ValueError(
-                        "delta extraction section of config file should match delta "
-                        "extraction section from file already in the bookkeeper. "
-                        "Unmatching items:\n\n"
-                        f"{DictUtils.print_dict(comparison)}\n\n"
-                        f"Remove config file to overwrite {self.paths.delta_config_file}"
+                raise ValueError(
+                    "delta extraction section of config file should match delta "
+                    "extraction section from file already in the bookkeeper. "
+                    "Unmatching items:\n\n"
+                    f"{DictUtils.print_dict(comparison)}\n\n"
+                    f"Remove config file to overwrite {self.paths.delta_config_file}"
                     )
 
-        if self.correlations is not None and config_type != "fits":
+        if self.correlations is not None:
             config_corr = copy.deepcopy(self.config)
 
             config_corr["correlations"]["delta extraction"] = self.paths.continuum_tag
@@ -221,7 +220,7 @@ class Bookkeeper:
             elif filecmp.cmp(self.paths.correlation_config_file, config_path):
                 # If files are the same we can continue
                 pass
-            elif overwrite_config:
+            elif overwrite_config and config_type == "correlations":
                 self.write_bookkeeper(config_corr, self.paths.correlation_config_file)
             else:
                 comparison = PathBuilder.compare_config_files(
