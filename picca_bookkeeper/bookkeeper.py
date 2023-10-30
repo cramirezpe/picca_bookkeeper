@@ -129,33 +129,39 @@ class Bookkeeper:
         self.correlations = None
         self.delta_extraction = None
 
-        if self.config.get("fits") is not None:
-            self.fits = self.config.get("fits")
-            config_type = "fits"
-        if self.config.get("correlations") is not None:
-            self.correlations = self.config.get("correlations")
-            config_type = "correlations"
+        # Load sections if they are available in config file
+        # We ensure config_type is the deepest option available.
         if self.config.get("delta extraction") is not None:
             self.delta_extraction = self.config.get("delta extraction")
             config_type = "deltas"
+        if self.config.get("correlations") is not None:
+            self.correlations = self.config.get("correlations")
+            config_type = "correlations"
+        if self.config.get("fits") is not None:
+            self.fits = self.config.get("fits")
+            config_type = "fits"
 
-        if config_type == "fits":
-            # In this case, correlations is not defined in the config file
-            # and therefore, we should search for it.
-            with open(self.paths.correlation_config_file, "r") as f:
-                correlation_config = yaml.safe_load(f)
-            self.correlations = correlation_config["correlations"]
-            self.config["correlations"] = self.correlations
+        # Now we will load configs from bookkeeper location if not
+        # available in config
+        if self.config.get("fits") is not None:
+            # We need to have both correlations and deltas available:
+            if self.correlations is None:
+                with open(self.paths.correlation_config_file, "r") as f:
+                    correlation_config = yaml.safe_load(f)
+                self.correlations = correlation_config["correlations"]
+                self.config["correlations"] = self.correlations
 
-        if config_type in ("fits", "correlations"):
-            # In this case, delta extraction is not defined in the config file
-            # and therefore, we should search for it.
-            with open(self.paths.delta_config_file, "r") as f:
-                delta_config = yaml.safe_load(f)
-            self.delta_extraction = delta_config["delta extraction"]
-            self.config["delta extraction"] = self.delta_extraction
+        if self.config.get("correlations") is not None or self.config.get("fits") is not None:
+            # We need to have deltas if we want correlations or fits
+            if self.delta_extraction is None:
+                with open(self.paths.delta_config_file, "r") as f:
+                    delta_config = yaml.safe_load(f)
+                self.delta_extraction = delta_config["delta extraction"]
+                self.config["delta extraction"] = self.delta_extraction
 
         self.paths = PathBuilder(self.config)
+
+        self.check_bookkeeper_config()
 
         if self.read_mode:
             # Next steps imply writting on bookkeeper destination
@@ -421,6 +427,48 @@ class Bookkeeper:
 
         with open(file, "w") as f:
             yaml.safe_dump(config, f, sort_keys=False)
+
+    def check_bookkeeper_config(self) -> None:
+        """Check bookkeeper config and rise Error if invalid"""
+        logger.debug('Checking continuum tag consistency.')
+        delta_names = []
+        if self.config.get("correlations", dict()).get("delta extraction", "") not in (
+            "",
+            None,
+        ):
+            delta_names.append(self.config["correlations"]["delta extraction"])
+        if self.config.get("fits", dict()).get("delta extraction", "") not in (
+            "",
+            None,
+        ):
+            delta_names.append(self.config["fits"]["delta extraction"])
+        if self.config.get("delta extraction", None) is not None:
+            delta_names.append(self.paths.continuum_tag)
+
+        if len(set(delta_names)) > 1:
+            raise ValueError("Incompatible continuum tags in bookkeeper-config", delta_names)
+
+        logger.debug('Checking correlation run name consistency.')
+        correlation_names = []
+        if self.config.get("fits", dict()).get("correlation run name", "") not in ("", None):
+            correlation_names.append(self.config["fits"]["correlation run name"])
+        if self.config.get("correlations", dict()).get("run name", "") not in ("", None):
+            correlation_names.append(self.config["correlations"]["run name"])
+
+        if len(set(correlation_names)) > 1:
+            raise ValueError("Incompatible correlation run names in bookkeeper-config", correlation_names)
+
+        logger.debug('Checking command names.')
+        delta_extraction_commands = ["picca_delta_extraction", "picca_convert_transmission"]
+        correlation_commands = ["picca_cf", "picca_xcf", "picca_dmat", "picca_xdmat", "picca_metal_dmat", "picca_metal_xdmat", "picca_fast_metal_dmat", "picca_fast_metal_xdmat", "picca_export"]
+        fit_commands = ["picca_bookkeeper_correct_config_zeff", "run_vega_mpi", "vega_auto", "vega_cross", "vega_main"]
+
+        for arg_type in "slurm args", "extra args", "remove default args", "default slurm args":
+            for section, commands in zip(("delta extraction", "correlations", "fits"), (delta_extraction_commands, correlation_commands, fit_commands)):
+                for key in self.config.get(section, dict()).get(arg_type, dict()).keys():
+                    if key not in commands:
+                        raise ValueError("Invalid command in bookkeeper config: ", key)
+
 
     @staticmethod
     def validate_region(region: str) -> str:

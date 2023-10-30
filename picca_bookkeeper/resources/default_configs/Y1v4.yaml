@@ -103,7 +103,7 @@ correlations:
         fid-Or: 7.963e-5
         fid-Om: 0.315
         rebin-factor: 3
-        coef-binning-model: 2
+        coef-binning-model: 1
 
       lyaciv_lyaciv:
         abs-igm: "CIV(eff)"
@@ -169,7 +169,7 @@ correlations:
         fid-Or: 7.963e-5
         fid-Om: 0.315
         rebin-factor: 3
-        coef-binning-model: 2
+        coef-binning-model: 1
     
     picca_export:
       lyalya_lyalya:
@@ -226,8 +226,8 @@ correlations:
     picca_metal_dmat:
       general:
         qos: regular
-        time: "10:00:00"
-        cpus-per-task: 256
+        time: "12:00:00"
+        cpus-per-task: 128
 
     picca_xcf:
       general:
@@ -262,8 +262,8 @@ correlations:
     picca_metal_xdmat:
       general:
         qos: regular
-        time: "00:20:00"
-        cpus-per-task: 256
+        time: "12:00:00"
+        cpus-per-task: 128
 
 
 fits:

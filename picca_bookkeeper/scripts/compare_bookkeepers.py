@@ -33,22 +33,22 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
 
     if bookkeeper1.paths.catalog != bookkeeper2.paths.catalog:
         print(
-            "Different QSO catalog:" + strRed(f"\n\t-{bookkeeper1.paths.catalog}") + strCyan(f"\n\t+{bookkeeper2.paths.catalog}")
+            "Different QSO catalog:" + strRed(f"\n\t-{bookkeeper1.paths.catalog}") + strCyan(f"\n\t+{bookkeeper2.paths.catalog}\n")
         )
 
     if bookkeeper1.paths.catalog_dla != bookkeeper2.paths.catalog_dla:
         print(
-            "Different DLA catalog:" + strRed(f"\n\t-{bookkeeper1.paths.catalog_dla}") + strCyan(f"\n\t+{bookkeeper2.paths.catalog_dla}")
+            "Different DLA catalog:" + strRed(f"\n\t-{bookkeeper1.paths.catalog_dla}") + strCyan(f"\n\t+{bookkeeper2.paths.catalog_dla}\n")
         )
 
     if bookkeeper1.paths.catalog_bal != bookkeeper2.paths.catalog_bal:
         print(
-            "Different BAL catalog:" + strRed(f"\n\t-{bookkeeper1.paths.catalog_bal}") + strCyan(f"\n\t+{bookkeeper2.paths.catalog_bal}")
+            "Different BAL catalog:" + strRed(f"\n\t-{bookkeeper1.paths.catalog_bal}") + strCyan(f"\n\t+{bookkeeper2.paths.catalog_bal}\n")
         )
 
     if bookkeeper2.paths.catalog_tracer not in (bookkeeper2.paths.catalog, bookkeeper1.paths.catalog_tracer):
         print(
-            "Different tracer catalog:" + strRed(f"\n\t-{bookkeeper1.paths.catalog_tracer}") + strCyan(f"\n\t+{bookkeeper2.paths.catalog_tracer}")
+            "Different tracer catalog:" + strRed(f"\n\t-{bookkeeper1.paths.catalog_tracer}") + strCyan(f"\n\t+{bookkeeper2.paths.catalog_tracer}\n")
         )
 
     ini_files = list((bookkeeper2.paths.run_path / "configs").glob("*.ini"))
