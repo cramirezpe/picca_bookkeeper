@@ -151,7 +151,10 @@ class Bookkeeper:
                 self.correlations = correlation_config["correlations"]
                 self.config["correlations"] = self.correlations
 
-        if self.config.get("correlations") is not None or self.config.get("fits") is not None:
+        if (
+            self.config.get("correlations") is not None
+            or self.config.get("fits") is not None
+        ):
             # We need to have deltas if we want correlations or fits
             if self.delta_extraction is None:
                 with open(self.paths.delta_config_file, "r") as f:
@@ -195,7 +198,7 @@ class Bookkeeper:
             comparison = PathBuilder.compare_configs(
                 self.config,
                 yaml.safe_load(self.paths.delta_config_file.read_text()),
-                "delta extraction"
+                "delta extraction",
             )
             if comparison == dict():
                 # They are the same
@@ -207,7 +210,7 @@ class Bookkeeper:
                     "Unmatching items:\n\n"
                     f"{DictUtils.print_dict(comparison)}\n\n"
                     f"Remove config file to overwrite {self.paths.delta_config_file}"
-                    )
+                )
 
         if self.correlations is not None:
             config_corr = copy.deepcopy(self.config)
@@ -308,11 +311,16 @@ class Bookkeeper:
         defaults_with_removed = copy.deepcopy(self.defaults)
 
         for section in "delta extraction", "correlations", "fits":
-            for remove_subsection, subsection in zip(("remove default args", "remove default slurm args"), ("extra args", "slurm args")):
-                defaults_with_removed.get(section, dict())[subsection] = DictUtils.remove_matching(
+            for remove_subsection, subsection in zip(
+                ("remove default args", "remove default slurm args"),
+                ("extra args", "slurm args"),
+            ):
+                defaults_with_removed.get(section, dict())[
+                    subsection
+                ] = DictUtils.remove_matching(
                     defaults_with_removed.get(section, dict()).get(subsection, dict()),
                     self.config.get(section, dict()).get(remove_subsection, dict()),
-                )        
+                )
 
         self.config = DictUtils.merge_dicts(
             defaults_with_removed,
@@ -431,7 +439,7 @@ class Bookkeeper:
 
     def check_bookkeeper_config(self) -> None:
         """Check bookkeeper config and rise Error if invalid"""
-        logger.debug('Checking continuum tag consistency.')
+        logger.debug("Checking continuum tag consistency.")
         delta_names = []
         if self.config.get("correlations", dict()).get("delta extraction", "") not in (
             "",
@@ -447,29 +455,68 @@ class Bookkeeper:
             delta_names.append(self.paths.continuum_tag)
 
         if len(set(delta_names)) > 1:
-            raise ValueError("Incompatible continuum tags in bookkeeper-config", delta_names)
+            raise ValueError(
+                "Incompatible continuum tags in bookkeeper-config", delta_names
+            )
 
-        logger.debug('Checking correlation run name consistency.')
+        logger.debug("Checking correlation run name consistency.")
         correlation_names = []
-        if self.config.get("fits", dict()).get("correlation run name", "") not in ("", None):
+        if self.config.get("fits", dict()).get("correlation run name", "") not in (
+            "",
+            None,
+        ):
             correlation_names.append(self.config["fits"]["correlation run name"])
-        if self.config.get("correlations", dict()).get("run name", "") not in ("", None):
+        if self.config.get("correlations", dict()).get("run name", "") not in (
+            "",
+            None,
+        ):
             correlation_names.append(self.config["correlations"]["run name"])
 
         if len(set(correlation_names)) > 1:
-            raise ValueError("Incompatible correlation run names in bookkeeper-config", correlation_names)
+            raise ValueError(
+                "Incompatible correlation run names in bookkeeper-config",
+                correlation_names,
+            )
 
-        logger.debug('Checking command names.')
-        delta_extraction_commands = ["picca_delta_extraction", "picca_convert_transmission"]
-        correlation_commands = ["picca_cf", "picca_xcf", "picca_dmat", "picca_xdmat", "picca_metal_dmat", "picca_metal_xdmat", "picca_fast_metal_dmat", "picca_fast_metal_xdmat", "picca_export"]
-        fit_commands = ["picca_bookkeeper_correct_config_zeff", "run_vega_mpi", "vega_auto", "vega_cross", "vega_main"]
+        logger.debug("Checking command names.")
+        delta_extraction_commands = [
+            "picca_delta_extraction",
+            "picca_convert_transmission",
+        ]
+        correlation_commands = [
+            "picca_cf",
+            "picca_xcf",
+            "picca_dmat",
+            "picca_xdmat",
+            "picca_metal_dmat",
+            "picca_metal_xdmat",
+            "picca_fast_metal_dmat",
+            "picca_fast_metal_xdmat",
+            "picca_export",
+        ]
+        fit_commands = [
+            "picca_bookkeeper_correct_config_zeff",
+            "run_vega_mpi",
+            "vega_auto",
+            "vega_cross",
+            "vega_main",
+        ]
 
-        for arg_type in "slurm args", "extra args", "remove default args", "default slurm args":
-            for section, commands in zip(("delta extraction", "correlations", "fits"), (delta_extraction_commands, correlation_commands, fit_commands)):
-                for key in self.config.get(section, dict()).get(arg_type, dict()).keys():
+        for arg_type in (
+            "slurm args",
+            "extra args",
+            "remove default args",
+            "default slurm args",
+        ):
+            for section, commands in zip(
+                ("delta extraction", "correlations", "fits"),
+                (delta_extraction_commands, correlation_commands, fit_commands),
+            ):
+                for key in (
+                    self.config.get(section, dict()).get(arg_type, dict()).keys()
+                ):
                     if key not in commands:
                         raise ValueError("Invalid command in bookkeeper config: ", key)
-
 
     @staticmethod
     def validate_region(region: str) -> str:
@@ -534,12 +581,12 @@ class Bookkeeper:
         absorber = "" if absorber is None else absorber
         absorber2 = "" if absorber2 is None else absorber2
         region = "" if region is None else region
-        region2 = "" if region2 is None else region2        
-        
+        region2 = "" if region2 is None else region2
+
         region_subcommand = ""
         if region != "":
             region_subcommand = f"{absorber}{region}"
-        
+
         if region2 != "":
             region_subcommand += f"_{absorber2}{region2}"
 
@@ -547,7 +594,11 @@ class Bookkeeper:
             args = self.config["general"].get("slurm args", dict())
 
         for subcommand in ("general", region_subcommand, "all"):
-            if config.get("slurm args", None) is not None and config["slurm args"].get(command_name, None) is not None and config["slurm args"][command_name].get(subcommand, None) is not None:
+            if (
+                config.get("slurm args", None) is not None
+                and config["slurm args"].get(command_name, None) is not None
+                and config["slurm args"][command_name].get(subcommand, None) is not None
+            ):
                 args = DictUtils.merge_dicts(
                     args,
                     config["slurm args"][command_name][subcommand],
@@ -589,18 +640,21 @@ class Bookkeeper:
         region_subcommand = ""
         if region != "":
             region_subcommand = f"{absorber}{region}"
-        
+
         if region2 != "":
             region_subcommand += f"_{absorber2}{region2}"
-            
+
         args: Dict = dict()
         for subcommand in ("general", region_subcommand, "all"):
-            if config.get("extra args", None) is not None and config["extra args"].get(command_name, None) is not None and config["extra args"][command_name].get(subcommand, None) is not None:
+            if (
+                config.get("extra args", None) is not None
+                and config["extra args"].get(command_name, None) is not None
+                and config["extra args"][command_name].get(subcommand, None) is not None
+            ):
                 args = DictUtils.merge_dicts(
                     args,
                     config["extra args"][command_name][subcommand],
                 )
-
 
         return args
 
@@ -1688,15 +1742,19 @@ class Bookkeeper:
         if self.config["correlations"].get("unblind", False):
             logger.warn("CORRELATIONS WILL BE UNBLINDED, BE CAREFUL.")
             precommand = f"picca_bookkeeper_unblind_correlations"
-            
+
             cf_file = str(self.paths.cf_fname(absorber, region, absorber2, region2))
             precommand += f" --cf {cf_file}"
             if self.config["fits"].get("distortion", True):
-                dmat_file = str(self.paths.dmat_fname(absorber, region, absorber2, region2))
+                dmat_file = str(
+                    self.paths.dmat_fname(absorber, region, absorber2, region2)
+                )
                 precommand += f" --dmat {dmat_file}"
                 in_files.append(dmat_file)
             if self.config["fits"].get("metals", True):
-                metal_file = str(self.paths.metal_fname(absorber, region, absorber2, region2))
+                metal_file = str(
+                    self.paths.metal_fname(absorber, region, absorber2, region2)
+                )
                 precommand += f" --metal-dmat {metal_file}"
                 in_files.append(metal_file)
         else:
@@ -2272,7 +2330,7 @@ class Bookkeeper:
         if self.config["correlations"].get("unblind", False):
             logger.warn("CORRELATIONS WILL BE UNBLINDED, BE CAREFUL.")
             precommand = f"picca_bookkeeper_unblind_correlations"
-            
+
             xcf_file = str(self.paths.xcf_fname(absorber, region))
             precommand += f" --cf {xcf_file}"
             if self.config["fits"].get("distortion", True):
@@ -2780,13 +2838,13 @@ class Bookkeeper:
                             }
                         }
                     }
-                }
+                },
             )
             args = DictUtils.merge_dicts(
                 args,
                 {
                     "vega_main": {  # This adds/modifies fields
-                        "general" : {
+                        "general": {
                             "parameters": {
                                 "bao_amp": 0,
                             }
@@ -2800,7 +2858,7 @@ class Bookkeeper:
                 args,
                 {
                     "vega_main": {
-                        "general" : {
+                        "general": {
                             "sample": {
                                 "bias_hcd": "",
                                 "beta_hcd": "",
@@ -2836,8 +2894,8 @@ class Bookkeeper:
                 if f"bias_eta_{metal}" in config["fits"].get("extra args", dict()).get(
                     "vega_main", dict()
                 ).get("sample", dict()):
-                    remove_from_sampled[metal] = "" 
-            
+                    remove_from_sampled[metal] = ""
+
             args = DictUtils.remove_matching(
                 args,
                 {
@@ -2870,8 +2928,7 @@ class Bookkeeper:
                             }
                         },
                     },
-                }
-
+                },
             )
             args = DictUtils.merge_dicts(
                 args,
@@ -2897,7 +2954,7 @@ class Bookkeeper:
                             }
                         }
                     },
-                }
+                },
             )
             args = DictUtils.merge_dicts(
                 args,
@@ -3031,14 +3088,14 @@ class Bookkeeper:
                         }
                     }
                 },
-            )            
+            )
             if config["fits"].get("metals", True):
                 args = DictUtils.merge_dicts(
                     args,
                     {
                         "fits": {
                             "extra args": {
-                                "vega_auto" : {
+                                "vega_auto": {
                                     "general": {
                                         "metals": {
                                             "filename": metals_file,
@@ -3116,7 +3173,7 @@ class Bookkeeper:
                     {
                         "fits": {
                             "extra args": {
-                                "vega_cross" : {
+                                "vega_cross": {
                                     "general": {
                                         "metals": {
                                             "filename": metals_file,
@@ -3766,7 +3823,12 @@ class PathBuilder:
 
         file = self.config["correlations"].get(subsection, dict()).get(name, None)
 
-        if file is None and subsection in ("cf files", "cf exp files", "xcf files", "xcf exp files"):
+        if file is None and subsection in (
+            "cf files",
+            "cf exp files",
+            "xcf files",
+            "xcf exp files",
+        ):
             parent = self.config["correlations"].get("link correlations", None)
             if parent is not None:
                 parent = Path(parent)
@@ -3775,7 +3837,7 @@ class PathBuilder:
 
                 if corr.is_file():
                     file = corr
-        
+
         if file is None and subsection in ("metal matrices", "xmetal matrices"):
             parent = self.config["correlations"].get("link metals", None)
             if parent is not None:
@@ -3785,8 +3847,11 @@ class PathBuilder:
 
                 if corr.is_file():
                     file = corr
-        
-        if file is None and subsection in ("distortion matrices", "xdistortion matrices"):
+
+        if file is None and subsection in (
+            "distortion matrices",
+            "xdistortion matrices",
+        ):
             parent = self.config["correlations"].get("link distortion matrices", None)
             if parent is not None:
                 parent = Path(parent)
@@ -3795,7 +3860,6 @@ class PathBuilder:
 
                 if corr.is_file():
                     file = corr
-
 
         if file is not None:
             if not Path(file).is_file():

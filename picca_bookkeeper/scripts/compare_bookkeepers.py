@@ -17,6 +17,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+
 def main(args: Optional[argparse.Namespace] = None) -> None:
     if args is None:
         args = getArgs()
@@ -33,22 +34,33 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
 
     if bookkeeper1.paths.catalog != bookkeeper2.paths.catalog:
         print(
-            "Different QSO catalog:" + strRed(f"\n\t-{bookkeeper1.paths.catalog}") + strCyan(f"\n\t+{bookkeeper2.paths.catalog}\n")
+            "Different QSO catalog:"
+            + strRed(f"\n\t-{bookkeeper1.paths.catalog}")
+            + strCyan(f"\n\t+{bookkeeper2.paths.catalog}\n")
         )
 
     if bookkeeper1.paths.catalog_dla != bookkeeper2.paths.catalog_dla:
         print(
-            "Different DLA catalog:" + strRed(f"\n\t-{bookkeeper1.paths.catalog_dla}") + strCyan(f"\n\t+{bookkeeper2.paths.catalog_dla}\n")
+            "Different DLA catalog:"
+            + strRed(f"\n\t-{bookkeeper1.paths.catalog_dla}")
+            + strCyan(f"\n\t+{bookkeeper2.paths.catalog_dla}\n")
         )
 
     if bookkeeper1.paths.catalog_bal != bookkeeper2.paths.catalog_bal:
         print(
-            "Different BAL catalog:" + strRed(f"\n\t-{bookkeeper1.paths.catalog_bal}") + strCyan(f"\n\t+{bookkeeper2.paths.catalog_bal}\n")
+            "Different BAL catalog:"
+            + strRed(f"\n\t-{bookkeeper1.paths.catalog_bal}")
+            + strCyan(f"\n\t+{bookkeeper2.paths.catalog_bal}\n")
         )
 
-    if bookkeeper2.paths.catalog_tracer not in (bookkeeper2.paths.catalog, bookkeeper1.paths.catalog_tracer):
+    if bookkeeper2.paths.catalog_tracer not in (
+        bookkeeper2.paths.catalog,
+        bookkeeper1.paths.catalog_tracer,
+    ):
         print(
-            "Different tracer catalog:" + strRed(f"\n\t-{bookkeeper1.paths.catalog_tracer}") + strCyan(f"\n\t+{bookkeeper2.paths.catalog_tracer}\n")
+            "Different tracer catalog:"
+            + strRed(f"\n\t-{bookkeeper1.paths.catalog_tracer}")
+            + strCyan(f"\n\t+{bookkeeper2.paths.catalog_tracer}\n")
         )
 
     ini_files = list((bookkeeper2.paths.run_path / "configs").glob("*.ini"))
@@ -70,6 +82,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
     config_files_base = ini_files_base + script_files_base + fit_files_base
 
     import difflib
+
     for config_file, config_file_base in zip(config_files, config_files_base):
         base_text = replace_strings(
             config_file_base.read_text(),
@@ -88,31 +101,33 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
         #     executable='/bin/bash'
         # )
 
-        diff_lines = list(difflib.unified_diff(
-            base_text.split('\n'),
-            config_text.split('\n'),
-            fromfile="bookkeeper1",
-            tofile="bookkeeper2",
-            lineterm='',
-            n=0,
-        ))
+        diff_lines = list(
+            difflib.unified_diff(
+                base_text.split("\n"),
+                config_text.split("\n"),
+                fromfile="bookkeeper1",
+                tofile="bookkeeper2",
+                lineterm="",
+                n=0,
+            )
+        )
 
         if len(diff_lines) > 0:
             print(config_file.name)
             for line in diff_lines:
-                for prefix in ('---', '+++'):
+                for prefix in ("---", "+++"):
                     if line.startswith(prefix):
                         break
                 else:
-                    if line.startswith('-'):
-                        print('\t' + strRed(line))
-                    elif line.startswith('+'):
-                        print('\t' + strCyan(line))
+                    if line.startswith("-"):
+                        print("\t" + strRed(line))
+                    elif line.startswith("+"):
+                        print("\t" + strCyan(line))
                     else:
-                        print('\t' + line)
-                    
-            print('\n')
-        
+                        print("\t" + line)
+
+            print("\n")
+
 
 def replace_strings(text: str, bookkeeper: Bookkeeper) -> str:
     """Replaces strings for catalogs and bookkeeper paths so they don't
@@ -126,7 +141,7 @@ def replace_strings(text: str, bookkeeper: Bookkeeper) -> str:
         str(bookkeeper.paths.catalog_dla),
         str(bookkeeper.paths.catalog_bal),
         str(bookkeeper.paths.catalog_tracer),
-        r".*ini files =.*", 
+        r".*ini files =.*",
         r".*zeff =.*",
         "\(",
         "\)",
@@ -174,6 +189,7 @@ def getArgs() -> argparse.Namespace:
     )
 
     return parser.parse_args()
+
 
 if __name__ == "__main__":
     main()

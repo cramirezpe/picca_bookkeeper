@@ -30,8 +30,8 @@ class DictUtils:
             if key == "all":
                 # special case, apply remove match to all keys in same level.
                 for key1 in result.keys():
-                    result[key1] = DictUtils.remove_matching(result.get(key1, {}), value) # type: ignore
-            else:        
+                    result[key1] = DictUtils.remove_matching(result.get(key1, {}), value)  # type: ignore
+            else:
                 if isinstance(value, collections.abc.Mapping):
                     result[key] = DictUtils.remove_matching(result.get(key, {}), value)  # type: ignore
                 elif key in result:

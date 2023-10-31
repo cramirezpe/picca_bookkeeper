@@ -44,6 +44,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
         unblind_metal_dmat(args.metal_dmat)
     logger.info("Done")
 
+
 def unblind_cf(cf_file: Path) -> None:
     assert cf_file.is_file()
     with fits.open(cf_file, mode="update") as hdul:
@@ -51,25 +52,26 @@ def unblind_cf(cf_file: Path) -> None:
         assert "ATTRI" in hdul, "missing HDU ATTRI"
         hdul["ATTRI"].header["BLINDING"] = "none"
         hdul["ATTRI"].header["HISTORY"] = "unblinded using force_unblinding.py"
-        
+
         # modify COR HDU
         assert "ATTRI" in hdul, "missing HDU COR"
-        for index in range(1, hdul["COR"].header["TFIELDS"]+1):
+        for index in range(1, hdul["COR"].header["TFIELDS"] + 1):
             if hdul["COR"].header[f"TTYPE{index}"] == "DA_BLIND":
                 hdul["COR"].header[f"TTYPE{index}"] = "DA"
         hdul["COR"].header["HISTORY"] = "unblinded using force_unblinding.py"
 
+
 def unblind_dmat(dmat_file: Path) -> None:
     assert dmat_file.is_file()
-    with fits.open(dmat_file, mode="update") as hdul: 
+    with fits.open(dmat_file, mode="update") as hdul:
         # modify DMAT HDU
         assert "DMAT" in hdul, "missing HDU DMAT"
         hdul["DMAT"].header["BLINDING"] = "none"
-        for index in range(1, hdul["DMAT"].header["TFIELDS"]+1):
+        for index in range(1, hdul["DMAT"].header["TFIELDS"] + 1):
             if hdul["DMAT"].header[f"TTYPE{index}"] == "DM_BLIND":
                 hdul["DMAT"].header[f"TTYPE{index}"] = "DM"
         hdul["DMAT"].header["HISTORY"] = "unblinded using force_unblinding.py"
-    
+
 
 def unblind_metal_dmat(metal_dmat_file: Path) -> None:
     assert metal_dmat_file.is_file()
@@ -78,32 +80,28 @@ def unblind_metal_dmat(metal_dmat_file: Path) -> None:
         assert "ATTRI" in hdul, "missing HDU ATTRI"
         hdul["ATTRI"].header["BLINDING"] = "none"
         hdul["ATTRI"].header["HISTORY"] = "unblinded using force_unblinding.py"
-        
+
         # modify MDMAT HDU
         assert "MDMAT" in hdul, "missing HDU ATTRI"
-        for index in range(1, hdul["MDMAT"].header["TFIELDS"]+1):
+        for index in range(1, hdul["MDMAT"].header["TFIELDS"] + 1):
             if "DM_BLIND" in hdul["MDMAT"].header[f"TTYPE{index}"]:
                 name = hdul["MDMAT"].header[f"TTYPE{index}"]
                 mod_name = name.replace("DM_BLIND", "DM")
                 hdul["MDMAT"].header[f"TTYPE{index}"] = mod_name
         hdul["MDMAT"].header["HISTORY"] = "unblinded using force_unblinding.py"
-    
 
 
 def get_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
-    parser.add_argument('--cf',
-                        type=Path,
-                        default=None,
-                        help='Correlation function file')
-    parser.add_argument('--dmat',
-                        type=Path,
-                        default=None,
-                        help='Distortion matrix file')
-    parser.add_argument('--metal-dmat',
-                        type=Path,
-                        default=None,
-                        help='Metal distortion matrix file')
+    parser.add_argument(
+        "--cf", type=Path, default=None, help="Correlation function file"
+    )
+    parser.add_argument(
+        "--dmat", type=Path, default=None, help="Distortion matrix file"
+    )
+    parser.add_argument(
+        "--metal-dmat", type=Path, default=None, help="Metal distortion matrix file"
+    )
 
     parser.add_argument(
         "--log-level",

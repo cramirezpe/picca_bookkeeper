@@ -70,7 +70,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
     while new_dir[-1] == "/":
         new_dir = new_dir[:-1]
     print(new_dir)
-    
+
     print("\nThe following substitutions will be made:")
     for dir_ in old_dirs:
         print(strRed(dir_), "->", strCyan(new_dir))

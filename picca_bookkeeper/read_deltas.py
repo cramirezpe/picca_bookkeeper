@@ -229,7 +229,9 @@ class ReadDeltas:
         self.flux_arr = np.vstack(np.asarray(self.statistics, dtype="object").T[6])
         self.flux_ivar_arr = np.vstack(np.asarray(self.statistics, dtype="object").T[7])
         self.z_arr = np.concatenate(np.asarray(self.statistics, dtype="object").T[8])
-        self.meansnr_arr = np.concatenate(np.asarray(self.statistics, dtype="object").T[9])
+        self.meansnr_arr = np.concatenate(
+            np.asarray(self.statistics, dtype="object").T[9]
+        )
         self.deltas2_arr = self.deltas_arr**2
 
     def get_file_statistics(

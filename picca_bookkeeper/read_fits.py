@@ -203,7 +203,9 @@ class ReadFits:
                 else:
                     row.append("")
 
-            row.append(f"{fit.chi2:.{precision}{float_presentation}}/({fit.ndata}-{fit.nparams})")
+            row.append(
+                f"{fit.chi2:.{precision}{float_presentation}}/({fit.ndata}-{fit.nparams})"
+            )
             row.append(f"{fit.pvalue:.{precision}{float_presentation}}")
 
             rows.append(row)
@@ -663,7 +665,7 @@ class FitPlots:
 
         extent: tuple[float, ...]
         extent = (
-            cor_header.get("RTMIN", 0.),
+            cor_header.get("RTMIN", 0.0),
             cor_header["RTMAX"],
             cor_header["RPMIN"],
             cor_header["RPMAX"],

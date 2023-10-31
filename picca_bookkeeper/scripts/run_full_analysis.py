@@ -35,7 +35,9 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
     )
 
     bookkeeper = Bookkeeper(
-        args.bookkeeper_config, overwrite_config=args.overwrite_config, read_mode=False,
+        args.bookkeeper_config,
+        overwrite_config=args.overwrite_config,
+        read_mode=False,
     )
 
     config = DictUtils.merge_dicts(
@@ -68,9 +70,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
 
     crosses = []
     cross_correlations = args.cross_correlations
-    if (
-        config.get("fits", dict()).get("cross correlations", None) not in (None, "")
-    ):
+    if config.get("fits", dict()).get("cross correlations", None) not in (None, ""):
         cross_correlations += config["fits"]["cross correlations"].split(" ")
     for cross in cross_correlations:
         absorber, region = cross.split(".")
@@ -87,9 +87,9 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
     ## and then all the deltas needed.
     ########################################
     if not args.no_deltas:
-        if (str(continuum_type) not in ("raw", "True")) and config[
-            "delta extraction"
-        ]["calib"] != 0:
+        if (str(continuum_type) not in ("raw", "True")) and config["delta extraction"][
+            "calib"
+        ] != 0:
             calib_args = argparse.Namespace(
                 bookkeeper_config=args.bookkeeper_config,
                 region="lya",  # It doesn't really matter

@@ -29,7 +29,6 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
         format="%(levelname)s:%(message)s",
     )
 
-
     for bookkeeper_config in args.bookkeeper_configs:
         bookkeeper = Bookkeeper(
             bookkeeper_config,
@@ -100,7 +99,7 @@ def get_args() -> argparse.Namespace:
     parser.add_argument(
         "--skip-zeff",
         action="store_true",
-        help="Skip computation of zeff and related quantities."
+        help="Skip computation of zeff and related quantities.",
     )
 
     parser.add_argument(

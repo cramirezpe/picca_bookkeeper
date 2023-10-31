@@ -10,6 +10,7 @@ from picca_bookkeeper.bookkeeper import Bookkeeper
 if TYPE_CHECKING:
     from typing import Optional
 
+
 def main(args: Optional[argparse.Namespace] = None) -> None:
     if args is None:
         args = getArgs()
@@ -27,16 +28,16 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
 
     [print(x) for x in paths]
 
+
 def getArgs() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
         "bookkeeper_configs",
         type=Path,
-        nargs='+',
-        help="Bookkeeper configuration file."
+        nargs="+",
+        help="Bookkeeper configuration file.",
     )
-
 
     args = parser.parse_args()
     return args

@@ -29,7 +29,9 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
     logger.info("Adding fit.")
 
     bookkeeper = Bookkeeper(
-        args.bookkeeper_config, overwrite_config=args.overwrite_config, read_mode=False,
+        args.bookkeeper_config,
+        overwrite_config=args.overwrite_config,
+        read_mode=False,
     )
 
     config = DictUtils.merge_dicts(
