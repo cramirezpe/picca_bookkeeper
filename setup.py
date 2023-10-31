@@ -45,6 +45,7 @@ setuptools.setup(
             "picca_bookkeeper_run_multiple_fits = picca_bookkeeper.scripts.run_multiple_fits:main",
             "picca_bookkeeper_unblind_correlations = picca_bookkeeper.scripts.unblind_correlations:main",
             "picca_bookkeeper_compare_configs = picca_bookkeeper.scripts.compare_bookkeepers:main",
+            "picca_bookkeeper_show_path = picca_bookkeeper.scripts.show_bookkeeper_path:main",
         ]
     },
     classifiers=[
