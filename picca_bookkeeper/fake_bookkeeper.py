@@ -37,7 +37,7 @@ class FakePaths(PathBuilder):
         if fit_file is not None:
             self.fit_file  = Path(fit_file)
 
-    def delta_attributes_file(self, region:str, calib_step: Optional[int]=None) -> Path:
+    def delta_attributes_file(self, region: Optional[str] = None, calib_step: Optional[int] = None) -> Path:
         return Path(self.attributes_files[region])
 
     def exp_cf_fname(
@@ -61,5 +61,5 @@ class FakePaths(PathBuilder):
             region = "lya"
         return Path(self.export_files[f"{absorber}{region}"])
     
-    def fit_out_fname(self):
+    def fit_out_fname(self) -> Path:
         return self.fit_file

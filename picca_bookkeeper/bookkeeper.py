@@ -536,14 +536,13 @@ class Bookkeeper:
         region = "" if region is None else region
         region2 = "" if region2 is None else region2        
         
-        region_subcommand = None
+        region_subcommand = ""
         if region != "":
             region_subcommand = f"{absorber}{region}"
         
         if region2 != "":
             region_subcommand += f"_{absorber2}{region2}"
 
-        args: Dict = dict()
         if "slurm args" in self.config["general"]:
             args = self.config["general"].get("slurm args", dict())
 
@@ -587,7 +586,7 @@ class Bookkeeper:
         region = "" if region is None else region
         region2 = "" if region2 is None else region2
 
-        region_subcommand = None
+        region_subcommand = ""
         if region != "":
             region_subcommand = f"{absorber}{region}"
         
