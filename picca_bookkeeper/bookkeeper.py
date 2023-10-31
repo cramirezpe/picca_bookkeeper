@@ -192,8 +192,10 @@ class Bookkeeper:
             # If we want to directly overwrite the config file in destination
             self.write_bookkeeper(config_delta, self.paths.delta_config_file)
         else:
-            comparison = PathBuilder.compare_config_files(
-                config_path, self.paths.delta_config_file, "delta extraction"
+            comparison = PathBuilder.compare_configs(
+                self.config,
+                yaml.safe_load(self.paths.delta_config_file.read_text()),
+                "delta extraction"
             )
             if comparison == dict():
                 # They are the same
@@ -223,9 +225,9 @@ class Bookkeeper:
             elif overwrite_config and config_type == "correlations":
                 self.write_bookkeeper(config_corr, self.paths.correlation_config_file)
             else:
-                comparison = PathBuilder.compare_config_files(
-                    config_path,
-                    self.paths.correlation_config_file,
+                comparison = PathBuilder.compare_configs(
+                    self.config,
+                    yaml.safe_load(self.paths.correlation_config_file.read_text()),
                     "correlations",
                     ["delta extraction"],
                 )
@@ -262,9 +264,9 @@ class Bookkeeper:
             elif overwrite_config:
                 self.write_bookkeeper(config_fit, self.paths.fit_config_file)
             else:
-                comparison = PathBuilder.compare_config_files(
-                    config_path,
-                    self.paths.fit_config_file,
+                comparison = PathBuilder.compare_configs(
+                    self.config,
+                    yaml.safe_load(self.paths.fit_config_file.read_text()),
                     "fits",
                     ["delta extraction", "correlation run name"],
                 )
@@ -292,9 +294,9 @@ class Bookkeeper:
         self.defaults_diff = dict()
 
         if self.paths.defaults_file.is_file():
-            self.defaults_diff = PathBuilder.compare_config_files(
-                self.paths.defaults_file,
-                defaults_file,
+            self.defaults_diff = PathBuilder.compare_configs(
+                self.defaults,
+                yaml.safe_load(defaults_file.read_text()),
             )
         else:
             self.defaults_diff = {}
@@ -3558,26 +3560,18 @@ class PathBuilder:
         return "{}_{}.{}.{}.{}_{}".format(prefix, calib, calib_region, dla, bal, suffix)
 
     @staticmethod
-    def compare_config_files(
-        file1: str | Path,
-        file2: str | Path,
+    def compare_configs(
+        config1: Dict,
+        config2: Dict,
         section: Optional[str] = None,
         ignore_fields: List[str] = [],
     ) -> Dict:
-        """Compare two config files to determine if they are the same.
+        """Compare two configs to determine if they are the same.
 
         Args:
-            file1
-            file2
             section: Section of the yaml file to compare.
             ignore_fields: Fields to ignore in the comparison
         """
-        with open(file1, "r") as f:
-            config1 = yaml.safe_load(f)
-
-        with open(file2, "r") as f:
-            config2 = yaml.safe_load(f)
-
         if section is not None:
             config1 = config1[section]
             config2 = config2[section]

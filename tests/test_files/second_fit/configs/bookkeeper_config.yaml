@@ -1,6 +1,5 @@
 general:
   conda environment: picca
-  system: slurm_cori
 data:
   bookkeeper dir: /picca_bookkeeper/tests/test_files/output
   healpix data:

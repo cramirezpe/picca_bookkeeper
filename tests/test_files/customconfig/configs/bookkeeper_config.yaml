@@ -31,20 +31,7 @@ delta extraction:
           filename: /file/dust
         data:
           wave solution: lin
-    picca_cf:
-    picca_xcf:
-    picca_dmat:
-      general:
-        np: 20
-        nt: 18
-    picca_xdmat:
-    picca_metal_dmat:
-    picca_export:
-    picca_fitter2:
   slurm args:
-    general:
-      mail-type: fail
-      mail-user: user@host.com
     picca_delta_extraction:
       general:
         time: 00:16:00
@@ -53,12 +40,3 @@ delta extraction:
         time: 00:16:00
       lyb:
         time: 00:16:00
-    picca_cf:
-      general:
-        time: 00:12:12
-    picca_xcf:
-    picca_dmat:
-    picca_xdmat:
-    picca_metal_dmat:
-    picca_export:
-    picca_fitter2:

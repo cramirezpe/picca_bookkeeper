@@ -26,7 +26,6 @@ delta extraction:
 
   # Slurm arguments to be used by the bookkeeper
   slurm args:
-    general:
 
     picca_convert_transmission:
       general:
@@ -36,23 +35,7 @@ delta extraction:
       general:
         time: "00:30:00"
 
-    picca_deltas:
 
-    picca_cf:
-
-    picca_xcf:
-
-    picca_cf:
-
-    picca_dmat:
-
-    picca_xdmat:
-
-    picca_metal_dmat:
-
-    picca_export:
-
-    picca_fitter2:
 
   # extra args to be used by the bookkeeper
   extra args:
@@ -63,27 +46,6 @@ delta extraction:
         lambda-max: 5500
         delta-lambda: 0.8
 
-    picca_delta_extraction:
-
-    picca_deltas:
-
-    picca_cf:
-      general:
-        nside: 16
-
-    picca_xcf:
-
-    picca_cf:
-
-    picca_dmat:
-
-    picca_xdmat:
-
-    picca_metal_dmat:
-
-    picca_export:
-
-    picca_fitter2:
 
 correlations:
   catalog tracer:
@@ -96,66 +58,3 @@ fits:
   auto correlations: lya.lya-lya.lya
   cross correlations: lya.lya 
 
-
-
-  # Slurm arguments to be used by the bookkeeper
-  slurm args:
-    general:
-      mail-type: fail
-      mail-user: mail@host.es
-
-    picca_convert_transmission:
-      general:
-        time: "00:30:00"
-
-    picca_delta_extraction:
-      general:
-        time: "00:30:00"
-    picca_deltas:
-
-    picca_cf:
-
-    picca_xcf:
-
-    picca_cf:
-
-    picca_dmat:
-
-    picca_xdmat:
-
-    picca_metal_dmat:
-
-    picca_export:
-
-    picca_fitter2:
-
-  # extra args to be used by the bookkeeper
-  extra args:
-    picca_convert_transmission:
-      general:
-        linear-spacing: True
-        lambda-min: 3600
-        lambda-max: 5500
-        delta-lambda: 0.8
-
-    picca_delta_extraction:
-
-    picca_deltas:
-
-    picca_cf:
-      general:
-        nside: 16
-
-    picca_xcf:
-
-    picca_cf:
-
-    picca_dmat:
-
-    picca_xdmat:
-
-    picca_metal_dmat:
-
-    picca_export:
-
-    picca_fitter2:

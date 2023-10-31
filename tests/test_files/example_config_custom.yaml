@@ -60,9 +60,6 @@ delta extraction:
 
     # Slurm arguments to be used by the bookkeeper
   slurm args:
-    general:
-      mail-type: fail
-      mail-user: user@host.com
     picca_delta_extraction:
       general:
         time: "00:16:00"
@@ -74,23 +71,6 @@ delta extraction:
       lyb:
         time: "00:16:00"
 
-    picca_cf:
-    
-    picca_xcf:
-    
-    picca_cf:
-      general:
-        time: "00:12:12"
-
-    picca_dmat:
-
-    picca_xdmat:
-
-    picca_metal_dmat:
-
-    picca_export:
-
-    picca_fitter2:
 
   # extra args to be used by the bookkeeper
   extra args:
@@ -110,27 +90,6 @@ delta extraction:
         data:
           wave solution: lin
     
-    picca_cf:
-      general:
-        no project:
-        nside: 32
-    
-    picca_xcf:
-    
-    picca_cf:
-
-    picca_dmat:
-      general:
-        np: 20
-        nt: 18
-
-    picca_xdmat:
-
-    picca_metal_dmat:
-
-    picca_export:
-
-    picca_fitter2:
   
   # In each of the steps, we could change the input or leave the default one (if blank)
   # We usually want to read from the continuum fitting output (our results are
@@ -145,71 +104,3 @@ fits:
   auto correlations: lya.lyb-lya.lya
   cross correlations: lya.lyb 
 
-
-  # Slurm arguments to be used by the bookkeeper
-  slurm args:
-    general:
-      mail-type: fail
-      mail-user: user@host.com
-    picca_delta_extraction:
-      general:
-        time: "00:16:00"
-        qos: regular
-
-    picca_cf:
-    
-    picca_xcf:
-    
-    picca_cf:
-      general:
-        time: "00:12:12"
-
-    picca_dmat:
-
-    picca_xdmat:
-
-    picca_metal_dmat:
-
-    picca_export:
-
-    picca_fitter2:
-
-  # extra args to be used by the bookkeeper
-  extra args:
-    picca_convert_transmission:
-      general:
-        nspec: 30
-    
-    picca_delta_extraction:
-      general:
-        expected flux:
-          type: Dr16ExpectedFlux
-        corrections: 
-          num corrections: 1
-          type 0: DustCorrection
-        correction arguments 0:
-          filename: /file/dust
-        data:
-          wave solution: lin
-    
-    picca_cf:
-      general:
-        no project:
-        nside: 32
-    
-    picca_xcf:
-    
-    picca_cf:
-
-    picca_dmat:
-      general:
-        np: 20
-        nt: 18
-
-    picca_xdmat:
-
-    picca_metal_dmat:
-
-    picca_export:
-
-    picca_fitter2:

@@ -29,7 +29,6 @@ delta extraction:
           num masks: 1
           type 0: BalMask
 
-    picca_deltas:
     
 correlations:
   catalog tracer:

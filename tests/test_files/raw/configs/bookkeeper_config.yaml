@@ -22,28 +22,10 @@ delta extraction:
         lambda-min: 3600
         lambda-max: 5500
         delta-lambda: 0.8
-    picca_delta_extraction:
-    picca_deltas:
-    picca_cf:
-    picca_xcf:
-    picca_dmat:
-    picca_xdmat:
-    picca_metal_dmat:
-    picca_export:
-    picca_fitter2:
   slurm args:
-    general:
     picca_convert_transmission:
       general:
         time: 00:30:00
     picca_delta_extraction:
       general:
         time: 00:30:00
-    picca_deltas:
-    picca_cf:
-    picca_xcf:
-    picca_dmat:
-    picca_xdmat:
-    picca_metal_dmat:
-    picca_export:
-    picca_fitter2:

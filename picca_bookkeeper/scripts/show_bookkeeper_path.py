@@ -14,21 +14,26 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
     if args is None:
         args = getArgs()
 
-    bookkeeper = Bookkeeper(args.bookkeeper_config)
+    paths = []
+    for bookkeeper_config in args.bookkeeper_configs:
+        bookkeeper = Bookkeeper(bookkeeper_config)
 
-    if bookkeeper.fits is not None:
-        return bookkeeper.paths.fits_path
-    elif bookkeeper.correlations is not None:
-        return bookkeeper.paths.correlations_path
-    else:
-        return bookkeeper.paths.run_path
+        if bookkeeper.fits is not None:
+            paths.append(bookkeeper.paths.fits_path)
+        elif bookkeeper.correlations is not None:
+            paths.append(bookkeeper.paths.correlations_path)
+        else:
+            paths.append(bookkeeper.paths.run_path)
+
+    [print(x) for x in paths]
 
 def getArgs() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
-        "bookkeeper_config",
+        "bookkeeper_configs",
         type=Path,
+        nargs='+',
         help="Bookkeeper configuration file."
     )
 

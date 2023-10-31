@@ -30,7 +30,10 @@ def mock_run(command, shell, capture_output):
     random.seed(command)
 
     class Out:
-        stdout = codecs.encode(str(random.randint(10000000, 99999999)))
+        stdout = codecs.encode(
+            str(int.from_bytes(command.encode(), "little"))[:8]
+        )
+        
         returncode = 0
 
     return Out()
@@ -680,7 +683,8 @@ class TestBookkeeper(unittest.TestCase):
 
         cf.write_job()
         cf.send_job()
-
+        
+        self.replace_paths_bookkeeper_output(bookkeeper.paths)
         self.replace_paths_bookkeeper_output(bookkeeper2.paths)
         if "UPDATE_TESTS" in os.environ and os.environ["UPDATE_TESTS"] == "True":
             self.update_test_output(test_files, bookkeeper2.paths.run_path)
