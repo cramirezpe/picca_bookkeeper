@@ -496,6 +496,7 @@ class Bookkeeper:
         ]
         fit_commands = [
             "picca_bookkeeper_correct_config_zeff",
+            "run_vega",
             "run_vega_mpi",
             "vega_auto",
             "vega_cross",
