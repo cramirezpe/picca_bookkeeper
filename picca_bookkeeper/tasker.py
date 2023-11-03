@@ -4,6 +4,7 @@ import logging
 import os
 import sys
 import textwrap
+import time
 
 from pathlib import Path
 from subprocess import run
@@ -366,19 +367,24 @@ umask 0002
         Args:
             jobid: Identificator of the job to obtain the status for.
         """
-        sbatch_process = run(
-            f"sacct -j {jobid} -o State --parsable2 -n",
-            shell=True,
-            capture_output=True,
-        )
-
-        try:
-            return sbatch_process.stdout.decode("utf-8").splitlines()[0]
-        except:
-            logger.info(
-                f"Retreiving status for jobid {jobid} failed. Assuming failed status."
+        tries=0
+        while tries < 10:
+            sbatch_process = run(
+                f"sacct -j {jobid} -o State --parsable2 -n",
+                shell=True,
+                capture_output=True,
             )
-            return "FAILED"
+
+            try:
+                return sbatch_process.stdout.decode("utf-8").splitlines()[0]
+            except:
+                logger.info(
+                    f"Retrieving status for jobid {jobid} failed. Retrying in 2 seconds..."
+                )
+                time.sleep(2)
+        
+        logger.info(f"Retrieving status failed. Assuming job failed.")
+        return "FAILED"
 
 
 class SlurmCoriTasker(SlurmTasker):
