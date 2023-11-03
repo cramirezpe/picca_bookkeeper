@@ -644,9 +644,8 @@ class TestBookkeeper(unittest.TestCase):
         with self.assertRaises(ValueError) as cm:
             bookkeeper2 = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml", read_mode=False)
         self.assertEqual(
-            "delta extraction section of config file should match delta extraction "
-            "section from file already in the bookkeeper.",
-            str(cm.exception)[0:114],
+            "Incompatible configs:",
+            str(cm.exception)[0:21],
         )
 
         # Now failing run (2)
@@ -660,9 +659,8 @@ class TestBookkeeper(unittest.TestCase):
         with self.assertRaises(ValueError) as cm:
             bookkeeper2 = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml", read_mode=False)
         self.assertEqual(
-            "correlations section of config file should match correlation section "
-            "from file already in the bookkeeper.",
-            str(cm.exception)[0:105],
+            "Incompatible configs:",
+            str(cm.exception)[0:21],
         )
 
         # Now main run:
@@ -713,9 +711,8 @@ class TestBookkeeper(unittest.TestCase):
         with self.assertRaises(ValueError) as cm:
             bookkeeper2 = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml", read_mode=False)
         self.assertEqual(
-            "correlations section of config file should match correlation section from "
-            "file already in the bookkeeper.",
-            str(cm.exception)[0:105],
+            "Incompatible configs:",
+            str(cm.exception)[0:21],
         )
 
         # Now failing run (2)
@@ -729,8 +726,8 @@ class TestBookkeeper(unittest.TestCase):
         with self.assertRaises(ValueError) as cm:
             bookkeeper2 = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml", read_mode=False)
         self.assertEqual(
-            "fits section of config file should match fits section from file already in the bookkeeper.",
-            str(cm.exception)[0:90],
+            "Incompatible configs:",
+            str(cm.exception)[0:21],
         )
 
         # Now main run:

@@ -15,8 +15,6 @@ correlations:
   delta extraction: dMdB20_2.mgii_r.0.0_0
   run name: default
 
-  auto correlations: lya.lya-lya.lya
-  cross correlations: lya.lya 
 
 
   extra args:
@@ -25,4 +23,7 @@ correlations:
         nside: 128
 
 fits:
-  run name: nondefault
+  run name: nondefault-invalid
+
+  auto correlations: lya.lya-lya.lya
+  cross correlations: lya.lya 

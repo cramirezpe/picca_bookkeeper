@@ -119,169 +119,63 @@ class Bookkeeper:
         with open(config_path) as file:
             self.config = yaml.safe_load(file)
 
-        self.paths = PathBuilder(self.config)
-
         self.read_mode = read_mode
+        self.overwrite_config = overwrite_config
 
-        # Potentially could add fits things here
-        # Defining dicts containing all information.
+        # Add sections from bookkeeper config
         self.fits = None
         self.correlations = None
         self.delta_extraction = None
 
-        # Load sections if they are available in config file
-        # We ensure config_type is the deepest option available.
-        if self.config.get("delta extraction") is not None:
-            self.delta_extraction = self.config.get("delta extraction")
-            config_type = "deltas"
-        if self.config.get("correlations") is not None:
-            self.correlations = self.config.get("correlations")
-            config_type = "correlations"
-        if self.config.get("fits") is not None:
-            self.fits = self.config.get("fits")
-            config_type = "fits"
-
-        # Now we will load configs from bookkeeper location if not
-        # available in config
-        if self.config.get("fits") is not None:
-            # We need to have both correlations and deltas available:
-            if self.correlations is None:
-                with open(self.paths.correlation_config_file, "r") as f:
-                    correlation_config = yaml.safe_load(f)
-                self.correlations = correlation_config["correlations"]
-                self.config["correlations"] = self.correlations
-
-        if (
-            self.config.get("correlations") is not None
-            or self.config.get("fits") is not None
-        ):
-            # We need to have deltas if we want correlations or fits
-            if self.delta_extraction is None:
-                with open(self.paths.delta_config_file, "r") as f:
-                    delta_config = yaml.safe_load(f)
-                self.delta_extraction = delta_config["delta extraction"]
-                self.config["delta extraction"] = self.delta_extraction
-
+        # Needed to retrieve continuum tag
         self.paths = PathBuilder(self.config)
 
+        # Load sections if they are available in config file
+        if self.config.get("delta extraction") is not None:
+            self.delta_extraction = self.config.get("delta extraction")
+        if self.config.get("correlations") is not None:
+            self.correlations = self.config.get("correlations")
+        if self.config.get("fits") is not None:
+            self.fits = self.config.get("fits")
+
+        # If regions are not available, we should look at the bookkeeper config 
+        # to search for them
+        # We also check that files in the bookkeeper folder match input config.
+        if self.delta_extraction is None:
+            self.delta_extraction = yaml.safe_load(self.paths.delta_config_file.read_text())["delta extraction"]
+            self.config["delta extraction"] = self.delta_extraction
+        elif not self.read_mode: 
+            # If delta information exists, check that is the same
+            # as in the output folder (if it does exist)
+            self.paths.check_delta_directories()
+            self.check_existing_config("delta extraction", self.paths.delta_config_file)
+
+        if self.fits is not None:
+            if self.correlations is None:
+                self.correlations = yaml.safe_load(self.paths.correlation_config_file.read_text())["correlations"]
+                self.config["correlations"] = self.correlations
+            
+            self.config["fits"]["delta extraction"] = self.paths.continuum_tag
+            self.config["fits"]["correlation run name"] = self.config["correlations"]["run name"]
+        
+            if not self.read_mode:
+                self.paths.check_fit_directories()
+                self.check_existing_config("fits", self.paths.fit_config_file)
+
+        if self.correlations is not None:
+            self.config["correlations"]["delta extraction"] = self.paths.continuum_tag
+
+            if not self.read_mode:
+                self.paths.check_correlation_directories()
+                self.check_existing_config("correlations", self.paths.correlation_config_file)
+            
         self.check_bookkeeper_config()
 
         if self.read_mode:
-            # Next steps imply writting on bookkeeper destination
-            # for read_mode we can finish here.
+            # Only need to read defaults if not in 
+            # read mode.
             return
 
-        self.paths.check_delta_directories()
-
-        if self.correlations is not None:
-            self.paths.check_correlation_directories()
-
-        if self.fits is not None:
-            self.paths.check_fit_directories()
-
-        # Potentially could add fits things here.
-        # Copy bookkeeper configuration into destination
-        # If bookkeeper included delta
-        config_delta = copy.deepcopy(self.config)
-        config_delta.pop("correlations", None)
-        config_delta.pop("fits", None)
-
-        if not self.paths.delta_config_file.is_file():
-            self.write_bookkeeper(config_delta, self.paths.delta_config_file)
-        elif filecmp.cmp(self.paths.delta_config_file, config_path):
-            # If files are the same we can continue
-            pass
-        elif overwrite_config and config_type == "deltas":
-            # If we want to directly overwrite the config file in destination
-            self.write_bookkeeper(config_delta, self.paths.delta_config_file)
-        else:
-            comparison = PathBuilder.compare_configs(
-                self.config,
-                yaml.safe_load(self.paths.delta_config_file.read_text()),
-                "delta extraction",
-            )
-            if comparison == dict():
-                # They are the same
-                self.write_bookkeeper(config_delta, self.paths.delta_config_file)
-            else:
-                raise ValueError(
-                    "delta extraction section of config file should match delta "
-                    "extraction section from file already in the bookkeeper. "
-                    "Unmatching items:\n\n"
-                    f"{DictUtils.print_dict(comparison)}\n\n"
-                    f"Remove config file to overwrite {self.paths.delta_config_file}"
-                )
-
-        if self.correlations is not None:
-            config_corr = copy.deepcopy(self.config)
-
-            config_corr["correlations"]["delta extraction"] = self.paths.continuum_tag
-
-            config_corr.pop("delta extraction")
-            config_corr.pop("fits", None)
-
-            if not self.paths.correlation_config_file.is_file():
-                self.write_bookkeeper(config_corr, self.paths.correlation_config_file)
-            elif filecmp.cmp(self.paths.correlation_config_file, config_path):
-                # If files are the same we can continue
-                pass
-            elif overwrite_config and config_type == "correlations":
-                self.write_bookkeeper(config_corr, self.paths.correlation_config_file)
-            else:
-                comparison = PathBuilder.compare_configs(
-                    self.config,
-                    yaml.safe_load(self.paths.correlation_config_file.read_text()),
-                    "correlations",
-                    ["delta extraction"],
-                )
-                if comparison == dict():
-                    # They are the same
-                    self.write_bookkeeper(
-                        config_corr, self.paths.correlation_config_file
-                    )
-                else:
-                    raise ValueError(
-                        "correlations section of config file should match correlation section "
-                        "from file already in the bookkeeper. Unmatching items:\n\n"
-                        f"{DictUtils.print_dict(comparison)}\n\n"
-                        f"Remove config file to overwrite {self.paths.correlation_config_file}"
-                    )
-        if self.fits is not None:
-            config_fit = copy.deepcopy(self.config)
-
-            config_fit["fits"]["delta extraction"] = self.paths.continuum_tag
-
-            if self.config["fits"].get("correlation run name", None) is None:
-                config_fit["fits"]["correlation run name"] = self.config[
-                    "correlations"
-                ]["run name"]
-
-            config_fit.pop("delta extraction")
-            config_fit.pop("correlations", None)
-
-            if not self.paths.fit_config_file.is_file():
-                self.write_bookkeeper(config_fit, self.paths.fit_config_file)
-            elif filecmp.cmp(self.paths.fit_config_file, config_path):
-                # If files are the same we can continue
-                pass
-            elif overwrite_config:
-                self.write_bookkeeper(config_fit, self.paths.fit_config_file)
-            else:
-                comparison = PathBuilder.compare_configs(
-                    self.config,
-                    yaml.safe_load(self.paths.fit_config_file.read_text()),
-                    "fits",
-                    ["delta extraction", "correlation run name"],
-                )
-                if comparison == dict():
-                    self.write_bookkeeper(config_fit, self.paths.fit_config_file)
-                else:
-                    raise ValueError(
-                        "fits section of config file should match fits section "
-                        "from file already in the bookkeeper. Unmatching items:\n\n"
-                        f"{DictUtils.print_dict(comparison)}\n\n"
-                        f"Remove config file to overwrite {self.paths.fit_config_file}"
-                    )
 
         # Read defaults and check if they have changed.
         defaults_file = files(resources).joinpath(
@@ -326,6 +220,32 @@ class Bookkeeper:
             defaults_with_removed,
             self.config,
         )
+
+    def check_existing_config(self, section: str, destination: Path) -> None:
+        config = copy.deepcopy(self.config)
+
+        for key in list(config.keys()):
+            if key not in (section, "general", "data"):
+                config.pop(key, None)
+
+        if not destination.is_file():
+            self.write_bookkeeper(config, destination)
+        elif self.overwrite_config:
+            self.write_bookkeeper(config, destination)
+        else:
+            comparison = PathBuilder.compare_configs(
+                config,
+                yaml.safe_load(destination.read_text()),
+                section,
+            )
+            if comparison == dict():
+                # They are the same
+                self.write_bookkeeper(config, destination)
+            else:
+                raise ValueError(
+                    f"Incompatible configs: {destination}\n"
+                    f"{DictUtils.print_dict(comparison)}\n\n"
+                )
 
     @staticmethod
     def write_ini(config: Dict, file: Path | str) -> None:
