@@ -367,7 +367,7 @@ umask 0002
         Args:
             jobid: Identificator of the job to obtain the status for.
         """
-        tries=0
+        tries = 0
         while tries < 10:
             sbatch_process = run(
                 f"sacct -j {jobid} -o State --parsable2 -n",
@@ -382,7 +382,7 @@ umask 0002
                     f"Retrieving status for jobid {jobid} failed. Retrying in 2 seconds..."
                 )
                 time.sleep(2)
-        
+
         logger.info(f"Retrieving status failed. Assuming job failed.")
         return "FAILED"
 

@@ -138,13 +138,15 @@ class Bookkeeper:
         if self.config.get("fits") is not None:
             self.fits = self.config.get("fits")
 
-        # If regions are not available, we should look at the bookkeeper config 
+        # If regions are not available, we should look at the bookkeeper config
         # to search for them
         # We also check that files in the bookkeeper folder match input config.
         if self.delta_extraction is None:
-            self.delta_extraction = yaml.safe_load(self.paths.delta_config_file.read_text())["delta extraction"]
+            self.delta_extraction = yaml.safe_load(
+                self.paths.delta_config_file.read_text()
+            )["delta extraction"]
             self.config["delta extraction"] = self.delta_extraction
-        elif not self.read_mode: 
+        elif not self.read_mode:
             # If delta information exists, check that is the same
             # as in the output folder (if it does exist)
             self.paths.check_delta_directories()
@@ -152,12 +154,16 @@ class Bookkeeper:
 
         if self.fits is not None:
             if self.correlations is None:
-                self.correlations = yaml.safe_load(self.paths.correlation_config_file.read_text())["correlations"]
+                self.correlations = yaml.safe_load(
+                    self.paths.correlation_config_file.read_text()
+                )["correlations"]
                 self.config["correlations"] = self.correlations
-            
+
             self.config["fits"]["delta extraction"] = self.paths.continuum_tag
-            self.config["fits"]["correlation run name"] = self.config["correlations"]["run name"]
-        
+            self.config["fits"]["correlation run name"] = self.config["correlations"][
+                "run name"
+            ]
+
             if not self.read_mode:
                 self.paths.check_fit_directories()
                 self.check_existing_config("fits", self.paths.fit_config_file)
@@ -167,15 +173,16 @@ class Bookkeeper:
 
             if not self.read_mode:
                 self.paths.check_correlation_directories()
-                self.check_existing_config("correlations", self.paths.correlation_config_file)
-            
+                self.check_existing_config(
+                    "correlations", self.paths.correlation_config_file
+                )
+
         self.check_bookkeeper_config()
 
         if self.read_mode:
-            # Only need to read defaults if not in 
+            # Only need to read defaults if not in
             # read mode.
             return
-
 
         # Read defaults and check if they have changed.
         defaults_file = files(resources).joinpath(
