@@ -966,7 +966,7 @@ class Bookkeeper:
             run_file=self.paths.run_path / f"scripts/run_{job_name}.sh",
             jobid_log_file=self.paths.run_path / f"logs/jobids.log",
             wait_for=wait_for,
-            out_file=delta_stats_file,
+            out_files=[delta_stats_file,],
         )
 
     def get_delta_extraction_tasker(
@@ -1149,7 +1149,7 @@ class Bookkeeper:
             jobid_log_file=self.paths.run_path / f"logs/jobids.log",
             wait_for=wait_for,
             in_files=input_files,
-            out_file=self.paths.delta_attributes_file(region, calib_step),
+            out_files=[self.paths.delta_attributes_file(region, calib_step),],
         )
 
     def get_calibration_extraction_tasker(
@@ -1383,7 +1383,7 @@ class Bookkeeper:
                 self.paths.delta_attributes_file(region_)
                 for region_ in (region, region2)
             ],
-            out_file=output_filename,
+            out_files=[output_filename,],
         )
 
     def get_dmat_tasker(
@@ -1539,7 +1539,7 @@ class Bookkeeper:
                 self.paths.delta_attributes_file(region_)
                 for region_ in (region, region2)
             ],
-            out_file=output_filename,
+            out_files=[output_filename,],
         )
 
     def get_cf_exp_tasker(
@@ -1699,7 +1699,7 @@ class Bookkeeper:
             jobid_log_file=self.paths.correlations_path / f"logs/jobids.log",
             wait_for=wait_for,
             in_files=in_files,
-            out_file=output_filename,
+            out_files=[output_filename,],
         )
 
     def get_metal_tasker(
@@ -1862,7 +1862,7 @@ class Bookkeeper:
                 self.paths.delta_attributes_file(region_)
                 for region_ in (region, region2)
             ],
-            out_file=output_filename,
+            out_files=[output_filename,],
         )
 
     def get_xcf_tasker(
@@ -1997,7 +1997,7 @@ class Bookkeeper:
             in_files=[
                 self.paths.delta_attributes_file(region),
             ],
-            out_file=output_filename,
+            out_files=[output_filename,],
         )
 
     def get_xdmat_tasker(
@@ -2134,7 +2134,7 @@ class Bookkeeper:
             in_files=[
                 self.paths.delta_attributes_file(region),
             ],
-            out_file=output_filename,
+            out_files=[output_filename,],
         )
 
     def get_xcf_exp_tasker(
@@ -2283,7 +2283,7 @@ class Bookkeeper:
             jobid_log_file=self.paths.correlations_path / f"logs/jobids.log",
             wait_for=wait_for,
             in_files=in_files,
-            out_file=output_filename,
+            out_files=[output_filename,],
         )
 
     def get_xmetal_tasker(
@@ -2433,7 +2433,7 @@ class Bookkeeper:
             in_files=[
                 self.paths.delta_attributes_file(region),
             ],
-            out_file=output_filename,
+            out_files=[output_filename,],
         )
 
     def get_compute_zeff_tasker(
@@ -2526,7 +2526,7 @@ class Bookkeeper:
             jobid_log_file=self.paths.fits_path / f"logs/jobids.log",
             in_files=input_files,
             wait_for=wait_for,
-            out_file=self.paths.fit_computed_params_out(),
+            out_files=[self.paths.fit_computed_params_out(),],
         )
 
     def get_fit_tasker(
@@ -2605,7 +2605,7 @@ class Bookkeeper:
             jobid_log_file=self.paths.fits_path / f"logs/jobids.log",
             in_files=input_files,
             wait_for=wait_for,
-            out_file=self.paths.fit_out_fname(),
+            out_files=[self.paths.fit_out_fname(),],
         )
 
     def get_sampler_tasker(
@@ -2690,7 +2690,7 @@ class Bookkeeper:
             jobid_log_file=self.paths.fits_path / f"logs/jobids.log",
             in_files=input_files,
             wait_for=wait_for,
-            out_file=self.paths.sampler_out_path() / "jobidfile",
+            out_files=[self.paths.sampler_out_path() / "jobidfile",],
             force_OMP_threads=1,
         )
 

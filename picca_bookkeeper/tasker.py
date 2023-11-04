@@ -68,7 +68,7 @@ class Tasker:
             running (if Tasker) or jobid of the task to wait (if str).
         in_files: Input files that must exists or contain a jobid in order for the
             job to be launched.
-        out_file: Out file that will be write by the job (to add jobid if available).
+        out_files: Out file that will be write by the job (to add jobid if available).
     """
 
     default_srun_options: Dict = dict()
@@ -88,7 +88,7 @@ class Tasker:
         environmental_variables: Dict = dict(),
         srun_options: Dict = dict(),
         in_files: List[Path] | List[str] = list[Path](),
-        out_file: Optional[Path | str] = None,
+        out_files: List[Path | str] = None,
         force_OMP_threads: Optional[int] = None,
         precommand: str = "",
     ):
@@ -105,7 +105,7 @@ class Tasker:
             jobid_log_file (Path): Location of log file where to include jobids of runs.
             in_files: Input files that must exists or contain a jobid in order for the
             job to be launched.
-            out_file: Out file that will be write by the job (to add jobid if available).
+            out_files: Out files that will be write by the job (to add jobid if available).
             force_OMP_threads: Force the number of OMP threads in script.
         """
         self.slurm_header_args = {**self.default_header, **slurm_header_args}
@@ -127,7 +127,7 @@ class Tasker:
         self.wait_for = wait_for
         self.jobid_log_file = jobid_log_file
         self.in_files = in_files
-        self.out_file = out_file
+        self.out_files = out_files
         self.OMP_threads = force_OMP_threads
         self.precommand = precommand
 
@@ -199,8 +199,8 @@ class Tasker:
         with open(self.jobid_log_file, "a") as file:
             file.write(str(self.run_file.name) + " " + str(self.jobid) + "\n")
 
-        if self.out_file is not None:
-            with open(self.out_file, "w") as file:
+        for out_file in self.out_files:
+            with open(out_file, "w") as file:
                 file.write(str(self.jobid))
 
     def send_job(self) -> None:
