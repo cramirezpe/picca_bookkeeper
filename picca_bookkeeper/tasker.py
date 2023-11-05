@@ -6,6 +6,7 @@ import sys
 import textwrap
 import time
 
+from datetime import datetime
 from pathlib import Path
 from subprocess import run
 from typing import TYPE_CHECKING
@@ -161,7 +162,11 @@ class Tasker:
 
             size = file.stat().st_size
             if size > 1 and size < 20:
-                self.wait_for_ids.append(int(Path(file).read_text().splitlines()[0]))
+                jobid = int(Path(file).read_text().splitlines()[0])
+                status = self.get_jobid_status(jobid)
+
+                if status != "COMPLETED":
+                    self.wait_for_ids.append(jobid)
 
     def _make_command(self) -> str:
         """Method to generate a command with args
@@ -226,9 +231,9 @@ class Tasker:
     @staticmethod
     def get_jobid_status(jobid: int) -> str:
         logger.warning(
-            "Requesting jobid status for a non-slurm object. Returning COMPLETED"
+            "Requesting jobid status for a non-slurm object. Returning FAILED"
         )
-        return "COMPLETED"
+        return "FAILED"
 
 
 class SlurmTasker(Tasker):
@@ -449,12 +454,17 @@ class BashTasker(Tasker):
 
         Returns:
             str: environmental options."""
+        if self.OMP_threads is not None:
+            text = f"export OMP_NUM_THREADS={self.OMP_threads}\n"
+        else:
+            text = ""
+
         if "sh" in self.environment:
             activate = ""
         else:
             activate = "activate "
 
-        text = textwrap.dedent(
+        text += textwrap.dedent(
             f"""
 module load python
 source {activate}{self.environment}
@@ -476,12 +486,23 @@ umask 0002
 
     def send_job(self) -> None:
         """Method to run bash job script."""
-        out = open(self.slurm_header_args["output"], "w")
-        err = open(self.slurm_header_args["error"], "w")
+        out = open(
+            self.slurm_header_args["output"].replace(
+                "%j", datetime.now().strftime("%d%m%Y%H%M%S")
+            ),
+            "w",
+        )
+        err = open(
+            self.slurm_header_args["error"].replace(
+                "%j", datetime.now().strftime("%d%m%Y%H%M%S")
+            ),
+            "w",
+        )
 
         _ = Path(".").resolve()
         os.chdir(self.run_file.parent)
         self.retcode = run(["sh", f"{self.run_file}"], stdout=out, stderr=err)
+        os.chdir(_)
 
 
 class ChainedTasker:

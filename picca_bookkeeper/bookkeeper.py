@@ -152,6 +152,15 @@ class Bookkeeper:
             self.paths.check_delta_directories()
             self.check_existing_config("delta extraction", self.paths.delta_config_file)
 
+        if self.correlations is not None:
+            self.config["correlations"]["delta extraction"] = self.paths.continuum_tag
+
+            if not self.read_mode:
+                self.paths.check_correlation_directories()
+                self.check_existing_config(
+                    "correlations", self.paths.correlation_config_file
+                )
+
         if self.fits is not None:
             if self.correlations is None:
                 self.correlations = yaml.safe_load(
@@ -168,14 +177,7 @@ class Bookkeeper:
                 self.paths.check_fit_directories()
                 self.check_existing_config("fits", self.paths.fit_config_file)
 
-        if self.correlations is not None:
-            self.config["correlations"]["delta extraction"] = self.paths.continuum_tag
 
-            if not self.read_mode:
-                self.paths.check_correlation_directories()
-                self.check_existing_config(
-                    "correlations", self.paths.correlation_config_file
-                )
 
         self.check_bookkeeper_config()
 
@@ -3212,6 +3214,7 @@ class Bookkeeper:
                 if size < 40:
                     jobid = int(file.read_text().splitlines()[0])
                     status = get_Tasker(system).get_jobid_status(jobid)
+                    logger.debug(f"{job_name} status: {status}")
                     if status not in (
                         "COMPLETED",
                         "RUNNING",
