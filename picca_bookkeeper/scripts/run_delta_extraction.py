@@ -50,7 +50,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
     ):
         logger.info("Adding calibration step(s).")
         calibration = bookkeeper.get_calibration_extraction_tasker(
-            system=None,
+            system=args.system,
             debug=args.debug,
             wait_for=args.wait_for,
             overwrite=args.overwrite,
@@ -73,7 +73,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
     logger.info(f"Adding deltas for region: {args.region}.")
     deltas = get_tasker(
         region=args.region,
-        system=None,
+        system=args.system,
         debug=args.debug,
         wait_for=args.wait_for,
         overwrite=args.overwrite,
@@ -90,6 +90,13 @@ def get_args() -> argparse.Namespace:
     parser.add_argument(
         "bookkeeper_config", type=Path, help="Path to bookkeeper file to use"
     )
+
+    parser.add_argument(
+        "--system",
+        type=str,
+        default = None,
+    )
+
     parser.add_argument(
         "--region",
         type=str,

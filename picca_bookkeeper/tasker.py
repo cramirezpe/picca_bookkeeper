@@ -230,9 +230,29 @@ class Tasker:
 
     @staticmethod
     def get_jobid_status(jobid: int) -> str:
-        logger.warning(
-            "Requesting jobid status for a non-slurm object. Returning FAILED"
-        )
+        """
+        Method to return the status of a given jobid in SLURM systems.
+
+        Args:
+            jobid: Identificator of the job to obtain the status for.
+        """
+        tries = 0
+        while tries < 10:
+            sbatch_process = run(
+                f"sacct -j {jobid} -o State --parsable2 -n",
+                shell=True,
+                capture_output=True,
+            )
+
+            try:
+                return sbatch_process.stdout.decode("utf-8").splitlines()[0]
+            except:
+                logger.info(
+                    f"Retrieving status for jobid {jobid} failed. Retrying in 2 seconds..."
+                )
+                time.sleep(2)
+
+        logger.info(f"Retrieving status failed. Assuming job failed.")
         return "FAILED"
 
 
@@ -363,33 +383,6 @@ umask 0002
             raise ValueError(
                 f'Submitting job failed. {self.sbatch_process.stderr.decode("utf-8")}'
             )
-
-    @staticmethod
-    def get_jobid_status(jobid: int) -> str:
-        """
-        Method to return the status of a given jobid in SLURM systems.
-
-        Args:
-            jobid: Identificator of the job to obtain the status for.
-        """
-        tries = 0
-        while tries < 10:
-            sbatch_process = run(
-                f"sacct -j {jobid} -o State --parsable2 -n",
-                shell=True,
-                capture_output=True,
-            )
-
-            try:
-                return sbatch_process.stdout.decode("utf-8").splitlines()[0]
-            except:
-                logger.info(
-                    f"Retrieving status for jobid {jobid} failed. Retrying in 2 seconds..."
-                )
-                time.sleep(2)
-
-        logger.info(f"Retrieving status failed. Assuming job failed.")
-        return "FAILED"
 
 
 class SlurmCoriTasker(SlurmTasker):

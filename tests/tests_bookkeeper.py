@@ -48,6 +48,7 @@ def write_full_analysis(config_path, args=dict()):
             skip_sent = False,
             auto_correlations = [],
             cross_correlations = [],
+            system = None,
             no_deltas=False,
             no_correlations = False,
             no_fits = False,

@@ -42,6 +42,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
     if config["fits"].get("compute zeff", False):
         compute_zeff = bookkeeper.get_compute_zeff_tasker(
             wait_for=args.wait_for,
+            system=args.system,
             overwrite=args.overwrite,
             skip_sent=args.skip_sent,
         )
@@ -52,6 +53,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
 
     fit = bookkeeper.get_fit_tasker(
         wait_for=args.wait_for,
+        system=args.system,
         overwrite=args.overwrite,
         skip_sent=args.skip_sent,
     )
@@ -68,6 +70,12 @@ def get_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "bookkeeper_config", type=Path, help="Path to bookkeeper file to use"
+    )
+
+    parser.add_argument(
+        "--system",
+        type=str,
+        default = None,
     )
 
     parser.add_argument(

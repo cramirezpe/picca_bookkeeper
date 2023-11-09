@@ -43,7 +43,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
         region2=args.region2,
         absorber=args.absorber,
         absorber2=args.absorber2,
-        system=None,
+        system=args.system,
         debug=args.debug,
         wait_for=args.wait_for,
         overwrite=args.overwrite,
@@ -64,6 +64,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
             region2=args.region2,
             absorber=args.absorber,
             absorber2=args.absorber2,
+            system=args.system,
             wait_for=args.wait_for,
             debug=args.debug,
             overwrite=args.overwrite,
@@ -84,7 +85,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
             region2=args.region2,
             absorber=args.absorber,
             absorber2=args.absorber2,
-            system=None,
+            system=args.system,
             debug=args.debug,
             wait_for=args.wait_for,
             overwrite=args.overwrite,
@@ -106,7 +107,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
         region2=args.region2,
         absorber=args.absorber,
         absorber2=args.absorber2,
-        system=None,
+        system=args.system,
         wait_for=args.wait_for,
         overwrite=args.overwrite,
         skip_sent=args.skip_sent,
@@ -126,6 +127,12 @@ def get_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "bookkeeper_config", type=Path, help="Path to bookkeeper file to use"
+    )
+
+    parser.add_argument(
+        "--system",
+        type=str,
+        default = None,
     )
 
     parser.add_argument(

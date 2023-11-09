@@ -39,6 +39,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
         region=args.region,
         absorber=args.absorber,
         debug=args.debug,
+        system=args.system,
         wait_for=args.wait_for,
         overwrite=args.overwrite,
         skip_sent=args.skip_sent,
@@ -57,6 +58,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
             region=args.region,
             absorber=args.absorber,
             debug=args.debug,
+            system=args.system,
             wait_for=args.wait_for,
             overwrite=args.overwrite,
             skip_sent=args.skip_sent,
@@ -74,7 +76,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
         metal = bookkeeper.get_xmetal_tasker(
             region=args.region,
             absorber=args.absorber,
-            system=None,
+            system=args.system,
             debug=args.debug,
             wait_for=args.wait_for,
             overwrite=args.overwrite,
@@ -94,6 +96,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
     xcf_exp = bookkeeper.get_xcf_exp_tasker(
         region=args.region,
         absorber=args.absorber,
+        system=args.system,
         wait_for=args.wait_for,
         overwrite=args.overwrite,
         skip_sent=args.skip_sent,
@@ -114,6 +117,13 @@ def get_args() -> argparse.Namespace:
     parser.add_argument(
         "bookkeeper_config", type=Path, help="Path to bookkeeper file to use"
     )
+
+    parser.add_argument(
+        "--system",
+        type=str,
+        default = None,
+    )
+
     parser.add_argument(
         "--region",
         type=str,

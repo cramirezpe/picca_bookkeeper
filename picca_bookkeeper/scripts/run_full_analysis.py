@@ -94,6 +94,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
                 bookkeeper_config=args.bookkeeper_config,
                 region="lya",  # It doesn't really matter
                 overwrite_config=False,
+                system=args.system,
                 debug=args.debug,
                 only_calibration=True,  # Because we are only running calib
                 skip_calibration=False,
@@ -111,6 +112,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
                 region=region,
                 overwrite_config=False,
                 debug=args.debug,
+                system=args.system,
                 only_calibration=False,
                 skip_calibration=True,
                 only_write=args.only_write,
@@ -139,6 +141,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
                 region2=region2,
                 absorber=absorber,
                 absorber2=absorber2,
+                system=args.system,
                 no_dmat=args.no_dmat,
                 no_metal=no_metal,
                 debug=False,  # Debug, only set deltas
@@ -158,6 +161,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
                 overwrite_config=False,
                 region=region,
                 absorber=absorber,
+                system=args.system,
                 no_dmat=args.no_dmat,
                 no_metal=no_metal,
                 debug=False,  # Debug, only set deltas,
@@ -176,6 +180,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
         fit_args = argparse.Namespace(
             bookkeeper_config=args.bookkeeper_config,
             overwrite_config=False,
+            system=args.system,
             only_write=args.only_write,
             wait_for=args.wait_for,
             log_level=args.log_level,
@@ -187,6 +192,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
     if args.sampler:
         sampler_args = argparse.Namespace(
             bookkeeper_config=args.bookkeeper_config,
+            system=args.system,
             overwrite_config=False,
             only_write=args.only_write,
             wait_for=args.wait_for,
@@ -201,6 +207,12 @@ def get_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "bookkeeper_config", type=Path, help="Path to bookkeeper file to use"
+    )
+
+    parser.add_argument(
+        "--system",
+        type=str,
+        default = None,
     )
 
     parser.add_argument(
