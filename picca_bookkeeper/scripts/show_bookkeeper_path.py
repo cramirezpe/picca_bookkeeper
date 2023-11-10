@@ -26,7 +26,14 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
         else:
             paths.append(bookkeeper.paths.run_path)
 
-    [print(x) for x in paths]
+    if args.pretty_print:
+        print(
+            "\n\n".join(
+                f"{config}:\n\t{path}" for config, path in zip(args.bookkeeper_configs, paths)
+            )
+        )
+    else:
+        [print(x) for x in paths]
 
 
 def getArgs() -> argparse.Namespace:
@@ -37,6 +44,12 @@ def getArgs() -> argparse.Namespace:
         type=Path,
         nargs="+",
         help="Bookkeeper configuration file.",
+    )
+
+    parser.add_argument(
+        "--pretty",
+        action="store_true",
+        help="Print file name and bookkeeper paths."
     )
 
     args = parser.parse_args()

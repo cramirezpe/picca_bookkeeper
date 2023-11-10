@@ -312,9 +312,10 @@ fits:
   # effectively removing BAO fitting
   # remove default args:
   #   vega_main:
-  #     sample:
-  #       ap:
-  #       at:
+  #     all: # This can be all to remove all no matter region, general to remove general or "any" for specific regions
+  #       sample:
+  #         ap:
+  #         at:
 
   slurm args:
     run_vega: # minimizer args
