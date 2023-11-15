@@ -113,6 +113,8 @@ class ReadFits:
 
             self.pvalue = 1 - sp.stats.chi2.cdf(self.chi2, self.ndata - self.nparams)
 
+            self.model_header = hdul["MODEL"].read_header()
+
         # If fit performed in alpha/phi, translate result into ap/at.
         if ("ap" not in self.names or "at" not in self.names) and (
             "alpha" in self.names and "phi" in self.names
@@ -1134,7 +1136,7 @@ class FitPlots:
 
         if reference is not None and param in reference.values.keys():
             value = reference.values.get(param, None)
-            error = reference.errors.get(param, None)
+            error = reference.errors.get(param, 0)
             ax.axvspan(
                 value - error,
                 value + error,
@@ -1167,7 +1169,15 @@ class FitPlots:
 
         for i, fit in enumerate(readfits):
             value = fit.values.get(param, None)
-            error = fit.errors.get(param, None)
+            error = fit.errors.get(param, 0)
+
+            if value is None:
+                value = fit.model_header.get(param, None)
+
+                if value is None:
+                    value = reference.values.get(param, None)
+                error = 0
+                
 
             if fit.colour is not None:
                 plot_kwargs = {**plot_kwargs, **dict(color=fit.colour)}
