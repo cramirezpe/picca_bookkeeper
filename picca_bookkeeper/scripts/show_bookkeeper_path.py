@@ -26,7 +26,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
         else:
             paths.append(bookkeeper.paths.run_path)
 
-    if args.pretty_print:
+    if args.pretty:
         print(
             "\n\n".join(
                 f"{config}:\n\t{path}" for config, path in zip(args.bookkeeper_configs, paths)
