@@ -202,7 +202,7 @@ class Bookkeeper:
         if self.paths.defaults_file.is_file():
             self.defaults_diff = PathBuilder.compare_configs(
                 self.defaults,
-                yaml.safe_load(defaults_file.read_text()),
+                yaml.safe_load(self.paths.defaults_file.read_text()),
             )
         else:
             self.defaults_diff = {}
@@ -331,6 +331,7 @@ class Bookkeeper:
                 "auto correlations",
                 "cross correlations",
                 "compute zeff",
+                "compute metals",
                 "sampler environment",
                 "bao",
                 "hcd",
@@ -3020,22 +3021,44 @@ class Bookkeeper:
                 },
             )
             if config["fits"].get("metals", True):
-                args = DictUtils.merge_dicts(
-                    args,
-                    {
-                        "fits": {
-                            "extra args": {
-                                "vega_auto": {
-                                    "general": {
-                                        "metals": {
-                                            "filename": metals_file,
+                if config["fits"].get("compute metals", False):
+                    args = DictUtils.merge_dicts(
+                        args,
+                        {
+                            "fits": {
+                                "extra args": {
+                                    "vega_auto": {
+                                        "general" : {
+                                            "data": {
+                                                "weights-tracer1": self.paths.delta_attributes_file(region=region),
+                                                "weights-tracer2": self.paths.delta_attributes_file(region=region2),
+                                            },
+                                            "model": {
+                                                "new_metals": True,                                                
+                                            },
                                         }
                                     }
                                 }
                             }
                         }
-                    },
-                )
+                    )
+                else: # Use metals from results
+                    args = DictUtils.merge_dicts(
+                        args,
+                        {
+                            "fits": {
+                                "extra args": {
+                                    "vega_auto": {
+                                        "general": {
+                                            "metals": {
+                                                "filename": metals_file,
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                    )
             input_files.append(export_file)
 
             if config["fits"].get("distortion", True):
@@ -3058,7 +3081,7 @@ class Bookkeeper:
             self.write_ini(vega_args, filename)
             ini_files.append(str(filename))
 
-            if vega_args.get("metals", None) is not None:
+            if vega_args.get("metals", False) and not vega_args.get("compute metals", False):
                 input_files.append(metals_file)
 
         export_files_cross = []
@@ -3096,24 +3119,45 @@ class Bookkeeper:
                     }
                 },
             )
-
+            
             if config["fits"].get("metals", True):
-                args = DictUtils.merge_dicts(
-                    args,
-                    {
-                        "fits": {
-                            "extra args": {
-                                "vega_cross": {
-                                    "general": {
-                                        "metals": {
-                                            "filename": metals_file,
+                if config["fits"].get("compute metals", False):
+                    args = DictUtils.merge_dicts(
+                        args,
+                        {
+                            "fits": {
+                                "extra args": {
+                                    "vega_cross": {
+                                        "general": {
+                                            "data": {
+                                                "weights-tracer1": self.paths.delta_attributes_file(region=region),
+                                            },
+                                            "model": {
+                                                "new_metals": True,
+                                            },
                                         }
                                     }
                                 }
                             }
-                        }
-                    },
-                )
+                        },
+                    )
+                else:
+                    args = DictUtils.merge_dicts(
+                        args,
+                        {
+                            "fits": {
+                                "extra args": {
+                                    "vega_cross": {
+                                        "general": {
+                                            "metals": {
+                                                "filename": metals_file,
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                    )
             input_files.append(export_file)
 
             if self.config["fits"].get("distortion", True):
@@ -3134,7 +3178,7 @@ class Bookkeeper:
             self.write_ini(vega_args, filename)
             ini_files.append(str(filename))
 
-            if vega_args.get("metals", None) is not None:
+            if vega_args.get("metals", False) and not vega_args.get("compute metals", False):
                 input_files.append(metals_file)
 
         # Now the main file

@@ -275,6 +275,9 @@ fits:
   # If we want to compute zeff right before the fit
   compute zeff: True
 
+  # If we want Vega to compute metals:
+  compute metals: False
+
   distortion: True # Whether to use distortion matrix
   bao: True
   hcd: True

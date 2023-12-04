@@ -309,6 +309,15 @@ fits:
           in tracer1: SiII(1260) SiIII(1207) SiII(1193) SiII(1190) CIV(eff)
           in tracer2: SiII(1260) SiIII(1207) SiII(1193) SiII(1190) CIV(eff)
 
+        metal-matrix:
+          rebin_factor: 3
+          alpha_LYA: 2.9
+          alpha_SiII(1260): 1.
+          alpha_SiIII(1207): 1.
+          alpha_SiII(1193): 1.
+          alpha_SiII(1190): 1.
+          alpha_CIV(eff): 1.
+
       lyaciv_lya_civ:
         metals:
           in tracer1: CIV(eff)
@@ -343,6 +352,15 @@ fits:
           z evol: bias_vs_z_std
           velocity dispersion: lorentz
           in tracer2: SiII(1260) SiIII(1207) SiII(1193) SiII(1190) CIV(eff)
+        
+        metal-matrix:
+          rebin_factor: 3
+          alpha_LYA: 2.9
+          alpha_SiII(1260): 1.
+          alpha_SiIII(1207): 1.
+          alpha_SiII(1193): 1.
+          alpha_SiII(1190): 1.
+          alpha_CIV(eff): 1.
 
     vega_main:
       general:

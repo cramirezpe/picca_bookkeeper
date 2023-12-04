@@ -89,7 +89,7 @@ class Tasker:
         environmental_variables: Dict = dict(),
         srun_options: Dict = dict(),
         in_files: List[Path] | List[str] = list[Path](),
-        out_files: List[Path | str] = None,
+        out_files: List[Path | str] = [],
         force_OMP_threads: Optional[int] = None,
         precommand: str = "",
     ):

@@ -272,7 +272,7 @@ class FitPlots:
             absorber2 = absorber
 
         if fit_file != "" or correlation_file != "":
-            if not (fit_file == "" and correlation_file == ""):
+            if (fit_file == "" != correlation_file == ""):
                 raise ValueError(
                     "Should provide fit_file and correlation_file at the same"
                     "time or use a bookkeeper"
@@ -428,7 +428,7 @@ class FitPlots:
             output_prefix = Path(output_prefix)
 
         if fit_file != "" or correlation_file != "":
-            if not (fit_file == "" and correlation_file == ""):
+            if (fit_file == "" != correlation_file == ""):
                 raise ValueError(
                     "Should provide fit_file and correlation_file at the same"
                     "time or use a bookkeeper"
@@ -601,7 +601,7 @@ class FitPlots:
             absorber2 = absorber
 
         if fit_file != "" or correlation_file != "":
-            if not (fit_file == "" and correlation_file == ""):
+            if (fit_file == "" != correlation_file == ""):
                 raise ValueError(
                     "Should provide fit_file and correlation_file at the same"
                     "time or use a bookkeeper"
@@ -784,7 +784,7 @@ class FitPlots:
             absorber2 = absorber
 
         if fit_file != "" or correlation_file != "":
-            if not (fit_file == "" and correlation_file == ""):
+            if (fit_file == "" != correlation_file == ""):
                 raise ValueError(
                     "Should provide fit_file and correlation_file at the same"
                     "time or use a bookkeeper"
@@ -976,7 +976,7 @@ class FitPlots:
             output_prefix = Path(output_prefix)
 
         if fit_file != "" or correlation_file != "":
-            if not (fit_file == "" and correlation_file == ""):
+            if (fit_file == "" != correlation_file == ""):
                 raise ValueError(
                     "Should provide fit_file and correlation_file at the same"
                     "time or use a bookkeeper"
@@ -1174,7 +1174,7 @@ class FitPlots:
             if value is None:
                 value = fit.model_header.get(param, None)
 
-                if value is None:
+                if value is None and reference is not None:
                     value = reference.values.get(param, None)
                 error = 0
                 
