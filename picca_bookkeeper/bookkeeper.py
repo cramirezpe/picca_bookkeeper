@@ -3410,7 +3410,7 @@ class Bookkeeper:
         )
 
         return get_Tasker(updated_system)(
-            command="/global/cfs/cdirs/desicollab/science/lya/y1-kp6/iron-tests/correlations/scripts/write_full_covariance_matrix.py",
+            command="/global/cfs/cdirs/desicollab/science/lya/y1-kp6/iron-tests/correlations/scripts/write_full_covariance_matrix_flex_size.py",
             command_args=args,
             slurm_header_args=slurm_header_args,
             environment=self.config["general"]["conda environment"],
@@ -3512,7 +3512,7 @@ class Bookkeeper:
         )
 
         return get_Tasker(updated_system)(
-            command="/global/cfs/cdirs/desicollab/science/lya/y1-kp6/iron-tests/correlations/scripts/write_smooth_covariance.py",
+            command="/global/cfs/cdirs/desicollab/science/lya/y1-kp6/iron-tests/correlations/scripts/write_smooth_covariance_flex_size.py",
             command_args=args,
             slurm_header_args=slurm_header_args,
             environment=self.config["general"]["conda environment"],
