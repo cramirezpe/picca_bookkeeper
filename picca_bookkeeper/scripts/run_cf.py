@@ -79,7 +79,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
                 f"{dmat.jobid}"
             )
 
-    if not args.no_metal:
+    if not args.no_metal and not bookkeeper.config.get("fits", dict()).get("compute metals", False):
         metal = bookkeeper.get_metal_tasker(
             region=args.region,
             region2=args.region2,

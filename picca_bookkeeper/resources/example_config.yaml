@@ -263,6 +263,18 @@ fits:
   # This is the user-friendly name for the fit run
   run name: default
 
+  # Add covariance matrix options
+  compute covariance: False
+  smooth covariance: False
+
+  # Copy covariance matrices (should include full path to fits file)
+  covariance matrices:
+    full-covariance: # path/to/covariance.fits
+    full-covariance-smoothed: # path/to/covariance_smoothed.fits
+
+  # Link both covariance matrices
+  link covariance matrices: # path/to/fits/results folder
+
   # These are the correlations to use. If running the full analysis, 
   # the correspondent deltas and correlations will be computed
   auto correlations: lya.lya-lya.lya lya.lya-lya.lyb

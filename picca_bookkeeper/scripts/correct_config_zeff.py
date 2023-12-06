@@ -98,10 +98,12 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
         "fits": {
             "extra args": {
                 "vega_main": {
-                    "data sets": {
-                        "zeff": float(zeff),
-                    },
-                    "parameters": {},
+                    "general": {
+                        "data sets": {
+                            "zeff": float(zeff),
+                        },
+                        "parameters": {},
+                    }
                 }
             }
         }

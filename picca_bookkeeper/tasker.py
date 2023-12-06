@@ -192,7 +192,7 @@ class Tasker:
         command = self._make_command()
         run_command = self._make_run_command()
 
-        return "\n".join([header, env_opts, command, run_command])
+        return "\n".join([header, env_opts, command, "date", run_command, "date"])
 
     def write_job(self) -> None:
         """Method to write job script into file."""

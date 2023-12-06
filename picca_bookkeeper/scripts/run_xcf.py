@@ -72,7 +72,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
                 f"{xdmat.jobid}"
             )
 
-    if not args.no_metal:
+    if not args.no_metal and not bookkeeper.config.get("fits", dict()).get("compute metals", False):
         metal = bookkeeper.get_xmetal_tasker(
             region=args.region,
             absorber=args.absorber,

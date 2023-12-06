@@ -464,10 +464,10 @@ class FitPlots:
 
         with fitsio.FITS(fit_file) as ffile:
             colnames = ffile["MODEL"].get_colnames()
-            if f"qsox{region}_MODEL" in colnames:
-                field = f"qsox{region}_MODEL"
-            elif f"qsox{absorber}{region}_MODEL" in colnames:
-                field = f"qsox{absorber}{region}_MODEL"
+            for name in (f"qsox{region}_MODEL", f"qsox{absorber}{region}_MODEL", f"{region}xqso_MODEL", f"{absorber}{region}xqso_MODEL"):
+                if name in colnames:
+                    field = name
+                    break
             else:
                 raise ValueError(
                     f"Unable to find compatible card for:\n"
@@ -847,10 +847,10 @@ class FitPlots:
                         colnames,
                     )
             else:
-                if f"qsox{region}_MODEL" in colnames:
-                    field = f"qsox{region}_MODEL"
-                elif f"qsox{absorber}{region}_MODEL" in colnames:
-                    field = f"qsox{absorber}{region}_MODEL"
+                for name in (f"qsox{region}_MODEL", f"qsox{absorber}{region}_MODEL", f"{region}xqso_MODEL", f"{absorber}{region}xqso_MODEL"):
+                    if name in colnames:
+                        field = name
+                        break
                 else:
                     raise ValueError(
                         f"Unable to find compatible card for:\n"
@@ -1006,10 +1006,10 @@ class FitPlots:
 
         with fitsio.FITS(fit_file) as ffile:
             colnames = ffile["MODEL"].get_colnames()
-            if f"qsox{region}_MODEL" in colnames:
-                field = f"qsox{region}_MODEL"
-            elif f"qsox{absorber}{region}_MODEL" in colnames:
-                field = f"qsox{absorber}{region}_MODEL"
+            for name in (f"qsox{region}_MODEL", f"qsox{absorber}{region}_MODEL", f"{region}xqso_MODEL", f"{absorber}{region}xqso_MODEL"):
+                if name in colnames:
+                    field = name
+                    break
             else:
                 raise ValueError(
                     f"Unable to find compatible card for:\n"

@@ -230,6 +230,9 @@ class Bookkeeper:
             self.config,
         )
 
+        # Update paths config
+        self.paths.config = self.config
+
     def check_existing_config(self, section: str, destination: Path) -> None:
         config = copy.deepcopy(self.config)
 
@@ -330,6 +333,10 @@ class Bookkeeper:
                 "run name",
                 "auto correlations",
                 "cross correlations",
+                "compute covariance",
+                "smooth covariance",
+                "link covariance matrices",
+                "covariance matrices",
                 "compute zeff",
                 "compute metals",
                 "sampler environment",
@@ -408,6 +415,11 @@ class Bookkeeper:
                 correlation_names,
             )
 
+        if self.config.get("fits", dict()).get(
+            "smooth covariance", False
+        ) and not self.config.get("fits", dict()).get("compute covariance", False):
+            raise ValueError("Smooth covariance requires compute covariance.")
+
         logger.debug("Checking command names.")
         delta_extraction_commands = [
             "picca_delta_extraction",
@@ -431,6 +443,8 @@ class Bookkeeper:
             "vega_auto",
             "vega_cross",
             "vega_main",
+            "write_full_covariance",
+            "smooth_covariance",
         ]
 
         for arg_type in (
@@ -969,7 +983,9 @@ class Bookkeeper:
             run_file=self.paths.run_path / f"scripts/run_{job_name}.sh",
             jobid_log_file=self.paths.run_path / f"logs/jobids.log",
             wait_for=wait_for,
-            out_files=[delta_stats_file,],
+            out_files=[
+                delta_stats_file,
+            ],
         )
 
     def get_delta_extraction_tasker(
@@ -1152,7 +1168,9 @@ class Bookkeeper:
             jobid_log_file=self.paths.run_path / f"logs/jobids.log",
             wait_for=wait_for,
             in_files=input_files,
-            out_files=[self.paths.delta_attributes_file(region, calib_step),],
+            out_files=[
+                self.paths.delta_attributes_file(region, calib_step),
+            ],
         )
 
     def get_calibration_extraction_tasker(
@@ -1386,7 +1404,9 @@ class Bookkeeper:
                 self.paths.delta_attributes_file(region_)
                 for region_ in (region, region2)
             ],
-            out_files=[output_filename,],
+            out_files=[
+                output_filename,
+            ],
         )
 
     def get_dmat_tasker(
@@ -1542,7 +1562,9 @@ class Bookkeeper:
                 self.paths.delta_attributes_file(region_)
                 for region_ in (region, region2)
             ],
-            out_files=[output_filename,],
+            out_files=[
+                output_filename,
+            ],
         )
 
     def get_cf_exp_tasker(
@@ -1702,7 +1724,9 @@ class Bookkeeper:
             jobid_log_file=self.paths.correlations_path / f"logs/jobids.log",
             wait_for=wait_for,
             in_files=in_files,
-            out_files=[output_filename,],
+            out_files=[
+                output_filename,
+            ],
         )
 
     def get_metal_tasker(
@@ -1865,7 +1889,9 @@ class Bookkeeper:
                 self.paths.delta_attributes_file(region_)
                 for region_ in (region, region2)
             ],
-            out_files=[output_filename,],
+            out_files=[
+                output_filename,
+            ],
         )
 
     def get_xcf_tasker(
@@ -2000,7 +2026,9 @@ class Bookkeeper:
             in_files=[
                 self.paths.delta_attributes_file(region),
             ],
-            out_files=[output_filename,],
+            out_files=[
+                output_filename,
+            ],
         )
 
     def get_xdmat_tasker(
@@ -2137,7 +2165,9 @@ class Bookkeeper:
             in_files=[
                 self.paths.delta_attributes_file(region),
             ],
-            out_files=[output_filename,],
+            out_files=[
+                output_filename,
+            ],
         )
 
     def get_xcf_exp_tasker(
@@ -2286,7 +2316,9 @@ class Bookkeeper:
             jobid_log_file=self.paths.correlations_path / f"logs/jobids.log",
             wait_for=wait_for,
             in_files=in_files,
-            out_files=[output_filename,],
+            out_files=[
+                output_filename,
+            ],
         )
 
     def get_xmetal_tasker(
@@ -2436,7 +2468,9 @@ class Bookkeeper:
             in_files=[
                 self.paths.delta_attributes_file(region),
             ],
-            out_files=[output_filename,],
+            out_files=[
+                output_filename,
+            ],
         )
 
     def get_compute_zeff_tasker(
@@ -2529,7 +2563,9 @@ class Bookkeeper:
             jobid_log_file=self.paths.fits_path / f"logs/jobids.log",
             in_files=input_files,
             wait_for=wait_for,
-            out_files=[self.paths.fit_computed_params_out(),],
+            out_files=[
+                self.paths.fit_computed_params_out(),
+            ],
         )
 
     def get_fit_tasker(
@@ -2608,7 +2644,9 @@ class Bookkeeper:
             jobid_log_file=self.paths.fits_path / f"logs/jobids.log",
             in_files=input_files,
             wait_for=wait_for,
-            out_files=[self.paths.fit_out_fname(),],
+            out_files=[
+                self.paths.fit_out_fname(),
+            ],
         )
 
     def get_sampler_tasker(
@@ -2693,7 +2731,9 @@ class Bookkeeper:
             jobid_log_file=self.paths.fits_path / f"logs/jobids.log",
             in_files=input_files,
             wait_for=wait_for,
-            out_files=[self.paths.sampler_out_path() / "jobidfile",],
+            out_files=[
+                self.paths.sampler_out_path() / "jobidfile",
+            ],
             force_OMP_threads=1,
         )
 
@@ -2981,7 +3021,7 @@ class Bookkeeper:
         export_files_auto = []
 
         # Set because there can be repeated values.
-        for auto_correlation in set(auto_correlations):
+        for auto_correlation in auto_correlations:
             absorber, region, absorber2, region2 = auto_correlation.replace(
                 "-", "."
             ).split(".")
@@ -3028,21 +3068,25 @@ class Bookkeeper:
                             "fits": {
                                 "extra args": {
                                     "vega_auto": {
-                                        "general" : {
+                                        "general": {
                                             "data": {
-                                                "weights-tracer1": self.paths.delta_attributes_file(region=region),
-                                                "weights-tracer2": self.paths.delta_attributes_file(region=region2),
+                                                "weights-tracer1": self.paths.delta_attributes_file(
+                                                    region=region
+                                                ),
+                                                "weights-tracer2": self.paths.delta_attributes_file(
+                                                    region=region2
+                                                ),
                                             },
                                             "model": {
-                                                "new_metals": True,                                                
+                                                "new_metals": True,
                                             },
                                         }
                                     }
                                 }
                             }
-                        }
+                        },
                     )
-                else: # Use metals from results
+                else:  # Use metals from results
                     args = DictUtils.merge_dicts(
                         args,
                         {
@@ -3081,13 +3125,15 @@ class Bookkeeper:
             self.write_ini(vega_args, filename)
             ini_files.append(str(filename))
 
-            if vega_args.get("metals", False) and not vega_args.get("compute metals", False):
+            if vega_args.get("metals", False) and not vega_args.get(
+                "compute metals", False
+            ):
                 input_files.append(metals_file)
 
         export_files_cross = []
 
         # Set because there can be repeated values.
-        for cross_correlation in set(cross_correlations):
+        for cross_correlation in cross_correlations:
             absorber, region = cross_correlation.split(".")
             region = self.validate_region(region)
             absorber = self.validate_absorber(absorber)
@@ -3106,11 +3152,11 @@ class Bookkeeper:
                             "vega_cross": {
                                 "general": {
                                     "data": {
-                                        "name": f"qsox{absorber}{region}",
-                                        "tracer1": "QSO",
-                                        "tracer2": absorber_igm[absorber],
-                                        "tracer1-type": "discrete",
-                                        "tracer2-type": "continuous",
+                                        "name": f"{absorber}{region}xqso",
+                                        "tracer1": absorber_igm[absorber],
+                                        "tracer2": "QSO",
+                                        "tracer1-type": "continuous",
+                                        "tracer2-type": "discrete",
                                         "filename": export_file,
                                     },
                                 }
@@ -3130,7 +3176,10 @@ class Bookkeeper:
                                     "vega_cross": {
                                         "general": {
                                             "data": {
-                                                "weights-tracer1": self.paths.delta_attributes_file(region=region),
+                                                "weights-tracer1": self.paths.delta_attributes_file(
+                                                    region=region
+                                                ),
+                                                "weights-tracer2": self.paths.catalog_tracer,
                                             },
                                             "model": {
                                                 "new_metals": True,
@@ -3178,7 +3227,9 @@ class Bookkeeper:
             self.write_ini(vega_args, filename)
             ini_files.append(str(filename))
 
-            if vega_args.get("metals", False) and not vega_args.get("compute metals", False):
+            if vega_args.get("metals", False) and not vega_args.get(
+                "compute metals", False
+            ):
                 input_files.append(metals_file)
 
         # Now the main file
@@ -3202,6 +3253,11 @@ class Bookkeeper:
                 }
             },
         )
+
+        # Check if covariance is needed, and add it
+        if self.config["fits"].get("compute covariance", False):
+            args["fits"]["extra args"]["vega_main"]["general"]["data sets"]["global-cov-file"] = self.paths.covariance_file()
+            input_files.append(self.paths.covariance_file())
 
         # Check precomputed zeff and others.
         if self.config["fits"].get("compute zeff", False):
@@ -3228,6 +3284,245 @@ class Bookkeeper:
         self.write_ini(vega_args, filename)
 
         return input_files
+
+    def get_covariance_matrix_tasker(
+        self,
+        system: Optional[str] = None,
+        wait_for: Optional[Tasker | ChainedTasker | int | List[int]] = None,
+        overwrite: bool = False,
+        skip_sent: bool = False,
+    ) -> Tasker:
+        """
+        Method to get a Tasker object to run covariance matrix.
+
+        Args:
+            system: Shell to use for job. 'slurm_cori' to use slurm scripts on
+                cori, 'slurm_perlmutter' to use slurm scripts on perlmutter,
+                'bash' to run it in login nodes or computer shell.
+                Default: None, read from config file.
+            wait_for: In NERSC, wait for a given job to finish before running
+                the current one. Could be a  Tasker object or a slurm jobid
+                (int). (Default: None, won't wait for anything).
+            overwrite: Overwrite files in destination.
+            skip_sent: Skip the run if fit output already present.
+
+        Returns:
+            Tasker: Tasker object to run covariance matrix.
+        """
+        if self.read_mode:
+            raise ValueError("Initialize bookkeeper without read_mode to run jobs.")
+        if self.defaults_diff != {}:
+            raise ValueError(
+                "Default values changed since last run of the "
+                f"bookkeeper. Remove the file:\n\n {self.paths.defaults_file} "
+                "\n\n to be able to write jobs (with the new default "
+                "values)."
+            )
+
+        # Check if output already there
+        updated_system = self.generate_system_arg(system)
+        job_name = "write_full_covariance"
+
+        output_filename = self.paths.covariance_file_unsmoothed()
+        if self.check_existing_output_file(
+            output_filename,
+            job_name,
+            skip_sent,
+            overwrite,
+            updated_system,
+        ):
+            return DummyTasker()
+
+        copy_covariance_file = self.paths.copied_covariance_file(smoothed=False)
+        if copy_covariance_file is not None:
+            output_filename.unlink(missing_ok=True)
+            output_filename.parent.mkdir(parents=True, exist_ok=True)
+            output_filename.symlink_to(copy_covariance_file)
+
+            return DummyTasker()  
+
+        input_files = []
+        if self.config["fits"].get("auto correlations", None) not in (None, ""):
+            auto_correlations = self.config["fits"]["auto correlations"].split(" ")
+        else:
+            auto_correlations = []
+        if self.config["fits"].get("cross correlations", None) not in (None, ""):
+            cross_correlations = self.config["fits"]["cross correlations"].split(" ")
+        else:
+            cross_correlations = []
+
+        for auto_correlation in auto_correlations:
+            absorber, region, absorber2, region2 = auto_correlation.replace(
+                "-", "."
+            ).split(".")
+            region = self.validate_region(region)
+            absorber = self.validate_absorber(absorber)
+            region2 = self.validate_region(region2)
+            absorber2 = self.validate_absorber(absorber2)
+
+            input_files.append(
+                self.paths.cf_fname(absorber, region, absorber2, region2)
+            )
+
+        for cross_correlation in cross_correlations:
+            absorber, region, = cross_correlation.split(".")
+            region = self.validate_region(region)
+            absorber = self.validate_absorber(absorber)
+
+            input_files.append(
+                self.paths.xcf_fname(absorber, region)
+            )
+
+        # Now slurm args
+        command = "write_full_covariance.py"
+
+        updated_extra_args = self.generate_extra_args(
+            config=self.config,
+            section="fits",
+            command=command,
+        )
+        updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
+            config=self.config,
+            section="fits",
+            command=command,
+        )
+
+        slurm_header_args = {
+            "job-name": job_name,
+            "output": str(self.paths.fits_path / f"logs/{job_name}-%j.out"),
+            "error": str(self.paths.fits_path / f"logs/{job_name}-%j.err"),
+        }
+
+        slurm_header_args = DictUtils.merge_dicts(
+            slurm_header_args,
+            updated_slurm_header_extra_args,
+        )
+
+        args = {
+            "lya-lya": str(self.paths.cf_fname("lya","lya", "lya", "lya")),
+            "lya-lyb": str(self.paths.cf_fname("lya","lya", "lya", "lyb")),
+            "lya-qso": str(self.paths.xcf_fname("lya", "lya")),
+            "lyb-qso": str(self.paths.xcf_fname("lya", "lyb")),
+            "output": str(self.paths.covariance_file_unsmoothed()),
+        }
+        args = DictUtils.merge_dicts(
+            args, updated_extra_args
+        )
+
+        return get_Tasker(updated_system)(
+            command="/global/cfs/cdirs/desicollab/science/lya/y1-kp6/iron-tests/correlations/scripts/write_full_covariance_matrix.py",
+            command_args=args,
+            slurm_header_args=slurm_header_args,
+            environment=self.config["general"]["conda environment"],
+            run_file=self.paths.fits_path / f"scripts/run_{job_name}.sh",
+            jobid_log_file=self.paths.fits_path / f"logs/jobids.log",
+            in_files=input_files,
+            wait_for=wait_for,
+            out_files=[self.paths.covariance_file_unsmoothed(),],
+        )
+
+    def get_smooth_covariance_tasker(
+        self,
+        system: Optional[str] = None,
+        wait_for: Optional[Tasker | ChainedTasker | int | List[int]] = None,
+        overwrite: bool = False,
+        skip_sent: bool = False,
+    ) -> Tasker:
+        """
+        Method to get a Tasker object to run smooth covariance.
+
+        Args:
+            system: Shell to use for job. 'slurm_cori' to use slurm scripts on
+                cori, 'slurm_perlmutter' to use slurm scripts on perlmutter,
+                'bash' to run it in login nodes or computer shell.
+                Default: None, read from config file.
+            wait_for: In NERSC, wait for a given job to finish before running
+                the current one. Could be a  Tasker object or a slurm jobid
+                (int). (Default: None, won't wait for anything).
+            overwrite: Overwrite files in destination.
+            skip_sent: Skip the run if fit output already present.
+
+        Returns:
+            Tasker: Tasker object to run smooth matrix.
+        """
+        if self.read_mode:
+            raise ValueError("Initialize bookkeeper without read_mode to run jobs.")
+        if self.defaults_diff != {}:
+            raise ValueError(
+                "Default values changed since last run of the "
+                f"bookkeeper. Remove the file:\n\n {self.paths.defaults_file} "
+                "\n\n to be able to write jobs (with the new default "
+                "values)."
+            )
+
+        # Check if output already there
+        updated_system = self.generate_system_arg(system)
+        job_name = "smooth_covariance"
+        output_filename = self.paths.covariance_file_smoothed()
+        if self.check_existing_output_file(
+            output_filename,
+            job_name,
+            skip_sent,
+            overwrite,
+            updated_system,
+        ):
+            return DummyTasker()
+
+        copy_covariance_file = self.paths.copied_covariance_file(smoothed=True)
+        if copy_covariance_file is not None:
+            output_filename.unlink(missing_ok=True)
+            output_filename.parent.mkdir(parents=True, exist_ok=True)
+            output_filename.symlink_to(copy_covariance_file)
+
+            return DummyTasker()     
+
+        input_files = [self.paths.covariance_file_unsmoothed(),]
+
+        # Now slurm args
+        command = "smooth_covariance.py"
+
+        updated_extra_args = self.generate_extra_args(
+            config=self.config,
+            section="fits",
+            command=command,
+        )
+        updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
+            config=self.config,
+            section="fits",
+            command=command,
+        )
+
+        slurm_header_args = {
+            "job-name": job_name,
+            "output": str(self.paths.fits_path / f"logs/{job_name}-%j.out"),
+            "error": str(self.paths.fits_path / f"logs/{job_name}-%j.err"),
+        }
+
+        slurm_header_args = DictUtils.merge_dicts(
+            slurm_header_args,
+            updated_slurm_header_extra_args,
+        )
+
+        args = {
+            "input-cov": str(self.paths.covariance_file_unsmoothed()),
+            "output-cov": str(self.paths.covariance_file_smoothed()),
+        }
+        args = DictUtils.merge_dicts(
+            args, updated_extra_args
+        )
+
+        return get_Tasker(updated_system)(
+            command="/global/cfs/cdirs/desicollab/science/lya/y1-kp6/iron-tests/correlations/scripts/write_smooth_covariance.py",
+            command_args=args,
+            slurm_header_args=slurm_header_args,
+            environment=self.config["general"]["conda environment"],
+            run_file=self.paths.fits_path / f"scripts/run_{job_name}.sh",
+            jobid_log_file=self.paths.fits_path / f"logs/jobids.log",
+            in_files=input_files,
+            wait_for=wait_for,
+            out_files=[self.paths.covariance_file_smoothed(),],
+        )
+
 
     def check_existing_output_file(
         self, file: Path, job_name: str, skip_sent: bool, overwrite: bool, system: str
@@ -3849,6 +4144,39 @@ class PathBuilder:
 
         return file
 
+    def copied_covariance_file(self, smoothed: bool = False) -> Path:
+        """Method to get a covariance file to copy given in the bookkeeper config
+
+        Args:
+            smoothed (bool, optional): If True, returns the smoothed covariance file.
+
+        Returns:
+            Path: Path to covariance file.
+        """
+        name = "full-covariance"
+        
+        if smoothed:
+            name += "-smoothed"
+
+        file = self.config["fits"].get("covariance matrices", dict()).get(name, None)
+
+        if file is None:
+            parent = self.config["fits"].get("link covariance matrices", None)
+            if parent is not None:
+                parent = Path(parent)
+                file = parent / f"{name}.fits"
+
+        if file is not None:
+            if not Path(file).is_file():
+                raise FileNotFoundError(
+                    f"{name}: Invalid file provided in config", file
+                )
+            logger.info(f"{name}: Using from file:\n\t{str(file)}")
+        else:
+            logger.info(f"{name}: No file provided to copy, it will be computed.")
+
+        return file
+
     def cf_fname(
         self,
         absorber: str,
@@ -4059,6 +4387,36 @@ class PathBuilder:
             Path: Path to fit output file.
         """
         return self.fits_path / "results" / "fit_output.fits"
+
+    def covariance_file_unsmoothed(self) -> Path:
+        """
+        Returns the path to the unsmoothed covariance file.
+
+        Returns:
+            Path: The path to the unsmoothed covariance file.
+        """
+        return self.fits_path / "results" / "full-covariance.fits"
+
+    def covariance_file_smoothed(self) -> Path:
+        """
+        Returns the path to the smoothed covariance file.
+
+        Returns:
+            Path: The path to the smoothed covariance file.
+        """
+        return self.fits_path / "results" / "full-covariance-smoothed.fits"
+
+    def covariance_file(self) -> Path:
+        """
+        Returns the path to the covariance file.
+
+        Returns:
+            Path: The path to the covariance file.
+        """
+        if self.config["fits"].get("smooth covariance", False):
+            return self.covariance_file_smoothed()
+        else:
+            return self.covariance_file_unsmoothed()
 
     def sampler_out_path(self) -> Path:
         """Method to get the path to the sampler output foler
