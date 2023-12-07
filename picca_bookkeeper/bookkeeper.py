@@ -3125,7 +3125,7 @@ class Bookkeeper:
             self.write_ini(vega_args, filename)
             ini_files.append(str(filename))
 
-            if vega_args.get("metals", False) and not vega_args.get(
+            if vega_args.get("metals", False) and not args["fits"].get(
                 "compute metals", False
             ):
                 input_files.append(metals_file)
@@ -3227,7 +3227,7 @@ class Bookkeeper:
             self.write_ini(vega_args, filename)
             ini_files.append(str(filename))
 
-            if vega_args.get("metals", False) and not vega_args.get(
+            if vega_args.get("metals", False) and not args["fits"].get(
                 "compute metals", False
             ):
                 input_files.append(metals_file)
@@ -3351,6 +3351,7 @@ class Bookkeeper:
         else:
             cross_correlations = []
 
+        args = {}
         for auto_correlation in auto_correlations:
             absorber, region, absorber2, region2 = auto_correlation.replace(
                 "-", "."
@@ -3364,6 +3365,8 @@ class Bookkeeper:
                 self.paths.cf_fname(absorber, region, absorber2, region2)
             )
 
+            args[f"{region}-{region2}"] = str(self.paths.cf_fname("lya", region, "lya", region2))
+
         for cross_correlation in cross_correlations:
             absorber, region, = cross_correlation.split(".")
             region = self.validate_region(region)
@@ -3372,6 +3375,8 @@ class Bookkeeper:
             input_files.append(
                 self.paths.xcf_fname(absorber, region)
             )
+
+            args[f"{region}-qso"] = str(self.paths.xcf_fname("lya", region))
 
         # Now slurm args
         command = "write_full_covariance.py"
@@ -3398,13 +3403,8 @@ class Bookkeeper:
             updated_slurm_header_extra_args,
         )
 
-        args = {
-            "lya-lya": str(self.paths.cf_fname("lya","lya", "lya", "lya")),
-            "lya-lyb": str(self.paths.cf_fname("lya","lya", "lya", "lyb")),
-            "lya-qso": str(self.paths.xcf_fname("lya", "lya")),
-            "lyb-qso": str(self.paths.xcf_fname("lya", "lyb")),
-            "output": str(self.paths.covariance_file_unsmoothed()),
-        }
+        args["output"] = str(self.paths.covariance_file_unsmoothed())
+
         args = DictUtils.merge_dicts(
             args, updated_extra_args
         )
