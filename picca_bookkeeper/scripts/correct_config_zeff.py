@@ -114,7 +114,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
 
         logger.info(f"bias_QSO: {qso_bias}")
 
-        computed_parameters_config["fits"]["extra args"]["vega_main"]["parameters"][  # type: ignore
+        computed_parameters_config["fits"]["extra args"]["vega_main"]["general"]["parameters"][  # type: ignore
             "bias_QSO"
         ] = float(
             qso_bias
