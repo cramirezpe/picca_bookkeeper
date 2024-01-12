@@ -40,9 +40,6 @@ data:
   # or could be a full path to a catalog
   catalog: afterburn_v0
 
-  # Unblind correlations. Only use this if you are allowed to!
-  unblind: False
-
 
 
 delta extraction:  
@@ -164,6 +161,10 @@ correlations:
   # by default will use the previous one for all the analyses.
   catalog tracer: 
 
+  # Unblind correlations. Only use this if you are allowed to!
+  unblind: False
+  unblind y1: False
+
   # whether to use the new fast_metals code
   fast metals: True
 
@@ -207,8 +208,11 @@ correlations:
     lyalya: /global/cfs/cdirs/desicollab/users/cramirez/iron-analyses/iron/main/QSO_cat_iron_main_dark_healpix_v0/CRP23_1.ciii.1.2_0/correlations/default/results/qso_lyalya/xmetal.fits.gz
     lyalyb: /global/cfs/cdirs/desicollab/users/cramirez/iron-analyses/iron/main/QSO_cat_iron_main_dark_healpix_v0/CRP23_1.ciii.1.2_0/correlations/default/results/qso_lyalyb/xmetal.fits.gz
 
-  # If we want to link correlations and exports from a bookkeeper realisation
+  # If we want to link correlation from a bookkeeper realisation
   # link correlations: /global/cfs/cdirs/desicollab/users/cramirez/iron-analyses/iron/main/QSO_cat_iron_main_dark_healpix_v0/CRP23_1.ciii.1.2_0/correlations/default/results/
+
+  # If we want to link correlation exports from a bookkeeper realisations
+  # link exports: /global/cfs/cdirs/desicollab/users/cramirez/iron-analyses/iron/main/QSO_cat_iron_main_dark_healpix_v0/CRP23_1.ciii.1.2_0/correlations/default/results/
 
   # Use this instead of link correlations to only link metals
   # link metals: /global/cfs/cdirs/desicollab/users/cramirez/iron-analyses/iron/main/QSO_cat_iron_main_dark_healpix_v0/CRP23_1.ciii.1.2_0/correlations/default/results/
