@@ -177,8 +177,6 @@ class Bookkeeper:
                 self.paths.check_fit_directories()
                 self.check_existing_config("fits", self.paths.fit_config_file)
 
-
-
         self.check_bookkeeper_config()
 
         if self.read_mode:
@@ -309,9 +307,11 @@ class Bookkeeper:
                 "delta extraction",
                 "run name",
                 "unblind",
+                "unblind y1",
                 "catalog tracer",
                 "fast metals",
                 "link correlations",
+                "link exports",
                 "link distortion matrices",
                 "link metals",
                 "cf files",
@@ -1692,6 +1692,7 @@ class Bookkeeper:
             self.paths.cf_fname(absorber, region, absorber2, region2),
         ]
 
+        precommand = ""
         if self.config["correlations"].get("unblind", False):
             logger.warn("CORRELATIONS WILL BE UNBLINDED, BE CAREFUL.")
             precommand = f"picca_bookkeeper_unblind_correlations"
@@ -1704,14 +1705,18 @@ class Bookkeeper:
                 )
                 precommand += f" --dmat {dmat_file}"
                 in_files.append(dmat_file)
-            if self.config["fits"].get("metals", True):
+            if self.config["fits"].get("metals", True) and not self.config["fits"].get(
+                "compute metals", False
+            ):
                 metal_file = str(
                     self.paths.metal_fname(absorber, region, absorber2, region2)
                 )
                 precommand += f" --metal-dmat {metal_file}"
                 in_files.append(metal_file)
-        else:
-            precommand = ""
+        elif self.config["correlations"].get("unblind y1", False):
+            logger.warn("Applying Y1 unblind.")
+            args["unblind-y1"] = ""
+            args = DictUtils.merge_dicts(args, updated_extra_args)
 
         return get_Tasker(updated_system)(
             command=command,
@@ -2288,6 +2293,7 @@ class Bookkeeper:
             self.paths.xcf_fname(absorber, region),
         ]
 
+        precommand = ""
         if self.config["correlations"].get("unblind", False):
             logger.warn("CORRELATIONS WILL BE UNBLINDED, BE CAREFUL.")
             precommand = f"picca_bookkeeper_unblind_correlations"
@@ -2298,12 +2304,16 @@ class Bookkeeper:
                 xdmat_file = str(self.paths.xdmat_fname(absorber, region))
                 precommand += f" --dmat {xdmat_file}"
                 in_files.append(xdmat_file)
-            if self.config["fits"].get("metals", True):
+            if self.config["fits"].get("metals", True) and not self.config["fits"].get(
+                "compute metals", False
+            ):
                 xmetal_file = str(self.paths.metal_fname(absorber, region))
                 precommand += f" --metal-dmat {xmetal_file}"
                 in_files.append(xmetal_file)
-        else:
-            precommand = ""
+        elif self.config["correlations"].get("unblind y1", False):
+            logger.warn("Applying Y1 unblind.")
+            args["unblind-y1"] = ""
+            args = DictUtils.merge_dicts(args, updated_extra_args)
 
         return get_Tasker(updated_system)(
             command=command,
@@ -3111,6 +3121,12 @@ class Bookkeeper:
                 ] = distortion_file
                 input_files.append(distortion_file)
 
+            # Check if we need to unblind
+            if self.config["correlations"].get("unblind y1", False):
+                args["fits"]["extra args"]["vega_auto"]["general"]["data"][
+                    "unblind-y1"
+                ] = True
+
             vega_args = self.generate_extra_args(
                 config=args,
                 section="fits",
@@ -3165,7 +3181,7 @@ class Bookkeeper:
                     }
                 },
             )
-            
+
             if config["fits"].get("metals", True):
                 if config["fits"].get("compute metals", False):
                     args = DictUtils.merge_dicts(
@@ -3215,6 +3231,12 @@ class Bookkeeper:
                 ] = distortion_file
                 input_files.append(distortion_file)
 
+            # Check if we need to unblind
+            if self.config["correlations"].get("unblind y1", False):
+                args["fits"]["extra args"]["vega_cross"]["general"]["data"][
+                    "unblind-y1"
+                ] = True
+
             vega_args = self.generate_extra_args(
                 config=args,
                 section="fits",
@@ -3256,7 +3278,9 @@ class Bookkeeper:
 
         # Check if covariance is needed, and add it
         if self.config["fits"].get("compute covariance", False):
-            args["fits"]["extra args"]["vega_main"]["general"]["data sets"]["global-cov-file"] = self.paths.covariance_file()
+            args["fits"]["extra args"]["vega_main"]["general"]["data sets"][
+                "global-cov-file"
+            ] = self.paths.covariance_file()
             input_files.append(self.paths.covariance_file())
 
         # Check precomputed zeff and others.
@@ -3339,7 +3363,7 @@ class Bookkeeper:
             output_filename.parent.mkdir(parents=True, exist_ok=True)
             output_filename.symlink_to(copy_covariance_file)
 
-            return DummyTasker()  
+            return DummyTasker()
 
         input_files = []
         if self.config["fits"].get("auto correlations", None) not in (None, ""):
@@ -3365,16 +3389,19 @@ class Bookkeeper:
                 self.paths.cf_fname(absorber, region, absorber2, region2)
             )
 
-            args[f"{region}-{region2}"] = str(self.paths.cf_fname("lya", region, "lya", region2))
+            args[f"{region}-{region2}"] = str(
+                self.paths.cf_fname("lya", region, "lya", region2)
+            )
 
         for cross_correlation in cross_correlations:
-            absorber, region, = cross_correlation.split(".")
+            (
+                absorber,
+                region,
+            ) = cross_correlation.split(".")
             region = self.validate_region(region)
             absorber = self.validate_absorber(absorber)
 
-            input_files.append(
-                self.paths.xcf_fname(absorber, region)
-            )
+            input_files.append(self.paths.xcf_fname(absorber, region))
 
             args[f"{region}-qso"] = str(self.paths.xcf_fname("lya", region))
 
@@ -3405,9 +3432,7 @@ class Bookkeeper:
 
         args["output"] = str(self.paths.covariance_file_unsmoothed())
 
-        args = DictUtils.merge_dicts(
-            args, updated_extra_args
-        )
+        args = DictUtils.merge_dicts(args, updated_extra_args)
 
         return get_Tasker(updated_system)(
             command="/global/cfs/cdirs/desicollab/science/lya/y1-kp6/iron-tests/correlations/scripts/write_full_covariance_matrix_flex_size.py",
@@ -3418,7 +3443,9 @@ class Bookkeeper:
             jobid_log_file=self.paths.fits_path / f"logs/jobids.log",
             in_files=input_files,
             wait_for=wait_for,
-            out_files=[self.paths.covariance_file_unsmoothed(),],
+            out_files=[
+                self.paths.covariance_file_unsmoothed(),
+            ],
         )
 
     def get_smooth_covariance_tasker(
@@ -3474,9 +3501,11 @@ class Bookkeeper:
             output_filename.parent.mkdir(parents=True, exist_ok=True)
             output_filename.symlink_to(copy_covariance_file)
 
-            return DummyTasker()     
+            return DummyTasker()
 
-        input_files = [self.paths.covariance_file_unsmoothed(),]
+        input_files = [
+            self.paths.covariance_file_unsmoothed(),
+        ]
 
         # Now slurm args
         command = "smooth_covariance.py"
@@ -3507,9 +3536,7 @@ class Bookkeeper:
             "input-cov": str(self.paths.covariance_file_unsmoothed()),
             "output-cov": str(self.paths.covariance_file_smoothed()),
         }
-        args = DictUtils.merge_dicts(
-            args, updated_extra_args
-        )
+        args = DictUtils.merge_dicts(args, updated_extra_args)
 
         return get_Tasker(updated_system)(
             command="/global/cfs/cdirs/desicollab/science/lya/y1-kp6/iron-tests/correlations/scripts/write_smooth_covariance_flex_size.py",
@@ -3520,9 +3547,10 @@ class Bookkeeper:
             jobid_log_file=self.paths.fits_path / f"logs/jobids.log",
             in_files=input_files,
             wait_for=wait_for,
-            out_files=[self.paths.covariance_file_smoothed(),],
+            out_files=[
+                self.paths.covariance_file_smoothed(),
+            ],
         )
-
 
     def check_existing_output_file(
         self, file: Path, job_name: str, skip_sent: bool, overwrite: bool, system: str
@@ -4095,11 +4123,22 @@ class PathBuilder:
 
         if file is None and subsection in (
             "cf files",
-            "cf exp files",
             "xcf files",
-            "xcf exp files",
         ):
             parent = self.config["correlations"].get("link correlations", None)
+            if parent is not None:
+                parent = Path(parent)
+                folder_name = (qso + name).replace("(", "").replace(")", "")
+                corr = parent / folder_name / filename
+
+                if corr.is_file():
+                    file = corr
+
+        if file is None and subsection in (
+            "cf exp files",
+            "xcf exp files",
+        ):
+            parent = self.config["correlations"].get("link exports", None)
             if parent is not None:
                 parent = Path(parent)
                 folder_name = (qso + name).replace("(", "").replace(")", "")
@@ -4154,7 +4193,7 @@ class PathBuilder:
             Path: Path to covariance file.
         """
         name = "full-covariance"
-        
+
         if smoothed:
             name += "-smoothed"
 
