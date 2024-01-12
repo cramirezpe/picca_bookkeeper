@@ -34,10 +34,11 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
     old_dirs = set(args.replace_dirs)
     yaml_files = list(args.source_dir.glob("**/bookkeeper_config.yaml"))
 
-    for file in yaml_files:
-        config = yaml.safe_load(file.read_text())
+    if not args.only_replace_parsed_dirs:
+        for file in yaml_files:
+            config = yaml.safe_load(file.read_text())
 
-        old_dirs.add(config["data"]["bookkeeper dir"])
+            old_dirs.add(config["data"]["bookkeeper dir"])
 
     file_string = "\n\t".join(map(str, yaml_files))
     print(f"Config files to be modified:\n\t{file_string}")
@@ -164,6 +165,12 @@ This script will modify the following things under the given bookkeeper-dir:
         type=str,
         nargs="+",
         help="Add extra string to be substituted for the new-dir.",
+    )
+
+    parser.add_argument(
+        "--only-replace-parsed-dirs",
+        action="store_true",
+        help="Only replace directories that have been parsed (not the ones in current structure).",
     )
 
     parser.add_argument(
