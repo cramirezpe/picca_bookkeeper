@@ -12,6 +12,10 @@ delta extraction:
           type: Dr16FixedFudgeExpectedFlux
           fudge value: 0
           var lss mod: 7.5
+      picca_convert_transmission:
+        lambda-min: 3600
+        lambda-max: 5500
+        delta-lambda: 0.8
   slurm args:
     picca_convert_transmission:
       general:

@@ -19,4 +19,7 @@ umask 0002
 
 
 command="picca_delta_extraction.py /picca_bookkeeper/tests/test_files/output/guadalupe/main/afterburn_v0/dMdB20_0.0.0.0_0/configs/delta_extraction_lyb.ini"
+date
 srun  $command
+
+date

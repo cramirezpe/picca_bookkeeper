@@ -17,4 +17,7 @@ umask 0002
 
 
 command="run_vega.py /global/common/software/desi/users/cramirez/picca_bookkeeper/tests/test_files/output/guadalupe/main/afterburn_v0/dMdB20_2.mgii_r.0.0_0/correlations/default/fits/default/configs/main.ini"
+date
 srun --nodes 1 --ntasks 1 --cpus-per-task 128 $command
+
+date

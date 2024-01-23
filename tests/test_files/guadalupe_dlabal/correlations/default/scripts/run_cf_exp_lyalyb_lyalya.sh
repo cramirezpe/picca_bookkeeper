@@ -18,4 +18,7 @@ export HDF5_USE_FILE_LOCKING=FALSE
 
 
 command="picca_export.py --data /picca_bookkeeper/tests/test_files/output/guadalupe/main/afterburn_v0/dMdB20_2.mgii_r.1.2_0/correlations/default/results/lyalyb_lyalya/cf.fits.gz --out /picca_bookkeeper/tests/test_files/output/guadalupe/main/afterburn_v0/dMdB20_2.mgii_r.1.2_0/correlations/default/results/lyalyb_lyalya/cf_exp.fits.gz --blind-corr-type lyaxlyb --smooth-per-r-par "
+date
 srun  $command
+
+date
