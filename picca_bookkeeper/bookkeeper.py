@@ -958,6 +958,7 @@ class Bookkeeper:
             "out-dir": str(self.paths.deltas_path(region)),
             "lambda-rest-min": forest_regions[region]["lambda-rest-min"],
             "lambda-rest-max": forest_regions[region]["lambda-rest-max"],
+            "linear-spacing": "",
         }
         args = DictUtils.merge_dicts(args, updated_extra_args)
 
