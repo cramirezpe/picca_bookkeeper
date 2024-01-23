@@ -236,6 +236,24 @@ class TestBookkeeper(unittest.TestCase):
             self.update_test_output(test_files, bookkeeper.paths.run_path)
         self.compare_bookkeeper_output(test_files, bookkeeper.paths.run_path)
 
+    @patch("picca_bookkeeper.tasker.run", side_effect=mock_run)
+    @patch(
+        "picca_bookkeeper.bookkeeper.get_quasar_catalog",
+        side_effect=mock_get_3d_catalog,
+    )
+    def test_example_kp6(self, mock_func_1, mock_func_2):
+        copy_config_substitute(
+            self.files_path / "example_config_kp6.yaml"
+        )
+        test_files = THIS_DIR / "test_files" / "kp6"
+        bookkeeper = Bookkeeper(THIS_DIR / "test_files" / "output" / "tmp.yaml", read_mode=False)
+
+        write_full_analysis(THIS_DIR / "test_files" / "output" / "tmp.yaml")
+
+        self.replace_paths_bookkeeper_output(bookkeeper.paths)
+        if "UPDATE_TESTS" in os.environ and os.environ["UPDATE_TESTS"] == "True":
+            self.update_test_output(test_files, bookkeeper.paths.run_path)
+        self.compare_bookkeeper_output(test_files, bookkeeper.paths.run_path)
 
     @patch("picca_bookkeeper.tasker.run", side_effect=mock_run)
     @patch(

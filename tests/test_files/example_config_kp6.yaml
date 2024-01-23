@@ -1,0 +1,28 @@
+general:
+  conda environment: picca
+  system: slurm_perlmutter
+  
+data:
+  bookkeeper dir: results_directory
+  
+  healpix data:
+  release: guadalupe
+  survey: main
+  catalog: afterburn_v0
+   
+  
+delta extraction:
+  prefix: Y1v4
+  calib: 1
+  calib region: ciii
+  dla: 4
+  bal: 2
+  suffix: 0
+  mask file: /global/cfs/cdirs/desi/science/lya/early-3d/config-files/sharp-lines-mask.txt
+
+correlations:
+  catalog tracer:
+  run name: baseline
+
+fits:
+  run name: baseline
