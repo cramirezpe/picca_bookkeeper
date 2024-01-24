@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING
 
 import fitsio
 import getdist
-import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -21,6 +20,7 @@ from picca_bookkeeper.bookkeeper import Bookkeeper
 if TYPE_CHECKING:
     from typing import Any, Dict, List, Optional, Tuple, Type
 
+    import matplotlib
     from picca_bookkeeper.hints import Axes, Figure
 
 logger = logging.getLogger(__name__)
