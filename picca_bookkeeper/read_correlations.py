@@ -4,7 +4,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import fitsio
-import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy as sp
@@ -16,6 +15,7 @@ from picca_bookkeeper.bookkeeper import Bookkeeper
 if TYPE_CHECKING:
     from typing import Dict, List, Optional, Tuple
 
+    import matplotlib
     from picca_bookkeeper.hints import Axes, Figure
 
 
