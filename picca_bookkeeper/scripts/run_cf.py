@@ -58,7 +58,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
             f"{cf.jobid}"
         )
 
-    if not args.no_dmat:
+    if bookkeeper.config.get("fits", dict()).get("distortion", True):
         dmat = bookkeeper.get_dmat_tasker(
             region=args.region,
             region2=args.region2,
@@ -79,7 +79,11 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
                 f"{dmat.jobid}"
             )
 
-    if not args.no_metal and not bookkeeper.config.get("fits", dict()).get("compute metals", False):
+    if bookkeeper.config.get("fits", dict()).get(
+        "metals", True
+    ) and not bookkeeper.config("fits", dict()).get("compute metals", False):
+        # Compute metals if metals should be included and metals are not going 
+        # to be computed by vega.
         metal = bookkeeper.get_metal_tasker(
             region=args.region,
             region2=args.region2,
@@ -132,7 +136,7 @@ def get_args() -> argparse.Namespace:
     parser.add_argument(
         "--system",
         type=str,
-        default = None,
+        default=None,
     )
 
     parser.add_argument(
@@ -172,14 +176,6 @@ def get_args() -> argparse.Namespace:
         type=str,
         default=None,
         help="Second absorber (for cross-correlations between forests)",
-    )
-
-    parser.add_argument(
-        "--no-dmat", action="store_true", help="Do not use distortion matrix."
-    )
-
-    parser.add_argument(
-        "--no-metal", action="store_true", help="Do not compute metal distortion matrix"
     )
 
     parser.add_argument(
