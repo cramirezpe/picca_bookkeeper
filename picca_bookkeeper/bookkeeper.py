@@ -3064,7 +3064,7 @@ class Bookkeeper:
                                         "tracer1-type": "continuous",
                                         "tracer2-type": "continuous",
                                     },
-                                    "metals": {},
+                                    #"metals": {},
                                 }
                             }
                         }
@@ -3091,6 +3091,7 @@ class Bookkeeper:
                                             "model": {
                                                 "new_metals": True,
                                             },
+                                            "metals": {},
                                         }
                                     }
                                 }
