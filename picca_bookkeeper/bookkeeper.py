@@ -4006,10 +4006,16 @@ class PathBuilder:
         Returns:
             Path: Path to delta attributes file
         """
-        return (
-            self.deltas_log_path(region=region, calib_step=calib_step)
-            / "delta_attributes.fits.gz"
-        )
+        if self.config['data']["survey"] == "raw":
+            return (
+                self.deltas_path(region=region, calib_step=calib_step).parent /
+                "Delta-stats.fits.gz"
+            )
+        else:
+            return (
+                self.deltas_log_path(region=region, calib_step=calib_step)
+                / "delta_attributes.fits.gz"
+            )
 
     def copied_calib_attributes(self, step: int) -> Path | None:
         """Method to get path to delta attributes for calibration if it

@@ -398,13 +398,17 @@ class Plots:
             )
 
         with fitsio.FITS(attributes_file) as hdul:
-            if "VAR_FUNC" in hdul:
-                card = "VAR_FUNC"
+            if 'STATS' in hdul:
+                wave = hdul['STATS']['LAMBDA'].read()
+                var_lss = hdul['STATS']['VAR'].read()
             else:
-                card = "WEIGHT"
+                if "VAR_FUNC" in hdul:
+                    card = "VAR_FUNC"
+                else:
+                    card = "WEIGHT"
 
-            wave = 10 ** hdul[card]["LOGLAM"].read()
-            var_lss = hdul[card]["VAR_LSS"].read()
+                wave = 10 ** hdul[card]["LOGLAM"].read()
+                var_lss = hdul[card]["VAR_LSS"].read()
 
         ax.plot(
             wave,
@@ -475,11 +479,19 @@ class Plots:
             )
 
         with fitsio.FITS(attributes_file) as hdul:
-            lambda_ = 10 ** hdul["STACK_DELTAS"]["loglam"].read()
-            stack = hdul["STACK_DELTAS"]["stack"].read()
+            if 'STATS' in hdul:
+                # Raw deltas
+                lambda_ = hdul['STATS']['LAMBDA'].read()
+                stack = hdul['STATS']['MEANFLUX'].read()
 
-            if use_weights:
-                weights = hdul["STACK_DELTAS"]["weight"].read()
+                if use_weights:
+                    weights = hdul['STATS']['WEIGHTS'].read()
+            else:
+                lambda_ = 10 ** hdul["STACK_DELTAS"]["loglam"].read()
+                stack = hdul["STACK_DELTAS"]["stack"].read()
+                
+                if use_weights:
+                    weights = hdul["STACK_DELTAS"]["weight"].read()
 
         if rebin is not None:
             # Repeat last values till having a number of data multiple of rebin.
