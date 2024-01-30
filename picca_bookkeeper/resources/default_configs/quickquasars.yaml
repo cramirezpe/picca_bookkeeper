@@ -1,7 +1,7 @@
 delta extraction:  
   extra args:    
-    general:  
-      picca_delta_extraction:
+    picca_delta_extraction:
+      general:  
         data:
           type: DesisimMocks
           lambda min: 3600
@@ -14,10 +14,12 @@ delta extraction:
           fudge value: 0
           var lss mod: 7.5
 
-      picca_convert_transmission:
+    picca_convert_transmission:
+      general:
         lambda-min: 3600
         lambda-max: 5500
         delta-lambda: 0.8
+        linear-spacing: ""
 
 
   slurm args:

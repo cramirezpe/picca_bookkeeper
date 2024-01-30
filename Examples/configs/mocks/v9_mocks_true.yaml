@@ -27,8 +27,9 @@ delta extraction:
   mask file:
 
   extra args:
-      expected flux:
-        raw statistics file: #/pscratch/sd/c/cramirez/bkp_mocks/v9.0.0/raw/LyaCoLoRe/raw_0.0.0.0_0/results/lya/Delta-stats.fits.gz
+      lya:
+        expected flux:
+          raw statistics file: #/pscratch/sd/c/cramirez/bkp_mocks/v9.0.0/raw/LyaCoLoRe/raw_0.0.0.0_0/results/lya/Delta-stats.fits.gz
 
 correlations:
   run name: default
