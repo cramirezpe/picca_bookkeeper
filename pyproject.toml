@@ -23,8 +23,9 @@ dependencies = [
     "matplotlib",
     "pandas",
     "scipy",
+    "importlib_resources",
+    "typing_extensions",
     "setuptools",
-    "tabulate",
 ]
 dynamic = ["version"]
 
