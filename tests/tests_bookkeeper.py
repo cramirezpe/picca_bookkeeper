@@ -27,11 +27,11 @@ def mock_get_3d_catalog(
 
 
 def mock_run(command, shell, capture_output):
-    random.seed(command)
+    jobid_seed = Path(command.split(' ')[-1]).name
 
     class Out:
         stdout = codecs.encode(
-            str(int.from_bytes(command.encode(), "little"))[:8]
+            str(int.from_bytes(jobid_seed.encode(), "little"))[:8]
         )
         
         returncode = 0
