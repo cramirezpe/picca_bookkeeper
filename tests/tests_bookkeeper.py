@@ -717,6 +717,11 @@ class TestBookkeeper(unittest.TestCase):
 
         write_full_analysis(THIS_DIR / "test_files" / "output" / "tmp.yaml")
 
+        self.replace_paths_bookkeeper_output(bookkeeper.paths)
+        if "UPDATE_TESTS" in os.environ and os.environ["UPDATE_TESTS"] == "True":
+            self.update_test_output(test_files, bookkeeper.paths.run_path)
+        self.compare_bookkeeper_output(test_files, bookkeeper.paths.run_path)
+
         # Now failing run
         copy_config_substitute(
             self.files_path / "example_config_guadalupe_only_fit_fail.yaml"
