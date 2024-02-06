@@ -103,6 +103,11 @@ class TestBookkeeper(unittest.TestCase):
         (self.files_path / "output").mkdir(exist_ok=True)
         (self.files_path / "output2").mkdir(exist_ok=True)
 
+        self.patcher = patch('picca_bookkeeper.bookkeeper.PathBuilder.catalog_exists')
+        self.patcher.return_value = True
+        self.mock = self.patcher.start()
+        self.addCleanup(self.patcher.stop)
+
     def tearDown(self):
         shutil.rmtree(self.files_path / "output")
         shutil.rmtree(self.files_path / "output2")

@@ -18,7 +18,7 @@ delta extraction:
   dla: 4
   bal: 2
   suffix: 0
-  mask file: /global/cfs/cdirs/desi/science/lya/early-3d/config-files/sharp-lines-mask.txt
+  mask file: test_files/sharp-lines-mask.txt
 
 correlations:
   catalog tracer:

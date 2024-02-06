@@ -1,0 +1,12 @@
+#
+# File to veto lines in observed frame.
+#
+# Mask produced with pipeline version v5_11_0
+# via masking large sharp variance feature in
+# do_cf1d.py of Lya forest [1040,1200]
+# calibration forest [2900,3120]
+#
+K    3933.0 3935.8 OBS
+H    3967.3 3971.0 OBS
+sky  5570.5 5586.5 OBS
+Na   5885.7 5903.3 OBS

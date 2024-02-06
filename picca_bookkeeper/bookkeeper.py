@@ -3851,10 +3851,14 @@ class PathBuilder:
                     bal=self.config.get("delta extraction", dict()).get("bal", 0) != 0,
                 )
 
-        if catalog.is_file():
+        if self.catalog_exists(catalog): # Here failing tests
             return catalog
         else:
             raise FileNotFoundError("catalog not found in path: ", str(catalog))
+
+    @staticmethod
+    def catalog_exists(catalog: Path | str) -> bool:
+        return Path(catalog).is_file()
 
     @property
     def catalog(self) -> Path:
