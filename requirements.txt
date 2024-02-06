@@ -7,3 +7,4 @@ pandas
 scipy
 setuptools
 tabulate
+importlib_resources
