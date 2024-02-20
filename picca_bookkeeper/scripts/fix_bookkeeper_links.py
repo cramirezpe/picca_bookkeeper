@@ -32,13 +32,15 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
     )
 
     old_dirs = set(args.replace_dirs)
-    yaml_files = list(args.source_dir.glob("**/bookkeeper_config.yaml"))
 
     if not args.only_replace_parsed_dirs:
+        yaml_files = list(args.source_dir.glob("**/bookkeeper_config.yaml"))
         for file in yaml_files:
             config = yaml.safe_load(file.read_text())
 
             old_dirs.add(config["data"]["bookkeeper dir"])
+    
+    yaml_files = list(args.source_dir.glob("**/*.yaml"))
 
     file_string = "\n\t".join(map(str, yaml_files))
     print(f"Config files to be modified:\n\t{file_string}")
@@ -67,10 +69,9 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
     old_dirs = set(updated_old_dirs)
 
     new_dir = args.new_dir
-    print(new_dir)
     while new_dir[-1] == "/":
         new_dir = new_dir[:-1]
-    print(new_dir)
+    print(f"New directory:\n\t{new_dir}") 
 
     print("\nThe following substitutions will be made:")
     for dir_ in old_dirs:

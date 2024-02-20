@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-import matplotlib
+
 import matplotlib.pyplot as plt
 import numpy as np
 from mpl_toolkits.axes_grid1 import make_axes_locatable
@@ -14,6 +14,7 @@ from picca_bookkeeper.read_deltas import ReadDeltas
 if TYPE_CHECKING:
     from typing import Any, Dict, List, Optional, Tuple, Type
 
+    import matplotlib
     from picca_bookkeeper.hints import Axes, Figure
 
 

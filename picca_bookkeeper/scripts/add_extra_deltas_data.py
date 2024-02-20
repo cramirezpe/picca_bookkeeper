@@ -11,7 +11,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import fitsio
-import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import picca
@@ -24,6 +23,8 @@ from picca_bookkeeper.utils import find_bins
 
 if TYPE_CHECKING:
     from typing import Dict, List, Optional
+    
+    import matplotlib
 
 logger = logging.getLogger(__name__)
 
