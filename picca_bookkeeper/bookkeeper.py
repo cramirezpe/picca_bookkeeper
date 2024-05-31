@@ -3635,6 +3635,8 @@ class PathBuilder:
                 return Path("/global/cfs/cdirs/desi/spectro/redux/himalayas/healpix/")
             elif "iron" in self.config["data"]["release"]:
                 return Path("/global/cfs/cdirs/desi/spectro/redux/iron/healpix/")
+            elif "jura" in self.config["data"]["release"]:
+                return Path("/dvs_ro/cfs/cdirs/desi/spectro/redux/jura/healpix")
             elif "v9." in self.config["data"]["release"]:
                 version = self.config["data"]["release"].split(".")[1]
                 if self.config["data"]["survey"] == "raw":
