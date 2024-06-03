@@ -1,5 +1,9 @@
-iron:
+jura:
+  main:
+    v1: /dvs_ro/cfs/cdirs/desi/survey/catalogs/DA2/QSO/jura/QSO_cat_jura_main_dark_healpix_v1.fits
+    v1_quasar_targets: /dvs_ro/cfs/cdirs/desi/survey/catalogs/DA2/QSO/jura/QSO_cat_jura_main_dark_healpix_only_qso_targets_v1.fits
 
+iron:
   main:
     QSO_cat_iron_main_dark_healpix_only_qso_targets_v0-bal: /global/cfs/cdirs/desicollab/users/martini/bal-catalogs/iron/QSO_cat_iron_main_dark_healpix_only_qso_targets_v0-altbal.fits
     QSO_cat_iron_main_dark_healpix_v0-bal:  /global/cfs/cdirs/desi/users/martini/bal-catalogs/iron/QSO_cat_iron_main_dark_healpix_v0-altbal.fits
