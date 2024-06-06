@@ -45,7 +45,8 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
         bookkeeper.config,
     )
 
-    continuum_type = config["delta extraction"]["prefix"]
+    # @TODO this should detect raw or True
+    continuum_type = "normal"
 
     ########################################
     ## Identifying needed runs from names

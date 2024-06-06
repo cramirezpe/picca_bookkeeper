@@ -15,76 +15,27 @@ general:
     mail-type: fail
     mail-user: user@host.com
 
+  defaults file: # Use a defaults file like Y1v7
+
 data:
   # Parent path of the bookkeeper.
   bookkeeper dir: /blabla
 
-  # Hardcode the healpix data location, by default it will be set
-  # according to the release, e.g. for everest:
-  # /global/cfs/cdirs/desi/spectro/redux/everest/healpix/
-  healpix data:
+  healpix data: /global/cfs/cdirs/desi/spectro/redux/iron/healpix/
 
-  # The structure of folders and sub-folders is the following:
-  # {bookkeeper dir}/{release}/{survey}/{qso_cat}
-  # where:
-  #   - release (everest, fuji): specifies the version of the pipeline used.
-  #   - survey (sv1, sv2, sv3, sv, all, main): specifies the survey (or 
-  #           combination of surveys) used.
-  #   - qso_cat (redrock_v0, redrock_v1, afterburner_v0, etc): specifiec the
-  #           quasar catalog used (containing BAL information).
-  release: guadalupe
-  survey: main
-  # Catalog could be a name (and therefore will be used the bookkeeper one)
-  # available catalogs are available under 
-  # /global/cfs/cdirs/desicollab/users/cramirez/Continuum_fitting_Y1/catalogs
-  # or could be a full path to a catalog
-  catalog: afterburn_v0
+  catalog: /global/cfs/cdirs/desicollab/science/lya/y1-kp6/iron-tests/catalogs/QSO_cat_iron_main_dark_healpix_zlya-altbal_zwarn_cut_20230918.fits
 
 
 
-delta extraction:  
-  # The structure of folders and sub-folders is the following:
-  # .../{bookkeeper dir}/{relase}/{survey}/{qso_cat}/{prefix}_{calib}.{calib_region}.{dla}.{bal}_{suffix}
-  # where {prefix}_{calib}.{calib_region}.{dla}.{bal}_{suffix} defines the continuum fitting used:
-  #   - prefix (dMdB20, CRP23, raw, True): specifies the general configuration of the run.
-  #       - dMdB20: fudge included, 2.4A bins, var lss mod=0 (see resources/dMdB20.yaml)
-  #       - CRP23: analysis performed for early3D DESI analyses. nofudge, 0.8A bins, var lss mod = 7.5, lambda rest frame max=1205.
-  #       - quickquasars: use this for normal LyaCoLoRe mocks that used quickquasars.
-  #       - raw: use this for raw mocks.
-  #       - True: use this for true continuum analyses.
-  #       - Could also match any of the yaml files under picca_bookkeeper.resources.default_configs
-  #
-  #   - calib (0, 1, 2): Integer defining the number of calibration steps.
-  #       - 0: no calibration.
-  #       - 1: early3D calibration: One step calibration (flux).
-  #       - 2: dMdB20 calibration: Two step calibration (first for flux, second for IVAR).
-  #       - 10: Accept custom options for calibration in yaml file.
-  #
-  #   - calib region (any of the ones defined in picca_bookkeeper.Bookkeeper.forest_regions)
-  #         0 if no calibration is used.
-  #
-  #   - dla (0, 1, 2, etc): integer identifying the version of DLA masking used
-  #       (available options under /global/cfs/cdirs/desicollab/users/cramirez/Continuum_fitting_Y1/catalogs)
-  #       - 0: no DLA masking.
-  #       - 1: First version of DLA catalog.
-  #       - N: Nth version of DLA catalog. 
-  #
-  #   - bal (0, 1, 2, etc): integer identifying the version of BAL masking used 
-  #       - 0: No BAL masking.
-  #       - 1: Drop BAL objects (not implemented).
-  #       - 2: Mask BAL objects.
-  #
-  #   - suffix (0, any string): any string identifying anything else particular
-  #           in the analysis (0 means nothing). This is free for the user to select
-  #           whatever they consider appropiately if it does not overlap with other 
-  #           runs
+delta extraction:
+  # If full delta extraction already computed can use this to always point to it
+  # use existing: /path/to/bookkeeper (bookkeeper folder)
 
-  prefix: dMdB20
   calib: 0
   calib region: mgii_r
-  dla: 0
-  bal: 0
-  suffix: 0
+  
+  dla: # If added, DLAs will be masked automatically
+  bal: # If added, BALs selected from catalog, if True BALs from data/catalog
 
   # Only if you want to re-use calibration data from a different analysis.
   # Insert here the path of a delta-attributes.fits.gz file to use it as 
@@ -93,22 +44,14 @@ delta extraction:
     step 1:
     step 2: # leave this empty if only 1 step calib.
 
-  # Only if you want to re-use deltas data from a different analysis.
-  # Insert here the region you want to use and spaced-separated 
-  # the paths to Deltas and to delta-attributes file
-  deltas:
-    # lya: /global/cfs/cdirs/desicollab/science/lya/y1-kp6/iron-IFAE-tests/iron/main/QSO_cat_iron_main_dark_healpix_v0/CRP23_1.ciii.1.2_0/results/lya/Delta /global/cfs/cdirs/desicollab/science/lya/y1-kp6/iron-IFAE-tests/iron/main/QSO_cat_iron_main_dark_healpix_v0/CRP23_1.ciii.1.2_0/results/lya/Log/delta_attributes.fits.gz
-
-  # If we want to link all the deltas from another realisation.
-  #link deltas: /global/cfs/cdirs/desicollab/science/lya/y1-kp6/iron-IFAE-tests/iron/main/QSO_cat_iron_main_dark_healpix_v0/CRP23_1.ciii.1.2_0/results/
+  # If you want to use deltas from another place you can use the following
+  # options.
+  # Insert here the parent folder containing both Delta and Log folders
+  # One can use general to use all deltas from given folder.
+  computed deltas:
+    # general: /path/to/deltas/results
+    # lya: /path/to/deltas/results/lya
     
-  # line masking to be applied in the continuum fitting process.
-  mask file:
-  # force DLA catalog (if not the one correspondent to the catalog above will be used)
-  dla catalog:
-  # force BAL catalog (if not the one corresponent to the catalog above will be used)
-  bal catalog:
-
   # extra args to be used by the bookkeeper
   # match the section name with the name of the scripts under picca.bin
   extra args:
@@ -131,7 +74,7 @@ delta extraction:
       # use all
       # all:
 
-    # Scripts with terminal args are also compatible
+    # Scripts with terminal argumentss are also compatible
     picca_convert_transmission:
       general:
         nspec: 30
@@ -148,14 +91,10 @@ delta extraction:
         qos: debug
 
 correlations:
-  # If a delta extraction is defined in the same config file (as the current one), 
-  # this can be left empty. Otherwise, the user should provide the name of the analysis
-  # using the format # {prefix}_{calib}.{calib_region}.{dla}.{bal}_{suffix}, 
-  # e.g: dMdB20_2.ciii.0.0_0
-  delta extraction:
-
-  # This is the user-friendly name for the correlation run+
-  run name: default
+  # If full correlations already computed can use this to always point to it
+  # if in use, this should be the only key and everything else should be
+  # commented out or removed
+  # use existing: /path/to/bookkeeper (bookkeeper folder)
 
   # catalog_tracer could be set up to use a different catalog for cross-correlations
   # by default will use the previous one for all the analyses.
@@ -168,57 +107,25 @@ correlations:
   # whether to use the new fast_metals code
   fast metals: True
 
-  # copy correlation measurements from a different place.
-  # For auto-, one should provide the two absorbers and regions
-  cf files:
-    #lyalya_lyalya: /global/cfs/cdirs/desicollab/users/cramirez/iron-analyses/iron/main/QSO_cat_iron_main_dark_healpix_v0/CRP23_1.ciii.1.2_0/correlations/default/results/lyalya_lyalya/cf.fits.gz
+  computed correlations:
+    # general: /path/to/correlations/results
+    # lyalya_lyalya: /path/to/correlations/results/lyalya_lyalya/cf.fits
+    # qso_lyalya: /path/to/correlations/results/lyalya/xcf.fits
 
-  cf exp files:
-    #lyalya_lyalya: /global/cfs/cdirs/desicollab/users/cramirez/iron-analyses/iron/main/QSO_cat_iron_main_dark_healpix_v0/CRP23_1.ciii.1.2_0/correlations/default/results/lyalya_lyalya/cf_exp.fits.gz
+  computed exports:
+    # general: /path/to/correlations/results
+    # lyalya_lyalya: /path/to/correlations/results/lyalya_lyalya/cf_exp.fits
+    # qso_lyalya: /path/to/correlations/results/lyalya/xcf_exp.fits
   
-  # For cross-, only one absorber-region is needed
-  xcf files:
-    #lyalya: /global/cfs/cdirs/desicollab/users/cramirez/iron-analyses/iron/main/QSO_cat_iron_main_dark_healpix_v0/CRP23_1.ciii.1.2_0/correlations/default/results/qso_lyalya/xcf.fits.gz
+  computed distortions:
+    # general: /path/to/correlations/results
+    # lyalya_lyalya: /path/to/correlations/results/lyalya_lyalya/dmat.fits
+    # qso_lyalya: /path/to/correlations/results/lyalya/xdmat.fits
 
-  xcf exp files:
-    #lyalya: /global/cfs/cdirs/desicollab/users/cramirez/iron-analyses/iron/main/QSO_cat_iron_main_dark_healpix_v0/CRP23_1.ciii.1.2_0/correlations/default/results/qso_lyalya/xcf_exp.fits.gz
-
-  # copy distortion measurements from a different place
-  # For auto-, one should provide the two absorbers and regions
-  distortion matrices:
-    #lyalya_lyalya: /global/cfs/cdirs/desicollab/users/cramirez/iron-analyses/iron/main/QSO_cat_iron_main_dark_healpix_v0/CRP23_1.ciii.1.2_0/correlations/default/results/lyalya_lyalya/dmat.fits.gz
-
-  # For cross-, only one absorber/region is needed.
-  xdistortion matrices:
-    #lyalya: /global/cfs/cdirs/desicollab/users/cramirez/iron-analyses/iron/main/QSO_cat_iron_main_dark_healpix_v0/CRP23_1.ciii.1.2_0/correlations/default/results/qso_lyalya/xdmat.fits.gz
-  
-
-  # copy metal matrices from a different place.
-  # For auto-, one should provide the two absorbers and regions
-  metal matrices: 
-    # Use all to use same matrix for all analyses
-    general: 
-    # or specify regions/absorbers
-    lyalya_lyalya: /global/cfs/cdirs/desicollab/users/cramirez/iron-analyses/iron/main/QSO_cat_iron_main_dark_healpix_v0/CRP23_1.ciii.1.2_0/correlations/default/results/lyalya_lyalya/metal.fits.gz 
-    lyalya_lyalyb: /global/cfs/cdirs/desicollab/users/cramirez/iron-analyses/iron/main/QSO_cat_iron_main_dark_healpix_v0/CRP23_1.ciii.1.2_0/correlations/default/results/lyalya_lyalyb/metal.fits.gz 
-
-  xmetal matrices:
-    general:
-    # For cross-, only one absorber/region is needed.
-    lyalya: /global/cfs/cdirs/desicollab/users/cramirez/iron-analyses/iron/main/QSO_cat_iron_main_dark_healpix_v0/CRP23_1.ciii.1.2_0/correlations/default/results/qso_lyalya/xmetal.fits.gz
-    lyalyb: /global/cfs/cdirs/desicollab/users/cramirez/iron-analyses/iron/main/QSO_cat_iron_main_dark_healpix_v0/CRP23_1.ciii.1.2_0/correlations/default/results/qso_lyalyb/xmetal.fits.gz
-
-  # If we want to link correlation from a bookkeeper realisation
-  # link correlations: /global/cfs/cdirs/desicollab/users/cramirez/iron-analyses/iron/main/QSO_cat_iron_main_dark_healpix_v0/CRP23_1.ciii.1.2_0/correlations/default/results/
-
-  # If we want to link correlation exports from a bookkeeper realisations
-  # link exports: /global/cfs/cdirs/desicollab/users/cramirez/iron-analyses/iron/main/QSO_cat_iron_main_dark_healpix_v0/CRP23_1.ciii.1.2_0/correlations/default/results/
-
-  # Use this instead of link correlations to only link metals
-  # link metals: /global/cfs/cdirs/desicollab/users/cramirez/iron-analyses/iron/main/QSO_cat_iron_main_dark_healpix_v0/CRP23_1.ciii.1.2_0/correlations/default/results/
-
-  # Use this instead of link correlations to only link dmats
-  # link distortion matrices: /global/cfs/cdirs/desicollab/users/cramirez/iron-analyses/iron/main/QSO_cat_iron_main_dark_healpix_v0/CRP23_1.ciii.1.2_0/correlations/default/results/
+  computed metals:
+    # general: /path/to/correlations/results
+    # lyalya_lyalya: /path/to/correlations/results/lyalya_lyalya/metal.fits
+    # qso_lyalya: /path/to/correlations/results/lyalya/xmetal.fits
 
   extra args:
     picca_cf:
@@ -255,15 +162,6 @@ correlations:
         #
 
 fits:
-  # If a delta extraction is defined in the same config file (as the current one), 
-  # this can be left empty. Otherwise, the user should provide the name of the analysis
-  # using the format # {prefix}_{calib}_{calib_region}.{dla}.{bal}_{suffix}, 
-  # e.g: dMdB20_2.ciii.0.0_0
-  delta extraction: 
-
-  # Similarly as before, define a correlation run name if it was not defined above.
-  correlation run name:
-
   # This is the user-friendly name for the fit run
   run name: default
 
@@ -271,13 +169,11 @@ fits:
   compute covariance: False
   smooth covariance: False
 
-  # Copy covariance matrices (should include full path to fits file)
-  covariance matrices:
-    full-covariance: # path/to/covariance.fits
-    full-covariance-smoothed: # path/to/covariance_smoothed.fits
-
-  # Link both covariance matrices
-  link covariance matrices: # path/to/fits/results folder
+  # Either provide general or both smoothed and full.
+  computed covariances: 
+    # general: /path/to/fits/results
+    # full-covariance: /path/to/fits/results/full-covariance.fits
+    # full-covariance-smoothed: /path/to/fits/results/full-covariance-smoothed.fits
 
   # These are the correlations to use. If running the full analysis, 
   # the correspondent deltas and correlations will be computed
