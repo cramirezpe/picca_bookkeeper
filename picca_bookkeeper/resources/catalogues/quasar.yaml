@@ -1,6 +1,7 @@
 jura:
   main:
     v1: /dvs_ro/cfs/cdirs/desi/survey/catalogs/DA2/QSO/jura/QSO_cat_jura_main_dark_healpix_v1.fits
+    v1-bal: /global/cfs/cdirs/desi/users/martini/bal-catalogs/jura/QSO_cat_jura_main_dark_healpix_v1-bal.fits
     v1_quasar_targets: /dvs_ro/cfs/cdirs/desi/survey/catalogs/DA2/QSO/jura/QSO_cat_jura_main_dark_healpix_only_qso_targets_v1.fits
 
 iron:
