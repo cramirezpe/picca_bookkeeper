@@ -39,12 +39,12 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
         bookkeeper.config,
     )
 
-    # @TODO this should detect raw or True
-    continuum_type = "normal" # config["delta extraction"]["prefix"]
+    raw = config["general"].get("raw mocks", False)
+    true = config["general"].get("true mocks", False)
 
     if args.only_calibration or (
         (
-            str(continuum_type) not in ("raw", "True")
+            (not raw and not true)
             and config["delta extraction"]["calib"] != 0
             and not args.skip_calibration
         )
@@ -66,7 +66,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
             return
 
         get_tasker: Callable = bookkeeper.get_delta_extraction_tasker
-    elif continuum_type == "raw":
+    elif raw:
         get_tasker = bookkeeper.get_raw_deltas_tasker
     else:
         get_tasker = bookkeeper.get_delta_extraction_tasker

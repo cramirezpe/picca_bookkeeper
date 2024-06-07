@@ -2,6 +2,12 @@ general:
   conda environment: /global/common/software/desi/users/cramirez/conda/envs/durham2023
   system: slurm_perlmutter
 
+  slurm args:
+    mail-type: fail
+    mail-user: user@host.com
+
+  defaults file: quickquasars
+
 data:
   bookkeeper dir: /path/to/analysis
  
@@ -9,29 +15,22 @@ data:
   # by default it will be defined by release and survey
   # fields below
   healpix data: /global/cfs/cdirs/desicollab/users/hiramk/desi/qq_mocks/iron/main/mock/london/v9.0.0/iron_main-0.134/spectra-16
-  
-  release: iron # This can be anything
-  survey: main # This can also be anything
-  
+    
   catalog: /global/cfs/cdirs/desicollab/users/hiramk/desi/qq_mocks/iron/main/mock/london/v9.0.0/iron_main-0.134/qsocat_iron_main.fits
   
 
 delta extraction:
-  prefix: quickquasars
-  calib: 0 # Not implemented for mocks
-  dla: 1 # Not implemented for mocks (set to 1 to show 1 in output paths)
-  bal: 1 # Not implemented for mocks (set to 1 to show 1 in output paths)
-  suffix: 0
+  calib: 0 
+  calib region: mgii_r
 
   # For mocks this can be used to define the full path to the DLA catalog
-  dla catalog: /global/cfs/cdirs/desicollab/users/hiramk/desi/qq_mocks/iron/main/mock/london/v9.0.0/iron_main-0.134/dlacat.fits
+  dla: /global/cfs/cdirs/desicollab/users/hiramk/desi/qq_mocks/iron/main/mock/london/v9.0.0/iron_main-0.134/dlacat.fits
   # The same for BAL catalog
-  bal catalog: /global/cfs/cdirs/desicollab/users/hiramk/desi/qq_mocks/iron/main/mock/london/v9.0.0/iron_main-0.134/balcat.fits 
+  bal: /global/cfs/cdirs/desicollab/users/hiramk/desi/qq_mocks/iron/main/mock/london/v9.0.0/iron_main-0.134/balcat.fits 
   mask file:
 
 
 correlations:
-  run name: default
   # catalog_tracer could be set up to use a different catalog for cross-correlations
   # by default will use the data:catalog one.
   catalog tracer:
@@ -39,7 +38,6 @@ correlations:
 fits:
   auto correlations: lya.lya-lya.lya
   cross correlations: lya.lya
-  run name: default
 
   distortion: False
   metals: False

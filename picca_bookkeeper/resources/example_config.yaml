@@ -37,6 +37,8 @@ delta extraction:
   dla: # If added, DLAs will be masked automatically
   bal: # If added, BALs selected from catalog, if True BALs from data/catalog
 
+  mask file: # Add a line mask file
+
   # Only if you want to re-use calibration data from a different analysis.
   # Insert here the path of a delta-attributes.fits.gz file to use it as 
   # calibration data for the current run..

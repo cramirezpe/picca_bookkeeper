@@ -75,7 +75,7 @@ class Bookkeeper:
         # Needed to retrieve continuum tag
         self.paths = PathBuilder(self.config)
 
-        ## @TODO Remove this after or fix it
+        ## Needed for partially written bookkeepers
         if self.config.get("correlations", None) is None:
             self.config["correlations"] = dict()
 
@@ -748,14 +748,12 @@ class Bookkeeper:
         #         f"{self.config['delta extraction']['prefix']}"
         #     )
         
-        # @TODO: detect raw or true and do whatever is needed
-        return
-        if self.config["delta extraction"]["prefix"] == "raw":
+        if self.config["general"].get("raw mocks", False):
             raise ValueError(
                 f"raw continuum fitting provided in config file, use "
                 "get_raw_deltas_tasker instead"
             )
-        elif self.config["delta extraction"]["prefix"] == True:
+        if self.config["general"].get("true mocks", False):
             if (
                 "expected flux" not in deltas_config_dict
                 or "raw statistics file" not in deltas_config_dict["expected flux"]
@@ -3613,7 +3611,7 @@ class PathBuilder:
         if field == "dla":
             dla = self.config["delta extraction"].get("dla", None)
             if dla is None:
-                return None
+                return Path("None")
             elif dla.is_file():
                 catalog = Path(dla)
             else:
