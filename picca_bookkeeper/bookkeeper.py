@@ -72,19 +72,14 @@ class Bookkeeper:
         self.read_mode = read_mode
         self.overwrite_config = overwrite_config
 
-        # Add sections from bookkeeper config
-        self.fits = None
-        self.correlations = None
-        self.delta_extraction = None
-
         # Needed to retrieve continuum tag
         self.paths = PathBuilder(self.config)
 
         ## @TODO Remove this after or fix it
-        if self.config["correlations"] is None:
+        if self.config.get("correlations", None) is None:
             self.config["correlations"] = dict()
 
-        if self.config["fits"] is None:
+        if self.config.get("fits", None) is None:
             self.config["fits"] = dict()
 
         self.paths.check_run_directories()
@@ -861,7 +856,7 @@ class Bookkeeper:
 
         args = {
             "object-cat": str(self.paths.catalog),
-            "in-dir": str(self.paths.transmission_data.resolve()),
+            "in-dir": str(self.paths.healpix_data.resolve()),
             "out-dir": str(self.paths.deltas_path(region)),
             "lambda-rest-min": forest_regions[region]["lambda-rest-min"],
             "lambda-rest-max": forest_regions[region]["lambda-rest-max"],
@@ -1604,21 +1599,17 @@ class Bookkeeper:
             logger.warn("CORRELATIONS WILL BE UNBLINDED, BE CAREFUL.")
             precommand = f"picca_bookkeeper_unblind_correlations"
 
-            cf_file = str(self.paths.cf_fname(absorber, region, absorber2, region2))
-            precommand += f" --cf {cf_file}"
+            cf_file = self.paths.cf_fname(absorber, region, absorber2, region2).resolve()
+            precommand += f" --cf {str(cf_file)}"
             if self.config["fits"].get("distortion", True):
-                dmat_file = str(
-                    self.paths.dmat_fname(absorber, region, absorber2, region2).resolve()
-                )
-                precommand += f" --dmat {dmat_file}"
+                dmat_file = self.paths.dmat_fname(absorber, region, absorber2, region2).resolve()
+                precommand += f" --dmat {str(dmat_file)}"
                 in_files.append(dmat_file)
             if self.config["fits"].get("metals", True) and not self.config["fits"].get(
                 "compute metals", False
             ):
-                metal_file = str(
-                    self.paths.metal_fname(absorber, region, absorber2, region2).resolve()
-                )
-                precommand += f" --metal-dmat {metal_file}"
+                metal_file = self.paths.metal_fname(absorber, region, absorber2, region2).resolve()
+                precommand += f" --metal-dmat {str(metal_file)}"
                 in_files.append(metal_file)
         elif self.config["correlations"].get("unblind y1", False):
             logger.warn("Applying Y1 unblind.")
@@ -2205,17 +2196,17 @@ class Bookkeeper:
             logger.warn("CORRELATIONS WILL BE UNBLINDED, BE CAREFUL.")
             precommand = f"picca_bookkeeper_unblind_correlations"
 
-            xcf_file = str(self.paths.xcf_fname(absorber, region))
-            precommand += f" --cf {xcf_file}"
+            xcf_file = self.paths.xcf_fname(absorber, region).resolve()
+            precommand += f" --cf {str(xcf_file)}"
             if self.config["fits"].get("distortion", True):
-                xdmat_file = str(self.paths.xdmat_fname(absorber, region).resolve())
-                precommand += f" --dmat {xdmat_file}"
+                xdmat_file = self.paths.xdmat_fname(absorber, region).resolve()
+                precommand += f" --dmat {str(xdmat_file)}"
                 in_files.append(xdmat_file)
             if self.config["fits"].get("metals", True) and not self.config["fits"].get(
                 "compute metals", False
             ):
-                xmetal_file = str(self.paths.metal_fname(absorber, region).resolve())
-                precommand += f" --metal-dmat {xmetal_file}"
+                xmetal_file = self.paths.metal_fname(absorber, region).resolve()
+                precommand += f" --metal-dmat {str(xmetal_file)}"
                 in_files.append(xmetal_file)
         elif self.config["correlations"].get("unblind y1", False):
             logger.warn("Applying Y1 unblind.")
@@ -2466,7 +2457,7 @@ class Bookkeeper:
         )
 
         args = {
-            "": self.paths.fit_config_file,
+            "": self.paths.config_file,
         }
 
         args = DictUtils.merge_dicts(args, updated_extra_args)
@@ -3529,7 +3520,12 @@ class PathBuilder:
         Returns:
             Path
         """
-        return Path(self.config["data"]["healpix data"])
+        healpix_data = Path(self.config["data"]["healpix data"])
+
+        if not healpix_data.is_dir():
+            raise ValueError("Invalid healpix data in config", str(healpix_data))
+        else:
+            return healpix_data
 
     @property
     def run_path(self) -> Path:
@@ -3538,7 +3534,7 @@ class PathBuilder:
         Returns:
             Path
         """
-        bookkeeper_dir = self.config.get("data").get("bookkeeper dir", None)
+        bookkeeper_dir = self.config.get("data", dict()).get("bookkeeper dir", None)
 
         if bookkeeper_dir is None:
             raise ValueError("Invalid bookkeeper dir in config")
@@ -3623,7 +3619,7 @@ class PathBuilder:
             ).is_file():
                 catalog = Path(self.config["delta extraction"]["dla"])
             else:
-                raise FileNotFoundError("Couldn't find valid DLA catalog", catalog)
+                raise FileNotFoundError("Couldn't find valid DLA catalog")
         elif field == "bal":
             if (
                 self.config["delta extraction"].get("bal", None)
@@ -3643,12 +3639,12 @@ class PathBuilder:
             else:
                 catalog = self.get_catalog_from_field("catalog")
         else:
-            if (self.config.get("data").get("catalog", None) not in ("", None)) and Path(
+            if (self.config["data"].get("catalog", None) not in ("", None)) and Path(
                 self.config["data"].get("catalog", "")
             ).is_file():
                 catalog = Path(self.config["data"].get("catalog", ""))
             else:
-                raise FileNotFoundError("Couldn't find valid catalog", catalog)
+                raise FileNotFoundError("Couldn't find valid catalog")
 
         return catalog
 
@@ -3865,7 +3861,7 @@ class PathBuilder:
         absorber2: Optional[str],
         region2: Optional[str],
         filename: Optional[str],
-    ) -> Path:
+    ) -> Path | None:
         """Method to get a correlation file to copy given in the bookkeeper config
 
         Args:
@@ -3899,7 +3895,7 @@ class PathBuilder:
 
         elif (
             self.config["correlations"].get(subsection, dict()).get("general", None)
-            is not None
+            is not None and filename is not None
         ):
             parent = Path(self.config["correlations"].get(subsection, dict()).get("general"))
             file = parent / (qso + name) / filename
@@ -3921,7 +3917,7 @@ class PathBuilder:
         logger.info(f"{qso + name}: Using correlation from file:\n\t{str(file)}")
         return file
 
-    def copied_covariance_file(self, smoothed: bool = False) -> Path:
+    def copied_covariance_file(self, smoothed: bool = False) -> Path | None:
         """Method to get a covariance file to copy given in the bookkeeper config
 
         Args:

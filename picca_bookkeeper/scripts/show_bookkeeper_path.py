@@ -19,12 +19,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
     for bookkeeper_config in args.bookkeeper_configs:
         bookkeeper = Bookkeeper(bookkeeper_config)
 
-        if bookkeeper.fits is not None:
-            paths.append(bookkeeper.paths.fits_path)
-        elif bookkeeper.correlations is not None:
-            paths.append(bookkeeper.paths.correlations_path)
-        else:
-            paths.append(bookkeeper.paths.run_path)
+        paths.append(bookkeeper.paths.run_path)
 
     if args.pretty:
         print(
