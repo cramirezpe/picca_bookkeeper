@@ -3611,23 +3611,17 @@ class PathBuilder:
             Path: catalog to be used.
         """
         if field == "dla":
-            if (
-                self.config["delta extraction"].get("dla", None)
-                not in ("", None)
-            ) and Path(
-                self.config["delta extraction"].get("dla", "")
-            ).is_file():
-                catalog = Path(self.config["delta extraction"]["dla"])
+            dla = self.config["delta extraction"].get("dla", None)
+            if dla is None:
+                return None
+            elif dla.is_file():
+                catalog = Path(dla)
             else:
                 raise FileNotFoundError("Couldn't find valid DLA catalog")
         elif field == "bal":
-            if (
-                self.config["delta extraction"].get("bal", None)
-                not in ("", None, True, False)
-            ) and Path(
-                self.config["delta extraction"].get("bal", "")
-            ).is_file():
-                catalog = Path(self.config["delta extraction"]["bal"])
+            bal = self.config["delta extraction"].get("bal", None)
+            if bal not in (True, None) and Path(bal).is_file():
+                catalog = Path(bal)
             else:
                 catalog = self.get_catalog_from_field("catalog")
         elif field == "catalog_tracer":

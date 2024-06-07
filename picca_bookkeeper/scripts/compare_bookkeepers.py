@@ -136,7 +136,7 @@ def replace_strings(text: str, bookkeeper: Bookkeeper) -> str:
     originals = [
         str(bookkeeper.paths.fits_path),
         str(bookkeeper.paths.correlations_path),
-        str(bookkeeper.paths.run_path),
+        # str(bookkeeper.paths.run_path),
         str(bookkeeper.paths.catalog),
         str(bookkeeper.paths.catalog_dla),
         str(bookkeeper.paths.catalog_bal),
@@ -151,7 +151,7 @@ def replace_strings(text: str, bookkeeper: Bookkeeper) -> str:
     replacements = [
         "fits-path",
         "correlations-path",
-        "run-path",
+        # "run-path",
         "catalog",
         "catalog-dla",
         "catalog-bal",
