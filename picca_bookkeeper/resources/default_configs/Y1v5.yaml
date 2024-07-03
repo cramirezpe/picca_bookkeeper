@@ -277,7 +277,7 @@ fits:
 
   compute zeff: True
 
-  compute metals: True
+  vega metals: True
 
   bao: True
   hcd: True

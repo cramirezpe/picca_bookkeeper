@@ -74,7 +74,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
 
     if bookkeeper.config.get("fits", dict()).get(
         "metals", True
-    ) and not bookkeeper.config.get("fits", dict()).get("compute metals", False):
+    ) and not bookkeeper.config.get("fits", dict()).get("vega metals", False):
         # Compute metals if metals should be included and metals are not going
         # to be computed by vega.
         metal = bookkeeper.get_xmetal_tasker(
