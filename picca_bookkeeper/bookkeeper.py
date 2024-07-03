@@ -275,7 +275,7 @@ class Bookkeeper:
                 "smooth covariance",
                 "computed covariances",
                 "compute zeff",
-                "compute metals",
+                "vega metals",
                 "sampler environment",
                 "bao",
                 "hcd",
@@ -1604,7 +1604,7 @@ class Bookkeeper:
                 precommand += f" --dmat {str(dmat_file)}"
                 in_files.append(dmat_file)
             if self.config["fits"].get("metals", True) and not self.config["fits"].get(
-                "compute metals", False
+                "vega metals", False
             ):
                 metal_file = self.paths.metal_fname(absorber, region, absorber2, region2).resolve()
                 precommand += f" --metal-dmat {str(metal_file)}"
@@ -2201,7 +2201,7 @@ class Bookkeeper:
                 precommand += f" --dmat {str(xdmat_file)}"
                 in_files.append(xdmat_file)
             if self.config["fits"].get("metals", True) and not self.config["fits"].get(
-                "compute metals", False
+                "vega metals", False
             ):
                 xmetal_file = self.paths.metal_fname(absorber, region).resolve()
                 precommand += f" --metal-dmat {str(xmetal_file)}"
@@ -2967,7 +2967,7 @@ class Bookkeeper:
                 },
             )
             if config["fits"].get("metals", True):
-                if config["fits"].get("compute metals", False):
+                if config["fits"].get("vega metals", False):
                     args = DictUtils.merge_dicts(
                         args,
                         {
@@ -3039,7 +3039,7 @@ class Bookkeeper:
             ini_files.append(str(filename))
 
             if vega_args.get("metals", False) and not args["fits"].get(
-                "compute metals", False
+                "vega metals", False
             ):
                 input_files.append(metals_file)
 
@@ -3080,7 +3080,7 @@ class Bookkeeper:
             )
 
             if config["fits"].get("metals", True):
-                if config["fits"].get("compute metals", False):
+                if config["fits"].get("vega metals", False):
                     args = DictUtils.merge_dicts(
                         args,
                         {
@@ -3147,7 +3147,7 @@ class Bookkeeper:
             ini_files.append(str(filename))
 
             if vega_args.get("metals", False) and not args["fits"].get(
-                "compute metals", False
+                "vega metals", False
             ):
                 input_files.append(metals_file)
 
