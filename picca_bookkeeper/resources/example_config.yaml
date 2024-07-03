@@ -190,7 +190,7 @@ fits:
   compute zeff: True
 
   # If we want Vega to compute metals:
-  vega metalsalse
+  vega metal: False
 
   distortion: True # Whether to use distortion matrix
   bao: True
