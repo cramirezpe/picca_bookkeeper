@@ -229,7 +229,7 @@ fits:
   # effectively removing BAO fitting
   # remove default args:
   #   vega_main:
-  #     all: # This can be all to remove all no matter region, general to remove general or "any" for specific regions
+  #     all: # This can be all to remove in all cases no matter region, general to remove general or lya/lyb for specific regions
   #       sample:
   #         ap:
   #         at:

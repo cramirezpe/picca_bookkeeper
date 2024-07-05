@@ -206,10 +206,10 @@ correlations:
         cpus-per-task: 256
       
       lyalya_lyalya:
-        time: "02:40:00"
+        time: "04:00:00"
 
       lyalya_lyalyb:
-        time: "01:10:00"
+        time: "03:00:00"
 
     picca_export:
       general:
