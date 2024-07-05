@@ -1,6 +1,8 @@
 general:
   conda environment: picca
   system: slurm_perlmutter
+  slurm args:
+    OMP_NUM_THREADS: 1
   defaults file: dMdB20
 data:
   bookkeeper dir: /global/common/software/desi/users/cramirez/picca_bookkeeper_simple/tests/test_files/output/results
@@ -11,6 +13,10 @@ delta extraction:
   calib region: mgii_r
   dla:
   bal:
+  slurm args:
+    picca_delta_extraction:
+      lya:
+        OMP_NUM_THREADS: 2
 correlations: {}
 fits:
   auto correlations: lya.lya-lya.lya

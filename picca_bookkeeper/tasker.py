@@ -107,6 +107,19 @@ class Tasker:
             job to be launched.
             out_files: Out files that will be write by the job (to add jobid if available).
         """
+        self.jobid: Optional[int] = None
+
+        if "OMP_NUM_THREADS" in slurm_header_args:
+            if slurm_header_args["OMP_NUM_THREADS"] not in ("", None):
+                self.OMP_threads = slurm_header_args["OMP_NUM_THREADS"]
+            else:
+                self.OMP_threads = None
+            
+            del(slurm_header_args["OMP_NUM_THREADS"])
+        else:
+            self.OMP_threads = None
+            
+
         self.slurm_header_args = {**self.default_header, **slurm_header_args}
 
         if isinstance(self.slurm_header_args.get("time", ""), int):
@@ -129,16 +142,7 @@ class Tasker:
         self.out_files = out_files
         self.precommand = precommand
 
-        self.jobid: Optional[int] = None
 
-        if "OMP_NUM_THREADS" in slurm_header_args:
-            if slurm_header_args["OMP_NUM_THREADS"] not in ("", None):
-                self.OMP_threads = slurm_header_args["OMP_NUM_THREADS"]
-            else:
-                self.OMP_threads = None
-                del(slurm_header_args["OMP_NUM_THREADS"])
-        else:
-            self.OMP_threads = None
 
     def get_wait_for_ids(self) -> None:
         """Method to standardise wait_for Taskers or ids, in such a way that can be easily used afterwards."""

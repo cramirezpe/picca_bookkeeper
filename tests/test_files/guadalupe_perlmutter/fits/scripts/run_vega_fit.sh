@@ -9,6 +9,7 @@
 #SBATCH --job-name vega_fit
 #SBATCH --output /picca_bookkeeper/tests/test_files/output/results/fits/logs/vega_fit-%j.out
 #SBATCH --error /picca_bookkeeper/tests/test_files/output/results/fits/logs/vega_fit-%j.err
+export OMP_NUM_THREADS=1
 
 module load python
 source activate picca

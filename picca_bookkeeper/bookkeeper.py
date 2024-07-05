@@ -434,9 +434,6 @@ class Bookkeeper:
         if region2 != "":
             region_subcommand += f"_{absorber2}{region2}"
 
-        if "slurm args" in self.config["general"]:
-            args = self.config["general"].get("slurm args", dict())
-
         for subcommand in ("general", region_subcommand, "all"):
             if (
                 config.get("slurm args", None) is not None

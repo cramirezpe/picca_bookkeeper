@@ -9,6 +9,7 @@
 #SBATCH --job-name xcf_exp_lyalya
 #SBATCH --output /picca_bookkeeper/tests/test_files/output/results/correlations/logs/xcf_exp_lyalya-%j.out
 #SBATCH --error /picca_bookkeeper/tests/test_files/output/results/correlations/logs/xcf_exp_lyalya-%j.err
+export OMP_NUM_THREADS=1
 
 module load python
 source activate picca

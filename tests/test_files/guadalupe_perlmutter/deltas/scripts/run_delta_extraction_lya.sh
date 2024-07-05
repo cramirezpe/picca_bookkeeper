@@ -9,6 +9,7 @@
 #SBATCH --job-name delta_extraction_lya
 #SBATCH --output /picca_bookkeeper/tests/test_files/output/results/deltas/logs/delta_extraction_lya-%j.out
 #SBATCH --error /picca_bookkeeper/tests/test_files/output/results/deltas/logs/delta_extraction_lya-%j.err
+export OMP_NUM_THREADS=2
 
 module load python
 source activate picca

@@ -9,6 +9,7 @@
 #SBATCH --job-name delta_extraction_mgii_r_calib_step_2
 #SBATCH --output /picca_bookkeeper/tests/test_files/output/results/deltas/logs/delta_extraction_mgii_r_calib_step_2-%j.out
 #SBATCH --error /picca_bookkeeper/tests/test_files/output/results/deltas/logs/delta_extraction_mgii_r_calib_step_2-%j.err
+export OMP_NUM_THREADS=1
 
 module load python
 source activate picca
