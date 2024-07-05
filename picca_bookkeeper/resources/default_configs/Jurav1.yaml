@@ -41,13 +41,13 @@ delta extraction:
         cpus-per-task: 256
 
       ciii:
-        time: "02:30:00"
+        time: "04:00:00"
 
       lya:
-        time: "02:00:00"
+        time: "02:30:00"
 
       lyb:
-        time: "01:30:00"
+        time: "01:10:00"
 
 
 correlations:
@@ -190,14 +190,14 @@ correlations:
     picca_cf:
       general:
         qos: regular
-        time: "04:00:00"
+        time: "01:30:00"
         cpus-per-task: 256
       
       lyalya_lyalya:
-        time: "00:40:00"
+        time: "00:50:00"
 
       lyalya_lyalyb:
-        time: "00:20:00"
+        time: "00:30:00"
 
     picca_dmat:
       general:
@@ -206,10 +206,10 @@ correlations:
         cpus-per-task: 256
       
       lyalya_lyalya:
-        time: "02:20:00"
+        time: "02:40:00"
 
       lyalya_lyalyb:
-        time: "01:20:00"
+        time: "01:10:00"
 
     picca_export:
       general:
@@ -236,19 +236,19 @@ correlations:
         cpus-per-task: 256
 
       lyalya:
-        time: "00:40:00"
+        time: "01:00:00"
 
       lyalyb:
-        time: "00:20:00"
+        time: "00:30:00"
 
     picca_xdmat:
       general:
         qos: regular
-        time: "03:00:00"
+        time: "02:00:00"
         cpus-per-task: 256
 
       lyalya:
-        time: "01:00:00"
+        time: "01:40:00"
 
       lyalyb:
         time: "00:40:00"
@@ -405,6 +405,7 @@ fits:
           qso_rad_strength: True
           bias_hcd: True
           beta_hcd: True
+          L0_hcd: True
           bias_SiII(1190): True
           bias_SiII(1193): True
           bias_SiIII(1207): True

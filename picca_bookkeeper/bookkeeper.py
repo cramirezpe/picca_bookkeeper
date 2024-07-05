@@ -106,9 +106,9 @@ class Bookkeeper:
             self.paths.check_correlation_directories()
             self.check_existing_config("correlations", self.paths.config_file)
 
-        if self.config["fits"] != dict():
-            self.paths.check_fit_directories()
-            self.check_existing_config("fits", self.paths.config_file)
+        
+        self.paths.check_fit_directories()
+        self.check_existing_config("fits", self.paths.config_file)
 
         self.check_bookkeeper_config()
 
@@ -3612,7 +3612,7 @@ class PathBuilder:
             dla = self.config["delta extraction"].get("dla", None)
             if dla is None:
                 return Path("None")
-            elif dla.is_file():
+            elif Path(dla).is_file():
                 catalog = Path(dla)
             else:
                 raise FileNotFoundError("Couldn't find valid DLA catalog")
