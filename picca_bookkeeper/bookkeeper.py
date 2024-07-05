@@ -2640,7 +2640,6 @@ class Bookkeeper:
             out_files=[
                 self.paths.sampler_out_path() / "jobidfile",
             ],
-            force_OMP_threads=1,
         )
 
     def generate_fit_configuration(self) -> Dict:

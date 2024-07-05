@@ -90,7 +90,6 @@ class Tasker:
         srun_options: Dict = dict(),
         in_files: List[Path] | List[str] = list[Path](),
         out_files: List[Path | str] = [],
-        force_OMP_threads: Optional[int] = None,
         precommand: str = "",
     ):
         """
@@ -107,7 +106,6 @@ class Tasker:
             in_files: Input files that must exists or contain a jobid in order for the
             job to be launched.
             out_files: Out files that will be write by the job (to add jobid if available).
-            force_OMP_threads: Force the number of OMP threads in script.
         """
         self.slurm_header_args = {**self.default_header, **slurm_header_args}
 
@@ -129,10 +127,18 @@ class Tasker:
         self.jobid_log_file = jobid_log_file
         self.in_files = in_files
         self.out_files = out_files
-        self.OMP_threads = force_OMP_threads
         self.precommand = precommand
 
         self.jobid: Optional[int] = None
+
+        if "OMP_NUM_THREADS" in slurm_header_args:
+            if slurm_header_args["OMP_NUM_THREADS"] not in ("", None):
+                self.OMP_threads = slurm_header_args["OMP_NUM_THREADS"]
+            else:
+                self.OMP_threads = None
+                del(slurm_header_args["OMP_NUM_THREADS"])
+        else:
+            self.OMP_threads = None
 
     def get_wait_for_ids(self) -> None:
         """Method to standardise wait_for Taskers or ids, in such a way that can be easily used afterwards."""
