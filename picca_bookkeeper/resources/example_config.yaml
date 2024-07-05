@@ -240,6 +240,7 @@ fits:
         qos: shared
         ntasks-per-node: 1
         cpus-per-task: 8
+        OMP_NUM_THREADS: 1
 
     run_vega_mpi: # sampler args
       general:

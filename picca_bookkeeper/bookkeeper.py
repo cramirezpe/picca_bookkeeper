@@ -237,7 +237,7 @@ class Bookkeeper:
             }
 
         correct_order = {
-            "general": ["conda environment", "system", "slurm args", "defaults file"],
+            "general": ["conda environment", "system", "slurm args", "defaults file", "raw mocks", "true mocks"],
             "data": ["bookkeeper dir", "healpix data", "catalog"],
             "delta extraction": [
                 "use existing",
@@ -3520,7 +3520,7 @@ class PathBuilder:
         healpix_data = Path(self.config["data"]["healpix data"])
 
         if not healpix_data.is_dir():
-            raise ValueError("Invalid healpix data in config", str(healpix_data))
+            raise FileNotFoundError("Invalid healpix data in config", str(healpix_data))
         else:
             return healpix_data
 
@@ -3635,7 +3635,10 @@ class PathBuilder:
             ).is_file():
                 catalog = Path(self.config["data"].get("catalog", ""))
             else:
-                raise FileNotFoundError("Couldn't find valid catalog")
+                raise FileNotFoundError(
+                    f"Couldn't find valid catalog for field {field}", 
+                    self.config["data"].get("catalog", "")
+                )
 
         return catalog
 
@@ -3874,10 +3877,10 @@ class PathBuilder:
             qso = ""
 
         if (
-            self.config["correlations"].get(subsection, dict()).get(name, None)
+            self.config["correlations"].get(subsection, dict()).get(qso + name, None)
             is not None
         ):
-            file = self.config["correlations"].get(subsection, dict()).get(name)
+            file = Path(self.config["correlations"].get(subsection, dict()).get(qso + name))
 
             if not file.is_file():
                 raise FileNotFoundError(

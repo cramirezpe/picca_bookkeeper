@@ -1,21 +1,16 @@
 general:
   conda environment: picca
-  slurm args:
-    mail-type: fail
-    mail-user: user@host.com
+  system: slurm_cori
+  defaults file: dMdB20
 data:
-  bookkeeper dir: /picca_bookkeeper/tests/test_files/output
-  healpix data:
-  release: guadalupe
-  survey: main
-  catalog: afterburn_v0
+  bookkeeper dir: /global/common/software/desi/users/cramirez/picca_bookkeeper_simple/tests/test_files/output/results
+  healpix data: /global/cfs/cdirs/desi/spectro/redux/guadalupe/healpix/
+  catalog: /global/common/software/desi/users/cramirez/picca_bookkeeper_simple/tests/test_files/dummy_catalog.fits
 delta extraction:
-  prefix: dMdB20
   calib: 2
   calib region: mgii_r
-  dla: 0
-  bal: 0
-  suffix: 0
+  dla:
+  bal:
   extra args:
     picca_convert_transmission:
       general:
@@ -36,3 +31,7 @@ delta extraction:
       general:
         time: 00:16:00
         qos: regular
+correlations: {}
+fits:
+  auto correlations: lya.lyb-lya.lya
+  cross correlations: lya.lyb

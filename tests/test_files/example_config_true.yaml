@@ -1,22 +1,22 @@
 general:
   conda environment: picca_add_tests
+  defaults file: True
+
+  true mocks: True
 
 data:
   bookkeeper dir: results_directory
 
-  healpix data:
 
-  release: v9.0.0
-  survey: desi-2.0-1000
-  catalog: LyaCoLoRe
+  healpix data: /global/cfs/cdirs/desicollab/users/hiramk/desi/qq_mocks/iron/main/mock/london/v9.0.0/iron_main-0.134/spectra-16
+   
+  catalog: /global/cfs/cdirs/desicollab/users/hiramk/desi/qq_mocks/iron/main/mock/london/v9.0.0/iron_main-0.134/qsocat_iron_main.fits
   
 
 delta extraction:
-  prefix: true
   calib: 0
-  dla: 0
-  bal: 0
-  suffix: 0
+  dla:
+  bal:
 
     # extra args to be used by the bookkeeper
   extra args:
@@ -31,11 +31,8 @@ delta extraction:
 
 correlations:
   catalog tracer:
-  run name: default
   
 
 fits:
-  run name: default
-
   auto correlations: lya.lyb-lya.lya
   cross correlations: lya.lyb 
