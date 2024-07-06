@@ -83,6 +83,29 @@ class DictUtils:
                 return result
 
     @staticmethod
+    def remove_dollar(config: Dict) -> Dict:
+        """Function to remove $ from dict"""
+        result = copy.deepcopy(config)
+
+        for key, value in result.items():
+            if value == "$":
+                result.pop(key)
+                break
+            elif isinstance(value, collections.abc.Mapping):
+                result[key] = DictUtils.remove_dollar(value) # type: ignore
+        else:
+            # This trick allows for repeating the function until
+            # input and outut are the same: all $ have 
+            # been removed.
+            # This happens because the function in one iteration may
+            # remove all items in one dict, and then we need an
+            # extra iteration to remove the dict itself.
+            if result != config:
+                result = DictUtils.remove_dollar(result)
+
+        return result
+
+    @staticmethod
     def remove_none(config: Dict) -> Dict:
         """Function to remove Nones from dict"""
         result = copy.deepcopy(config)

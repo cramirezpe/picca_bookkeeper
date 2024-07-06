@@ -42,6 +42,7 @@ delta extraction:
 
       ciii:
         time: "04:00:00"
+        cpus-per-task: $
 
       lya:
         time: "02:30:00"

@@ -144,32 +144,14 @@ class Bookkeeper:
                     self.paths.defaults_file,
                 )
 
-            defaults_with_removed = copy.deepcopy(self.defaults)
-            
-
-            for section in "delta extraction", "correlations", "fits":
-                for remove_subsection, subsection in zip(
-                    ("remove default args", "remove default slurm args"),
-                    ("extra args", "slurm args"),
-                ):
-                    defaults_with_removed.get(section, dict())[subsection] = (
-                        DictUtils.remove_matching(
-                            defaults_with_removed.get(section, dict()).get(
-                                subsection, dict()
-                            ),
-                            self.config.get(section, dict()).get(remove_subsection, dict()),
-                        )
-                    )
-
             self.config = DictUtils.merge_dicts(
-                defaults_with_removed,
+                self.defaults,
                 self.config,
             )
 
         else:
             self.defaults = dict()
             self.defaults_diff = dict()
-
         # Update paths config
         self.paths.config = self.config
 
@@ -250,8 +232,6 @@ class Bookkeeper:
                 "mask file",
                 "extra args",
                 "slurm args",
-                "remove default args",
-                "remove slurm args",
             ],
             "correlations": [
                 "use existing",
@@ -265,8 +245,6 @@ class Bookkeeper:
                 "computed metals",
                 "extra args",
                 "slurm args",
-                "remove default args",
-                "remove slurm args",
             ],
             "fits": [
                 "auto correlations",
@@ -289,8 +267,6 @@ class Bookkeeper:
                 "rmax xcf",
                 "extra args",
                 "slurm args",
-                "remove default args",
-                "remove slurm args",
             ],
         }
 
@@ -349,8 +325,6 @@ class Bookkeeper:
         for arg_type in (
             "slurm args",
             "extra args",
-            "remove default args",
-            "default slurm args",
         ):
             for section, commands in zip(
                 ("delta extraction", "correlations", "fits"),
@@ -445,7 +419,7 @@ class Bookkeeper:
                     config["slurm args"][command_name][subcommand],
                 )
 
-        return args
+        return DictUtils.remove_dollar(args)
 
     def generate_extra_args(
         self,
@@ -497,7 +471,7 @@ class Bookkeeper:
                     config["extra args"][command_name][subcommand],
                 )
 
-        return args
+        return DictUtils.remove_dollar(args)
 
     def generate_system_arg(self, system: Optional[str]) -> str:
         if system is None:
@@ -2648,7 +2622,6 @@ class Bookkeeper:
             {
                 "fits": {
                     "extra args": {},
-                    "remove default args": {},
                 },
             },
             self.config,

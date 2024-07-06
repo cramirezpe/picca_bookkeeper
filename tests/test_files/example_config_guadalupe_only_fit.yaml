@@ -22,9 +22,9 @@ fits:
 
   metals: False
 
-  remove default args:
+  extra args:
     vega_main:
-      general:
+      all:
         sample:
-          ap:
-          at:
+          ap: $
+          at: $

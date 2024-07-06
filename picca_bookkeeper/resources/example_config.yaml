@@ -73,8 +73,8 @@ delta extraction:
       ciii:
 
       # To force the change even if there are specific defaults for some regions
-      # use all
-      # all:
+      # in the default config file, use all regions
+      # all regions:
 
     # Scripts with terminal argumentss are also compatible
     picca_convert_transmission:
@@ -223,17 +223,15 @@ fits:
     vega_main:
       general:
 
-  ## Uncomment this to remove certain configuration parameters from the fit
-  ## that were included in the defaults.
-  ## This will remove ap and at from sample section in vega main
-  # effectively removing BAO fitting
-  # remove default args:
-  #   vega_main:
-  #     all: # This can be all to remove in all cases no matter region, general to remove general or lya/lyb for specific regions
+  ## It is possible to remove certain configuration parameters using the extra 
+  ## args section. For this, we use $ in the following way:
+  # exta args:
+  #   vega_main: 
+  #     all regions: # you can remove from general, specific regions or everywhere with "all regions"
   #       sample:
-  #         ap:
-  #         at:
-
+  #         ap: $
+  #         at: $
+    
   slurm args:
     run_vega: # minimizer args
       general:
