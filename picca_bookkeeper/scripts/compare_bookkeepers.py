@@ -63,9 +63,9 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
             + strCyan(f"\n\t+{bookkeeper2.paths.catalog_tracer}\n")
         )
 
-    ini_files = list((bookkeeper2.paths.run_path / "configs").glob("*.ini"))
+    ini_files = list((bookkeeper2.paths.delta_extraction_path / "configs").glob("*.ini"))
     ini_files_base = [
-        (bookkeeper1.paths.run_path / "configs") / x.name for x in ini_files
+        (bookkeeper1.paths.delta_extraction_path / "configs") / x.name for x in ini_files
     ]
 
     script_files = list((bookkeeper2.paths.correlations_path / "scripts").glob("*.sh"))
@@ -80,6 +80,8 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
 
     config_files = ini_files + script_files + fit_files
     config_files_base = ini_files_base + script_files_base + fit_files_base
+
+    logger.info("Number of config files: %s", len(config_files))
 
     import difflib
 

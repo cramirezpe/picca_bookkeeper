@@ -38,7 +38,9 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
         for file in yaml_files:
             config = yaml.safe_load(file.read_text())
 
-            old_dirs.add(config["data"]["bookkeeper dir"])
+            old_dirs.add(str(
+                Path(config["data"]["bookkeeper dir"]).parent
+            ))
     
     yaml_files = list(args.source_dir.glob("**/*.yaml"))
 

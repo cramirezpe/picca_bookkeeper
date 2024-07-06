@@ -202,11 +202,12 @@ correlations:
     picca_dmat:
       general:
         qos: regular
-        time: "04:00:00"
+        time: "05:00:00"
         cpus-per-task: 256
       
       lyalya_lyalya:
-        time: "04:00:00"
+        time: "05:00:00"
+        OMP_NUM_THREADS: 1
 
       lyalya_lyalyb:
         time: "03:00:00"

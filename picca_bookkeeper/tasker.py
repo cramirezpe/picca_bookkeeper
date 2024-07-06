@@ -257,7 +257,7 @@ class Tasker:
             try:
                 return sbatch_process.stdout.decode("utf-8").splitlines()[-1]
             except:
-                logger.info(
+                logger.debug(
                     f"Retrieving status for jobid {jobid} failed. Retrying in 2 seconds..."
                 )
                 time.sleep(2)
