@@ -169,11 +169,11 @@ fits:
   auto correlations: lya.lya-lya.lya lya.lya-lya.lyb
   cross correlations: lya.lya lya.lyb
 
-  bao: True
-  hcd: True
-  metals: True
-  sky: True
-  qso rad: True
+  no bao: False
+  no hcd: False
+  no metals: False
+  no sky: False
+  no qso rad: False
   rmin cf:
   rmax cf: 
   rmin xcf:

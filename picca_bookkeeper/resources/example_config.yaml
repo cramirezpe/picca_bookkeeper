@@ -74,7 +74,7 @@ delta extraction:
 
       # To force the change even if there are specific defaults for some regions
       # in the default config file, use all regions
-      # all regions:
+      # all:
 
     # Scripts with terminal argumentss are also compatible
     picca_convert_transmission:
@@ -190,14 +190,17 @@ fits:
   compute zeff: True
 
   # If we want Vega to compute metals:
-  vega metal: False
+  vega metals: False
 
-  distortion: True # Whether to use distortion matrix
-  bao: True
-  hcd: True
-  metals: True
-  sky: True
-  qso rad: True
+  
+  # Remove some fit options
+  no distortion: False # Whether to use distortion matrix
+  no bao: False
+  no hcd: False
+  no metals: False
+  no sky: False
+  no qso rad: False
+
   rmin cf:
   rmax cf: 
   rmin xcf:
@@ -227,7 +230,7 @@ fits:
   ## args section. For this, we use $ in the following way:
   # exta args:
   #   vega_main: 
-  #     all regions: # you can remove from general, specific regions or everywhere with "all regions"
+  #     all: # you can remove from general, specific regions or everywhere with "all"
   #       sample:
   #         ap: $
   #         at: $

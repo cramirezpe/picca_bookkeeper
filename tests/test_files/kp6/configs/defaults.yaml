@@ -222,11 +222,11 @@ fits:
   cross correlations: lya.lya lya.lyb
   compute zeff: true
   sampler environment: /global/common/software/desi/users/acuceu/stable_vega/activate_vega.sh
-  bao: true
-  hcd: true
-  metals: true
-  sky: true
-  qso rad: true
+  no bao: false
+  no hcd: false
+  no metals: false
+  no sky: false
+  no qso rad: false
   rmin cf:
   rmax cf:
   rmin xcf:

@@ -255,12 +255,12 @@ class Bookkeeper:
                 "compute zeff",
                 "vega metals",
                 "sampler environment",
-                "bao",
-                "hcd",
-                "distortion",
-                "metals",
-                "sky",
-                "qso rad",
+                "no distortion",
+                "no bao",
+                "no hcd",
+                "no metals",
+                "no sky",
+                "no qso rad",
                 "rmin cf",
                 "rmax cf",
                 "rmin xcf",
@@ -1570,11 +1570,11 @@ class Bookkeeper:
 
             cf_file = self.paths.cf_fname(absorber, region, absorber2, region2).resolve()
             precommand += f" --cf {str(cf_file)}"
-            if self.config["fits"].get("distortion", True):
+            if not self.config["fits"].get("no distortion", False):
                 dmat_file = self.paths.dmat_fname(absorber, region, absorber2, region2).resolve()
                 precommand += f" --dmat {str(dmat_file)}"
                 in_files.append(dmat_file)
-            if self.config["fits"].get("metals", True) and not self.config["fits"].get(
+            if (not self.config["fits"].get("no metals", False)) and not self.config["fits"].get(
                 "vega metals", False
             ):
                 metal_file = self.paths.metal_fname(absorber, region, absorber2, region2).resolve()
@@ -2167,11 +2167,11 @@ class Bookkeeper:
 
             xcf_file = self.paths.xcf_fname(absorber, region).resolve()
             precommand += f" --cf {str(xcf_file)}"
-            if self.config["fits"].get("distortion", True):
+            if not self.config["fits"].get("no distortion", False):
                 xdmat_file = self.paths.xdmat_fname(absorber, region).resolve()
                 precommand += f" --dmat {str(xdmat_file)}"
                 in_files.append(xdmat_file)
-            if self.config["fits"].get("metals", True) and not self.config["fits"].get(
+            if (not self.config["fits"].get("no metals", False)) and not self.config["fits"].get(
                 "vega metals", False
             ):
                 xmetal_file = self.paths.metal_fname(absorber, region).resolve()
@@ -2627,7 +2627,7 @@ class Bookkeeper:
             self.config,
         )
 
-        for field in "bao", "hcd", "metals", "sky", "qso rad":
+        for field in "no bao", "no hcd", "no metals", "no sky", "no qso rad":
             if not isinstance(config["fits"][field], bool):
                 raise ValueError(f"Fit config {field} should be boolean.")
 
@@ -2672,146 +2672,116 @@ class Bookkeeper:
             config["fits"]["extra args"],
         )
 
-        if not config["fits"]["bao"]:
-            args = DictUtils.remove_matching(
+        if config["fits"]["no bao"]:
+            args = DictUtils.merge_dicts(
                 args,
                 {
                     "vega_main": {
-                        "general": {
+                        "all": {
                             "sample": {
-                                "ap": "",
-                                "at": "",
+                                "ap": "$",
+                                "at": "$",
+                            },
+                            "parameters": {
+                                "bao_amp": 0,
                             }
                         }
                     }
                 },
             )
+
+        if config["fits"]["no hcd"]:
             args = DictUtils.merge_dicts(
                 args,
                 {
-                    "vega_main": {  # This adds/modifies fields
-                        "general": {
-                            "parameters": {
-                                "bao_amp": 0,
+                    "vega_main": {
+                        "all": {
+                            "sample": {
+                                "bias_hcd": "$",
+                                "beta_hcd": "$",
                             }
                         }
-                    },
-                },
-            )
-
-        if not config["fits"]["hcd"]:
-            args = DictUtils.remove_matching(
-                args,
-                {
-                    "vega_main": {
-                        "general": {
-                            "sample": {
-                                "bias_hcd": "",
-                                "beta_hcd": "",
-                            }
-                        },
                     },
                     "vega_auto": {
                         "all": {
                             "model": {
-                                "model-hcd": "",
+                                "model-hcd": "$",
                             }
-                        },
+                        }
                     },
                     "vega_cross": {
                         "all": {
                             "model": {
-                                "model-hcd": "",
+                                "model-hcd": "$",
                             }
                         }
                     },
                 },
             )
 
-        if not config["fits"]["metals"]:
-            remove_from_sampled = dict()
-            for metal in (
-                "SiII(1190)",
-                "SiII(1193)",
-                "SiII(1260)",
-                "SiIII(1207)",
-                "CIV(eff)",
-            ):
-                if f"bias_eta_{metal}" in config["fits"].get("extra args", dict()).get(
-                    "vega_main", dict()
-                ).get("sample", dict()):
-                    remove_from_sampled[metal] = ""
+        if config["fits"]["no metals"]:
+            metal_dict = {
+                metal: "$" for metal in (
+                    "SiII(1190)",
+                    "SiII(1193)",
+                    "SiII(1260)",  
+                    "SiIII(1207)",
+                    "CIV(eff)",
+                )
+            }
 
-            args = DictUtils.remove_matching(
+            args = DictUtils.merge_dicts(
                 args,
                 {
+                    "vega_main": {
+                        "all": {
+                            "sample": metal_dict
+                        }
+                    },
                     "vega_auto": {
                         "all": {
-                            "metals": "",
-                        },
+                            "metals": "$",
+                        }
                     },
                     "vega_cross": {
                         "all": {
-                            "metals": "",
-                        },
-                    },
-                    "vega_main": {
-                        "all": {
-                            "sample": remove_from_sampled,
+                            "metals": "$",
                         }
                     },
                 },
             )
 
-        if not config["fits"]["sky"]:
-            args = DictUtils.remove_matching(
-                args,
-                {
-                    "vega_main": {
-                        "all": {
-                            "sample": {
-                                "desi_inst_sys_amp": "",
-                            }
-                        },
-                    },
-                },
-            )
+        if config["fits"]["no sky"]:
             args = DictUtils.merge_dicts(
                 args,
                 {
                     "vega_main": {
                         "all": {
+                            "sample": {
+                                "desi_inst_sys_amp": "$",
+                            },
                             "parameters": {
-                                "desi_inst_sys_amp": "0",
+                                "desi_inst_sys_amp": 0,
                             }
                         }
-                    },
+                    }
                 },
             )
 
-        if not config["fits"]["qso rad"]:
-            args = DictUtils.remove_matching(
-                args,
-                {
-                    "vega_main": {
-                        "all": {
-                            "sample": {
-                                "qso_rad_strength": "",
-                            }
-                        }
-                    },
-                },
-            )
+        if config["fits"]["no qso rad"]:
             args = DictUtils.merge_dicts(
                 args,
                 {
                     "vega_main": {
                         "all": {
+                            "sample": {
+                                "qso_rad_strength": "$",
+                            },
                             "parameters": {
-                                "qso_rad_strength": "0",
+                                "qso_rad_strength": 0,
                             }
-                        },
-                    },
+                        }
+                    }
                 },
             )
 
@@ -2935,7 +2905,7 @@ class Bookkeeper:
                     }
                 },
             )
-            if config["fits"].get("metals", True):
+            if not config["fits"].get("no metals", False):
                 if config["fits"].get("vega metals", False):
                     args = DictUtils.merge_dicts(
                         args,
@@ -2981,7 +2951,7 @@ class Bookkeeper:
                     )
             input_files.append(export_file)
 
-            if config["fits"].get("distortion", True):
+            if not config["fits"].get("no distortion", False):
                 args["fits"]["extra args"]["vega_auto"]["general"]["data"][
                     "distortion-file"
                 ] = distortion_file
@@ -3007,7 +2977,7 @@ class Bookkeeper:
             self.write_ini(vega_args, filename)
             ini_files.append(str(filename))
 
-            if vega_args.get("metals", False) and not args["fits"].get(
+            if (not vega_args.get("no metals", True)) and not args["fits"].get(
                 "vega metals", False
             ):
                 input_files.append(metals_file)
@@ -3048,7 +3018,7 @@ class Bookkeeper:
                 },
             )
 
-            if config["fits"].get("metals", True):
+            if not config["fits"].get("no metals", False):
                 if config["fits"].get("vega metals", False):
                     args = DictUtils.merge_dicts(
                         args,
@@ -3091,7 +3061,7 @@ class Bookkeeper:
                     )
             input_files.append(export_file)
 
-            if self.config["fits"].get("distortion", True):
+            if not self.config["fits"].get("no distortion", False):
                 args["fits"]["extra args"]["vega_cross"]["general"]["data"][
                     "distortion-file"
                 ] = distortion_file
@@ -3115,7 +3085,7 @@ class Bookkeeper:
             self.write_ini(vega_args, filename)
             ini_files.append(str(filename))
 
-            if vega_args.get("metals", False) and not args["fits"].get(
+            if (not vega_args.get("no metals", True)) and not args["fits"].get(
                 "vega metals", False
             ):
                 input_files.append(metals_file)

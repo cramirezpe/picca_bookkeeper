@@ -13,7 +13,7 @@ correlations:
 fits:
   auto correlations: lya.lya-lya.lya
   cross correlations: lya.lya
-  metals: false
+  no metals: true
   extra args:
     vega_main:
       all:

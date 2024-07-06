@@ -20,7 +20,7 @@ fits:
   cross correlations: lya.lya 
 
 
-  metals: False
+  no metals: True
 
   extra args:
     vega_main:
