@@ -80,7 +80,7 @@ delta extraction:
     picca_convert_transmission:
       general:
         nspec: 30
-    # use-splines: ""# use empty string for action args like no-project.
+        # use-splines: ""# use empty string for action args like no-project.
 
     
   # Slurm arguments to be used by the bookkeeper
