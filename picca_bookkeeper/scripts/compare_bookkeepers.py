@@ -86,8 +86,13 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
     import difflib
 
     for config_file, config_file_base in zip(config_files, config_files_base):
+        if config_file_base.is_file():
+            config_text = config_file_base.read_text()
+        else:
+            config_text = ""
+        
         base_text = replace_strings(
-            config_file_base.read_text(),
+            config_text,
             bookkeeper1,
         )
 
@@ -138,7 +143,7 @@ def replace_strings(text: str, bookkeeper: Bookkeeper) -> str:
     originals = [
         str(bookkeeper.paths.fits_path),
         str(bookkeeper.paths.correlations_path),
-        # str(bookkeeper.paths.run_path),
+        str(bookkeeper.paths.delta_extraction_path),
         str(bookkeeper.paths.catalog),
         str(bookkeeper.paths.catalog_dla),
         str(bookkeeper.paths.catalog_bal),
@@ -153,7 +158,7 @@ def replace_strings(text: str, bookkeeper: Bookkeeper) -> str:
     replacements = [
         "fits-path",
         "correlations-path",
-        # "run-path",
+        "deltas-path",
         "catalog",
         "catalog-dla",
         "catalog-bal",
