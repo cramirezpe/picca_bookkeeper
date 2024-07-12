@@ -4,7 +4,7 @@ general:
   defaults file: dMdB20
 data:
   bookkeeper dir: /global/common/software/desi/users/cramirez/picca_bookkeeper_simple/tests/test_files/output/results
-  healpix data: /global/cfs/cdirs/desi/spectro/redux/guadalupe/healpix/
+  healpix data: /tmp/cdirs/desi/spectro/redux/guadalupe/healpix/
   catalog: /global/common/software/desi/users/cramirez/picca_bookkeeper_simple/tests/test_files/dummy_catalog.fits
 delta extraction:
   calib: 0
