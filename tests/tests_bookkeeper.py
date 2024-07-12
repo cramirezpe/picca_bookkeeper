@@ -552,6 +552,8 @@ class TestBookkeeper(unittest.TestCase):
         self.replace_paths_bookkeeper_output(bookkeeper2.paths)
         if "UPDATE_TESTS" in os.environ and os.environ["UPDATE_TESTS"] == "True":
             self.update_test_output(test_files, bookkeeper2.paths.run_path)
+        
+        import pdb; pdb.set_trace()
         self.compare_bookkeeper_output(test_files, bookkeeper2.paths.run_path)
 
     @patch("picca_bookkeeper.tasker.run", side_effect=mock_run)

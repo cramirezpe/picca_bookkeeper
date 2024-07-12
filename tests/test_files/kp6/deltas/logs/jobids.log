@@ -1,0 +1,3 @@
+run_delta_extraction_ciii_calib_step_1.sh 22310368
+run_delta_extraction_lya.sh 42968207
+run_delta_extraction_lyb.sh 42968207

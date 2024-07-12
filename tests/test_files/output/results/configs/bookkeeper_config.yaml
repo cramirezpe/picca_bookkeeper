@@ -1,0 +1,17 @@
+general:
+  conda environment: picca
+  system: slurm_cori
+  defaults file: dMdB20
+data:
+  bookkeeper dir: /global/common/software/desi/users/cramirez/picca_bookkeeper_simple/tests/test_files/output/results
+  healpix data: /tmp/cdirs/desi/spectro/redux/guadalupe/healpix/
+  catalog: /global/common/software/desi/users/cramirez/picca_bookkeeper_simple/tests/test_files/dummy_catalog.fits
+delta extraction:
+  calib: 2
+  calib region: mgii_r
+  dla:
+  bal:
+correlations: {}
+fits:
+  auto correlations: lya.lya-lya.lyb
+  cross correlations: lya.lyb
