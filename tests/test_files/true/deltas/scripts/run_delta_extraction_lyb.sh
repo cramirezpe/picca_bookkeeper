@@ -11,7 +11,7 @@
 #SBATCH --error /picca_bookkeeper/tests/test_files/output/results/deltas/logs/delta_extraction_lyb-%j.err
 
 module load python
-source activate picca_add_tests
+conda activate picca_add_tests
 umask 0002
 
 

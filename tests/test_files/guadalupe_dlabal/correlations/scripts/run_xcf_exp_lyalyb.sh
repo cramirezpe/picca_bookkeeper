@@ -11,7 +11,7 @@
 #SBATCH --error /picca_bookkeeper/tests/test_files/output/results/correlations/logs/xcf_exp_lyalyb-%j.err
 
 module load python
-source activate picca
+conda activate picca
 umask 0002
 
 export HDF5_USE_FILE_LOCKING=FALSE

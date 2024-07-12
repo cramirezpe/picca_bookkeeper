@@ -12,7 +12,7 @@
 export OMP_NUM_THREADS=1
 
 module load python
-source activate picca
+conda activate picca
 umask 0002
 
 export HDF5_USE_FILE_LOCKING=FALSE

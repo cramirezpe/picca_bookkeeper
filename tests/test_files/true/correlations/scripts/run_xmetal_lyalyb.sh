@@ -11,7 +11,7 @@
 #SBATCH --error /picca_bookkeeper/tests/test_files/output/results/correlations/logs/xmetal_lyalyb-%j.err
 
 module load python
-source activate picca_add_tests
+conda activate picca_add_tests
 umask 0002
 
 export HDF5_USE_FILE_LOCKING=FALSE

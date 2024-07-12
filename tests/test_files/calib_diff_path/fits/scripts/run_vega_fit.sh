@@ -11,7 +11,7 @@
 #SBATCH --error /picca_bookkeeper/tests/test_files/output/results/calib_diff/fits/logs/vega_fit-%j.err
 
 module load python
-source activate picca
+conda activate picca
 umask 0002
 
 

@@ -11,7 +11,7 @@
 #SBATCH --error /picca_bookkeeper/tests/test_files/output/results/corr_var/correlations/logs/cf_lyalyb_lyalya-%j.err
 
 module load python
-source activate picca
+conda activate picca
 umask 0002
 
 

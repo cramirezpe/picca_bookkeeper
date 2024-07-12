@@ -332,14 +332,14 @@ class SlurmTasker(Tasker):
             text = ""
 
         if "sh" in self.environment:
-            activate = ""
+            activate = "source "
         else:
-            activate = "activate "
+            activate = "conda activate "
 
         text += textwrap.dedent(
             f"""
 module load python
-source {activate}{self.environment}
+{activate}{self.environment}
 umask 0002
 
 """

@@ -13,7 +13,7 @@
 #SBATCH --cpus-per-task 8
 
 module load python
-source activate picca_add_tests
+conda activate picca_add_tests
 umask 0002
 
 

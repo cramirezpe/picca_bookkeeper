@@ -11,7 +11,7 @@
 #SBATCH --error /picca_bookkeeper/tests/test_files/output/results/correlations/logs/dmat_lyalyb_lyalya-%j.err
 
 module load python
-source activate picca_add_tests
+conda activate picca_add_tests
 umask 0002
 
 

@@ -12,7 +12,7 @@
 export OMP_NUM_THREADS=2
 
 module load python
-source activate picca
+conda activate picca
 umask 0002
 
 

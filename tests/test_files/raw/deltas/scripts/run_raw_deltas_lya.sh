@@ -13,7 +13,7 @@
 #SBATCH --mail-user user@host.com
 
 module load python
-source activate /global/common/software/desi/users/cramirez/conda/envs/durham2023
+conda activate /global/common/software/desi/users/cramirez/conda/envs/durham2023
 umask 0002
 
 

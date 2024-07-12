@@ -13,7 +13,7 @@
 #SBATCH --cpus-per-task 20
 
 module load python
-source activate picca
+conda activate picca
 umask 0002
 
 

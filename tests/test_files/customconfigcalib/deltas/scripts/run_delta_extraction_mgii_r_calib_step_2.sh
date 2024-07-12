@@ -11,7 +11,7 @@
 #SBATCH --error /picca_bookkeeper/tests/test_files/output/results/deltas/logs/delta_extraction_mgii_r_calib_step_2-%j.err
 
 module load python
-source activate picca
+conda activate picca
 umask 0002
 
 
