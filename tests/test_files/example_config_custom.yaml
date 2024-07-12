@@ -1,62 +1,20 @@
 general:
-  #python environment to be used when running jobs
-  #something that would be activated as:
-  # source activate picca
   conda environment: picca
-
-  slurm args:
-    mail-type: fail
-    mail-user: user@host.com
+  system: slurm_cori
+  defaults file: dMdB20
+  
   
 data:
-  # Define the ouput_dir where the results will be stored on.
-  # also define a default input_dir where all the input values 
-  # will be read by default.
   bookkeeper dir: results_directory
   
-  
-  
-  # Hardcode the healpix data location, by default it will be set
-  # according to the release, e.g. for everest:
-  # /global/cfs/cdirs/desi/spectro/redux/everest/healpix/
-  healpix data:
-  # The structure of folders and sub-folders is the following:
-  # /global/cfs/cdirs/desi/science/lya/early-3d/{release}/{survey}/{qso_cat}
-  # where:
-  #   - release (everest, fuji): specifies the version of the pipeline used.
-  #   - survey (sv1, sv2, sv3, sv, all, main): specifies the survey (or 
-  #           combination of surveys) used.
-  #   - qso_cat (redrock_v0, redrock_v1, afterburner_v0, etc): specifiec the
-  #           quasar catalog used (containing BAL information).
-  release: guadalupe
-  survey: main
-  # Catalog could be a name (and therefore will be used the bookkeeper one)
-  # or could be a full path to a catalog
-  catalog: afterburn_v0
-  # catalog_tracer could be set up to use a different catalog for cross-correlations
-  # by default will use the previous one for all the analyses.
-   
+  healpix data: /tmp/cdirs/desi/spectro/redux/guadalupe/healpix/
+  catalog: QSO_CATALOG
   
 delta extraction:
-  # The structure of folders and sub-folders is the following:
-  # .../early-3d/{relase}/{survey}/{qso_cat}/{prefix}_{calib}.{dla}.{bal}_{suffix}
-  # where {prefix}_{calib}.{dla}.{bal}_{suffix} defines de continuum fitting used:
-  #   - prefix (dMdB20, pca, etc): specifies the type of continuum fit (dMdB20 is the 
-  #           one used in eBOSS DR16, default in Picca).
-  #   - calib (0, 1, 2, etc): integer identifying the version of pre-calibration 
-  #           done using the MgII (0 means no calibration, 1 means dMdB20 calibration, 2 means single SIV calibration).
-  #   - dla (0, 1, 2, etc): integer identifying the version of DLA masking used
-  #           (0 mean no DLA masking).
-  #   - bal (0, 1, 2, etc): integer identifying the version of BAL masking used 
-  #           (0 mean no BAL masking).
-  #   - suffix (0, any string): any string identifying anythin else particular
-  #           in the analysis (0 means nothing).
-  prefix: dMdB20
   calib: 0
   calib region: mgii_r
-  dla: 0
-  bal: 0
-  suffix: 0
+  dla:
+  bal:
 
     # Slurm arguments to be used by the bookkeeper
   slurm args:
@@ -96,11 +54,8 @@ delta extraction:
   # being saved there)
 correlations:
   catalog tracer:
-  run name: default
   
-fits:
-  run name: default
-  
+fits:  
   auto correlations: lya.lyb-lya.lya
   cross correlations: lya.lyb 
 

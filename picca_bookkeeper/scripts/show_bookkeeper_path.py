@@ -19,10 +19,10 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
     for bookkeeper_config in args.bookkeeper_configs:
         bookkeeper = Bookkeeper(bookkeeper_config)
 
-        if bookkeeper.fits is not None:
+        if bookkeeper.paths.fit_out_fname().is_file():
+            paths.append(bookkeeper.paths.fit_out_fname())
+        elif bookkeeper.paths.fits_path.is_dir():
             paths.append(bookkeeper.paths.fits_path)
-        elif bookkeeper.correlations is not None:
-            paths.append(bookkeeper.paths.correlations_path)
         else:
             paths.append(bookkeeper.paths.run_path)
 

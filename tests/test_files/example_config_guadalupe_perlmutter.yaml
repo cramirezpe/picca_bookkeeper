@@ -1,29 +1,31 @@
 general:
   conda environment: picca
   system: slurm_perlmutter
+  defaults file: dMdB20
+
+  slurm args:
+    OMP_NUM_THREADS: 1
   
 data:
   bookkeeper dir: results_directory
   
-  healpix data:
-  release: guadalupe
-  survey: main
-  catalog: afterburn_v0
+  healpix data: /tmp/cdirs/desi/spectro/redux/guadalupe/healpix/
+  catalog: QSO_CATALOG
    
   
 delta extraction:
-  prefix: dMdB20
   calib: 2
   calib region: mgii_r
-  dla: 0
-  bal: 0
-  suffix: 0
+  dla: 
+  bal: 
+
+  slurm args:
+    picca_delta_extraction:
+      lya:
+        OMP_NUM_THREADS: 2
 
 correlations:
-  catalog tracer:
-  run name: default
-fits:
-  run name: default
 
+fits:
   auto correlations: lya.lya-lya.lya
   cross correlations: lya.lya 

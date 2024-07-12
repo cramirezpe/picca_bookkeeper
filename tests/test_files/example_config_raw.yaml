@@ -1,27 +1,29 @@
 general:
-  conda environment: picca
+  conda environment: /global/common/software/desi/users/cramirez/conda/envs/durham2023
+  system: slurm_perlmutter
 
   slurm args:
-      mail-type: fail
-      mail-user: mail@host.es
+    mail-type: fail
+    mail-user: user@host.com
+
+  defaults file: raw
+
+  raw mocks: True
+
 data:
   bookkeeper dir: results_directory
   
+    # Provide custom transmission data (although is likely to be v9.0.x anyway)
+  healpix data: /tmp/cdirs/desi/mocks/lya_forest/london/v9.0/v9.0.0
   
-
-  healpix data:
-
-  release: v9.0.0
-  survey: desi-2.0-1000
-  catalog: LyaCoLoRe
+  catalog: /tmp/cdirs/desi/mocks/lya_forest/london/v9.0/v9.0.0/master.fits
+  
   
 
 delta extraction:
-  prefix: raw
   calib: 0
-  dla: 0
-  bal: 0
-  suffix: 0
+  dla: 
+  bal: 
 
 
   # Slurm arguments to be used by the bookkeeper
@@ -49,12 +51,9 @@ delta extraction:
 
 correlations:
   catalog tracer:
-  run name: default
   
 
-fits:
-  run name: default
-  
+fits:  
   auto correlations: lya.lya-lya.lya
   cross correlations: lya.lya 
 

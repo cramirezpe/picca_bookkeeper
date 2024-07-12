@@ -1,8 +1,0 @@
-run_cf_lyalya_lyalyb.sh 10004315
-run_dmat_lyalya_lyalyb.sh 65564281
-run_metal_lyalya_lyalyb.sh 16784456
-run_cf_exp_lyalya_lyalyb.sh 42968207
-run_xcf_lyalyb.sh 35542468
-run_xdmat_lyalyb.sh 23293111
-run_xmetal_lyalyb.sh 59630366
-run_xcf_exp_lyalyb.sh 15265373

@@ -1,33 +1,23 @@
 general:
   conda environment: picca
+  system: slurm_cori
+  defaults file: dMdB20
   
 data:
-  bookkeeper dir: results_directory
+  bookkeeper dir: results_directory/corr_var
   
-  healpix data:
-  release: guadalupe
-  survey: main
-  catalog: afterburn_v0
+  healpix data: /tmp/cdirs/desi/spectro/redux/guadalupe/healpix/
+  catalog: QSO_CATALOG
    
-  
 delta extraction:
-  prefix: dMdB20
-  calib: 2
-  calib region: mgii_r
-  dla: 0
-  bal: 0
-  suffix: 0
-  
-correlations:
-  catalog tracer:
-  run name: nondefault
+  use existing: results_directory
 
+correlations:
   extra args:
     picca_cf:
       general:
         nside: 128
-fits:
-  run name: default
 
+fits:
   auto correlations: lya.lya-lya.lya
   cross correlations: lya.lya 

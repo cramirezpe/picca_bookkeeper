@@ -1,17 +1,16 @@
 general:
   conda environment: picca
   system: slurm_perlmutter
+  defaults file: Y1v4
 data:
-  bookkeeper dir: /picca_bookkeeper/tests/test_files/output
-  healpix data:
-  release: guadalupe
-  survey: main
-  catalog: afterburn_v0
+  bookkeeper dir: /picca_bookkeeper/tests/test_files/output/results
+  healpix data: /tmp/cdirs/desi/spectro/redux/guadalupe/healpix/
+  catalog: /picca_bookkeeper/tests/test_files/dummy_catalog-bal.fits
 delta extraction:
-  prefix: Y1v4
   calib: 1
   calib region: ciii
-  dla: 4
-  bal: 2
-  suffix: 0
+  dla: /picca_bookkeeper/tests/test_files/dummy_dla_catalog.fits
+  bal: true
   mask file: /picca_bookkeeper/tests/test_files/sharp-lines-mask.txt
+correlations: {}
+fits: {}

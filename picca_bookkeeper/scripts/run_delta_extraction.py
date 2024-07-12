@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 
 from picca_bookkeeper.bookkeeper import Bookkeeper
 from picca_bookkeeper.dict_utils import DictUtils
-from picca_bookkeeper.tasker import Tasker
+from picca_bookkeeper.tasker import ChainedTasker, DummyTasker, Tasker
 
 if TYPE_CHECKING:
     from typing import Callable, Optional, Type
@@ -39,11 +39,12 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
         bookkeeper.config,
     )
 
-    continuum_type = config["delta extraction"]["prefix"]
+    raw = config["general"].get("raw mocks", False)
+    true = config["general"].get("true mocks", False)
 
     if args.only_calibration or (
         (
-            str(continuum_type) not in ("raw", "True")
+            (not raw and not true)
             and config["delta extraction"]["calib"] != 0
             and not args.skip_calibration
         )
@@ -59,13 +60,21 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
         calibration.write_job()
         if not args.only_write:
             calibration.send_job()
-            logger.info(f"Sent calibration step(s):\n\t{calibration.jobid}")
+
+            if isinstance(calibration, ChainedTasker):
+                for tasker in calibration.taskers:
+                    if not isinstance(tasker, DummyTasker):
+                        logger.info(f"Sent calibration step:\n\t{tasker.jobid}")
+            elif not isinstance(calibration, DummyTasker):
+                logger.info(f"Sent calibration step:\n\t{calibration.jobid}")
+
+        logger.info("Done.\n")
 
         if args.only_calibration:
             return
 
         get_tasker: Callable = bookkeeper.get_delta_extraction_tasker
-    elif continuum_type == "raw":
+    elif raw:
         get_tasker = bookkeeper.get_raw_deltas_tasker
     else:
         get_tasker = bookkeeper.get_delta_extraction_tasker
@@ -82,7 +91,11 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
     deltas.write_job()
     if not args.only_write:
         deltas.send_job()
-        logger.info(f"Sent deltas for region:\n\t{args.region}: {deltas.jobid}")
+
+        if not isinstance(deltas, DummyTasker):
+            logger.info(f"Sent deltas for region:\n\t{args.region}: {deltas.jobid}")
+    
+    logger.info("Done\n")
 
 
 def get_args() -> argparse.Namespace:

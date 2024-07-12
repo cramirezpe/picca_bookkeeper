@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 
 from picca_bookkeeper.bookkeeper import Bookkeeper
 from picca_bookkeeper.dict_utils import DictUtils
+from picca_bookkeeper.tasker import DummyTasker
 
 if TYPE_CHECKING:
     from typing import Optional
@@ -26,8 +27,6 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
         format="%(levelname)s:%(message)s",
     )
 
-    logger.info("Adding fit.")
-
     bookkeeper = Bookkeeper(
         args.bookkeeper_config,
         overwrite_config=args.overwrite_config,
@@ -40,6 +39,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
     )
     
     if config["fits"].get("compute covariance", False):
+        logger.info("Adding compute covariance matrix.")
         compute_covariance = bookkeeper.get_covariance_matrix_tasker(
             wait_for=args.wait_for,
             system=args.system,
@@ -49,9 +49,13 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
         compute_covariance.write_job()
         if not args.only_write:
             compute_covariance.send_job()
-            logger.info(f"Sent compute covariance:\n\t{compute_covariance.jobid}")
+            if not isinstance(compute_covariance, DummyTasker):
+                logger.info(f"Sent compute covariance:\n\t{compute_covariance.jobid}")
+        
+        logger.info("Done.\n")
 
         if config["fits"].get("smooth covariance", False):
+            logger.info("Adding smooth covariance matrix.")
             smooth_covariance = bookkeeper.get_smooth_covariance_tasker(
                 wait_for=args.wait_for,
                 system=args.system,
@@ -61,9 +65,14 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
             smooth_covariance.write_job()
             if not args.only_write:
                 smooth_covariance.send_job()
-                logger.info(f"Sent smooth covariance:\n\t{smooth_covariance.jobid}")
+
+                if not isinstance(smooth_covariance, DummyTasker):
+                    logger.info(f"Sent smooth covariance:\n\t{smooth_covariance.jobid}")
+
+            logger.info("Done.\n")
 
     if config["fits"].get("compute zeff", False):
+        logger.info("Adding compute zeff.")
         compute_zeff = bookkeeper.get_compute_zeff_tasker(
             wait_for=args.wait_for,
             system=args.system,
@@ -73,8 +82,14 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
         compute_zeff.write_job()
         if not args.only_write:
             compute_zeff.send_job()
-            logger.info(f"Sent compute zeff:\n\t{compute_zeff.jobid}")
 
+            if not isinstance(compute_zeff, DummyTasker):
+                logger.info(f"Sent compute zeff:\n\t{compute_zeff.jobid}")
+        
+        logger.info("Done.\n")
+
+
+    logger.info("Adding fit.")
     fit = bookkeeper.get_fit_tasker(
         wait_for=args.wait_for,
         system=args.system,
@@ -85,9 +100,13 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
     fit.write_job()
     if not args.only_write:
         fit.send_job()
-        logger.info(f"Sent fit:\n\t{fit.jobid}")
 
-    logger.info(f"Fit location: {bookkeeper.paths.fits_path}")
+        if not isinstance(fit, DummyTasker):
+            logger.info(f"Sent fit:\n\t{fit.jobid}")
+
+    logger.info("Done.\n")
+
+    logger.info(f"Fit location: {bookkeeper.paths.fits_path}\n")
 
 
 def get_args() -> argparse.Namespace:

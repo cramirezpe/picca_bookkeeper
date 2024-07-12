@@ -1,19 +1,22 @@
 general:
   conda environment: picca_add_tests
+  defaults file: true
+  true mocks: true
 data:
-  bookkeeper dir: /picca_bookkeeper/tests/test_files/output
-  healpix data:
-  release: v9.0.0
-  survey: desi-2.0-1000
-  catalog: LyaCoLoRe
+  bookkeeper dir: /picca_bookkeeper/tests/test_files/output/results
+  healpix data: /tmp/cdirs/desicollab/users/hiramk/desi/qq_mocks/iron/main/mock/london/v9.0.0/iron_main-0.134/spectra-16
+  catalog: /tmp/cdirs/desicollab/users/hiramk/desi/qq_mocks/iron/main/mock/london/v9.0.0/iron_main-0.134/qsocat_iron_main.fits
 delta extraction:
-  prefix: true
   calib: 0
-  dla: 0
-  bal: 0
-  suffix: 0
+  dla:
+  bal:
   extra args:
     picca_delta_extraction:
       general:
         expected flux:
-          raw statistics file: /global/cfs/cdirs/desi/users/mail/Continuum_fitting/picca_runs/v9.0.0/raw/v9.0.0_cat_reduced/raw_0.0.0_0/deltas/lya/Delta-stats.fits.gz
+          raw statistics file: /tmp/cdirs/desi/users/mail/Continuum_fitting/picca_runs/v9.0.0/raw/v9.0.0_cat_reduced/raw_0.0.0_0/deltas/lya/Delta-stats.fits.gz
+correlations:
+  catalog tracer:
+fits:
+  auto correlations: lya.lyb-lya.lya
+  cross correlations: lya.lyb

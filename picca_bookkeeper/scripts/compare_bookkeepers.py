@@ -63,9 +63,9 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
             + strCyan(f"\n\t+{bookkeeper2.paths.catalog_tracer}\n")
         )
 
-    ini_files = list((bookkeeper2.paths.run_path / "configs").glob("*.ini"))
+    ini_files = list((bookkeeper2.paths.delta_extraction_path / "configs").glob("*.ini"))
     ini_files_base = [
-        (bookkeeper1.paths.run_path / "configs") / x.name for x in ini_files
+        (bookkeeper1.paths.delta_extraction_path / "configs") / x.name for x in ini_files
     ]
 
     script_files = list((bookkeeper2.paths.correlations_path / "scripts").glob("*.sh"))
@@ -81,11 +81,18 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
     config_files = ini_files + script_files + fit_files
     config_files_base = ini_files_base + script_files_base + fit_files_base
 
+    logger.info("Number of config files: %s", len(config_files))
+
     import difflib
 
     for config_file, config_file_base in zip(config_files, config_files_base):
+        if config_file_base.is_file():
+            config_text = config_file_base.read_text()
+        else:
+            config_text = ""
+        
         base_text = replace_strings(
-            config_file_base.read_text(),
+            config_text,
             bookkeeper1,
         )
 
@@ -136,7 +143,7 @@ def replace_strings(text: str, bookkeeper: Bookkeeper) -> str:
     originals = [
         str(bookkeeper.paths.fits_path),
         str(bookkeeper.paths.correlations_path),
-        str(bookkeeper.paths.run_path),
+        str(bookkeeper.paths.delta_extraction_path),
         str(bookkeeper.paths.catalog),
         str(bookkeeper.paths.catalog_dla),
         str(bookkeeper.paths.catalog_bal),
@@ -151,7 +158,7 @@ def replace_strings(text: str, bookkeeper: Bookkeeper) -> str:
     replacements = [
         "fits-path",
         "correlations-path",
-        "run-path",
+        "deltas-path",
         "catalog",
         "catalog-dla",
         "catalog-bal",

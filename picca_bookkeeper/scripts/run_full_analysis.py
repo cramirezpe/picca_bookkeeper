@@ -45,7 +45,8 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
         bookkeeper.config,
     )
 
-    continuum_type = config["delta extraction"]["prefix"]
+    raw = config["general"].get("raw mocks", False)
+    true = config["general"].get("true mocks", False)
 
     ########################################
     ## Identifying needed runs from names
@@ -87,7 +88,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
     ## and then all the deltas needed.
     ########################################
     if not args.no_deltas:
-        if (str(continuum_type) not in ("raw", "True")) and config["delta extraction"][
+        if (not raw and not true) and config["delta extraction"][
             "calib"
         ] != 0:
             calib_args = argparse.Namespace(

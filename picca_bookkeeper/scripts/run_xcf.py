@@ -47,13 +47,17 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
     xcf.write_job()
     if not args.only_write:
         xcf.send_job()
-        logger.info(
-            "Sent cross-correlation "
-            f"{args.absorber}{args.region}_qso:\n\t"
-            f"{xcf.jobid}"
-        )
+
+        if not isinstance(xcf, DummyTasker):
+            logger.info(
+                "Sent cross-correlation "
+                f"{args.absorber}{args.region}_qso:\n\t"
+                f"{xcf.jobid}"
+            )
+    logger.info("Done.\n")
 
     if bookkeeper.config.get("fits", dict()).get("distortion", True):
+        logger.info(f"Adding distortion matrix: {args.absorber}{args.region}_qso")
         xdmat = bookkeeper.get_xdmat_tasker(
             region=args.region,
             absorber=args.absorber,
@@ -66,17 +70,22 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
         xdmat.write_job()
         if not args.only_write:
             xdmat.send_job()
-            logger.info(
-                "Sent distortion matrix "
-                f"{args.absorber}{args.region}_qso:\n\t"
-                f"{xdmat.jobid}"
-            )
+
+            if not isinstance(xdmat, DummyTasker):
+                logger.info(
+                    "Sent distortion matrix "
+                    f"{args.absorber}{args.region}_qso:\n\t"
+                    f"{xdmat.jobid}"
+                )
+        logger.info("Done.\n")
 
     if bookkeeper.config.get("fits", dict()).get(
         "metals", True
-    ) and not bookkeeper.config.get("fits", dict()).get("compute metals", False):
+    ) and not bookkeeper.config.get("fits", dict()).get("vega metals", False):
         # Compute metals if metals should be included and metals are not going
         # to be computed by vega.
+
+        logger.info(f"Adding metal matrix: {args.absorber}{args.region}_qso")
         metal = bookkeeper.get_xmetal_tasker(
             region=args.region,
             absorber=args.absorber,
@@ -89,14 +98,17 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
         metal.write_job()
         if not args.only_write:
             metal.send_job()
-            logger.info(
-                "Sent metal matrix "
-                f"{args.absorber}{args.region}_qso:\n\t"
-                f"{metal.jobid}"
-            )
-    else:
-        metal = DummyTasker()
 
+            if not isinstance(metal, DummyTasker):
+                logger.info(
+                    "Sent metal matrix "
+                    f"{args.absorber}{args.region}_qso:\n\t"
+                    f"{metal.jobid}"
+                )
+        logger.info("Done.\n")
+
+
+    logger.info(f"Adding export: {args.absorber}{args.region}_qso")
     xcf_exp = bookkeeper.get_xcf_exp_tasker(
         region=args.region,
         absorber=args.absorber,
@@ -109,11 +121,12 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
     xcf_exp.write_job()
     if not args.only_write:
         xcf_exp.send_job()
-        logger.info(
-            "Sent export " f"{args.absorber}{args.region}_qso:\n\t" f"{xcf_exp.jobid}"
-        )
-    else:
-        return
+
+        if not isinstance(xcf_exp, DummyTasker):
+            logger.info(
+                "Sent export " f"{args.absorber}{args.region}_qso:\n\t" f"{xcf_exp.jobid}"
+            )
+    logger.info("Done.\n")
 
 
 def get_args() -> argparse.Namespace:
