@@ -172,6 +172,10 @@ class TestBookkeeper(unittest.TestCase):
                 if str(file.name).split(".")[-1] not in ("fits", "gz"):
                     rename_path(file)
 
+        for file in (paths.run_path / "configs").iterdir():
+            if str(file.name).split(".")[-1] not in ("fits", "gz"):
+                rename_path(file)
+
     def update_test_output(self, test_folder, bookkeeper_folder):
         if test_folder.is_dir():
             shutil.rmtree(test_folder)

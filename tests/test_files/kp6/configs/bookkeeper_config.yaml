@@ -3,14 +3,14 @@ general:
   system: slurm_perlmutter
   defaults file: Y1v4
 data:
-  bookkeeper dir: /global/common/software/desi/users/cramirez/picca_bookkeeper_simple/tests/test_files/output/results
+  bookkeeper dir: /picca_bookkeeper/tests/test_files/output/results
   healpix data: /tmp/cdirs/desi/spectro/redux/guadalupe/healpix/
-  catalog: /global/common/software/desi/users/cramirez/picca_bookkeeper_simple/tests/test_files/dummy_catalog-bal.fits
+  catalog: /picca_bookkeeper/tests/test_files/dummy_catalog-bal.fits
 delta extraction:
   calib: 1
   calib region: ciii
-  dla: /global/common/software/desi/users/cramirez/picca_bookkeeper_simple/tests/test_files/dummy_dla_catalog.fits
+  dla: /picca_bookkeeper/tests/test_files/dummy_dla_catalog.fits
   bal: true
-  mask file: /global/common/software/desi/users/cramirez/picca_bookkeeper_simple/tests/test_files/sharp-lines-mask.txt
+  mask file: /picca_bookkeeper/tests/test_files/sharp-lines-mask.txt
 correlations: {}
 fits: {}

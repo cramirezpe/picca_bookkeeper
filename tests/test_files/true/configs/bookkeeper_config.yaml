@@ -3,7 +3,7 @@ general:
   defaults file: true
   true mocks: true
 data:
-  bookkeeper dir: /global/common/software/desi/users/cramirez/picca_bookkeeper_simple/tests/test_files/output/results
+  bookkeeper dir: /picca_bookkeeper/tests/test_files/output/results
   healpix data: /tmp/cdirs/desicollab/users/hiramk/desi/qq_mocks/iron/main/mock/london/v9.0.0/iron_main-0.134/spectra-16
   catalog: /tmp/cdirs/desicollab/users/hiramk/desi/qq_mocks/iron/main/mock/london/v9.0.0/iron_main-0.134/qsocat_iron_main.fits
 delta extraction:
