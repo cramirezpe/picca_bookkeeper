@@ -3,7 +3,7 @@ requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-packages = ["picca_bookkeeper"]
+packages = ["picca_bookkeeper", "picca_bookkeeper.scripts"]
 
 [tool.setuptools.dynamic]
 version = {attr = "picca_bookkeeper.__version__"}
