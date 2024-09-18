@@ -44,6 +44,8 @@ class ReadFits:
         colour: Optional[str] = None,
         ap_baseline: Optional[float] = None,
         at_baseline: Optional[float] = None,
+        blinded: bool = True,  # handle blinded(true) / unblined(false), default = blinded
+
     ):
         """
         Args:
