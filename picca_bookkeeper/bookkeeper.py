@@ -978,7 +978,7 @@ class Bookkeeper:
                     + "/",
                 },
                 "data": {
-                    "type": "DesiHealpix",
+                    "type": "DesiHealpixFast",
                     "catalogue": str(self.paths.catalog),
                     "input directory": str(self.paths.healpix_data.resolve()),
                     "lambda min rest frame": forest_regions[region]["lambda-rest-min"],
