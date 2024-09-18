@@ -20,6 +20,10 @@ from picca_bookkeeper.dict_utils import DictUtils
 from picca_bookkeeper.tasker import ChainedTasker, DummyTasker, Tasker, get_Tasker
 from picca_bookkeeper.utils import compute_zeff
 
+import picca as pc
+import vega as vg
+import picca_bookkeeper as pcbk
+
 if TYPE_CHECKING:
     from typing import Dict, List, Optional, Tuple
 
@@ -197,7 +201,7 @@ class Bookkeeper:
 
         with open(file, "w") as write_file:
             parser.write(write_file)
-
+            
     @staticmethod
     def write_bookkeeper(config: Dict, file: Path | str) -> None:
         """Method to write bookkeeper yaml file to file
@@ -285,8 +289,38 @@ class Bookkeeper:
             )
 
         with open(file, "w") as f:
-            yaml.safe_dump(config, f, sort_keys=False)
+            yaml.safe_dump(config, f, sort_keys=False)        
+        
+        # Add a module version check as comments to bottom of .yaml file
+        
+        # List of modules to track and their version
+        modules = {
+            "vega": vg.__version__,
+            "picca": pc.__version__,
+            "picca_bookkeeper": pcbk.__version__,
+        }
 
+        # Read the file to check if any module version comment exists
+        with open(file, "r") as f:
+            lines = f.readlines()
+
+        # Update or append version information for each module
+        for module, version in modules.items():
+            version_line = f"# {module} version: {version}\n"
+            found_version = False
+            for i, line in enumerate(lines):
+                if line.startswith(f"# {module} version:"):
+                    lines[i] = version_line  # Replace the existing line with the updated version
+                    found_version = True
+                    break
+            if not found_version:
+                # If the version comment for the module wasn't found, append it
+                lines.append(version_line)
+
+        # Write back the updated lines to the file
+        with open(file, "w") as f:
+            f.writelines(lines)
+            
     def check_bookkeeper_config(self) -> None:
         """Check bookkeeper config and rise Error if invalid"""
         logger.debug("Checking smooth covariance consistency")
