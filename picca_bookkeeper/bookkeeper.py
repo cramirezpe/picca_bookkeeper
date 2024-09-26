@@ -20,10 +20,6 @@ from picca_bookkeeper.dict_utils import DictUtils
 from picca_bookkeeper.tasker import ChainedTasker, DummyTasker, Tasker, get_Tasker
 from picca_bookkeeper.utils import compute_zeff
 
-import picca as pc
-import vega as vg
-import picca_bookkeeper as pcbk
-
 if TYPE_CHECKING:
     from typing import Dict, List, Optional, Tuple
 
@@ -289,38 +285,8 @@ class Bookkeeper:
             )
 
         with open(file, "w") as f:
-            yaml.safe_dump(config, f, sort_keys=False)        
-        
-        # Add a module version check as comments to bottom of .yaml file
-        
-        # List of modules to track and their version
-        modules = {
-            "vega": vg.__version__,
-            "picca": pc.__version__,
-            "picca_bookkeeper": pcbk.__version__,
-        }
+            yaml.safe_dump(config, f, sort_keys=False)
 
-        # Read the file to check if any module version comment exists
-        with open(file, "r") as f:
-            lines = f.readlines()
-
-        # Update or append version information for each module
-        for module, version in modules.items():
-            version_line = f"# {module} version: {version}\n"
-            found_version = False
-            for i, line in enumerate(lines):
-                if line.startswith(f"# {module} version:"):
-                    lines[i] = version_line  # Replace the existing line with the updated version
-                    found_version = True
-                    break
-            if not found_version:
-                # If the version comment for the module wasn't found, append it
-                lines.append(version_line)
-
-        # Write back the updated lines to the file
-        with open(file, "w") as f:
-            f.writelines(lines)
-            
     def check_bookkeeper_config(self) -> None:
         """Check bookkeeper config and rise Error if invalid"""
         logger.debug("Checking smooth covariance consistency")
@@ -883,6 +849,7 @@ class Bookkeeper:
         return get_Tasker(updated_system)(
             command=command,
             command_args=args,
+            packages=["picca"],
             slurm_header_args=slurm_header_args,
             environment=self.config["general"]["conda environment"],
             run_file=self.paths.delta_extraction_path / f"scripts/run_{job_name}.sh",
@@ -1067,6 +1034,7 @@ class Bookkeeper:
         return get_Tasker(updated_system)(
             command=command,
             command_args={"": str(config_file.resolve())},
+            packages=["picca"],
             slurm_header_args=slurm_header_args,
             environment=self.config["general"]["conda environment"],
             run_file=self.paths.delta_extraction_path / f"scripts/run_{job_name}.sh",
@@ -1300,6 +1268,7 @@ class Bookkeeper:
         return get_Tasker(updated_system)(
             command=command,
             command_args=args,
+            packages=["picca"],
             slurm_header_args=slurm_header_args,
             environment=self.config["general"]["conda environment"],
             run_file=self.paths.correlations_path / f"scripts/run_{job_name}.sh",
@@ -1458,6 +1427,7 @@ class Bookkeeper:
         return get_Tasker(updated_system)(
             command=command,
             command_args=args,
+            packages=["picca"],
             slurm_header_args=slurm_header_args,
             environment=self.config["general"]["conda environment"],
             run_file=self.paths.correlations_path / f"scripts/run_{job_name}.sh",
@@ -1622,6 +1592,7 @@ class Bookkeeper:
         return get_Tasker(updated_system)(
             command=command,
             command_args=args,
+            packages=["picca"],
             precommand=precommand,
             slurm_header_args=slurm_header_args,
             environment=self.config["general"]["conda environment"],
@@ -1786,6 +1757,7 @@ class Bookkeeper:
         return get_Tasker(updated_system)(
             command=command,
             command_args=args,
+            packages=["picca"],
             slurm_header_args=slurm_header_args,
             environment=self.config["general"]["conda environment"],
             run_file=self.paths.correlations_path / f"scripts/run_{job_name}.sh",
@@ -1924,6 +1896,7 @@ class Bookkeeper:
         return get_Tasker(updated_system)(
             command=command,
             command_args=args,
+            packages=["picca"],
             slurm_header_args=slurm_header_args,
             environment=self.config["general"]["conda environment"],
             run_file=self.paths.correlations_path / f"scripts/run_{job_name}.sh",
@@ -2063,6 +2036,7 @@ class Bookkeeper:
         return get_Tasker(updated_system)(
             command=command,
             command_args=args,
+            packages=["picca"],
             slurm_header_args=slurm_header_args,
             environment=self.config["general"]["conda environment"],
             run_file=self.paths.correlations_path / f"scripts/run_{job_name}.sh",
@@ -2220,6 +2194,7 @@ class Bookkeeper:
             command=command,
             command_args=args,
             precommand=precommand,
+            packages=["picca"],
             slurm_header_args=slurm_header_args,
             environment=self.config["general"]["conda environment"],
             environmental_variables=environmental_variables,
@@ -2370,6 +2345,7 @@ class Bookkeeper:
         return get_Tasker(updated_system)(
             command=command,
             command_args=args,
+            packages=["picca"],
             slurm_header_args=slurm_header_args,
             environment=self.config["general"]["conda environment"],
             environmental_variables=environmental_variables,
@@ -2468,6 +2444,7 @@ class Bookkeeper:
         return get_Tasker(updated_system)(
             command=command,
             command_args=args,
+            packages=["picca"],
             slurm_header_args=slurm_header_args,
             environment=self.config["general"]["conda environment"],
             run_file=self.paths.fits_path / f"scripts/run_{job_name}.sh",
@@ -2549,6 +2526,7 @@ class Bookkeeper:
         return get_Tasker(updated_system)(
             command=command,
             command_args={"": str(self.paths.fit_main_fname().resolve())},
+            packages=["vega"],
             slurm_header_args=slurm_header_args,
             environment=self.config["general"]["conda environment"],
             run_file=self.paths.fits_path / f"scripts/run_{job_name}.sh",
@@ -2636,6 +2614,7 @@ class Bookkeeper:
         return get_Tasker(updated_system)(
             command=command,
             command_args={"": str(self.paths.fit_main_fname().resolve())},
+            packages=["vega"],
             slurm_header_args=slurm_header_args,
             environment=environment,
             run_file=self.paths.fits_path / f"scripts/run_{job_name}.sh",
@@ -3307,6 +3286,7 @@ class Bookkeeper:
         return get_Tasker(updated_system)(
             command="/global/cfs/cdirs/desicollab/science/lya/y1-kp6/iron-tests/correlations/scripts/write_full_covariance_matrix_flex_size.py",
             command_args=args,
+            packages=["picca"],
             slurm_header_args=slurm_header_args,
             environment=self.config["general"]["conda environment"],
             run_file=self.paths.fits_path / f"scripts/run_{job_name}.sh",
@@ -3411,6 +3391,7 @@ class Bookkeeper:
         return get_Tasker(updated_system)(
             command="/global/cfs/cdirs/desicollab/science/lya/y1-kp6/iron-tests/correlations/scripts/write_smooth_covariance_flex_size.py",
             command_args=args,
+            packages=["picca"],
             slurm_header_args=slurm_header_args,
             environment=self.config["general"]["conda environment"],
             run_file=self.paths.fits_path / f"scripts/run_{job_name}.sh",

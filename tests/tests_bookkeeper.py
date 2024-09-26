@@ -1,5 +1,6 @@
 from pathlib import Path
 import argparse
+import importlib.metadata
 import unittest
 import shutil
 from picca_bookkeeper.bookkeeper import Bookkeeper
@@ -101,6 +102,10 @@ def rename_path(filename):
         filedata = file.read()
 
     filedata = filedata.replace(str(THIS_DIR.parent), "/picca_bookkeeper")
+    filedata = filedata.replace(
+        f"version: {importlib.metadata.version('picca_bookkeeper')}",
+        "version: x.xx",
+    )
 
     with open(filename, "w") as file:
         file.write(filedata)

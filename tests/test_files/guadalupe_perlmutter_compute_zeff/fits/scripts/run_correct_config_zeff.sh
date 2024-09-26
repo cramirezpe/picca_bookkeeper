@@ -16,6 +16,11 @@ umask 0002
 
 
 
+
+echo used picca_bookkeeper version: x.xx
+echo using picca version: $(python -c "import importlib.metadata; print(importlib.metadata.version('picca'))")
+echo -e '\n'
+
 command="picca_bookkeeper_correct_config_zeff /picca_bookkeeper/tests/test_files/output/results/configs/bookkeeper_config.yaml"
 date
 srun  $command

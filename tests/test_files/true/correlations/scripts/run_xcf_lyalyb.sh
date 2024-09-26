@@ -16,6 +16,11 @@ umask 0002
 
 
 
+
+echo used picca_bookkeeper version: x.xx
+echo using picca version: $(python -c "import importlib.metadata; print(importlib.metadata.version('picca'))")
+echo -e '\n'
+
 command="picca_xcf.py --in-dir /picca_bookkeeper/tests/test_files/output/results/deltas/results/lyb/Delta --drq /tmp/cdirs/desicollab/users/hiramk/desi/qq_mocks/iron/main/mock/london/v9.0.0/iron_main-0.134/qsocat_iron_main.fits --out /picca_bookkeeper/tests/test_files/output/results/correlations/results/qso_lyalyb/xcf.fits.gz --lambda-abs LYA --nproc 256 --nside 16 --rp-min -200 --rp-max 200 --rt-max 200 --np 100 --nt 50 --fid-Or 7.975e-05 --rebin-factor 3 --z-max-sources 3.79 --mode desi_mocks --no-project  --no-remove-mean-lambda-obs "
 date
 srun  $command
