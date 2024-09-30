@@ -197,7 +197,7 @@ class Bookkeeper:
 
         with open(file, "w") as write_file:
             parser.write(write_file)
-
+            
     @staticmethod
     def write_bookkeeper(config: Dict, file: Path | str) -> None:
         """Method to write bookkeeper yaml file to file
@@ -849,6 +849,7 @@ class Bookkeeper:
         return get_Tasker(updated_system)(
             command=command,
             command_args=args,
+            packages=["picca"],
             slurm_header_args=slurm_header_args,
             environment=self.config["general"]["conda environment"],
             run_file=self.paths.delta_extraction_path / f"scripts/run_{job_name}.sh",
@@ -1033,6 +1034,7 @@ class Bookkeeper:
         return get_Tasker(updated_system)(
             command=command,
             command_args={"": str(config_file.resolve())},
+            packages=["picca"],
             slurm_header_args=slurm_header_args,
             environment=self.config["general"]["conda environment"],
             run_file=self.paths.delta_extraction_path / f"scripts/run_{job_name}.sh",
@@ -1266,6 +1268,7 @@ class Bookkeeper:
         return get_Tasker(updated_system)(
             command=command,
             command_args=args,
+            packages=["picca"],
             slurm_header_args=slurm_header_args,
             environment=self.config["general"]["conda environment"],
             run_file=self.paths.correlations_path / f"scripts/run_{job_name}.sh",
@@ -1424,6 +1427,7 @@ class Bookkeeper:
         return get_Tasker(updated_system)(
             command=command,
             command_args=args,
+            packages=["picca"],
             slurm_header_args=slurm_header_args,
             environment=self.config["general"]["conda environment"],
             run_file=self.paths.correlations_path / f"scripts/run_{job_name}.sh",
@@ -1588,6 +1592,7 @@ class Bookkeeper:
         return get_Tasker(updated_system)(
             command=command,
             command_args=args,
+            packages=["picca"],
             precommand=precommand,
             slurm_header_args=slurm_header_args,
             environment=self.config["general"]["conda environment"],
@@ -1752,6 +1757,7 @@ class Bookkeeper:
         return get_Tasker(updated_system)(
             command=command,
             command_args=args,
+            packages=["picca"],
             slurm_header_args=slurm_header_args,
             environment=self.config["general"]["conda environment"],
             run_file=self.paths.correlations_path / f"scripts/run_{job_name}.sh",
@@ -1890,6 +1896,7 @@ class Bookkeeper:
         return get_Tasker(updated_system)(
             command=command,
             command_args=args,
+            packages=["picca"],
             slurm_header_args=slurm_header_args,
             environment=self.config["general"]["conda environment"],
             run_file=self.paths.correlations_path / f"scripts/run_{job_name}.sh",
@@ -2029,6 +2036,7 @@ class Bookkeeper:
         return get_Tasker(updated_system)(
             command=command,
             command_args=args,
+            packages=["picca"],
             slurm_header_args=slurm_header_args,
             environment=self.config["general"]["conda environment"],
             run_file=self.paths.correlations_path / f"scripts/run_{job_name}.sh",
@@ -2186,6 +2194,7 @@ class Bookkeeper:
             command=command,
             command_args=args,
             precommand=precommand,
+            packages=["picca"],
             slurm_header_args=slurm_header_args,
             environment=self.config["general"]["conda environment"],
             environmental_variables=environmental_variables,
@@ -2336,6 +2345,7 @@ class Bookkeeper:
         return get_Tasker(updated_system)(
             command=command,
             command_args=args,
+            packages=["picca"],
             slurm_header_args=slurm_header_args,
             environment=self.config["general"]["conda environment"],
             environmental_variables=environmental_variables,
@@ -2434,6 +2444,7 @@ class Bookkeeper:
         return get_Tasker(updated_system)(
             command=command,
             command_args=args,
+            packages=["picca"],
             slurm_header_args=slurm_header_args,
             environment=self.config["general"]["conda environment"],
             run_file=self.paths.fits_path / f"scripts/run_{job_name}.sh",
@@ -2515,6 +2526,7 @@ class Bookkeeper:
         return get_Tasker(updated_system)(
             command=command,
             command_args={"": str(self.paths.fit_main_fname().resolve())},
+            packages=["vega"],
             slurm_header_args=slurm_header_args,
             environment=self.config["general"]["conda environment"],
             run_file=self.paths.fits_path / f"scripts/run_{job_name}.sh",
@@ -2602,6 +2614,7 @@ class Bookkeeper:
         return get_Tasker(updated_system)(
             command=command,
             command_args={"": str(self.paths.fit_main_fname().resolve())},
+            packages=["vega"],
             slurm_header_args=slurm_header_args,
             environment=environment,
             run_file=self.paths.fits_path / f"scripts/run_{job_name}.sh",
@@ -3273,6 +3286,7 @@ class Bookkeeper:
         return get_Tasker(updated_system)(
             command="/global/cfs/cdirs/desicollab/science/lya/y1-kp6/iron-tests/correlations/scripts/write_full_covariance_matrix_flex_size.py",
             command_args=args,
+            packages=["picca"],
             slurm_header_args=slurm_header_args,
             environment=self.config["general"]["conda environment"],
             run_file=self.paths.fits_path / f"scripts/run_{job_name}.sh",
@@ -3377,6 +3391,7 @@ class Bookkeeper:
         return get_Tasker(updated_system)(
             command="/global/cfs/cdirs/desicollab/science/lya/y1-kp6/iron-tests/correlations/scripts/write_smooth_covariance_flex_size.py",
             command_args=args,
+            packages=["picca"],
             slurm_header_args=slurm_header_args,
             environment=self.config["general"]["conda environment"],
             run_file=self.paths.fits_path / f"scripts/run_{job_name}.sh",

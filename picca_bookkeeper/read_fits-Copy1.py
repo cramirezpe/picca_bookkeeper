@@ -44,8 +44,6 @@ class ReadFits:
         colour: Optional[str] = None,
         ap_baseline: Optional[float] = None,
         at_baseline: Optional[float] = None,
-        blinded: bool = True,  # handle blinded(true) / unblined(false), default = blinded
-
     ):
         """
         Args:
@@ -164,6 +162,82 @@ class ReadFits:
 
         self.chain = make_chain(res["pars"].keys(), res["mean"], res["cov"])
 
+        
+        
+        
+        
+        
+############################################################################
+        
+#     @staticmethod
+#     import pandas as pd
+#     from typing import List, Optional, Type
+
+#     def table_from_fit_data(
+#         fits: List[Type[ReadFits]],
+#         params: List[str] = ["ap", "at", "bias_LYA", "beta_LYA"],
+#         params_names: Optional[List[str]] = None,
+#         precision: int = 3,
+#         float_presentation: str = "f",
+#     ) -> pd.DataFrame:
+#         if params_names is None:
+#             params_names = params
+#         else:
+#             params_names = params_names
+
+#         header = ["name"]
+#         header += params_names
+#         header += ["fit", "pvalue"]
+
+#         rows = []
+
+#         if not fits:
+#             return pd.DataFrame(columns=header)
+
+#         # Determine baseline values
+#         baseline_fit = fits[0]
+#         baseline_values = {param: baseline_fit.values.get(param, 0) for param in params}
+
+#         for fit in fits:
+#             row = []
+#             row.append(fit.label)
+
+#             for param in params:
+#                 if param in fit.values.keys():
+#                     if param in ("ap", "at") and fit is not baseline_fit:
+#                         # Compute the difference from the baseline value
+#                         value = fit.values[param] - baseline_values.get(param, 0)
+#                     else:
+#                         # Use the baseline value itself
+#                         value = fit.values[param]
+
+#                     row.append(
+#                         rf"{value:.{precision}{float_presentation}} "
+#                         rf"± {fit.errors.get(param, 0):.{precision}{float_presentation}}"
+#                     )
+#                 else:
+#                     row.append("")
+
+#             row.append(
+#                 f"{fit.chi2:.{precision}{float_presentation}}/({fit.ndata}-{fit.nparams})"
+#             )
+#             row.append(f"{fit.pvalue:.{precision}{float_presentation}}")
+
+#             rows.append(row)
+
+#         df = pd.DataFrame(data=rows)
+#         df.columns = header
+#         # df = df.sort_values("pvalue")
+
+#         return df
+
+        
+        
+##############################################################################
+        
+        
+        
+        
     @staticmethod
     def table_from_fit_data(
         fits: List[Type[ReadFits]],
@@ -171,7 +245,6 @@ class ReadFits:
         params_names: Optional[List[str]] = None,
         precision: int = 3,
         float_presentation: str = "f",
-        blinded: bool = True  # handle blinded(true) / unblined(false), default = blinded
     ) -> pd.DataFrame:
         if params_names is None:
             params_names = params
@@ -180,108 +253,49 @@ class ReadFits:
 
         header = ["name"]
         header += params_names
-        header += ["chi2 / DoF", "pvalue"]
+        header += ["fit", "pvalue"]
 
         rows = []
-        
-        # check if blinded boolian is true / false
-        if blinded:
-            # Store baseline values for 'ap' and 'at' from the first fit
-            baseline_ap = None
-            baseline_at = None
 
-            # First pass to determine baseline values
-            for fit in fits:
-                if "ap" in fit.values:
-                    if baseline_ap is None:
-                        baseline_ap = fit.values["ap"]
-                if "at" in fit.values:
-                    if baseline_at is None:
-                        baseline_at = fit.values["at"]
+        for fit in fits:
+            row = []
+            row.append(fit.label)
 
-            # Process each fit and calculate differences from the baseline
-            for index, fit in enumerate(fits):
-                row = []
-                row.append(fit.label)
-
-                for param in params:
-                    if param in fit.values.keys():
-                        if param == "ap":
-                            if index == 0:
-                                # For the first fit, display placeholder text with precision
-                                row.append(
-                                    rf"xxx ± {fit.errors[param]:.{precision}{float_presentation}}"
-                                )
-                            else:
-                                # For subsequent fits, display the difference from the baseline
-                                value_diff = fit.values[param] - baseline_ap
-                                error_diff = fit.errors[param]  # Assuming the error remains the same
-                                row.append(
-                                    rf"{value_diff:+.{precision}{float_presentation}} ± {error_diff:.{precision}{float_presentation}}"
-                                )
-                        elif param == "at":
-                            if index == 0:
-                                # For the first fit, display placeholder text with precision
-                                row.append(
-                                    rf"xxx ± {fit.errors[param]:.{precision}{float_presentation}}"
-                                )
-                            else:
-                                # For subsequent fits, display the difference from the baseline
-                                value_diff = fit.values[param] - baseline_at
-                                error_diff = fit.errors[param]  # Assuming the error remains the same
-                                row.append(
-                                    rf"{value_diff:+.{precision}{float_presentation}} ± {error_diff:.{precision}{float_presentation}}"
-                                )
-                        else:
-                            row.append(
-                                rf"{fit.values[param]:.{precision}{float_presentation}} ± {fit.errors[param]:.{precision}{float_presentation}}"
-                            )
+            for param in params:
+                if param in fit.values.keys():
+                    if param == "ap":
+                        row.append(
+                            rf"{fit.values[param]:+.{precision}{float_presentation}} "
+                            rf"± {fit.errors[param]:.{precision}{float_presentation}}"
+                        )
+                    elif param == "at":
+                        row.append(
+                            rf"{fit.values[param]:+.{precision}{float_presentation}} "
+                            rf"± {fit.errors[param]:.{precision}{float_presentation}}"
+                        )
                     else:
-                        row.append("")
+                        row.append(
+                            rf"{fit.values[param]:.{precision}{float_presentation}} "
+                            rf"± {fit.errors[param]:.{precision}{float_presentation}}"
+                        )
+                else:
+                    row.append("")
 
-                row.append(
-                    f"{fit.chi2:.{precision}{float_presentation}}/({fit.ndata}-{fit.nparams})"
-                )
-                row.append(f"{fit.pvalue:.{precision}{float_presentation}}")
+            row.append(
+                f"{fit.chi2:.{precision}{float_presentation}}/({fit.ndata}-{fit.nparams})"
+            )
+            row.append(f"{fit.pvalue:.{precision}{float_presentation}}")
 
-                rows.append(row)
-        else:
-            for fit in fits:
-                row = []
-                row.append(fit.label)
+            rows.append(row)
 
-                for param in params:
-                    if param in fit.values.keys():
-                        if param == "ap":
-                            row.append(
-                                rf"{fit.values[param]:+.{precision}{float_presentation}} "
-                                rf"± {fit.errors[param]:.{precision}{float_presentation}}"
-                            )
-                        elif param == "at":
-                            row.append(
-                                rf"{fit.values[param]:+.{precision}{float_presentation}} "
-                                rf"± {fit.errors[param]:.{precision}{float_presentation}}"
-                            )
-                        else:
-                            row.append(
-                                rf"{fit.values[param]:.{precision}{float_presentation}} "
-                                rf"± {fit.errors[param]:.{precision}{float_presentation}}"
-                            )
-                    else:
-                        row.append("")
-
-                row.append(
-                    f"{fit.chi2:.{precision}{float_presentation}}/({fit.ndata}-{fit.nparams})"
-                )
-                row.append(f"{fit.pvalue:.{precision}{float_presentation}}")
-
-                rows.append(row)
-            
         df = pd.DataFrame(data=rows)
         df.columns = header
         # df = df.sort_values("pvalue")
 
         return df
+
+##############################################################################################
+    
 
 class FitPlots:
     @staticmethod
@@ -1169,17 +1183,148 @@ class FitPlots:
             raise ValueError("Set output_prefix in order to save data.")
 
         return extent, mat
+
     
+####################################################################################
+
+
+
+#     @staticmethod
+#     def plot_errorbars_from_fit(
+#         readfits: List[ReadFits],
+#         param: str,
+#         param_name: Optional[str] = None,
+#         ax: Optional[Axes] = None,
+#         plot_kwargs: Dict = dict(),
+#         reference: Optional[ReadFits] = None,
+#     ) -> List[matplotlib.container.Container | Any]:
+#         """
+#         Args:
+#             readfits: List of readfits objects to show in the plot.
+#             param: Param to plot.
+#             param_name: Name of the param to show.
+#             ax: Axis where to plot. If not provided, it will be created.
+#             reference: Add reference as shaded line.
+
+#         Returns:
+#             List of plot handles to make legend from it.
+#         """
+#         if param_name is None:
+#             param_name = param
+
+#         if ax is None:
+#             fig, ax = plt.subplots()
+
+#         handles = []
+
+#         # Baseline setup
+#         baseline_value = None
+#         baseline_error = None
+        
+#         if param in ("ap", "at") and readfits:
+#             # Set the baseline using the first fit in the list
+#             first_fit = readfits[0]
+#             baseline_value = first_fit.values.get(param, None)
+#             baseline_error = first_fit.errors.get(param, 0)
+            
+#             if baseline_value is None:
+#                 baseline_value = first_fit.model_header.get(param, None)
+#             if baseline_value is None and reference is not None:
+#                 baseline_value = reference.values.get(param, None)
+#             if baseline_value is None:
+#                 baseline_value = 0
+#             baseline_error = 0  # Assuming no baseline error for simplicity
+
+#         if reference is not None and param in reference.values.keys():
+#             value = reference.values.get(param, None)
+#             error = reference.errors.get(param, 0)
+#             # Centering reference value at 0
+#             reference_centered_value = value - baseline_value
+            
+#             ax.axvspan(
+#                 reference_centered_value - error,
+#                 reference_centered_value + error,
+#                 alpha=0.2,
+#                 color="gray",
+#             )
+#             if param in ("ap", "at"):
+#                 ax.axvspan(
+#                     reference_centered_value - error,
+#                     reference_centered_value - error / 3,
+#                     alpha=0.2,
+#                     color="red",
+#                 )
+#                 ax.axvspan(
+#                     reference_centered_value + error / 3,
+#                     reference_centered_value + error,
+#                     alpha=0.2,
+#                     color="red",
+#                 )
+#             handles.append(
+#                 ax.axvline(
+#                     reference_centered_value,
+#                     color="black",
+#                     ls="--",
+#                     lw=0.6,
+#                     alpha=1,
+#                     label=reference.label,
+#                 )
+#             )
+
+#         for i, fit in enumerate(readfits):
+#             value = fit.values.get(param, None)
+#             error = fit.errors.get(param, 0)
+
+#             if value is None:
+#                 value = fit.model_header.get(param, None)
+#                 if value is None and reference is not None:
+#                     value = reference.values.get(param, None)
+#                 error = 0
+
+#             if param in ("ap", "at") and baseline_value is not None:
+#                 value -= baseline_value  # Adjust value to be the difference from baseline
+#                 # Error remains the same
+
+#             if fit.colour is not None:
+#                 plot_kwargs = {**plot_kwargs, **dict(color=fit.colour)}
+
+#             handles.append(
+#                 ax.errorbar(
+#                     value,
+#                     i,
+#                     xerr=error,
+#                     yerr=0,
+#                     label=fit.label,
+#                     marker="o",
+#                     **plot_kwargs,
+#                 )
+#             )
+
+#         ax.set_xlabel(param_name)
+#         ax.set_yticks([])
+#         ax.grid(visible=True)
+
+#         return handles
+
+
+
+
+
+
+
+####################################################################################
+
+
+
     @staticmethod
     def plot_errorbars_from_fit(
-            readfits: List[ReadFits],
-            param: str,
-            param_name: Optional[str] = None,
-            ax: Optional[Axes] = None,
-            plot_kwargs: Dict = dict(),
-            reference: Optional[ReadFits] = None,
-            blinded: bool = True,  # Add the blinded parameter, default is True
-        ) -> List[matplotlib.container.Container | Any]:
+        readfits: List[ReadFits],
+        param: str,
+        param_name: Optional[str] = None,
+        ax: Optional[Axes] = None,
+        plot_kwargs: Dict = dict(),
+        reference: Optional[ReadFits] = None,
+    ) -> List[matplotlib.container.Container | Any]:
         """
         Args:
             readfits: List of readfits objects to show in the plot.
@@ -1187,7 +1332,6 @@ class FitPlots:
             param_name: Name of the param to show.
             ax: Axis where to plot. If not provided, it will be created.
             reference: Add reference as shaded line.
-            blinded: Whether to use the blinded or unblinded version of the function.
 
         Returns:
             List of plot handles to make legend from it.
@@ -1200,184 +1344,76 @@ class FitPlots:
 
         handles = []
 
-        # Check if blinded boolean is true / false 
-        if blinded:
-            # Blinded code block
-
-            # Baseline setup
-            baseline_value = None
-            baseline_error = None
-
-            if param in ("ap", "at") and readfits:
-                # Set the baseline using the first fit in the list
-                first_fit = readfits[0]
-                baseline_value = first_fit.values.get(param, None)
-                baseline_error = first_fit.errors.get(param, 0)  # Assume first fit error is baseline error
-
-                if baseline_value is None:
-                    baseline_value = first_fit.model_header.get(param, None)
-                if baseline_value is None and reference is not None:
-                    baseline_value = reference.values.get(param, None)
-                if baseline_value is None:
-                    baseline_value = 0
-
-                # Plot the shaded regions for ap/at, centered at 0
+        if reference is not None and param in reference.values.keys():
+            value = reference.values.get(param, None)
+            error = reference.errors.get(param, 0)
+            ax.axvspan(
+                value - error,
+                value + error,
+                alpha=0.2,
+                color="gray",
+            )
+            if param in ("ap", "at"):
                 ax.axvspan(
-                    -baseline_error,
-                    baseline_error,
-                    alpha=0.2,
-                    color="gray",
-                )
-                ax.axvspan(
-                    -baseline_error / 3,
-                    baseline_error / 3,
+                    value - error,
+                    value - error / 3,
                     alpha=0.2,
                     color="red",
                 )
-
-                # Plot the baseline vertical line at 0
-                handles.append(
-                    ax.axvline(
-                        0,  # Baseline is represented as 0
-                        color="black",
-                        ls="--",
-                        lw=0.6,
-                        alpha=1,
-                        label="Baseline"
-                    )
-                )
-
-            # Plot the error bars for each fit
-            for i, fit in enumerate(readfits):
-                value = fit.values.get(param, None)
-                error = fit.errors.get(param, 0)
-
-                if value is None:
-                    value = fit.model_header.get(param, None)
-                    if value is None and reference is not None:
-                        value = reference.values.get(param, None)
-                    error = 0
-
-                if param in ("ap", "at") and baseline_value is not None:
-                    value -= baseline_value  # Adjust value to be the difference from baseline
-                    # Error remains the same
-
-                if fit.colour is not None:
-                    plot_kwargs = {**plot_kwargs, **dict(color=fit.colour)}
-
-                # Plot the errorbar with adjusted value (difference from baseline for ap/at)
-                handles.append(
-                    ax.errorbar(
-                        value,
-                        i,
-                        xerr=error,
-                        yerr=0,
-                        label=fit.label,
-                        marker="o",
-                        **plot_kwargs,
-                    )
-                )
-
-            # Adjust x-axis label for ap/at
-            if param == "ap":
-                ax.set_xlabel("delta_ap")
-            elif param == "at":
-                ax.set_xlabel("delta_at")
-            else:
-                ax.set_xlabel(param_name)
-
-            # Add shaded regions to the 3rd, 4th, and 5th plots
-            if reference is not None and param not in ("ap", "at"):
-                if param in reference.values.keys():
-                    value = reference.values.get(param, None)
-                    error = reference.errors.get(param, 0)
-                    ax.axvspan(
-                        value - error,
-                        value + error,
-                        alpha=0.2,
-                        color="gray",
-                    )
-                    handles.append(
-                        ax.axvline(
-                            value,
-                            color="black",
-                            ls="--",
-                            lw=0.6,
-                            alpha=1,
-                            label=reference.label,
-                        )
-                    )
-
-            ax.set_yticks(range(len(readfits)))  # Label each fit
-            ax.grid(visible=True)
-
-        else:
-            # Unblinded code block (this runs when blinded=False)
-            if reference is not None and param in reference.values.keys():
-                value = reference.values.get(param, None)
-                error = reference.errors.get(param, 0)
                 ax.axvspan(
-                    value - error,
+                    value + error / 3,
                     value + error,
                     alpha=0.2,
-                    color="gray",
+                    color="red",
                 )
-                if param in ("ap", "at"):
-                    ax.axvspan(
-                        value - error,
-                        value - error / 3,
-                        alpha=0.2,
-                        color="red",
-                    )
-                    ax.axvspan(
-                        value + error / 3,
-                        value + error,
-                        alpha=0.2,
-                        color="red",
-                    )
-                handles.append(
-                    ax.axvline(
-                        value,
-                        color="black",
-                        ls="--",
-                        lw=0.6,
-                        alpha=1,
-                        label=reference.label,
-                    )
+            handles.append(
+                ax.axvline(
+                    value,
+                    color="black",
+                    ls="--",
+                    lw=0.6,
+                    alpha=1,
+                    label=reference.label,
                 )
+            )
 
-            for i, fit in enumerate(readfits):
-                value = fit.values.get(param, None)
-                error = fit.errors.get(param, 0)
+        for i, fit in enumerate(readfits):
+            value = fit.values.get(param, None)
+            error = fit.errors.get(param, 0)
 
-                if value is None:
-                    value = fit.model_header.get(param, None)
+            if value is None:
+                value = fit.model_header.get(param, None)
 
-                    if value is None and reference is not None:
-                        value = reference.values.get(param, None)
-                    error = 0
+                if value is None and reference is not None:
+                    value = reference.values.get(param, None)
+                error = 0
+                
 
-                if fit.colour is not None:
-                    plot_kwargs = {**plot_kwargs, **dict(color=fit.colour)}
+            if fit.colour is not None:
+                plot_kwargs = {**plot_kwargs, **dict(color=fit.colour)}
 
-                handles.append(
-                    ax.errorbar(
-                        value,
-                        i,
-                        xerr=error,
-                        yerr=0,
-                        label=fit.label,
-                        marker="o",
-                        **plot_kwargs,
-                    )
+            handles.append(
+                ax.errorbar(
+                    value,
+                    i,
+                    xerr=error,
+                    yerr=0,
+                    label=fit.label,
+                    marker="o",
+                    **plot_kwargs,
                 )
+            )
 
-            ax.set_xlabel(param_name)
-            ax.set_yticks([])  # No ticks on y-axis for unblinded case
-            ax.grid(visible=True)
+        ax.set_xlabel(param_name)
+        ax.set_yticks([])
+        ax.grid(visible=True)
 
-        return handles 
-    
+        return handles
+
+
+
+####################################################################################
+
     @staticmethod
     def plot_p_value_from_fit(
         readfits: List[ReadFits],

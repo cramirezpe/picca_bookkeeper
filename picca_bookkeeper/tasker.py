@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import importlib.metadata
 import logging
 import os
 import sys
@@ -59,6 +60,7 @@ class Tasker:
             Use a dictionary with the format {'option_name': 'option_value'}
         command (str): Command to be run in the job.
         command_args (str): Arguments to the command.
+        packages (List[str]): Packages to list versions from.
         precommand (str): Instruction to run right before the command.
         environment (str): Conda/python environment to load before running the command.
         environmental_variables (dict): Environmental variables to set before running the job.
@@ -79,6 +81,7 @@ class Tasker:
         self,
         command: str,
         command_args: Dict,
+        packages: List[str],
         slurm_header_args: Dict,
         environment: str,
         run_file: Path | str,
@@ -96,6 +99,7 @@ class Tasker:
         Args:
             command (str): Command to be run in the job.
             command_args (str): Arguments to the command.
+            packages (List[str]): Packages to list versions from.
             slurm_header_args (dict): Header options to write if slurm tasker is selected. Use a dictionary with the format {'option_name': 'option_value'}.
             srun_options (str): If slurm tasker selected. Options for the srun command.
             environment (str): Conda/python environment to load before running the command.
@@ -132,6 +136,7 @@ class Tasker:
             )
         self.command = command
         self.command_args = command_args
+        self.packages = packages
         self.environment = environment
         self.environmental_variables = environmental_variables
         self.srun_options = {**self.default_srun_options, **srun_options}
@@ -199,10 +204,13 @@ class Tasker:
             str: Body of the job script."""
         header = self._make_header()
         env_opts = self._make_env_opts()
+        version_control = self._make_version_control()
         command = self._make_command()
         run_command = self._make_run_command()
 
-        return "\n".join([header, env_opts, command, "date", run_command, "date", ""])
+        return "\n".join([
+            header, env_opts, version_control, command, "date", run_command, "date", ""
+        ])
 
     def write_job(self) -> None:
         """Method to write job script into file."""
@@ -232,6 +240,16 @@ class Tasker:
         raise ValueError(
             "Tasker class has no _make_env_opts defined, use child classes instead."
         )
+
+    def _make_version_control(self) -> str:
+        text = "\necho used picca_bookkeeper version: "
+        text += importlib.metadata.version('picca_bookkeeper')
+
+        for package in self.packages:
+            text += f"\necho using {package} version: $(python -c \"import importlib.metadata; "
+            text += f"print(importlib.metadata.version('{package}'))\")"
+        
+        return text + "\necho -e '\\n'\n"
 
     def _make_run_command(self) -> str:
         raise ValueError(

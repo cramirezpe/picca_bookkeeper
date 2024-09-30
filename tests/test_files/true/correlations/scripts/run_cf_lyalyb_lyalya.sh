@@ -16,6 +16,11 @@ umask 0002
 
 
 
+
+echo used picca_bookkeeper version: x.xx
+echo using picca version: $(python -c "import importlib.metadata; print(importlib.metadata.version('picca'))")
+echo -e '\n'
+
 command="picca_cf.py --in-dir /picca_bookkeeper/tests/test_files/output/results/deltas/results/lyb/Delta --out /picca_bookkeeper/tests/test_files/output/results/correlations/results/lyalyb_lyalya/cf.fits.gz --lambda-abs LYA --in-dir2 /picca_bookkeeper/tests/test_files/output/results/deltas/results/lya/Delta --nproc 256 --rp-min 0 --rp-max 200 --rt-max 200 --np 50 --nt 50 --fid-Or 7.975e-05 --rebin-factor 3 --z-max-sources 3.79 --no-project "
 date
 srun  $command
