@@ -98,7 +98,7 @@ class CorrelationPlots:
             return (
                 data_wedge[0],
                 r_coef * data_wedge[1],
-                r_coef * sp.sqrt(sp.diag(data_wedge[2])),
+                r_coef * np.sqrt(sp.diag(data_wedge[2])),
                 nb_wedge[1],
             )
 
@@ -112,7 +112,7 @@ class CorrelationPlots:
         ax.errorbar(
             data_wedge[0],
             r_coef * data_wedge[1],
-            yerr=r_coef * sp.sqrt(sp.diag(data_wedge[2])),
+            yerr=r_coef * np.sqrt(sp.diag(data_wedge[2])),
             **plot_kwargs,
         )
         ax.grid(visible=True)
@@ -125,7 +125,7 @@ class CorrelationPlots:
         if save_data:
             data_dict["r"] = data_wedge[0]
             data_dict["values"] = r_coef * data_wedge[1]
-            data_dict["errors"] = r_coef * sp.sqrt(sp.diag(data_wedge[2]))
+            data_dict["errors"] = r_coef * np.sqrt(sp.diag(data_wedge[2]))
             data_dict["r_factor"] = r_factor
             data_dict["nb"] = nb_wedge[1]
             # data_dict['wedge_data'] = data_wedge
@@ -148,7 +148,7 @@ class CorrelationPlots:
         return (
             data_wedge[0],
             r_coef * data_wedge[1],
-            r_coef * sp.sqrt(sp.diag(data_wedge[2])),
+            r_coef * np.sqrt(sp.diag(data_wedge[2])),
             nb_wedge[1],
         )
 
@@ -492,7 +492,7 @@ class CorrelationPlots:
             return (
                 data_wedge[0],
                 r_coef * data_wedge[1],
-                r_coef * sp.sqrt(sp.diag(data_wedge[2])),
+                r_coef * np.sqrt(sp.diag(data_wedge[2])),
                 nb_wedge[1],
             )
 
@@ -506,7 +506,7 @@ class CorrelationPlots:
         ax.errorbar(
             data_wedge[0],
             r_coef * data_wedge[1],
-            yerr=r_coef * sp.sqrt(sp.diag(data_wedge[2])),
+            yerr=r_coef * np.sqrt(sp.diag(data_wedge[2])),
             **plot_kwargs,
         )
         ax.grid(visible=True)
@@ -519,7 +519,7 @@ class CorrelationPlots:
         if save_data:
             data_dict["r"] = data_wedge[0]
             data_dict["values"] = r_coef * data_wedge[1]
-            data_dict["errors"] = r_coef * sp.sqrt(sp.diag(data_wedge[2]))
+            data_dict["errors"] = r_coef * np.sqrt(sp.diag(data_wedge[2]))
             data_dict["r_factor"] = r_factor
             data_dict["nb"] = nb_wedge[1]
             # data_dict['wedge_data'] = data_wedge
@@ -542,7 +542,7 @@ class CorrelationPlots:
         return (
             data_wedge[0],
             r_coef * data_wedge[1],
-            r_coef * sp.sqrt(sp.diag(data_wedge[2])),
+            r_coef * np.sqrt(sp.diag(data_wedge[2])),
             nb_wedge[1],
         )
 
@@ -693,7 +693,7 @@ class CorrelationPlots:
         r_coef = data_wedge[0] ** r_factor
 
         if just_return_values:
-            return data_wedge[0], r_coef * sp.sqrt(sp.diag(data_wedge[2])), nb_wedge[1]
+            return data_wedge[0], r_coef * np.sqrt(sp.diag(data_wedge[2])), nb_wedge[1]
 
         if (save_data or save_plot) and output_prefix is None:
             raise ValueError("Set output_prefix in order to save data.")
@@ -704,7 +704,7 @@ class CorrelationPlots:
 
         ax.plot(
             data_wedge[0],
-            r_coef * sp.sqrt(sp.diag(data_wedge[2])),
+            r_coef * np.sqrt(sp.diag(data_wedge[2])),
             **plot_kwargs,
         )
         ax.grid(visible=True)
@@ -717,7 +717,7 @@ class CorrelationPlots:
 
         if save_data:
             data_dict["r"] = data_wedge[0]
-            data_dict["values"] = r_coef * sp.sqrt(sp.diag(data_wedge[2]))
+            data_dict["values"] = r_coef * np.sqrt(sp.diag(data_wedge[2]))
             data_dict["r_factor"] = r_factor
             data_dict["nb"] = nb_wedge[1]
             # data_dict['wedge_data'] = data_wedge
@@ -735,7 +735,7 @@ class CorrelationPlots:
         elif save_data or save_plot:
             raise ValueError("Set output_prefix in order to save data.")
 
-        return data_wedge[0], r_coef * sp.sqrt(sp.diag(data_wedge[2])), nb_wedge[1]
+        return data_wedge[0], r_coef * np.sqrt(sp.diag(data_wedge[2])), nb_wedge[1]
 
     @staticmethod
     def xcf_errorbarsize(
@@ -804,7 +804,7 @@ class CorrelationPlots:
         r_coef = data_wedge[0] ** r_factor
 
         if just_return_values:
-            return data_wedge[0], r_coef * sp.sqrt(sp.diag(data_wedge[2])), nb_wedge[1]
+            return data_wedge[0], r_coef * np.sqrt(sp.diag(data_wedge[2])), nb_wedge[1]
 
         if (save_data or save_plot) and output_prefix is None:
             raise ValueError("Set output_prefix in order to save data.")
@@ -815,7 +815,7 @@ class CorrelationPlots:
 
         ax.plot(
             data_wedge[0],
-            r_coef * sp.sqrt(sp.diag(data_wedge[2])),
+            r_coef * np.sqrt(sp.diag(data_wedge[2])),
             **plot_kwargs,
         )
         ax.grid(visible=True)
@@ -828,7 +828,7 @@ class CorrelationPlots:
 
         if save_data:
             data_dict["r"] = data_wedge[0]
-            data_dict["values"] = r_coef * sp.sqrt(sp.diag(data_wedge[2]))
+            data_dict["values"] = r_coef * np.sqrt(sp.diag(data_wedge[2]))
             data_dict["r_factor"] = r_factor
             data_dict["nb"] = nb_wedge[1]
             # data_dict['wedge_data'] = data_wedge
@@ -846,7 +846,7 @@ class CorrelationPlots:
         elif save_data or save_plot:
             raise ValueError("Set output_prefix in order to save data.")
 
-        return data_wedge[0], r_coef * sp.sqrt(sp.diag(data_wedge[2])), nb_wedge[1]
+        return data_wedge[0], r_coef * np.sqrt(sp.diag(data_wedge[2])), nb_wedge[1]
 
     # @staticmethod
     # def multiple_cf_errorbarsize(
