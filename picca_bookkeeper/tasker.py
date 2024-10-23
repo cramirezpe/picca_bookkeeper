@@ -5,6 +5,7 @@ import importlib.util
 import logging
 import os
 import sys
+import re
 import textwrap
 import time
 
@@ -183,7 +184,7 @@ class Tasker:
 
                 if status != "COMPLETED":
                     self.wait_for_ids.append(jobid)
-
+                    
     def _make_command(self) -> str:
         """Method to generate a command with args
 
@@ -197,7 +198,7 @@ class Tasker:
             ]
         )
         return f'command="{self.command} {args}"'
-
+    
     def _make_body(self) -> str:
         """Method to generate the body of the job script.
 
@@ -241,62 +242,16 @@ class Tasker:
         raise ValueError(
             "Tasker class has no _make_env_opts defined, use child classes instead."
         )
-
-    
-#    Commented out because not compatible with PYTHONPATH, only env. modules
-#     def _make_version_control(self) -> str:
-#         text = "\necho used picca_bookkeeper version: "
-#         text += importlib.metadata.version('picca_bookkeeper')
-
-#         for package in self.packages:
-#             text += f"\necho using {package} version: $(python -c \"import importlib.metadata; "
-#             text += f"print(importlib.metadata.version('{package}'))\")"
-            
-#         return text + "\necho -e '\\n'\n"
-# 
-    
-
-    def get_package_version(self, package_name: str) -> str:
-        try:
-            # Try to find the package
-            spec = importlib.util.find_spec(package_name)
-            if spec is None:
-                return f"{package_name} is not installed"
-
-            # Load the module and get the path
-            mod = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(mod)
-            module_path = spec.origin
-
-            # Check if it's coming from PYTHONPATH or current environment
-            pythonpath_dirs = os.getenv('PYTHONPATH', '').split(os.pathsep)
-            if any(p in module_path for p in pythonpath_dirs):
-                source = f"from PYTHONPATH: ({module_path})"
-            else:
-                source = f"from current environment: ({module_path})"
-
-            # Get the version
-            version = getattr(mod, '__version__', 'unknown')
-            return f"using {package_name} version: {version} {source}"
-
-        except Exception as e:
-            return f"Error checking {package_name}: {str(e)}"
-
     
     def _make_version_control(self) -> str:
-        # Start with the version check for 'picca_bookkeeper'
-        version = self.get_package_version('picca_bookkeeper')
-        text = f'\necho "{version}"'  
-        # Use double quotes around the entire echo command
+        text = "\necho used picca_bookkeeper version: "
+        text += importlib.metadata.version('picca_bookkeeper')
 
-        # Loop through additional packages and check their versions
         for package in self.packages:
-            version = self.get_package_version(package)
-            text += f'\necho "{version}"'  # Also quote here
-
-        # Add the final newline echo
+            text += f"\necho using {package} version: $(python -c \"import importlib.metadata; "
+            text += f"print(importlib.metadata.version('{package}'))\")"
+            
         return text + "\necho -e '\\n'\n"
-
 
     def _make_run_command(self) -> str:
         raise ValueError(
