@@ -109,7 +109,7 @@ correlations:
 
     picca_xcf:
       general:
-        mode: desi_healpix
+        mode: desi_healpix_fast
         nside: 16
         rp-min: -200
         rp-max: 200
@@ -125,7 +125,7 @@ correlations:
 
     picca_xdmat:
       general:
-        mode: "desi_healpix"
+        mode: "desi_healpix_fast"
         rej: 0.99
         nside: 16
         rp-min: -300
@@ -140,7 +140,7 @@ correlations:
 
     picca_fast_metal_xdmat:
       general:
-        mode: "desi_healpix"
+        mode: "desi_healpix_fast"
         abs-igm: "SiII(1190) SiII(1193) SiIII(1207) SiII(1260)"
         rp-min: -300
         rp-max: 300
@@ -157,7 +157,7 @@ correlations:
 
     picca_metal_xdmat:
       general:
-        mode: "desi_healpix"
+        mode: "desi_healpix_fast"
         rej: 0.999
         abs-igm: "SiII(1190) SiII(1193) SiIII(1207) SiII(1260)"
         rp-min: -300
