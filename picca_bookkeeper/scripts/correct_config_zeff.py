@@ -1,22 +1,19 @@
 """Correct zeff in input config files by reading corresponding correlation files"""
+
 from __future__ import annotations
 
 import argparse
 import configparser
 import logging
-import re
 import sys
-import yaml
 from pathlib import Path
-from subprocess import run
 from typing import TYPE_CHECKING
 
 import fitsio
 import numpy as np
+import yaml
 
 from picca_bookkeeper.bookkeeper import Bookkeeper
-from picca_bookkeeper.utils import compute_zeff
-from picca_bookkeeper.scripts.run_fit import main as run_fit
 
 if TYPE_CHECKING:
     from typing import Optional

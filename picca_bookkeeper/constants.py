@@ -1,4 +1,5 @@
 """Defining constant values to be used in other modules"""
+
 ABSORBER_IGM = {
     "Halpha": 6562.8,
     "Hbeta": 4862.68,

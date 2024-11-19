@@ -85,17 +85,25 @@ class Bookkeeper:
         # we have to properly link it
         # We also check that files in the bookkeeper folder match input config.
         if self.config["delta extraction"].get("use existing", None) is not None:
-            original_config = Path(self.config["delta extraction"]["use existing"]) / "configs/bookkeeper_config.yaml"
-            self.config["delta extraction"] = yaml.safe_load(original_config.read_text())[
-                "delta extraction"
+            original_config = (
+                Path(self.config["delta extraction"]["use existing"])
+                / "configs/bookkeeper_config.yaml"
+            )
+            self.config["delta extraction"] = yaml.safe_load(
+                original_config.read_text()
+            )["delta extraction"]
+            self.config["delta extraction"]["original path"] = original_config.parents[
+                1
             ]
-            self.config["delta extraction"]["original path"] = original_config.parents[1]
         elif not self.read_mode:
             self.paths.check_delta_directories()
             self.check_existing_config("delta extraction", self.paths.config_file)
 
         if self.config["correlations"].get("use existing", None) is not None:
-            original_config = Path(self.config["correlations"]["use existing"]) / "configs/bookkeeper_config.yaml"
+            original_config = (
+                Path(self.config["correlations"]["use existing"])
+                / "configs/bookkeeper_config.yaml"
+            )
             self.config["correlations"] = yaml.safe_load(original_config.read_text())[
                 "correlations"
             ]
@@ -104,7 +112,6 @@ class Bookkeeper:
             self.paths.check_correlation_directories()
             self.check_existing_config("correlations", self.paths.config_file)
 
-        
         self.paths.check_fit_directories()
         self.check_existing_config("fits", self.paths.config_file)
 
@@ -195,7 +202,7 @@ class Bookkeeper:
 
         with open(file, "w") as write_file:
             parser.write(write_file)
-            
+
     @staticmethod
     def write_bookkeeper(config: Dict, file: Path | str) -> None:
         """Method to write bookkeeper yaml file to file
@@ -206,7 +213,10 @@ class Bookkeeper:
         """
         # I need to recover the use existing and remove the original structure
         # To avoid issues if re-running with stored bookkeeper
-        if config.get("delta extraction", dict()).get("original path", None) is not None:
+        if (
+            config.get("delta extraction", dict()).get("original path", None)
+            is not None
+        ):
             config["delta extraction"] = {
                 "use existing": str(config["delta extraction"]["original path"]),
             }
@@ -217,7 +227,14 @@ class Bookkeeper:
             }
 
         correct_order = {
-            "general": ["conda environment", "system", "slurm args", "defaults file", "raw mocks", "true mocks"],
+            "general": [
+                "conda environment",
+                "system",
+                "slurm args",
+                "defaults file",
+                "raw mocks",
+                "true mocks",
+            ],
             "data": ["bookkeeper dir", "healpix data", "catalog"],
             "delta extraction": [
                 "use existing",
@@ -532,7 +549,9 @@ class Bookkeeper:
                             },
                             f"correction arguments {num_corrections - 1}": {
                                 "filename": str(
-                                    self.paths.delta_attributes_file(None, calib_step=1).resolve()
+                                    self.paths.delta_attributes_file(
+                                        None, calib_step=1
+                                    ).resolve()
                                 ),
                             },
                         },
@@ -564,12 +583,16 @@ class Bookkeeper:
                         },
                         f"correction arguments {num_corrections - 2}": {
                             "filename": str(
-                                self.paths.delta_attributes_file(None, calib_step=1).resolve()
+                                self.paths.delta_attributes_file(
+                                    None, calib_step=1
+                                ).resolve()
                             ),
                         },
                         f"correction arguments {num_corrections - 1}": {
                             "filename": str(
-                                self.paths.delta_attributes_file(None, calib_step=2).resolve()
+                                self.paths.delta_attributes_file(
+                                    None, calib_step=2
+                                ).resolve()
                             ),
                         },
                     },
@@ -600,7 +623,9 @@ class Bookkeeper:
                         },
                         f"correction arguments {num_corrections - 1}": {
                             "filename": str(
-                                self.paths.delta_attributes_file(None, calib_step=1).resolve()
+                                self.paths.delta_attributes_file(
+                                    None, calib_step=1
+                                ).resolve()
                             ),
                         },
                     },
@@ -678,7 +703,6 @@ class Bookkeeper:
                     },
                 )
 
-
             if self.config["delta extraction"].get("bal", None) not in (None, False):
                 if "BalMask" in extra_args["masks"].values():
                     raise ValueError("BalMask set by user with bal option != None")
@@ -716,7 +740,7 @@ class Bookkeeper:
         #         f"Unrecognized continuum fitting prefix: "
         #         f"{self.config['delta extraction']['prefix']}"
         #     )
-        
+
         if self.config["general"].get("raw mocks", False):
             raise ValueError(
                 f"raw continuum fitting provided in config file, use "
@@ -1508,7 +1532,12 @@ class Bookkeeper:
             return DummyTasker()
 
         copy_cf_exp_file = self.paths.copied_correlation_file(
-            "computed exports", absorber, region, absorber2, region2, output_filename.name
+            "computed exports",
+            absorber,
+            region,
+            absorber2,
+            region2,
+            output_filename.name,
         )
         if copy_cf_exp_file is not None:
             output_filename.unlink(missing_ok=True)
@@ -1549,7 +1578,9 @@ class Bookkeeper:
         )
 
         args = {
-            "data": str(self.paths.cf_fname(absorber, region, absorber2, region2).resolve()),
+            "data": str(
+                self.paths.cf_fname(absorber, region, absorber2, region2).resolve()
+            ),
             "out": str(output_filename),
         }
 
@@ -1570,16 +1601,22 @@ class Bookkeeper:
             logger.warn("CORRELATIONS WILL BE UNBLINDED, BE CAREFUL.")
             precommand = f"picca_bookkeeper_unblind_correlations"
 
-            cf_file = self.paths.cf_fname(absorber, region, absorber2, region2).resolve()
+            cf_file = self.paths.cf_fname(
+                absorber, region, absorber2, region2
+            ).resolve()
             precommand += f" --cf {str(cf_file)}"
             if not self.config["fits"].get("no distortion", False):
-                dmat_file = self.paths.dmat_fname(absorber, region, absorber2, region2).resolve()
+                dmat_file = self.paths.dmat_fname(
+                    absorber, region, absorber2, region2
+                ).resolve()
                 precommand += f" --dmat {str(dmat_file)}"
                 in_files.append(dmat_file)
-            if (not self.config["fits"].get("no metals", False)) and not self.config["fits"].get(
-                "vega metals", False
-            ):
-                metal_file = self.paths.metal_fname(absorber, region, absorber2, region2).resolve()
+            if (not self.config["fits"].get("no metals", False)) and not self.config[
+                "fits"
+            ].get("vega metals", False):
+                metal_file = self.paths.metal_fname(
+                    absorber, region, absorber2, region2
+                ).resolve()
                 precommand += f" --metal-dmat {str(metal_file)}"
                 in_files.append(metal_file)
         elif self.config["correlations"].get("unblind y1", False):
@@ -1676,7 +1713,12 @@ class Bookkeeper:
         # If metal matrices are provided, we just copy them into the bookkeeper
         # as if they were computed.
         copy_metal_matrix = self.paths.copied_correlation_file(
-            "computed metals", absorber, region, absorber2, region2, output_filename.name
+            "computed metals",
+            absorber,
+            region,
+            absorber2,
+            region2,
+            output_filename.name,
         )
         if copy_metal_matrix is not None:
             output_filename.unlink(missing_ok=True)
@@ -1724,11 +1766,15 @@ class Bookkeeper:
         args = {}
 
         if fast_metal:
-            args["in-attributes"] = str(self.paths.delta_attributes_file(region).resolve())
+            args["in-attributes"] = str(
+                self.paths.delta_attributes_file(region).resolve()
+            )
             args["delta-dir"] = str(self.paths.deltas_path(region).resolve())
 
             if region2 != region:
-                args["in-attributes2"] = str(self.paths.delta_attributes_file(region2).resolve())
+                args["in-attributes2"] = str(
+                    self.paths.delta_attributes_file(region2).resolve()
+                )
         else:
             args["in-dir"] = str(self.paths.deltas_path(region).resolve())
 
@@ -2177,9 +2223,9 @@ class Bookkeeper:
                 xdmat_file = self.paths.xdmat_fname(absorber, region).resolve()
                 precommand += f" --dmat {str(xdmat_file)}"
                 in_files.append(xdmat_file)
-            if (not self.config["fits"].get("no metals", False)) and not self.config["fits"].get(
-                "vega metals", False
-            ):
+            if (not self.config["fits"].get("no metals", False)) and not self.config[
+                "fits"
+            ].get("vega metals", False):
                 xmetal_file = self.paths.metal_fname(absorber, region).resolve()
                 precommand += f" --metal-dmat {str(xmetal_file)}"
                 in_files.append(xmetal_file)
@@ -2314,7 +2360,9 @@ class Bookkeeper:
 
         args = {}
         if fast_metal:
-            args["in-attributes"] = str(self.paths.delta_attributes_file(region).resolve())
+            args["in-attributes"] = str(
+                self.paths.delta_attributes_file(region).resolve()
+            )
             args["delta-dir"] = str(self.paths.deltas_path(region).resolve())
         else:
             args["in-dir"] = str(self.paths.deltas_path(region).resolve())
@@ -2695,7 +2743,7 @@ class Bookkeeper:
                             },
                             "parameters": {
                                 "bao_amp": 0,
-                            }
+                            },
                         }
                     }
                 },
@@ -2732,10 +2780,11 @@ class Bookkeeper:
 
         if config["fits"]["no metals"]:
             metal_dict = {
-                metal: "$" for metal in (
+                metal: "$"
+                for metal in (
                     "SiII(1190)",
                     "SiII(1193)",
-                    "SiII(1260)",  
+                    "SiII(1260)",
                     "SiIII(1207)",
                     "CIV(eff)",
                 )
@@ -2744,11 +2793,7 @@ class Bookkeeper:
             args = DictUtils.merge_dicts(
                 args,
                 {
-                    "vega_main": {
-                        "all": {
-                            "sample": metal_dict
-                        }
-                    },
+                    "vega_main": {"all": {"sample": metal_dict}},
                     "vega_auto": {
                         "all": {
                             "metals": "$",
@@ -2773,7 +2818,7 @@ class Bookkeeper:
                             },
                             "parameters": {
                                 "desi_inst_sys_amp": 0,
-                            }
+                            },
                         }
                     }
                 },
@@ -2790,7 +2835,7 @@ class Bookkeeper:
                             },
                             "parameters": {
                                 "qso_rad_strength": 0,
-                            }
+                            },
                         }
                     }
                 },
@@ -2886,10 +2931,14 @@ class Bookkeeper:
             region2 = self.validate_region(region2)
             absorber2 = self.validate_absorber(absorber2)
 
-            export_file = self.paths.exp_cf_fname(absorber, region, absorber2, region2).resolve()
+            export_file = self.paths.exp_cf_fname(
+                absorber, region, absorber2, region2
+            ).resolve()
             export_files_auto.append(export_file)
 
-            metals_file = self.paths.metal_fname(absorber, region, absorber2, region2).resolve()
+            metals_file = self.paths.metal_fname(
+                absorber, region, absorber2, region2
+            ).resolve()
             distortion_file = self.paths.dmat_fname(
                 absorber, region, absorber2, region2
             ).resolve()
@@ -3589,8 +3638,8 @@ class PathBuilder:
                 catalog = Path(self.config["data"].get("catalog", ""))
             else:
                 raise FileNotFoundError(
-                    f"Couldn't find valid catalog for field {field}", 
-                    self.config["data"].get("catalog", "")
+                    f"Couldn't find valid catalog for field {field}",
+                    self.config["data"].get("catalog", ""),
                 )
 
         return catalog
@@ -3678,7 +3727,12 @@ class PathBuilder:
             Path: Path to deltas directory.
         """
         if calib_step is not None:
-            return self.delta_extraction_path / "results" / f"calibration_{calib_step}" / "Delta"
+            return (
+                self.delta_extraction_path
+                / "results"
+                / f"calibration_{calib_step}"
+                / "Delta"
+            )
         else:
             if region is None:
                 raise ValueError("Invalid region provided: ", region)
@@ -3795,7 +3849,6 @@ class PathBuilder:
 
             return None
 
-        
         logger.info(f"{region}: Using deltas from file:\n\t{str(deltas)}")
         logger.info(f"{region}: Using attributes from file:\n\t{str(attributes)}")
         return [deltas, attributes]
@@ -3833,7 +3886,9 @@ class PathBuilder:
             self.config["correlations"].get(subsection, dict()).get(qso + name, None)
             is not None
         ):
-            file = Path(self.config["correlations"].get(subsection, dict()).get(qso + name))
+            file = Path(
+                self.config["correlations"].get(subsection, dict()).get(qso + name)
+            )
 
             if not file.is_file():
                 raise FileNotFoundError(
@@ -3842,9 +3897,12 @@ class PathBuilder:
 
         elif (
             self.config["correlations"].get(subsection, dict()).get("general", None)
-            is not None and filename is not None
+            is not None
+            and filename is not None
         ):
-            parent = Path(self.config["correlations"].get(subsection, dict()).get("general"))
+            parent = Path(
+                self.config["correlations"].get(subsection, dict()).get("general")
+            )
             file = parent / (qso + name) / filename
 
             if not file.is_file():
@@ -3893,10 +3951,14 @@ class PathBuilder:
             self.config["fits"].get("computed covariances", dict()).get("general", None)
             is not None
         ):
-            file = Path(
-                self.config["fits"].get("computed covariances", dict()).get("general")
-            ) / f"{name}.fits"
-
+            file = (
+                Path(
+                    self.config["fits"]
+                    .get("computed covariances", dict())
+                    .get("general")
+                )
+                / f"{name}.fits"
+            )
 
             if not file.is_file():
                 logger.info(

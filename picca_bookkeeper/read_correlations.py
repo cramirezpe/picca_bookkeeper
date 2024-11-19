@@ -14,7 +14,6 @@ from picca_bookkeeper.bookkeeper import Bookkeeper
 if TYPE_CHECKING:
     from typing import Dict, Optional, Tuple
 
-    import matplotlib
     from picca_bookkeeper.hints import Axes, Figure
 
 

@@ -397,9 +397,9 @@ class Plots:
             )
 
         with fitsio.FITS(attributes_file) as hdul:
-            if 'STATS' in hdul:
-                wave = hdul['STATS']['LAMBDA'].read()
-                var_lss = hdul['STATS']['VAR'].read()
+            if "STATS" in hdul:
+                wave = hdul["STATS"]["LAMBDA"].read()
+                var_lss = hdul["STATS"]["VAR"].read()
             else:
                 if "VAR_FUNC" in hdul:
                     card = "VAR_FUNC"
@@ -478,17 +478,17 @@ class Plots:
             )
 
         with fitsio.FITS(attributes_file) as hdul:
-            if 'STATS' in hdul:
+            if "STATS" in hdul:
                 # Raw deltas
-                lambda_ = hdul['STATS']['LAMBDA'].read()
-                stack = hdul['STATS']['MEANFLUX'].read()
+                lambda_ = hdul["STATS"]["LAMBDA"].read()
+                stack = hdul["STATS"]["MEANFLUX"].read()
 
                 if use_weights:
-                    weights = hdul['STATS']['WEIGHTS'].read()
+                    weights = hdul["STATS"]["WEIGHTS"].read()
             else:
                 lambda_ = 10 ** hdul["STACK_DELTAS"]["loglam"].read()
                 stack = hdul["STACK_DELTAS"]["stack"].read()
-                
+
                 if use_weights:
                     weights = hdul["STACK_DELTAS"]["weight"].read()
 
@@ -605,8 +605,7 @@ class Plots:
 
     @staticmethod
     def line_masking(
-        mask_file: Path
-        | str = Path(str(os.getenv("pr")))
+        mask_file: Path | str = Path(str(os.getenv("pr")))
         / "Continuum_fitting/config_files/sharp-lines-mask.txt",
         ax: Optional[Axes] = None,
         plot_kwargs: Dict = dict(),

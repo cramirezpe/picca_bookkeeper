@@ -1,4 +1,5 @@
 """Script to fully compare two bookkeeper's configurations"""
+
 from __future__ import annotations
 
 import argparse
@@ -6,7 +7,6 @@ import logging
 import re
 import sys
 from pathlib import Path
-from subprocess import run
 from typing import TYPE_CHECKING
 
 from picca_bookkeeper.bookkeeper import Bookkeeper
@@ -63,9 +63,12 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
             + strCyan(f"\n\t+{bookkeeper2.paths.catalog_tracer}\n")
         )
 
-    ini_files = list((bookkeeper2.paths.delta_extraction_path / "configs").glob("*.ini"))
+    ini_files = list(
+        (bookkeeper2.paths.delta_extraction_path / "configs").glob("*.ini")
+    )
     ini_files_base = [
-        (bookkeeper1.paths.delta_extraction_path / "configs") / x.name for x in ini_files
+        (bookkeeper1.paths.delta_extraction_path / "configs") / x.name
+        for x in ini_files
     ]
 
     script_files = list((bookkeeper2.paths.correlations_path / "scripts").glob("*.sh"))
@@ -90,7 +93,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
             config_text = config_file_base.read_text()
         else:
             config_text = ""
-        
+
         base_text = replace_strings(
             config_text,
             bookkeeper1,

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import argparse
 import logging
-import os
 import sys
 from pathlib import Path
 from subprocess import run
@@ -89,7 +88,7 @@ def get_args() -> argparse.Namespace:
     parser.add_argument(
         "--system",
         type=str,
-        default = None,
+        default=None,
     )
 
     parser.add_argument(

@@ -1,4 +1,5 @@
 """Script to print bookkeeper path."""
+
 from __future__ import annotations
 
 import argparse
@@ -29,7 +30,8 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
     if args.pretty:
         print(
             "\n\n".join(
-                f"{config}:\n\t{path}" for config, path in zip(args.bookkeeper_configs, paths)
+                f"{config}:\n\t{path}"
+                for config, path in zip(args.bookkeeper_configs, paths)
             )
         )
     else:
@@ -47,9 +49,7 @@ def getArgs() -> argparse.Namespace:
     )
 
     parser.add_argument(
-        "--pretty",
-        action="store_true",
-        help="Print file name and bookkeeper paths."
+        "--pretty", action="store_true", help="Print file name and bookkeeper paths."
     )
 
     args = parser.parse_args()

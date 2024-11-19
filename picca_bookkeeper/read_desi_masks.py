@@ -1,6 +1,7 @@
 """
     Read flux, ivar, mask and wavelength information for DESI data
 """
+
 from __future__ import annotations
 
 import argparse

@@ -1,6 +1,7 @@
 """
     Script to combine multiple DLA catalogs.
 """
+
 from __future__ import annotations
 
 import argparse

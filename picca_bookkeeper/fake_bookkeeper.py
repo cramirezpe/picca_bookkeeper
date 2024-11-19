@@ -1,6 +1,6 @@
 """ FakeBookkeeper class to use for plotting non-bookkeeper runs"""
-from __future__ import annotations
 
+from __future__ import annotations
 
 import logging
 from pathlib import Path

@@ -21,6 +21,7 @@ if TYPE_CHECKING:
     from typing import Any, Dict, List, Optional, Tuple, Type
 
     import matplotlib
+
     from picca_bookkeeper.hints import Axes, Figure
 
 logger = logging.getLogger(__name__)
@@ -45,7 +46,6 @@ class ReadFits:
         ap_baseline: Optional[float] = None,
         at_baseline: Optional[float] = None,
         blinded: bool = True,  # handle blinded(true) / unblined(false), default = blinded
-
     ):
         """
         Args:
@@ -171,7 +171,7 @@ class ReadFits:
         params_names: Optional[List[str]] = None,
         precision: int = 3,
         float_presentation: str = "f",
-        blinded: bool = True  # handle blinded(true) / unblined(false), default = blinded
+        blinded: bool = True,  # handle blinded(true) / unblined(false), default = blinded
     ) -> pd.DataFrame:
         if params_names is None:
             params_names = params
@@ -183,7 +183,7 @@ class ReadFits:
         header += ["chi2 / DoF", "pvalue"]
 
         rows = []
-        
+
         # check if blinded boolian is true / false
         if blinded:
             # Store baseline values for 'ap' and 'at' from the first fit
@@ -215,7 +215,9 @@ class ReadFits:
                             else:
                                 # For subsequent fits, display the difference from the baseline
                                 value_diff = fit.values[param] - baseline_ap
-                                error_diff = fit.errors[param]  # Assuming the error remains the same
+                                error_diff = fit.errors[
+                                    param
+                                ]  # Assuming the error remains the same
                                 row.append(
                                     rf"{value_diff:+.{precision}{float_presentation}} ± {error_diff:.{precision}{float_presentation}}"
                                 )
@@ -228,7 +230,9 @@ class ReadFits:
                             else:
                                 # For subsequent fits, display the difference from the baseline
                                 value_diff = fit.values[param] - baseline_at
-                                error_diff = fit.errors[param]  # Assuming the error remains the same
+                                error_diff = fit.errors[
+                                    param
+                                ]  # Assuming the error remains the same
                                 row.append(
                                     rf"{value_diff:+.{precision}{float_presentation}} ± {error_diff:.{precision}{float_presentation}}"
                                 )
@@ -276,12 +280,13 @@ class ReadFits:
                 row.append(f"{fit.pvalue:.{precision}{float_presentation}}")
 
                 rows.append(row)
-            
+
         df = pd.DataFrame(data=rows)
         df.columns = header
         # df = df.sort_values("pvalue")
 
         return df
+
 
 class FitPlots:
     @staticmethod
@@ -336,7 +341,7 @@ class FitPlots:
             absorber2 = absorber
 
         if fit_file != "" or correlation_file != "":
-            if (fit_file == "" != correlation_file == ""):
+            if fit_file == "" != correlation_file == "":
                 raise ValueError(
                     "Should provide fit_file and correlation_file at the same"
                     "time or use a bookkeeper"
@@ -492,7 +497,7 @@ class FitPlots:
             output_prefix = Path(output_prefix)
 
         if fit_file != "" or correlation_file != "":
-            if (fit_file == "" != correlation_file == ""):
+            if fit_file == "" != correlation_file == "":
                 raise ValueError(
                     "Should provide fit_file and correlation_file at the same"
                     "time or use a bookkeeper"
@@ -528,7 +533,12 @@ class FitPlots:
 
         with fitsio.FITS(fit_file) as ffile:
             colnames = ffile["MODEL"].get_colnames()
-            for name in (f"qsox{region}_MODEL", f"qsox{absorber}{region}_MODEL", f"{region}xqso_MODEL", f"{absorber}{region}xqso_MODEL"):
+            for name in (
+                f"qsox{region}_MODEL",
+                f"qsox{absorber}{region}_MODEL",
+                f"{region}xqso_MODEL",
+                f"{absorber}{region}xqso_MODEL",
+            ):
                 if name in colnames:
                     field = name
                     break
@@ -665,7 +675,7 @@ class FitPlots:
             absorber2 = absorber
 
         if fit_file != "" or correlation_file != "":
-            if (fit_file == "" != correlation_file == ""):
+            if fit_file == "" != correlation_file == "":
                 raise ValueError(
                     "Should provide fit_file and correlation_file at the same"
                     "time or use a bookkeeper"
@@ -848,7 +858,7 @@ class FitPlots:
             absorber2 = absorber
 
         if fit_file != "" or correlation_file != "":
-            if (fit_file == "" != correlation_file == ""):
+            if fit_file == "" != correlation_file == "":
                 raise ValueError(
                     "Should provide fit_file and correlation_file at the same"
                     "time or use a bookkeeper"
@@ -911,7 +921,12 @@ class FitPlots:
                         colnames,
                     )
             else:
-                for name in (f"qsox{region}_MODEL", f"qsox{absorber}{region}_MODEL", f"{region}xqso_MODEL", f"{absorber}{region}xqso_MODEL"):
+                for name in (
+                    f"qsox{region}_MODEL",
+                    f"qsox{absorber}{region}_MODEL",
+                    f"{region}xqso_MODEL",
+                    f"{absorber}{region}xqso_MODEL",
+                ):
                     if name in colnames:
                         field = name
                         break
@@ -1040,7 +1055,7 @@ class FitPlots:
             output_prefix = Path(output_prefix)
 
         if fit_file != "" or correlation_file != "":
-            if (fit_file == "" != correlation_file == ""):
+            if fit_file == "" != correlation_file == "":
                 raise ValueError(
                     "Should provide fit_file and correlation_file at the same"
                     "time or use a bookkeeper"
@@ -1070,7 +1085,12 @@ class FitPlots:
 
         with fitsio.FITS(fit_file) as ffile:
             colnames = ffile["MODEL"].get_colnames()
-            for name in (f"qsox{region}_MODEL", f"qsox{absorber}{region}_MODEL", f"{region}xqso_MODEL", f"{absorber}{region}xqso_MODEL"):
+            for name in (
+                f"qsox{region}_MODEL",
+                f"qsox{absorber}{region}_MODEL",
+                f"{region}xqso_MODEL",
+                f"{absorber}{region}xqso_MODEL",
+            ):
                 if name in colnames:
                     field = name
                     break
@@ -1169,17 +1189,17 @@ class FitPlots:
             raise ValueError("Set output_prefix in order to save data.")
 
         return extent, mat
-    
+
     @staticmethod
     def plot_errorbars_from_fit(
-            readfits: List[ReadFits],
-            param: str,
-            param_name: Optional[str] = None,
-            ax: Optional[Axes] = None,
-            plot_kwargs: Dict = dict(),
-            reference: Optional[ReadFits] = None,
-            blinded: bool = True,  # Add the blinded parameter, default is True
-        ) -> List[matplotlib.container.Container | Any]:
+        readfits: List[ReadFits],
+        param: str,
+        param_name: Optional[str] = None,
+        ax: Optional[Axes] = None,
+        plot_kwargs: Dict = dict(),
+        reference: Optional[ReadFits] = None,
+        blinded: bool = True,  # Add the blinded parameter, default is True
+    ) -> List[matplotlib.container.Container | Any]:
         """
         Args:
             readfits: List of readfits objects to show in the plot.
@@ -1200,7 +1220,7 @@ class FitPlots:
 
         handles = []
 
-        # Check if blinded boolean is true / false 
+        # Check if blinded boolean is true / false
         if blinded:
             # Blinded code block
 
@@ -1212,7 +1232,9 @@ class FitPlots:
                 # Set the baseline using the first fit in the list
                 first_fit = readfits[0]
                 baseline_value = first_fit.values.get(param, None)
-                baseline_error = first_fit.errors.get(param, 0)  # Assume first fit error is baseline error
+                baseline_error = first_fit.errors.get(
+                    param, 0
+                )  # Assume first fit error is baseline error
 
                 if baseline_value is None:
                     baseline_value = first_fit.model_header.get(param, None)
@@ -1243,7 +1265,7 @@ class FitPlots:
                         ls="--",
                         lw=0.6,
                         alpha=1,
-                        label="Baseline"
+                        label="Baseline",
                     )
                 )
 
@@ -1376,8 +1398,8 @@ class FitPlots:
             ax.set_yticks([])  # No ticks on y-axis for unblinded case
             ax.grid(visible=True)
 
-        return handles 
-    
+        return handles
+
     @staticmethod
     def plot_p_value_from_fit(
         readfits: List[ReadFits],
