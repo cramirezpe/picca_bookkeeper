@@ -5,7 +5,6 @@ import copy
 import filecmp
 import logging
 import shutil
-import sys
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -18,7 +17,6 @@ from picca_bookkeeper import resources
 from picca_bookkeeper.constants import absorber_igm, forest_regions
 from picca_bookkeeper.dict_utils import DictUtils
 from picca_bookkeeper.tasker import ChainedTasker, DummyTasker, Tasker, get_Tasker
-from picca_bookkeeper.utils import compute_zeff
 
 if TYPE_CHECKING:
     from typing import Dict, List, Optional, Tuple

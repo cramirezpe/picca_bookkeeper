@@ -6,14 +6,13 @@ from typing import TYPE_CHECKING
 import fitsio
 import matplotlib.pyplot as plt
 import numpy as np
-import scipy as sp
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from vega.plots.wedges import Wedge
 
 from picca_bookkeeper.bookkeeper import Bookkeeper
 
 if TYPE_CHECKING:
-    from typing import Dict, List, Optional, Tuple
+    from typing import Dict, Optional, Tuple
 
     import matplotlib
     from picca_bookkeeper.hints import Axes, Figure

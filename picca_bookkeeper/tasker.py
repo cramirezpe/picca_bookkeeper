@@ -1,14 +1,10 @@
 from __future__ import annotations
 
 import importlib.metadata
-import importlib.util
 import logging
 import os
-import sys
-import re
 import textwrap
 import time
-
 from datetime import datetime
 from pathlib import Path
 from subprocess import run
@@ -18,6 +14,7 @@ import numpy as np
 
 if TYPE_CHECKING:
     from typing import Any, Dict, List, Optional, Type
+
     from typing_extensions import Self
 
 logger = logging.getLogger(__name__)

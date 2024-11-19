@@ -19,7 +19,6 @@ from picca_bookkeeper.utils import compute_cont, get_spectra_from_los_id
 if TYPE_CHECKING:
     from typing import Any, Dict, List, Optional, Tuple
 
-    import matplotlib
     from picca_bookkeeper.hints import Axes, wave_grid, wave_grid_int, wave_grid_rf
 
 

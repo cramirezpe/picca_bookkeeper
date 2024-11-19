@@ -1,24 +1,15 @@
 """ FakeBookkeeper class to use for plotting non-bookkeeper runs"""
 from __future__ import annotations
 
-import configparser
-import copy
-import filecmp
+
 import logging
-import shutil
-import sys
 from pathlib import Path
 from typing import TYPE_CHECKING
-
-import numpy as np
-import yaml
-from importlib_resources import files
-from yaml import SafeDumper
 
 from picca_bookkeeper.bookkeeper import Bookkeeper, PathBuilder
 
 if TYPE_CHECKING:
-    from typing import Dict, List, Optional, Tuple
+    from typing import Dict, Optional
 
 logger = logging.getLogger(__name__)
 

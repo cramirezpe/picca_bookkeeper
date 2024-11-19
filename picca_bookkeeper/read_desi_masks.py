@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import argparse
-import itertools
 import logging
 import sys
 from multiprocessing import Pool
@@ -18,7 +17,7 @@ import numpy as np
 from astropy.table import Table
 
 if TYPE_CHECKING:
-    from typing import Dict, List, Optional, Tuple
+    from typing import Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 

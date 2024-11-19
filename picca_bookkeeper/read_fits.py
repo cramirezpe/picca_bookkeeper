@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import scipy as sp
-from getdist import MCSamples, plots
+from getdist import MCSamples
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from vega.parameters.param_utils import build_names
 from vega.plots.wedges import Wedge
