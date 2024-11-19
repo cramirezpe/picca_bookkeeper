@@ -5,11 +5,9 @@ import unittest
 import shutil
 from picca_bookkeeper.bookkeeper import Bookkeeper
 from picca_bookkeeper.scripts.run_full_analysis import main as run_full
-import random
 import codecs
 from unittest.mock import patch
 import itertools
-import filecmp
 import os
 
 THIS_DIR = Path(__file__).parent
