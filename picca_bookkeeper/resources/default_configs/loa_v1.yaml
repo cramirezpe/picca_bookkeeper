@@ -76,6 +76,12 @@ correlations:
         fid-Om: 0.315
         rebin-factor: 3
         coef-binning-model: 2
+        
+      lyalya_lyalya:
+        rej: 0.995
+
+      lyalya_lyalyb:
+        smooth-per-r-par: ""
 
     picca_fast_metal_dmat:
       general:
@@ -109,7 +115,7 @@ correlations:
 
     picca_xcf:
       general:
-        mode: desi_healpix_fast
+        mode: desi_healpix
         nside: 16
         rp-min: -200
         rp-max: 200
@@ -125,7 +131,7 @@ correlations:
 
     picca_xdmat:
       general:
-        mode: "desi_healpix_fast"
+        mode: "desi_healpix"
         rej: 0.99
         nside: 16
         rp-min: -300
@@ -140,7 +146,7 @@ correlations:
 
     picca_fast_metal_xdmat:
       general:
-        mode: "desi_healpix_fast"
+        mode: "desi_healpix"
         abs-igm: "SiII(1190) SiII(1193) SiIII(1207) SiII(1260)"
         rp-min: -300
         rp-max: 300
@@ -157,7 +163,7 @@ correlations:
 
     picca_metal_xdmat:
       general:
-        mode: "desi_healpix_fast"
+        mode: "desi_healpix"
         rej: 0.999
         abs-igm: "SiII(1190) SiII(1193) SiIII(1207) SiII(1260)"
         rp-min: -300
@@ -297,7 +303,7 @@ fits:
           rp-max: +200.
           rt-min: 0.
           rt-max: 200.
-          r-min: 10.
+          r-min: 30.
           r-max: 180.
           mu-min: -1.
           mu-max: +1.
@@ -345,7 +351,7 @@ fits:
           rp-max: +200.
           rt-min: 0.
           rt-max: 200.
-          r-min: 10.
+          r-min: 30.
           r-max: 180.
           mu-min: -1.
           mu-max: +1.
@@ -400,12 +406,12 @@ fits:
           bias_LYA: True
           beta_LYA: True
           bias_QSO: True
-          sigma_velo_disp_lorentz_QSO: True
-          drp_QSO: True
-          qso_rad_strength: True
+          sigma_velo_disp_lorentz_QSO: False
+          drp_QSO: False
+          qso_rad_strength: False
           bias_hcd: True
-          beta_hcd: True
-          L0_hcd: True
+          beta_hcd: False
+          L0_hcd: False
           bias_SiII(1190): True
           bias_SiII(1193): True
           bias_SiIII(1207): True
@@ -414,7 +420,6 @@ fits:
           desi_inst_sys_amp: True
 
         priors:
-          beta_hcd: gaussian 0.5 0.09
           bias_CIV(eff): gaussian -0.0243 0.0015
 
         parameters:
@@ -437,10 +442,10 @@ fits:
           dnl_arinyo_kp: 19.47
           bias_hcd: -0.05
           beta_hcd: 0.7
-          L0_hcd: 6.5
-          drp_QSO: 0.0
-          sigma_velo_disp_lorentz_QSO: 6.86
-          qso_rad_strength: 0.74
+          L0_hcd: 6.3
+          drp_QSO: 0.2
+          sigma_velo_disp_lorentz_QSO: 3.8
+          qso_rad_strength: 0.36
           qso_rad_asymmetry: 0.
           qso_rad_lifetime: 9e99
           qso_rad_decrease: 300.
