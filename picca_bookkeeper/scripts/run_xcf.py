@@ -1,4 +1,5 @@
 """ Script to run picca_xcf and export given a bookkeeper config file."""
+
 from __future__ import annotations
 
 import argparse
@@ -8,7 +9,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from picca_bookkeeper.bookkeeper import Bookkeeper
-from picca_bookkeeper.tasker import DummyTasker, Tasker
+from picca_bookkeeper.tasker import DummyTasker
 
 if TYPE_CHECKING:
     from typing import Optional
@@ -107,7 +108,6 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
                 )
         logger.info("Done.\n")
 
-
     logger.info(f"Adding export: {args.absorber}{args.region}_qso")
     xcf_exp = bookkeeper.get_xcf_exp_tasker(
         region=args.region,
@@ -124,7 +124,9 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
 
         if not isinstance(xcf_exp, DummyTasker):
             logger.info(
-                "Sent export " f"{args.absorber}{args.region}_qso:\n\t" f"{xcf_exp.jobid}"
+                "Sent export "
+                f"{args.absorber}{args.region}_qso:\n\t"
+                f"{xcf_exp.jobid}"
             )
     logger.info("Done.\n")
 

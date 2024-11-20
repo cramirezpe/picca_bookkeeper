@@ -38,10 +38,8 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
         for file in yaml_files:
             config = yaml.safe_load(file.read_text())
 
-            old_dirs.add(str(
-                Path(config["data"]["bookkeeper dir"]).parent
-            ))
-    
+            old_dirs.add(str(Path(config["data"]["bookkeeper dir"]).parent))
+
     yaml_files = list(args.source_dir.glob("**/*.yaml"))
 
     file_string = "\n\t".join(map(str, yaml_files))
@@ -73,7 +71,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
     new_dir = args.new_dir
     while new_dir[-1] == "/":
         new_dir = new_dir[:-1]
-    print(f"New directory:\n\t{new_dir}") 
+    print(f"New directory:\n\t{new_dir}")
 
     print("\nThe following substitutions will be made:")
     for dir_ in old_dirs:

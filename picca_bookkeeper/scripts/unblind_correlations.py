@@ -1,16 +1,16 @@
 """ Script to run add_extra_deltas_data
 given a bookkeeper config file.
 Originally written by Ignasi Pérez-Ràfols"""
+
 from __future__ import annotations
 
 import argparse
 import logging
 import sys
-from astropy.io import fits
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from picca_bookkeeper.bookkeeper import Bookkeeper
+from astropy.io import fits
 
 if TYPE_CHECKING:
     from typing import Optional

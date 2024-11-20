@@ -3,10 +3,8 @@ from __future__ import annotations
 import importlib.metadata
 import logging
 import os
-import sys
 import textwrap
 import time
-
 from datetime import datetime
 from pathlib import Path
 from subprocess import run
@@ -16,7 +14,6 @@ import numpy as np
 
 if TYPE_CHECKING:
     from typing import Any, Dict, List, Optional, Type
-    from typing_extensions import Self
 
 logger = logging.getLogger(__name__)
 
@@ -182,7 +179,7 @@ class Tasker:
 
                 if status != "COMPLETED":
                     self.wait_for_ids.append(jobid)
-
+                    
     def _make_command(self) -> str:
         """Method to generate a command with args
 
@@ -196,7 +193,7 @@ class Tasker:
             ]
         )
         return f'command="{self.command} {args}"'
-
+    
     def _make_body(self) -> str:
         """Method to generate the body of the job script.
 
@@ -240,7 +237,7 @@ class Tasker:
         raise ValueError(
             "Tasker class has no _make_env_opts defined, use child classes instead."
         )
-
+    
     def _make_version_control(self) -> str:
         text = "\necho used picca_bookkeeper version: "
         text += importlib.metadata.version('picca_bookkeeper')
@@ -248,7 +245,7 @@ class Tasker:
         for package in self.packages:
             text += f"\necho using {package} version: $(python -c \"import importlib.metadata; "
             text += f"print(importlib.metadata.version('{package}'))\")"
-        
+            
         return text + "\necho -e '\\n'\n"
 
     def _make_run_command(self) -> str:

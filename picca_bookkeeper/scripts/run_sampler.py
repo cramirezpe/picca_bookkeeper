@@ -1,4 +1,5 @@
 """ Script to run vega sampler given a bookkeeper config file"""
+
 from __future__ import annotations
 
 import argparse
@@ -38,7 +39,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
         bookkeeper.defaults,
         bookkeeper.config,
     )
-    
+
     if config["fits"].get("compute covariance", False):
         compute_covariance = bookkeeper.get_covariance_matrix_tasker(
             wait_for=args.wait_for,

@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from typing import *
 import collections
 import copy
+from typing import *
 
 
 class DictUtils:
@@ -92,10 +92,10 @@ class DictUtils:
                 result.pop(key)
                 break
             elif isinstance(value, collections.abc.Mapping):
-                result[key] = DictUtils.remove_dollar(value) # type: ignore
+                result[key] = DictUtils.remove_dollar(value)  # type: ignore
         else:
             # This trick allows for repeating the function until
-            # input and outut are the same: all $ have 
+            # input and outut are the same: all $ have
             # been removed.
             # This happens because the function in one iteration may
             # remove all items in one dict, and then we need an

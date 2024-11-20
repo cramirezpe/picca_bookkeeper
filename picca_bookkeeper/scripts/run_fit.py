@@ -1,4 +1,5 @@
 """ Script to run vega fit given a bookkeeper config file"""
+
 from __future__ import annotations
 
 import argparse
@@ -37,7 +38,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
         bookkeeper.defaults,
         bookkeeper.config,
     )
-    
+
     if config["fits"].get("compute covariance", False):
         logger.info("Adding compute covariance matrix.")
         compute_covariance = bookkeeper.get_covariance_matrix_tasker(
@@ -51,7 +52,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
             compute_covariance.send_job()
             if not isinstance(compute_covariance, DummyTasker):
                 logger.info(f"Sent compute covariance:\n\t{compute_covariance.jobid}")
-        
+
         logger.info("Done.\n")
 
         if config["fits"].get("smooth covariance", False):
@@ -85,9 +86,8 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
 
             if not isinstance(compute_zeff, DummyTasker):
                 logger.info(f"Sent compute zeff:\n\t{compute_zeff.jobid}")
-        
-        logger.info("Done.\n")
 
+        logger.info("Done.\n")
 
     logger.info("Adding fit.")
     fit = bookkeeper.get_fit_tasker(
@@ -118,7 +118,7 @@ def get_args() -> argparse.Namespace:
     parser.add_argument(
         "--system",
         type=str,
-        default = None,
+        default=None,
     )
 
     parser.add_argument(

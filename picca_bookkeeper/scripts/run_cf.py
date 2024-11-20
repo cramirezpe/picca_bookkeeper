@@ -1,5 +1,6 @@
 """ Script to run picca_cf and export
 given a bookkeeper config file."""
+
 from __future__ import annotations
 
 import argparse
@@ -8,7 +9,7 @@ import sys
 from pathlib import Path
 
 from picca_bookkeeper.bookkeeper import Bookkeeper
-from picca_bookkeeper.tasker import DummyTasker, Tasker
+from picca_bookkeeper.tasker import DummyTasker
 
 logger = logging.getLogger(__name__)
 from typing import TYPE_CHECKING
@@ -87,12 +88,11 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
                     f"{dmat.jobid}"
                 )
         logger.info("Done.\n")
-        
 
     if bookkeeper.config.get("fits", dict()).get(
         "metals", True
     ) and not bookkeeper.config.get("fits", dict()).get("vega metals", False):
-        # Compute metals if metals should be included and metals are not going 
+        # Compute metals if metals should be included and metals are not going
         # to be computed by vega.
 
         logger.info(
@@ -121,7 +121,6 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
                     f"{metal.jobid}"
                 )
         logger.info("Done.\n")
-
 
     logger.info(
         f"Adding export: "
