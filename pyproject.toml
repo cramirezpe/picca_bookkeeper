@@ -1,24 +1,29 @@
-[build-system]
-requires = ["setuptools", "wheel"]
-build-backend = "setuptools.build_meta"
-
-[tool.setuptools]
-packages = ["picca_bookkeeper", "picca_bookkeeper.scripts"]
-
-[tool.setuptools.dynamic]
-version = {attr = "picca_bookkeeper.__version__"}
-dependencies = {file = ["requirements.txt"]}
-
-[tool.setuptools.package-data]
-picca_bookkeeper = ["resources/*", "resources/*/*"]
-
-[project]
+[tool.poetry]
 name = "picca_bookkeeper"
 readme = "README.md"
-requires-python = ">=3.8.5"
-dynamic = ["version"]
+version = "5.1.1"
+description= "Helper to run Lyman-α analyses using picca"
+repository = "https://github.com/cramirezpe/picca_bookkeeper"
+authors = ["César Ramírez-Pérez"]
 
-[project.scripts]
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.dependencies]
+python = ">=3.10"
+astropy = "^6.1.6"
+fitsio = "^1.2.4"
+getdist = "^1.5.4"
+healpy = "^1.18.0"
+matplotlib = "^3.9.2"
+pandas = "^2.2.3"
+scipy = "^1.14.1"
+setuptools = "^75.6.0"
+tabulate = "^0.9.0"
+importlib-resources = "^6.4.5"
+
+[tool.poetry.scripts]
 picca_bookkeeper_run_delta_extraction = "picca_bookkeeper.scripts.run_delta_extraction:main"
 picca_bookkeeper_run_cf = "picca_bookkeeper.scripts.run_cf:main"
 picca_bookkeeper_run_xcf = "picca_bookkeeper.scripts.run_xcf:main"
