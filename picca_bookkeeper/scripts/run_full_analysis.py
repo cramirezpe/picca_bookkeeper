@@ -1,4 +1,5 @@
 """Script to run all the analyis from terminal"""
+
 from __future__ import annotations
 
 import argparse
@@ -9,7 +10,6 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from picca_bookkeeper import bookkeeper
 from picca_bookkeeper.bookkeeper import Bookkeeper
 from picca_bookkeeper.dict_utils import DictUtils
 from picca_bookkeeper.scripts.run_cf import main as run_cf
@@ -88,9 +88,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
     ## and then all the deltas needed.
     ########################################
     if not args.no_deltas:
-        if (not raw and not true) and config["delta extraction"][
-            "calib"
-        ] != 0:
+        if (not raw and not true) and config["delta extraction"]["calib"] != 0:
             calib_args = argparse.Namespace(
                 bookkeeper_config=args.bookkeeper_config,
                 region="lya",  # It doesn't really matter
@@ -205,7 +203,7 @@ def get_args() -> argparse.Namespace:
     parser.add_argument(
         "--system",
         type=str,
-        default = None,
+        default=None,
     )
 
     parser.add_argument(

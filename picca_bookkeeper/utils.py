@@ -1,18 +1,20 @@
 """Utils."""
+
 from __future__ import annotations
 
-import numpy as np
-from typing import TYPE_CHECKING
-import fitsio
 from pathlib import Path
+from typing import TYPE_CHECKING
+
+import fitsio
 import healpy as hp
+import numpy as np
 
 from picca_bookkeeper.constants import forest_regions
 
 if TYPE_CHECKING:
     from typing import Dict, List, Optional, Tuple
 
-    from picca_bookkeeper.hints import wave_grid, wave_grid_rf, wave_grid_int
+    from picca_bookkeeper.hints import wave_grid, wave_grid_int, wave_grid_rf
 
 
 def find_bins(original_array: wave_grid, grid_array: wave_grid) -> wave_grid_int:
@@ -63,8 +65,8 @@ def compute_zeff(
         with fitsio.FITS(export_file) as hdul:
             r_arr = np.sqrt(hdul[1].read()["RP"] ** 2 + hdul[1].read()["RT"] ** 2)
             cells = (r_arr > rmin) * (r_arr < rmax)
-            
-            inverse_variance = 1 / np.diag(hdul[1].read()['CO'])
+
+            inverse_variance = 1 / np.diag(hdul[1].read()["CO"])
             zeff = np.average(
                 hdul[1].read()["Z"][cells], weights=inverse_variance[cells]
             )

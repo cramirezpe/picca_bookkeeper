@@ -1,5 +1,6 @@
 """ Script to run picca_delta_extraction or picca_convert_transmission
 given a bookkeeper config file."""
+
 from __future__ import annotations
 
 import argparse
@@ -10,7 +11,7 @@ from typing import TYPE_CHECKING
 
 from picca_bookkeeper.bookkeeper import Bookkeeper
 from picca_bookkeeper.dict_utils import DictUtils
-from picca_bookkeeper.tasker import ChainedTasker, DummyTasker, Tasker
+from picca_bookkeeper.tasker import ChainedTasker, DummyTasker
 
 if TYPE_CHECKING:
     from typing import Callable, Optional, Type
@@ -94,7 +95,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
 
         if not isinstance(deltas, DummyTasker):
             logger.info(f"Sent deltas for region:\n\t{args.region}: {deltas.jobid}")
-    
+
     logger.info("Done\n")
 
 
@@ -107,7 +108,7 @@ def get_args() -> argparse.Namespace:
     parser.add_argument(
         "--system",
         type=str,
-        default = None,
+        default=None,
     )
 
     parser.add_argument(

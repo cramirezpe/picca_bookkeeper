@@ -1,16 +1,15 @@
-from pathlib import Path
 import argparse
+import codecs
 import importlib.metadata
-import unittest
+import itertools
+import os
 import shutil
+import unittest
+from pathlib import Path
+from unittest.mock import patch
+
 from picca_bookkeeper.bookkeeper import Bookkeeper
 from picca_bookkeeper.scripts.run_full_analysis import main as run_full
-import random
-import codecs
-from unittest.mock import patch
-import itertools
-import filecmp
-import os
 
 THIS_DIR = Path(__file__).parent
 
@@ -123,16 +122,16 @@ class TestBookkeeper(unittest.TestCase):
             Path(
                 "/tmp/cdirs/desicollab/users/hiramk/desi/qq_mocks/"
                 "iron/main/mock/london/v9.0.0/iron_main-0.134/spectra-16"
-            )
+            ),
         ):
             dir_.mkdir(parents=True, exist_ok=True)
-        
+
         for file in (
             Path("/tmp/cdirs/desi/mocks/lya_forest/london/v9.0/v9.0.0/master.fits"),
             Path(
                 "/tmp/cdirs/desicollab/users/hiramk/desi/qq_mocks/iron/main/mock/london/"
                 "v9.0.0/iron_main-0.134/qsocat_iron_main.fits"
-            )   
+            ),
         ):
             file.parent.mkdir(parents=True, exist_ok=True)
             file.touch()
@@ -561,7 +560,7 @@ class TestBookkeeper(unittest.TestCase):
         self.replace_paths_bookkeeper_output(bookkeeper2.paths)
         if "UPDATE_TESTS" in os.environ and os.environ["UPDATE_TESTS"] == "True":
             self.update_test_output(test_files, bookkeeper2.paths.run_path)
-        
+
         self.compare_bookkeeper_output(test_files, bookkeeper2.paths.run_path)
 
     @patch("picca_bookkeeper.tasker.run", side_effect=mock_run)

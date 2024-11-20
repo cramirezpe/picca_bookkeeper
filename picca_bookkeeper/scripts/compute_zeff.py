@@ -1,4 +1,5 @@
 """Script to easily compute zeff for a given set of files"""
+
 from __future__ import annotations
 
 import argparse

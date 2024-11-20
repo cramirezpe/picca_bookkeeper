@@ -11,9 +11,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import fitsio
-import matplotlib.pyplot as plt
 import numpy as np
-import picca
 from picca.delta_extraction.astronomical_objects.forest import Forest
 from picca.delta_extraction.masks.bal_mask import BalMask
 from picca.delta_extraction.masks.dla_mask import DlaMask, dla_profile
@@ -23,8 +21,6 @@ from picca_bookkeeper.utils import find_bins
 
 if TYPE_CHECKING:
     from typing import Dict, List, Optional
-    
-    import matplotlib
 
 logger = logging.getLogger(__name__)
 
