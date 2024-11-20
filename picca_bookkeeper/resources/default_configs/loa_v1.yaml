@@ -80,9 +80,6 @@ correlations:
       lyalya_lyalya:
         rej: 0.995
 
-      lyalya_lyalyb:
-        smooth-per-r-par: ""
-
     picca_fast_metal_dmat:
       general:
         abs-igm: "SiII(1190) SiII(1193) SiIII(1207) SiII(1260) CIV(eff)"
