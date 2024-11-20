@@ -6,7 +6,7 @@ general:
     mail-type: fail
     mail-user: user@host.com
 
-  defaults file: True
+  defaults file: TrueMocks
 
   true mocks: True
 

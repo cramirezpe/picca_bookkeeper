@@ -1,6 +1,6 @@
 general:
   conda environment: picca_add_tests
-  defaults file: true
+  defaults file: TrueMocks
   true mocks: true
 data:
   bookkeeper dir: /picca_bookkeeper/tests/test_files/output/results
