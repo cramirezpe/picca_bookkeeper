@@ -357,7 +357,7 @@ class SlurmTasker(Tasker):
         text += textwrap.dedent(
             f"""
 module load python
-conda {activate}{self.environment}
+{activate}{self.environment}
 umask 0002
 
 """
