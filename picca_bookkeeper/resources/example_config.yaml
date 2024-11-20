@@ -35,7 +35,7 @@ delta extraction:
   calib region: mgii_r
   
   dla: # If added, DLAs will be masked automatically
-  bal: # If added, BALs selected from catalog, if True BALs from data/catalog
+  bal: # If added, BALs selected from added catalog, if True BALs from data/catalog above
 
   mask file: # Add a line mask file
 

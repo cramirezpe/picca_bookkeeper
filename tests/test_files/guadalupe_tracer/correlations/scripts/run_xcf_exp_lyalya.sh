@@ -11,11 +11,16 @@
 #SBATCH --error /picca_bookkeeper/tests/test_files/output/results/correlations/logs/xcf_exp_lyalya-%j.err
 
 module load python
-source activate picca
+conda activate picca
 umask 0002
 
 export HDF5_USE_FILE_LOCKING=FALSE
 
+
+
+echo used picca_bookkeeper version: x.xx
+echo using picca version: $(python -c "import importlib.metadata; print(importlib.metadata.version('picca'))")
+echo -e '\n'
 
 command="picca_export.py --data /picca_bookkeeper/tests/test_files/output/results/correlations/results/qso_lyalya/xcf.fits.gz --out /picca_bookkeeper/tests/test_files/output/results/correlations/results/qso_lyalya/xcf_exp.fits.gz --blind-corr-type qsoxlya"
 date

@@ -12,10 +12,15 @@
 #SBATCH --cpus-per-task 256
 
 module load python
-source activate picca
+conda activate picca
 umask 0002
 
 
+
+
+echo used picca_bookkeeper version: x.xx
+echo using picca version: $(python -c "import importlib.metadata; print(importlib.metadata.version('picca'))")
+echo -e '\n'
 
 command="picca_cf.py --in-dir /picca_bookkeeper/tests/test_files/output/results/deltas/results/lya/Delta --out /picca_bookkeeper/tests/test_files/output/results/correlations/results/lyalya_lyalya/cf.fits.gz --lambda-abs LYA --rp-min 0 --rp-max 200 --rt-max 200 --np 50 --nt 50 --fid-Or 7.963e-05 --fid-Om 0.315 --rebin-factor 3"
 date

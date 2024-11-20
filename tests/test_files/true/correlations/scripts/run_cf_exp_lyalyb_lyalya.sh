@@ -11,11 +11,16 @@
 #SBATCH --error /picca_bookkeeper/tests/test_files/output/results/correlations/logs/cf_exp_lyalyb_lyalya-%j.err
 
 module load python
-source activate picca_add_tests
+conda activate picca_add_tests
 umask 0002
 
 export HDF5_USE_FILE_LOCKING=FALSE
 
+
+
+echo used picca_bookkeeper version: x.xx
+echo using picca version: $(python -c "import importlib.metadata; print(importlib.metadata.version('picca'))")
+echo -e '\n'
 
 command="picca_export.py --data /picca_bookkeeper/tests/test_files/output/results/correlations/results/lyalyb_lyalya/cf.fits.gz --out /picca_bookkeeper/tests/test_files/output/results/correlations/results/lyalyb_lyalya/cf_exp.fits.gz"
 date

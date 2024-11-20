@@ -3,27 +3,27 @@ general:
   system: slurm_cori
   defaults file: dMdB20
 data:
-  bookkeeper dir: /global/common/software/desi/users/cramirez/picca_bookkeeper_simple/tests/test_files/output/results/copycorrs
-  healpix data: /global/cfs/cdirs/desi/spectro/redux/guadalupe/healpix/
-  catalog: /global/common/software/desi/users/cramirez/picca_bookkeeper_simple/tests/test_files/dummy_catalog.fits
+  bookkeeper dir: /picca_bookkeeper/tests/test_files/output/results/copycorrs
+  healpix data: /tmp/cdirs/desi/spectro/redux/guadalupe/healpix/
+  catalog: /picca_bookkeeper/tests/test_files/dummy_catalog.fits
 delta extraction:
   calib: 2
   calib region: mgii_r
   dla:
   bal:
   computed deltas:
-    lyb: /global/common/software/desi/users/cramirez/picca_bookkeeper_simple/tests/test_files/output/results/deltas/results/lyb
+    lyb: /picca_bookkeeper/tests/test_files/output/results/deltas/results/lyb
 correlations:
   catalog tracer:
   computed correlations:
-    lyalya_lyalyb: /global/common/software/desi/users/cramirez/picca_bookkeeper_simple/tests/test_files/output/results/correlations/results/lyalya_lyalyb/cf.fits.gz
-    qso_lyalyb: /global/common/software/desi/users/cramirez/picca_bookkeeper_simple/tests/test_files/output/results/correlations/results/qso_lyalyb/xcf.fits.gz
+    lyalya_lyalyb: /picca_bookkeeper/tests/test_files/output/results/correlations/results/lyalya_lyalyb/cf.fits.gz
+    qso_lyalyb: /picca_bookkeeper/tests/test_files/output/results/correlations/results/qso_lyalyb/xcf.fits.gz
   computed distortions:
-    lyalya_lyalyb: /global/common/software/desi/users/cramirez/picca_bookkeeper_simple/tests/test_files/output/results/correlations/results/lyalya_lyalyb/dmat.fits.gz
-    qso_lyalyb: /global/common/software/desi/users/cramirez/picca_bookkeeper_simple/tests/test_files/output/results/correlations/results/qso_lyalyb/xdmat.fits.gz
+    lyalya_lyalyb: /picca_bookkeeper/tests/test_files/output/results/correlations/results/lyalya_lyalyb/dmat.fits.gz
+    qso_lyalyb: /picca_bookkeeper/tests/test_files/output/results/correlations/results/qso_lyalyb/xdmat.fits.gz
   computed metals:
-    lyalya_lyalyb: /global/common/software/desi/users/cramirez/picca_bookkeeper_simple/tests/test_files/output/results/correlations/results/lyalya_lyalyb/metal.fits
-    qso_lyalyb: /global/common/software/desi/users/cramirez/picca_bookkeeper_simple/tests/test_files/output/results/correlations/results/qso_lyalyb/xmetal.fits
+    lyalya_lyalyb: /picca_bookkeeper/tests/test_files/output/results/correlations/results/lyalya_lyalyb/metal.fits
+    qso_lyalyb: /picca_bookkeeper/tests/test_files/output/results/correlations/results/qso_lyalyb/xmetal.fits
 fits:
   auto correlations: lya.lya-lya.lyb
   cross correlations: lya.lyb

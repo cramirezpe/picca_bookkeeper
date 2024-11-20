@@ -12,10 +12,15 @@
 export OMP_NUM_THREADS=1
 
 module load python
-source activate picca
+conda activate picca
 umask 0002
 
 
+
+
+echo used picca_bookkeeper version: x.xx
+echo using picca version: $(python -c "import importlib.metadata; print(importlib.metadata.version('picca'))")
+echo -e '\n'
 
 command="picca_delta_extraction.py /picca_bookkeeper/tests/test_files/output/results/deltas/configs/delta_extraction_mgii_r_calib_step_2.ini"
 date

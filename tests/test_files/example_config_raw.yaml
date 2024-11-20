@@ -14,9 +14,9 @@ data:
   bookkeeper dir: results_directory
   
     # Provide custom transmission data (although is likely to be v9.0.x anyway)
-  healpix data: /global/cfs/cdirs/desi/mocks/lya_forest/london/v9.0/v9.0.0
+  healpix data: /tmp/cdirs/desi/mocks/lya_forest/london/v9.0/v9.0.0
   
-  catalog: /global/cfs/cdirs/desi/mocks/lya_forest/london/v9.0/v9.0.0/master.fits
+  catalog: /tmp/cdirs/desi/mocks/lya_forest/london/v9.0/v9.0.0/master.fits
   
   
 

@@ -6,7 +6,7 @@ general:
 data:
   bookkeeper dir: results_directory/calib_diff
   
-  healpix data: /global/cfs/cdirs/desi/spectro/redux/guadalupe/healpix/
+  healpix data: /tmp/cdirs/desi/spectro/redux/guadalupe/healpix/
   catalog: QSO_CATALOG
    
   

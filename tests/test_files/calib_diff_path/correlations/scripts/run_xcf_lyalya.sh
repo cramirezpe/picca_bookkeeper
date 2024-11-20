@@ -11,10 +11,15 @@
 #SBATCH --error /picca_bookkeeper/tests/test_files/output/results/calib_diff/correlations/logs/xcf_lyalya-%j.err
 
 module load python
-source activate picca
+conda activate picca
 umask 0002
 
 
+
+
+echo used picca_bookkeeper version: x.xx
+echo using picca version: $(python -c "import importlib.metadata; print(importlib.metadata.version('picca'))")
+echo -e '\n'
 
 command="picca_xcf.py --in-dir /picca_bookkeeper/tests/test_files/output/results/calib_diff/deltas/results/lya/Delta --drq /picca_bookkeeper/tests/test_files/dummy_catalog.fits --out /picca_bookkeeper/tests/test_files/output/results/calib_diff/correlations/results/qso_lyalya/xcf.fits.gz --lambda-abs LYA --mode desi_healpix --nproc 256 --nside 16 --rp-min -300 --rp-max 300 --rt-max 200 --np 150 --nt 50 --fid-Or 7.975e-05 --rebin-factor 3"
 date

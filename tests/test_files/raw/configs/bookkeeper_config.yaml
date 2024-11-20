@@ -7,9 +7,9 @@ general:
   defaults file: raw
   raw mocks: true
 data:
-  bookkeeper dir: /global/common/software/desi/users/cramirez/picca_bookkeeper_simple/tests/test_files/output/results
-  healpix data: /global/cfs/cdirs/desi/mocks/lya_forest/london/v9.0/v9.0.0
-  catalog: /global/cfs/cdirs/desi/mocks/lya_forest/london/v9.0/v9.0.0/master.fits
+  bookkeeper dir: /picca_bookkeeper/tests/test_files/output/results
+  healpix data: /tmp/cdirs/desi/mocks/lya_forest/london/v9.0/v9.0.0
+  catalog: /tmp/cdirs/desi/mocks/lya_forest/london/v9.0/v9.0.0/master.fits
 delta extraction:
   calib: 0
   dla:
