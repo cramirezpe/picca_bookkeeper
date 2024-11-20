@@ -124,11 +124,15 @@ class Bookkeeper:
 
         if self.config.get("general").get("defaults file", None) is not None:
             # Read defaults and check if they have changed.
-            defaults_file = files(resources).joinpath(
-                "default_configs/"
-                + str(self.config["general"]["defaults file"])
-                + ".yaml"
-            )
+            if Path(self.config["general"]["defaults file"]).is_file():
+                defaults_file = Path(self.config["general"]["defaults file"])
+            else:
+                # Read defaults and check if they have changed.
+                defaults_file = files(resources).joinpath(
+                    "default_configs/"
+                    + str(self.config["general"]["defaults file"])
+                    + ".yaml"
+                )
 
             if not defaults_file.is_file():
                 raise ValueError("Defaults file not found.", defaults_file)
@@ -1001,7 +1005,7 @@ class Bookkeeper:
                     + "/",
                 },
                 "data": {
-                    "type": "DesiHealpix",
+                    "type": "DesiHealpixFast",
                     "catalogue": str(self.paths.catalog),
                     "input directory": str(self.paths.healpix_data.resolve()),
                     "lambda min rest frame": forest_regions[region]["lambda-rest-min"],

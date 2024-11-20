@@ -1,6 +1,6 @@
 general:
   conda environment: picca_add_tests
-  defaults file: True
+  defaults file: TrueMocks
 
   true mocks: True
 
