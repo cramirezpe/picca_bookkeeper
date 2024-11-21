@@ -1,14 +1,14 @@
 ``picca_bookkeeper`` is a tool designed to help running analyses using the package [picca](https://github.com/igmhub/picca/). It allows for the computation of all the steps necessary for the Lyman-alpha 3D analysis using a unified configuration file, appropriately chaining all the jobs.
 
 # Installation
-The few needed requirements can be installed by using:
-``` bash
-pip install -r requirements.txt
-```
-
-Use: 
+To get the most up-to-date version, clone the repo and run:
 ```bash
 pip install .
+```
+
+This package is also being published to PyPI, and therefore can be installed through:
+```bash
+pip install picca_bookkeeper
 ```
 
 # File structure
