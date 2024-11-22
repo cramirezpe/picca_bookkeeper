@@ -80,7 +80,7 @@ correlations:
       lyalya_lyalya:
         rej: 0.995
 
-      lyalyb_lyalyb:
+      lyalya_lyalyb:
         rej: 0.99
 
     picca_fast_metal_dmat:
@@ -484,7 +484,7 @@ fits:
       general:
         qos: shared
         ntasks: 1
-        time: "02:30:00"
+        time: "01:30:00"
         cpus-per-task: 20
 
     picca_bookkeeper_correct_config_zeff:
