@@ -424,6 +424,7 @@ class CorrelationPlots:
         absorber: str = "lya",
         mumin: float = 0,
         mumax: float = 1,
+        abs_mu: bool = True,
         correlation_file: Path | str = "",
         ax: Optional[Axes] = None,
         r_factor: int = 2,
@@ -473,7 +474,7 @@ class CorrelationPlots:
                 rt=(cor_header.get("RTMIN", 0), cor_header["RTMAX"], cor_header["NT"]),
                 r=(cor_header.get("RTMIN", 0), cor_header["RTMAX"], cor_header["NT"]),
                 mu=(mumin, mumax),
-                abs_mu=True,
+                abs_mu=abs_mu,
             )
         data_wedge = wedge(da, co)
 
@@ -743,6 +744,7 @@ class CorrelationPlots:
         correlation_file: Optional[Path | str] = None,
         mumin: float = 0,
         mumax: float = 1,
+        abs_mu: bool = True,
         r_factor: int = 2,
         ax: Optional[Axes] = None,
         plot_kwargs: Dict = dict(),
@@ -788,7 +790,7 @@ class CorrelationPlots:
                 rt=(cor_header.get("RTMIN", 0), cor_header["RTMAX"], cor_header["NT"]),
                 r=(cor_header.get("RTMIN", 0), cor_header["RTMAX"], cor_header["NT"]),
                 mu=(mumin, mumax),
-                abs_mu=True,
+                abs_mu=abs_mu,
             )
         data_wedge = wedge(da, co)
 

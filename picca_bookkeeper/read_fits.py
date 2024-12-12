@@ -463,6 +463,7 @@ class FitPlots:
         absorber: str = "lya",
         mumin: float = 0,
         mumax: float = 1,
+        abs_mu: bool = True,
         ax: Optional[Axes] = None,
         r_factor: int = 2,
         plot_kwargs: Dict = dict(),
@@ -528,7 +529,7 @@ class FitPlots:
                 rt=(cor_header.get("RTMIN", 0), cor_header["RTMAX"], cor_header["NT"]),
                 r=(cor_header.get("RTMIN", 0), cor_header["RTMAX"], cor_header["NT"]),
                 mu=(mumin, mumax),
-                abs_mu=True,
+                abs_mu=abs_mu,
             )
 
         with fitsio.FITS(fit_file) as ffile:
@@ -1230,7 +1231,7 @@ class FitPlots:
 
             if param in ("ap", "at") and readfits:
                 # Set the baseline using the first fit in the list
-                first_fit = readfits[0]
+                first_fit = reference
                 baseline_value = first_fit.values.get(param, None)
                 baseline_error = first_fit.errors.get(
                     param, 0
