@@ -20,7 +20,10 @@ delta extraction:
   # We usually want to read from the continuum fitting output (our results are
   # being saved there)
 
-  extra args:    
+  extra args:
+    picca_convert_transmission:
+      nspec: 30
+    
     picca_delta_extraction:
       general:
         expected flux:
