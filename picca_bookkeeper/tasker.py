@@ -346,7 +346,7 @@ class SlurmTasker(Tasker):
         else:
             text = ""
 
-        if "sh" in self.environment:
+        if self.environment.endswith(".sh"):
             activate = "source "
         else:
             activate = "conda activate "
