@@ -341,6 +341,8 @@ class Bookkeeper:
             "smooth_covariance",
         ]
 
+        valid_regions = list(forest_regions.keys()) + ["general", "all"]
+
         for arg_type in (
             "slurm args",
             "extra args",
@@ -354,6 +356,16 @@ class Bookkeeper:
                 ):
                     if key not in commands:
                         raise ValueError("Invalid command in bookkeeper config: ", key)
+
+                    if self.config[section][arg_type][key] is not None:
+                        for region in (
+                            self.config[section][arg_type][key].keys()
+                        ):
+                            if region not in valid_regions:
+                                raise ValueError(
+                                    f"Invalid region ({region}) in bookkeeper config "
+                                    f"section: {section} - {arg_type} - {key}"
+                                )
 
     @staticmethod
     def validate_region(region: str) -> str:
