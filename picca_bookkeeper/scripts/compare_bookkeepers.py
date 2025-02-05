@@ -53,15 +53,20 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
             + strCyan(f"\n\t+{bookkeeper2.paths.catalog_bal}\n")
         )
 
-    if bookkeeper2.paths.catalog_tracer not in (
-        bookkeeper2.paths.catalog,
-        bookkeeper1.paths.catalog_tracer,
-    ):
-        print(
-            "Different tracer catalog:"
-            + strRed(f"\n\t-{bookkeeper1.paths.catalog_tracer}")
-            + strCyan(f"\n\t+{bookkeeper2.paths.catalog_tracer}\n")
-        )
+    tracer_catalogs_1 = bookkeeper1.config.get("correlations", dict()).get("tracer catalogs", dict()).copy()
+    tracer_catalogs_2 = bookkeeper2.config.get("correlations", dict()).get("tracer catalogs", dict()).copy()
+    
+    for tracer in set(tracer_catalogs_1.keys()).union(tracer_catalogs_2.keys()):
+        cat_1 = tracer_catalogs_1.get(tracer, bookkeeper1.paths.catalog)
+        cat_2 = tracer_catalogs_2.get(tracer, bookkeeper2.paths.catalog)
+        
+        
+        if cat_1 != cat_2
+            print(
+                "Different tracer catalog:"
+                + strRed(f"\n\t-{cat_1}")
+                + strCyan(f"\n\t+{cat_2}\n")
+            )
 
     ini_files = list(
         (bookkeeper2.paths.delta_extraction_path / "configs").glob("*.ini")
@@ -150,7 +155,6 @@ def replace_strings(text: str, bookkeeper: Bookkeeper) -> str:
         str(bookkeeper.paths.catalog),
         str(bookkeeper.paths.catalog_dla),
         str(bookkeeper.paths.catalog_bal),
-        str(bookkeeper.paths.catalog_tracer),
         r".*ini files =.*",
         r".*zeff =.*",
         "\(",
@@ -165,7 +169,7 @@ def replace_strings(text: str, bookkeeper: Bookkeeper) -> str:
         "catalog",
         "catalog-dla",
         "catalog-bal",
-        "catalog-tracer",
+        # "catalog-tracer",
         "ini files",
         "zeff",
         "",
@@ -175,6 +179,9 @@ def replace_strings(text: str, bookkeeper: Bookkeeper) -> str:
 
     for original, replacement in zip(originals, replacements):
         text = re.sub(original, replacement, text)
+
+    for tracer, path in bookkeeper.config.get("correlations", dict()).get("tracer catalogs", dict()).values():
+        text = re.sub(path, tracer, text)
 
     return text
 

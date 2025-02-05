@@ -27,9 +27,6 @@ delta extraction:
 
 
 correlations:
-  # catalog_tracer could be set up to use a different catalog for cross-correlations
-  # by default will use the data:catalog one.
-  catalog tracer:
 
 fits:
   auto correlations: lya.lya-lya.lya
