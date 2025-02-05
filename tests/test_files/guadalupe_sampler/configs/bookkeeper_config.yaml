@@ -14,7 +14,7 @@ delta extraction:
 correlations: {}
 fits:
   auto correlations: lya.lya-lya.lya
-  cross correlations: lya.lya
+  cross correlations: qso-lya.lya
   sampler environment: /global/common/software/desi/users/acuceu/stable_vega/activate_vega.sh
   extra args:
     vega_main:

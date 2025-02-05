@@ -28,8 +28,7 @@ delta extraction:
     picca_delta_extraction:
       general:
         time: 00:30:00
-correlations:
-  catalog tracer:
+correlations: {}
 fits:
   auto correlations: lya.lya-lya.lya
-  cross correlations: lya.lya
+  cross correlations: qso-lya.lya

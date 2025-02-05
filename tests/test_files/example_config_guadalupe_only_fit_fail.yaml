@@ -13,7 +13,6 @@ delta extraction:
   use existing: results_directory
   
 correlations:
-  catalog tracer:
 
   extra args:
     picca_cf:
@@ -22,4 +21,4 @@ correlations:
 
 fits:
   auto correlations: lya.lya-lya.lya
-  cross correlations: lya.lya 
+  cross correlations: qso-lya.lya 

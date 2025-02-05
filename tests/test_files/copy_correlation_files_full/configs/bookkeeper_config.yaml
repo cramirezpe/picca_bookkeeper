@@ -12,4 +12,4 @@ correlations:
   use existing: /picca_bookkeeper/tests/test_files/output/results
 fits:
   auto correlations: lya.lya-lya.lyb
-  cross correlations: lya.lyb
+  cross correlations: qso-lya.lyb

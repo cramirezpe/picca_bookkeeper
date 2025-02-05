@@ -28,7 +28,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
         format="%(levelname)s:%(message)s",
     )
 
-    logger.info(f"Adding cross-correlation: {args.absorber}{args.region}_qso")
+    logger.info(f"Adding cross-correlation: {args.absorber}{args.region}_{args.tracer}")
 
     bookkeeper = Bookkeeper(
         args.bookkeeper_config,
@@ -39,6 +39,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
     xcf = bookkeeper.get_xcf_tasker(
         region=args.region,
         absorber=args.absorber,
+        tracer=args.tracer,
         debug=args.debug,
         system=args.system,
         wait_for=args.wait_for,
@@ -52,16 +53,17 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
         if not isinstance(xcf, DummyTasker):
             logger.info(
                 "Sent cross-correlation "
-                f"{args.absorber}{args.region}_qso:\n\t"
+                f"{args.absorber}{args.region}_{args.tracer}:\n\t"
                 f"{xcf.jobid}"
             )
     logger.info("Done.\n")
 
     if bookkeeper.config.get("fits", dict()).get("distortion", True):
-        logger.info(f"Adding distortion matrix: {args.absorber}{args.region}_qso")
+        logger.info(f"Adding distortion matrix: {args.absorber}{args.region}_{args.tracer}")
         xdmat = bookkeeper.get_xdmat_tasker(
             region=args.region,
             absorber=args.absorber,
+            tracer=args.tracer,
             debug=args.debug,
             system=args.system,
             wait_for=args.wait_for,
@@ -75,7 +77,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
             if not isinstance(xdmat, DummyTasker):
                 logger.info(
                     "Sent distortion matrix "
-                    f"{args.absorber}{args.region}_qso:\n\t"
+                    f"{args.absorber}{args.region}_{args.tracer}:\n\t"
                     f"{xdmat.jobid}"
                 )
         logger.info("Done.\n")
@@ -86,10 +88,11 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
         # Compute metals if metals should be included and metals are not going
         # to be computed by vega.
 
-        logger.info(f"Adding metal matrix: {args.absorber}{args.region}_qso")
+        logger.info(f"Adding metal matrix: {args.absorber}{args.region}_{args.tracer}")
         metal = bookkeeper.get_xmetal_tasker(
             region=args.region,
             absorber=args.absorber,
+            tracer=args.tracer,
             system=args.system,
             debug=args.debug,
             wait_for=args.wait_for,
@@ -103,15 +106,16 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
             if not isinstance(metal, DummyTasker):
                 logger.info(
                     "Sent metal matrix "
-                    f"{args.absorber}{args.region}_qso:\n\t"
+                    f"{args.absorber}{args.region}_{args.tracer}:\n\t"
                     f"{metal.jobid}"
                 )
         logger.info("Done.\n")
 
-    logger.info(f"Adding export: {args.absorber}{args.region}_qso")
+    logger.info(f"Adding export: {args.absorber}{args.region}_{args.tracer}")
     xcf_exp = bookkeeper.get_xcf_exp_tasker(
         region=args.region,
         absorber=args.absorber,
+        tracer=args.tracer,
         system=args.system,
         wait_for=args.wait_for,
         overwrite=args.overwrite,
@@ -125,7 +129,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
         if not isinstance(xcf_exp, DummyTasker):
             logger.info(
                 "Sent export "
-                f"{args.absorber}{args.region}_qso:\n\t"
+                f"{args.absorber}{args.region}_{args.tracer}:\n\t"
                 f"{xcf_exp.jobid}"
             )
     logger.info("Done.\n")
@@ -149,6 +153,13 @@ def get_args() -> argparse.Namespace:
         choices=["lya", "lyb"],
         default="lya",
         help="Region to compute correlation in",
+    )
+
+    parser.add_argument(
+        "--tracer",
+        type=str,
+        default="qso",
+        help="Tracer to use for the correlation."
     )
 
     parser.add_argument(

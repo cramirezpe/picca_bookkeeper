@@ -256,7 +256,7 @@ class Bookkeeper:
                 "use existing",
                 "unblind",
                 "unblind y1",
-                "catalog tracer",
+                "tracer catalogs",
                 "fast metals",
                 "computed correlations",
                 "computed exports",
@@ -358,9 +358,7 @@ class Bookkeeper:
                         raise ValueError("Invalid command in bookkeeper config: ", key)
 
                     if self.config[section][arg_type][key] is not None:
-                        for region in (
-                            self.config[section][arg_type][key].keys()
-                        ):
+                        for region in self.config[section][arg_type][key].keys():
                             if region not in valid_regions:
                                 raise ValueError(
                                     f"Invalid region ({region}) in bookkeeper config "
@@ -406,6 +404,7 @@ class Bookkeeper:
         absorber: Optional[str] = None,
         region2: Optional[str] = None,
         absorber2: Optional[str] = None,
+        tracer: Optional[str] = None,
     ) -> Dict:
         """Add extra slurm header args to the run.
 
@@ -417,6 +416,7 @@ class Bookkeeper:
             absorber: First absorber to use for correlations.
             region2: For scripts where two regions are needed.
             absorber2: Second absorber to use for correlations.
+            tracer: Tracer to use (for cross-correlations)
         """
         if "slurm args" in config["general"]:
             args = copy.deepcopy(config["general"]["slurm args"])
@@ -427,14 +427,19 @@ class Bookkeeper:
 
         command_name = command.split(".py")[0]
 
+        tracer = "" if tracer is None else tracer
         absorber = "" if absorber is None else absorber
         absorber2 = "" if absorber2 is None else absorber2
         region = "" if region is None else region
         region2 = "" if region2 is None else region2
 
         region_subcommand = ""
+
+        if tracer != "":
+            region_subcommand += f"{tracer}_"
+
         if region != "":
-            region_subcommand = f"{absorber}{region}"
+            region_subcommand += f"{absorber}{region}"
 
         if region2 != "":
             region_subcommand += f"_{absorber2}{region2}"
@@ -461,6 +466,7 @@ class Bookkeeper:
         absorber: Optional[str] = None,
         region2: Optional[str] = None,
         absorber2: Optional[str] = None,
+        tracer: Optional[str] = None,
     ) -> Dict:
         """Add extra extra args to the run.
 
@@ -473,19 +479,25 @@ class Bookkeeper:
             absorber: First absorber to use for correlations.
             region2: For scripts where two regions are needed.
             absorber2: Second absorber to use for correlations.
+            tracer: Tracer to use (for cross-correlations)
         """
         config = copy.deepcopy(config[section])
 
         command_name = command.split(".py")[0]
 
+        tracer = "" if tracer is None else tracer
         absorber = "" if absorber is None else absorber
         absorber2 = "" if absorber2 is None else absorber2
         region = "" if region is None else region
         region2 = "" if region2 is None else region2
 
         region_subcommand = ""
+
+        if tracer != "":
+            region_subcommand += f"{tracer}_"
+
         if region != "":
-            region_subcommand = f"{absorber}{region}"
+            region_subcommand += f"{absorber}{region}"
 
         if region2 != "":
             region_subcommand += f"_{absorber2}{region2}"
@@ -1876,12 +1888,13 @@ class Bookkeeper:
         region = self.validate_region(region)
         absorber = self.validate_absorber(absorber)
 
-        job_name = f"xcf_{tracer}_{absorber}{region}"
+        # job_name = f"xcf_{tracer}_{absorber}{region}" @recoverthis
+        job_name = f"xcf_{absorber}{region}"
         job_name = job_name.replace("(", "").replace(")", "")
 
         # Check if output already there
         updated_system = self.generate_system_arg(system)
-        output_filename = self.paths.xcf_fname(absorber, region)
+        output_filename = self.paths.xcf_fname(absorber, region, tracer)
         if self.check_existing_output_file(
             output_filename,
             job_name,
@@ -1915,6 +1928,7 @@ class Bookkeeper:
             command=command,
             region=region,
             absorber=absorber,
+            tracer=tracer,
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
             config=self.config,
@@ -1922,6 +1936,7 @@ class Bookkeeper:
             command=command,
             region=region,
             absorber=absorber,
+            tracer=tracer,
         )
 
         slurm_header_args = {
@@ -2025,7 +2040,7 @@ class Bookkeeper:
 
         # Check if output already there
         updated_system = self.generate_system_arg(system)
-        output_filename = self.paths.xdmat_fname(absorber, region)
+        output_filename = self.paths.xdmat_fname(absorber, region, tracer)
         if self.check_existing_output_file(
             output_filename,
             job_name,
@@ -2059,6 +2074,7 @@ class Bookkeeper:
             command=command,
             region=region,
             absorber=absorber,
+            tracer=tracer,
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
             config=self.config,
@@ -2066,6 +2082,7 @@ class Bookkeeper:
             command=command,
             region=region,
             absorber=absorber,
+            tracer=tracer,
         )
 
         slurm_header_args = {
@@ -2165,7 +2182,7 @@ class Bookkeeper:
 
         # Check if output already there
         updated_system = self.generate_system_arg(system)
-        output_filename = self.paths.exp_xcf_fname(absorber, region)
+        output_filename = self.paths.exp_xcf_fname(absorber, region, tracer)
         if self.check_existing_output_file(
             output_filename,
             job_name,
@@ -2201,6 +2218,7 @@ class Bookkeeper:
             command=command,
             region=region,
             absorber=absorber,
+            tracer=tracer,
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
             config=self.config,
@@ -2208,6 +2226,7 @@ class Bookkeeper:
             command=command,
             region=region,
             absorber=absorber,
+            tracer=tracer,
         )
 
         slurm_header_args = {
@@ -2221,7 +2240,7 @@ class Bookkeeper:
         )
 
         args = {
-            "data": str(self.paths.xcf_fname(absorber, region).resolve()),
+            "data": str(self.paths.xcf_fname(absorber, region, tracer).resolve()),
             "out": str(output_filename),
         }
 
@@ -2234,7 +2253,7 @@ class Bookkeeper:
         output_filename.parent.mkdir(exist_ok=True, parents=True)
 
         in_files = [
-            self.paths.xcf_fname(absorber, region),
+            self.paths.xcf_fname(absorber, region, tracer),
         ]
 
         precommand = ""
@@ -2317,7 +2336,7 @@ class Bookkeeper:
 
         # Check if output already there
         updated_system = self.generate_system_arg(system)
-        output_filename = self.paths.xmetal_fname(absorber, region)
+        output_filename = self.paths.xmetal_fname(absorber, region, tracer)
         if self.check_existing_output_file(
             output_filename,
             job_name,
@@ -2365,6 +2384,7 @@ class Bookkeeper:
             command=command,
             region=region,
             absorber=absorber,
+            tracer=tracer,
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
             config=self.config,
@@ -2372,6 +2392,7 @@ class Bookkeeper:
             command=command,
             region=region,
             absorber=absorber,
+            tracer=tracer,
         )
 
         slurm_header_args = {
@@ -3074,15 +3095,15 @@ class Bookkeeper:
 
         # Set because there can be repeated values.
         for cross_correlation in cross_correlations:
-            tracer, region, absorber = cross_correlation.replace('-', '.').split('.')
+            tracer, absorber, region = cross_correlation.replace("-", ".").split(".")
             region = self.validate_region(region)
             absorber = self.validate_absorber(absorber)
 
-            export_file = self.paths.exp_xcf_fname(absorber, region).resolve()
+            export_file = self.paths.exp_xcf_fname(absorber, region, tracer).resolve()
             export_files_cross.append(export_file)
 
-            metals_file = self.paths.xmetal_fname(absorber, region).resolve()
-            distortion_file = self.paths.xdmat_fname(absorber, region).resolve()
+            metals_file = self.paths.xmetal_fname(absorber, region, tracer).resolve()
+            distortion_file = self.paths.xdmat_fname(absorber, region, tracer).resolve()
 
             args = DictUtils.merge_dicts(
                 config,
@@ -3119,7 +3140,9 @@ class Bookkeeper:
                                                 "weights-tracer1": self.paths.delta_attributes_file(
                                                     region=region
                                                 ).resolve(),
-                                                "weights-tracer2": self.paths.get_tracer_catalog(tracer).resolve(),
+                                                "weights-tracer2": self.paths.get_tracer_catalog(
+                                                    tracer
+                                                ).resolve(),
                                             },
                                             "model": {
                                                 "new_metals": True,
@@ -3167,9 +3190,10 @@ class Bookkeeper:
                 command="vega_cross.py",  # The use of .py only for using same function
                 region=region,
                 absorber=absorber,
+                tracer=tracer,
             )
 
-            filename = self.paths.fit_cross_fname(absorber, region)
+            filename = self.paths.fit_cross_fname(absorber, region, tracer)
             self.write_ini(vega_args, filename)
             ini_files.append(str(filename))
 
@@ -3322,13 +3346,17 @@ class Bookkeeper:
                 tracer,
                 absorber,
                 region,
-            ) = cross_correlation.replace('-', '.').split(".")
+            ) = cross_correlation.replace(
+                "-", "."
+            ).split(".")
             region = self.validate_region(region)
             absorber = self.validate_absorber(absorber)
 
             input_files.append(self.paths.xcf_fname(absorber, region).resolve())
 
-            args[f"{region}-{tracer}"] = str(self.paths.xcf_fname("lya", region, tracer).resolve())
+            args[f"{region}-{tracer}"] = str(
+                self.paths.xcf_fname("lya", region, tracer).resolve()
+            )
 
         # Now slurm args
         command = "write_full_covariance.py"
@@ -3679,14 +3707,16 @@ class PathBuilder:
     def catalog_bal(self) -> Path:
         """catalog to be used for BAL masking."""
         return self.get_catalog_from_field("bal")
-    
+
     def get_tracer_catalog(self, tracer: str = "qso") -> Path:
         """Get tracer catalog to be used for cross-correlations.
-        
+
         It will return the correspondent tracer catalog if existing, otherwise it will
         return the general catalog.
         """
-        candidate = self.config["correlations"].get("tracer catalogs", dict()).get(tracer, None)
+        candidate = (
+            self.config["correlations"].get("tracer catalogs", dict()).get(tracer, None)
+        )
 
         if candidate not in ("", None) and Path(candidate).is_file():
             return Path(candidate)
@@ -3890,7 +3920,7 @@ class PathBuilder:
         absorber2: Optional[str],
         region2: Optional[str],
         filename: Optional[str],
-        tracer: Optional[str] = "qso"
+        tracer: Optional[str] = "qso",
     ) -> Path | None:
         """Method to get a correlation file to copy given in the bookkeeper config
 

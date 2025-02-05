@@ -172,7 +172,7 @@ correlations:
 
 fits:
   auto correlations: lya.lya-lya.lya lya.lya-lya.lyb
-  cross correlations: lya.lya lya.lyb
+  cross correlations: qso-lya.lya qso-lya.lyb
 
   no bao: False
   no hcd: False

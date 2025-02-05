@@ -14,7 +14,6 @@ delta extraction:
   computed deltas:
     lyb: /picca_bookkeeper/tests/test_files/output/results/deltas/results/lyb
 correlations:
-  catalog tracer:
   computed correlations:
     lyalya_lyalyb: /picca_bookkeeper/tests/test_files/output/results/correlations/results/lyalya_lyalyb/cf.fits.gz
     qso_lyalyb: /picca_bookkeeper/tests/test_files/output/results/correlations/results/qso_lyalyb/xcf.fits.gz
@@ -26,4 +25,4 @@ correlations:
     qso_lyalyb: /picca_bookkeeper/tests/test_files/output/results/correlations/results/qso_lyalyb/xmetal.fits
 fits:
   auto correlations: lya.lya-lya.lyb
-  cross correlations: lya.lyb
+  cross correlations: qso-lya.lyb

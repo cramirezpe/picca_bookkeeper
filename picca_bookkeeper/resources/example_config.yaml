@@ -146,8 +146,9 @@ correlations:
 
     picca_xcf:
 
-    # For the cross we se lyalya format.
-    picca_xcf_lyalya:
+    # For the cross we use qso_lyalya format.
+    picca_xcf:
+        qso_lyalya:
 
     picca_dmat:
 
@@ -222,7 +223,7 @@ fits:
     vega_cross:
       general:
 
-      lyalya:
+      qso_lyalya:
 
     vega_main:
       general:

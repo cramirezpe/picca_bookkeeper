@@ -115,11 +115,10 @@ class Tasker:
                 self.OMP_threads = slurm_header_args["OMP_NUM_THREADS"]
             else:
                 self.OMP_threads = None
-            
-            del(slurm_header_args["OMP_NUM_THREADS"])
+
+            del slurm_header_args["OMP_NUM_THREADS"]
         else:
             self.OMP_threads = None
-            
 
         self.slurm_header_args = {**self.default_header, **slurm_header_args}
 
@@ -143,8 +142,6 @@ class Tasker:
         self.in_files = in_files
         self.out_files = out_files
         self.precommand = precommand
-
-
 
     def get_wait_for_ids(self) -> None:
         """Method to standardise wait_for Taskers or ids, in such a way that can be easily used afterwards."""
@@ -179,7 +176,7 @@ class Tasker:
 
                 if status != "COMPLETED":
                     self.wait_for_ids.append(jobid)
-                    
+
     def _make_command(self) -> str:
         """Method to generate a command with args
 
@@ -193,7 +190,7 @@ class Tasker:
             ]
         )
         return f'command="{self.command} {args}"'
-    
+
     def _make_body(self) -> str:
         """Method to generate the body of the job script.
 
@@ -205,9 +202,18 @@ class Tasker:
         command = self._make_command()
         run_command = self._make_run_command()
 
-        return "\n".join([
-            header, env_opts, version_control, command, "date", run_command, "date", ""
-        ])
+        return "\n".join(
+            [
+                header,
+                env_opts,
+                version_control,
+                command,
+                "date",
+                run_command,
+                "date",
+                "",
+            ]
+        )
 
     def write_job(self) -> None:
         """Method to write job script into file."""
@@ -237,15 +243,15 @@ class Tasker:
         raise ValueError(
             "Tasker class has no _make_env_opts defined, use child classes instead."
         )
-    
+
     def _make_version_control(self) -> str:
         text = "\necho used picca_bookkeeper version: "
-        text += importlib.metadata.version('picca_bookkeeper')
+        text += importlib.metadata.version("picca_bookkeeper")
 
         for package in self.packages:
-            text += f"\necho using {package} version: $(python -c \"import importlib.metadata; "
+            text += f'\necho using {package} version: $(python -c "import importlib.metadata; '
             text += f"print(importlib.metadata.version('{package}'))\")"
-            
+
         return text + "\necho -e '\\n'\n"
 
     def _make_run_command(self) -> str:
