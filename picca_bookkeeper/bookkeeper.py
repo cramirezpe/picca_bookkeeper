@@ -1888,8 +1888,7 @@ class Bookkeeper:
         region = self.validate_region(region)
         absorber = self.validate_absorber(absorber)
 
-        # job_name = f"xcf_{tracer}_{absorber}{region}" @recoverthis
-        job_name = f"xcf_{absorber}{region}"
+        job_name = f"xcf_{tracer}_{absorber}{region}"
         job_name = job_name.replace("(", "").replace(")", "")
 
         # Check if output already there
@@ -2035,7 +2034,7 @@ class Bookkeeper:
         region = self.validate_region(region)
         absorber = self.validate_absorber(absorber)
 
-        job_name = f"xdmat_{absorber}{region}"
+        job_name = f"xdmat_{tracer}_{absorber}{region}"
         job_name = job_name.replace("(", "").replace(")", "")
 
         # Check if output already there
@@ -2177,7 +2176,7 @@ class Bookkeeper:
             )
         region = self.validate_region(region)
         absorber = self.validate_absorber(absorber)
-        job_name = f"xcf_exp_{absorber}{region}"
+        job_name = f"xcf_exp_{tracer}_{absorber}{region}"
         job_name = job_name.replace("(", "").replace(")", "")
 
         # Check if output already there
@@ -2261,7 +2260,7 @@ class Bookkeeper:
             logger.warn("CORRELATIONS WILL BE UNBLINDED, BE CAREFUL.")
             precommand = f"picca_bookkeeper_unblind_correlations"
 
-            xcf_file = self.paths.xcf_fname(absorber, region).resolve()
+            xcf_file = self.paths.xcf_fname(absorber, region, tracer).resolve()
             precommand += f" --cf {str(xcf_file)}"
             if not self.config["fits"].get("no distortion", False):
                 xdmat_file = self.paths.xdmat_fname(absorber, region).resolve()
@@ -2331,7 +2330,7 @@ class Bookkeeper:
             raise ValueError("Initialize bookkeeper without read_mode to run jobs.")
         region = self.validate_region(region)
         absorber = self.validate_absorber(absorber)
-        job_name = f"xmetal_{absorber}{region}"
+        job_name = f"xmetal_{tracer}_{absorber}{region}"
         job_name = job_name.replace("(", "").replace(")", "")
 
         # Check if output already there
@@ -3352,7 +3351,7 @@ class Bookkeeper:
             region = self.validate_region(region)
             absorber = self.validate_absorber(absorber)
 
-            input_files.append(self.paths.xcf_fname(absorber, region).resolve())
+            input_files.append(self.paths.xcf_fname(absorber, region, tracer).resolve())
 
             args[f"{region}-{tracer}"] = str(
                 self.paths.xcf_fname("lya", region, tracer).resolve()
