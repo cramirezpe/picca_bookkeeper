@@ -57,7 +57,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
             )
     logger.info("Done.\n")
 
-    if bookkeeper.config.get("fits", dict()).get("distortion", True):
+    if not bookkeeper.config.get("fits", dict()).get("no distortion", False):
         logger.info(f"Adding distortion matrix: {args.absorber}{args.region}_qso")
         xdmat = bookkeeper.get_xdmat_tasker(
             region=args.region,
@@ -80,8 +80,8 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
                 )
         logger.info("Done.\n")
 
-    if bookkeeper.config.get("fits", dict()).get(
-        "metals", True
+    if not bookkeeper.config.get("fits", dict()).get(
+        "no metals", False
     ) and not bookkeeper.config.get("fits", dict()).get("vega metals", False):
         # Compute metals if metals should be included and metals are not going
         # to be computed by vega.
