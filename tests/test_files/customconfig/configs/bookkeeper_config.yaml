@@ -35,8 +35,7 @@ delta extraction:
         time: 00:16:00
       lyb:
         time: 00:16:00
-correlations:
-  catalog tracer:
+correlations: {}
 fits:
   auto correlations: lya.lyb-lya.lya
-  cross correlations: lya.lyb
+  cross correlations: qso-lya.lyb

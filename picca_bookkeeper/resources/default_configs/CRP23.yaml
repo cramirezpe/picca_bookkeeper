@@ -164,7 +164,7 @@ correlations:
 
 fits:
   auto correlations: lya.lya-lya.lya lya.lya-lya.lyb
-  cross correlations: lya.lya lya.lyb
+  cross correlations: qso-lya.lya qso-lya.lyb
 
   no bao: False
   no hcd: False
@@ -243,11 +243,11 @@ fits:
           z evol: bias_vs_z_std
           velocity dispersion: lorentz
         
-      lyalya:
+      qso_lyalya:
         metals:
           in tracer2: SiII(1260) SiIII(1207) SiII(1193) SiII(1190)
 
-      lyalyb:
+      qso_lyalyb:
         metals:
           in tracer2:  SiII(1260) SiIII(1207) SiII(1193) SiII(1190)
 

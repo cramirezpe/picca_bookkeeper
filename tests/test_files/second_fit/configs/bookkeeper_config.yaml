@@ -12,7 +12,7 @@ correlations:
   use existing: /picca_bookkeeper/tests/test_files/output/results
 fits:
   auto correlations: lya.lya-lya.lya
-  cross correlations: lya.lya
+  cross correlations: qso-lya.lya
   no metals: true
   extra args:
     vega_main:

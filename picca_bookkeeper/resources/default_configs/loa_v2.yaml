@@ -180,10 +180,10 @@ correlations:
       lyalya_lyalyb:
         blind-corr-type: lyaxlyb
 
-      lyalya:
+      qso_lyalya:
         blind-corr-type: qsoxlya
         
-      lyalyb:
+      qso_lyalyb:
         blind-corr-type: qsoxlyb
 
 
@@ -237,10 +237,10 @@ correlations:
         time: "01:00:00"
         cpus-per-task: 256
 
-      lyalya:
+      qso_lyalya:
         time: "01:00:00"
 
-      lyalyb:
+      qso_lyalyb:
         time: "00:30:00"
 
     picca_xdmat:
@@ -249,10 +249,10 @@ correlations:
         time: "02:00:00"
         cpus-per-task: 256
 
-      lyalya:
+      qso_lyalya:
         time: "01:40:00"
 
-      lyalyb:
+      qso_lyalyb:
         time: "00:40:00"
 
     picca_fast_metal_xdmat:
@@ -270,7 +270,7 @@ correlations:
 
 fits:
   auto correlations: lya.lya-lya.lya lya.lya-lya.lyb
-  cross correlations: lya.lya lya.lyb
+  cross correlations: qso-lya.lya qso-lya.lyb
 
   sampler environment: /global/common/software/desi/users/acuceu/stable_vega/activate_vega.sh
 

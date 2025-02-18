@@ -605,7 +605,8 @@ class Plots:
 
     @staticmethod
     def line_masking(
-        mask_file: Path | str = Path(str(os.getenv("pr")))
+        mask_file: Path
+        | str = Path(str(os.getenv("pr")))
         / "Continuum_fitting/config_files/sharp-lines-mask.txt",
         ax: Optional[Axes] = None,
         plot_kwargs: Dict = dict(),

@@ -467,6 +467,7 @@ class TestBookkeeper(unittest.TestCase):
         region = "lya"
         absorber2 = "lya"
         region2 = "lyb"
+        tracer= "qso"
         bookkeeper.paths.cf_fname(absorber, region, absorber2, region2).parent.mkdir(
             exist_ok=True, parents=True
         )
@@ -478,12 +479,12 @@ class TestBookkeeper(unittest.TestCase):
             "30"
         )
 
-        bookkeeper.paths.xcf_fname(absorber, region).parent.mkdir(
+        bookkeeper.paths.xcf_fname(absorber, region, tracer).parent.mkdir(
             exist_ok=True, parents=True
         )
-        bookkeeper.paths.xcf_fname(absorber, region2).write_text("40")
-        bookkeeper.paths.xdmat_fname(absorber, region2).write_text("50")
-        bookkeeper.paths.xmetal_fname(absorber, region2).write_text("60")
+        bookkeeper.paths.xcf_fname(absorber, region2, tracer).write_text("40")
+        bookkeeper.paths.xdmat_fname(absorber, region2, tracer).write_text("50")
+        bookkeeper.paths.xmetal_fname(absorber, region2, tracer).write_text("60")
 
         copy_config_substitute(
             self.files_path / "example_config_guadalupe_calib_copy_corrs.yaml"
@@ -502,7 +503,7 @@ class TestBookkeeper(unittest.TestCase):
         )
         filedata = filedata.replace(
             "xcflyalyb:",
-            f"qso_lyalyb: {str(bookkeeper.paths.xcf_fname(absorber, region2))}",
+            f"qso_lyalyb: {str(bookkeeper.paths.xcf_fname(absorber, region2, tracer))}",
         )
         filedata = filedata.replace(
             "dmatlyalya_lyalyb:",
@@ -510,7 +511,7 @@ class TestBookkeeper(unittest.TestCase):
         )
         filedata = filedata.replace(
             "xdmatlyalyb:",
-            f"qso_lyalyb: {str(bookkeeper.paths.xdmat_fname(absorber, region2))}",
+            f"qso_lyalyb: {str(bookkeeper.paths.xdmat_fname(absorber, region2, tracer))}",
         )
         filedata = filedata.replace(
             "metallyalya_lyalyb:",
@@ -518,7 +519,7 @@ class TestBookkeeper(unittest.TestCase):
         )
         filedata = filedata.replace(
             "xmetallyalyb:",
-            f"qso_lyalyb: {str(bookkeeper.paths.xmetal_fname(absorber, region2))}",
+            f"qso_lyalyb: {str(bookkeeper.paths.xmetal_fname(absorber, region2, tracer))}",
         )
 
         with open(THIS_DIR / "test_files" / "output" / "tmp.yaml", "w") as file:
@@ -553,9 +554,9 @@ class TestBookkeeper(unittest.TestCase):
             == "30"
         )
 
-        assert bookkeeper2.paths.xcf_fname(absorber, region2).read_text() == "40"
-        assert bookkeeper2.paths.xdmat_fname(absorber, region2).read_text() == "50"
-        assert bookkeeper2.paths.xmetal_fname(absorber, region2).read_text() == "60"
+        assert bookkeeper2.paths.xcf_fname(absorber, region2, tracer).read_text() == "40"
+        assert bookkeeper2.paths.xdmat_fname(absorber, region2, tracer).read_text() == "50"
+        assert bookkeeper2.paths.xmetal_fname(absorber, region2, tracer).read_text() == "60"
 
         self.replace_paths_bookkeeper_output(bookkeeper2.paths)
         if "UPDATE_TESTS" in os.environ and os.environ["UPDATE_TESTS"] == "True":
@@ -587,6 +588,8 @@ class TestBookkeeper(unittest.TestCase):
         region = "lya"
         absorber2 = "lya"
         region2 = "lyb"
+        tracer = "qso"
+
         bookkeeper.paths.cf_fname(absorber, region, absorber2, region2).parent.mkdir(
             exist_ok=True, parents=True
         )
@@ -598,12 +601,12 @@ class TestBookkeeper(unittest.TestCase):
             "30"
         )
 
-        bookkeeper.paths.xcf_fname(absorber, region).parent.mkdir(
+        bookkeeper.paths.xcf_fname(absorber, region, tracer).parent.mkdir(
             exist_ok=True, parents=True
         )
-        bookkeeper.paths.xcf_fname(absorber, region2).write_text("40")
-        bookkeeper.paths.xdmat_fname(absorber, region2).write_text("50")
-        bookkeeper.paths.xmetal_fname(absorber, region2).write_text("60")
+        bookkeeper.paths.xcf_fname(absorber, region2, tracer).write_text("40")
+        bookkeeper.paths.xdmat_fname(absorber, region2, tracer).write_text("50")
+        bookkeeper.paths.xmetal_fname(absorber, region2, tracer).write_text("60")
 
         copy_config_substitute(
             self.files_path / "example_config_guadalupe_calib_copy_corrs_full.yaml"
@@ -665,9 +668,9 @@ class TestBookkeeper(unittest.TestCase):
             == "30"
         )
 
-        assert bookkeeper2.paths.xcf_fname(absorber, region2).read_text() == "40"
-        assert bookkeeper2.paths.xdmat_fname(absorber, region2).read_text() == "50"
-        assert bookkeeper2.paths.xmetal_fname(absorber, region2).read_text() == "60"
+        assert bookkeeper2.paths.xcf_fname(absorber, region2, tracer).read_text() == "40"
+        assert bookkeeper2.paths.xdmat_fname(absorber, region2, tracer).read_text() == "50"
+        assert bookkeeper2.paths.xmetal_fname(absorber, region2, tracer).read_text() == "60"
 
         self.replace_paths_bookkeeper_output(bookkeeper2.paths)
         if "UPDATE_TESTS" in os.environ and os.environ["UPDATE_TESTS"] == "True":

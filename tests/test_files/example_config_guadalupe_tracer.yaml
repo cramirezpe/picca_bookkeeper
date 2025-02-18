@@ -17,8 +17,9 @@ delta extraction:
   bal: 
 
 correlations:
-  catalog tracer: test_files/dummy_tracer_catalog.fits
+  tracer catalogs: 
+    qso: test_files/dummy_tracer_catalog.fits
 fits:
 
   auto correlations: lya.lya-lya.lya
-  cross correlations: lya.lya 
+  cross correlations: qso-lya.lya 

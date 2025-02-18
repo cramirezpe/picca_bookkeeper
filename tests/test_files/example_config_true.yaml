@@ -30,9 +30,8 @@ delta extraction:
 
 
 correlations:
-  catalog tracer:
   
 
 fits:
   auto correlations: lya.lyb-lya.lya
-  cross correlations: lya.lyb 
+  cross correlations: qso-lya.lyb 

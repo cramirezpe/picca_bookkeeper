@@ -66,13 +66,13 @@ correlations:
         blind-corr-type: lyaxlyb
         smooth-per-r-par: ""
 
-      lyalya:
+      qso_lyalya:
         blind-corr-type: qsoxlya
         
-      lyalyb:
+      qso_lyalyb:
         blind-corr-type: qsoxlyb
 
-      lyblya:
+      qso_lyblya:
         blind-corr-type: qsoxlyb
         
     picca_metal_dmat:
@@ -256,11 +256,11 @@ fits:
           z evol: bias_vs_z_std
           velocity dispersion: lorentz
           
-      lyalya:
+      qso_lyalya:
         metals:
           in tracer2: SiII(1260) SiIII(1207) SiII(1193) SiII(1190) CIV(eff)
 
-      lyalyb:
+      qso_lyalyb:
         metals:
           in tracer2:  SiII(1260) SiIII(1207) SiII(1193) SiII(1190) CIV(eff)
 

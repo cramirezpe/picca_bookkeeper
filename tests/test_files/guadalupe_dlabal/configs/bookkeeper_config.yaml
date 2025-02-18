@@ -11,8 +11,7 @@ delta extraction:
   calib region: mgii_r
   dla: /picca_bookkeeper/tests/test_files/dummy_dla_catalog.fits
   bal: /picca_bookkeeper/tests/test_files/dummy_catalog-bal.fits
-correlations:
-  catalog tracer:
+correlations: {}
 fits:
   auto correlations: lya.lyb-lya.lya
-  cross correlations: lya.lyb
+  cross correlations: qso-lya.lyb
