@@ -183,12 +183,17 @@ class Tasker:
         Returns:
             str: Command to write in job run.
         """
-        args = " ".join(
-            [
-                f"--{key} {value}" if key != "" else str(value)
-                for key, value in self.command_args.items()
-            ]
-        )
+        args_list = []
+        for key, value in self.command_args.items():
+            if key != "":
+                if key.startswith("-"):
+                    args_list.append(f"{key} {value}")
+                else:
+                    args_list.append(f"--{key} {value}")
+            else:
+                args_list.append(str(value))
+                
+        args = " ".join(args_list)
         return f'command="{self.command} {args}"'
 
     def _make_body(self) -> str:
