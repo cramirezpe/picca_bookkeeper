@@ -4130,7 +4130,7 @@ class PathBuilder:
         cor_file = self.cf_fname(absorber, region, absorber2, region2)
         return cor_file.parent / f"cf_exp.fits.gz"
 
-    def xcf_fname(self, absorber: str, region: str, tracer: str) -> Path:
+    def xcf_fname(self, absorber: str, region: str, tracer: str = "qso") -> Path:
         """Method to get the path to a forest-quasar correlation export file.
 
         Args:
@@ -4148,7 +4148,7 @@ class PathBuilder:
             / f"xcf.fits.gz"
         )
 
-    def xdmat_fname(self, absorber: str, region: str, tracer: str) -> Path:
+    def xdmat_fname(self, absorber: str, region: str, tracer: str  = "qso") -> Path:
         """Method to get the path to a distortion matrix file for forest-quasar
         correlations.
 
@@ -4162,7 +4162,8 @@ class PathBuilder:
         """
         return self.xcf_fname(absorber, region, tracer).parent / f"xdmat.fits.gz"
 
-    def xmetal_fname(self, absorber: str, region: str, tracer: str) -> Path:
+    def xmetal_fname(self, absorber: str, region: str, tracer: str = "qso") -> Path:
+
         """Method to get the path to a metal distortion matrix file for forest-quasar
         correlations.
 
@@ -4180,7 +4181,7 @@ class PathBuilder:
         else:
             return parent / "xmetal.fits"
 
-    def exp_xcf_fname(self, absorber: str, region: str, tracer: str) -> Path:
+    def exp_xcf_fname(self, absorber: str, region: str, tracer: str = "qso") -> Path:
         """Method to get the path to a forest-quasar correlation export file.
 
         Args:

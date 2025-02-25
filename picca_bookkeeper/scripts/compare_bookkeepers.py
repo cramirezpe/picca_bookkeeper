@@ -32,6 +32,13 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
     bookkeeper1 = Bookkeeper(args.bookkeeper1_config)
     bookkeeper2 = Bookkeeper(args.bookkeeper2_config)
 
+    if bookkeeper1.paths.healpix_data != bookkeeper2.paths.healpix_data:
+        print(
+            "Different healpix data:"
+            + strRed(f"\n\t-{bookkeeper1.paths.healpix_data}")
+            + strCyan(f"\n\t+{bookkeeper2.paths.healpix_data}\n")
+        )
+
     if bookkeeper1.paths.catalog != bookkeeper2.paths.catalog:
         print(
             "Different QSO catalog:"
@@ -61,7 +68,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
         cat_2 = tracer_catalogs_2.get(tracer, bookkeeper2.paths.catalog)
         
         
-        if cat_1 != cat_2
+        if cat_1 != cat_2:
             print(
                 "Different tracer catalog:"
                 + strRed(f"\n\t-{cat_1}")

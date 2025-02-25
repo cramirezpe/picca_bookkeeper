@@ -169,6 +169,7 @@ class CorrelationPlots:
         save_data: bool = False,
         save_plot: bool = False,
         save_dict: Dict = dict(),
+        tracer: str = "qso",
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         """
         Plotting correlation function in defined wedge.
@@ -190,6 +191,7 @@ class CorrelationPlots:
         save_data: Save the data into a npz file under the output_prefix file structure. (Default: False).
         save_plot: Save the plot into a png file. (Default: False).
         save_dict: Extra information to save in the npz file if save_data option is True. (Default: Empty dict)
+        tracer: Tracer to use.
         """
         if output_prefix is not None:
             output_prefix = Path(output_prefix)
@@ -201,7 +203,7 @@ class CorrelationPlots:
                 )
                 name = "cf_rp"
             else:
-                correlation_file = bookkeeper.paths.exp_xcf_fname(absorber, region)
+                correlation_file = bookkeeper.paths.exp_xcf_fname(absorber, region, tracer)
                 name = "xcf_rp"
 
         with fitsio.FITS(correlation_file) as ffile:
@@ -434,6 +436,7 @@ class CorrelationPlots:
         save_data: bool = False,
         save_plot: bool = False,
         save_dict: Dict = dict(),
+        tracer: str = "qso"
     ) -> Tuple[np.ndarray, ...]:
         """
         Plotting correlation function in defined wedge.
@@ -453,12 +456,13 @@ class CorrelationPlots:
         save_data: Save the data into a npz file under the output_prefix file structure. (Default: False).
         save_plot: Save the plot into a png file. (Default: False).
         save_dict: Extra information to save in the npz file if save_data option is True. (Default: Empty dict)
+        tracer: tracer to use.
         """
         if output_prefix is not None:
             output_prefix = Path(output_prefix)
 
         if isinstance(bookkeeper, Bookkeeper):
-            correlation_file = bookkeeper.paths.exp_xcf_fname(absorber, region)
+            correlation_file = bookkeeper.paths.exp_xcf_fname(absorber, region, tracer)
 
         with fitsio.FITS(correlation_file) as ffile:
             try:
@@ -753,6 +757,7 @@ class CorrelationPlots:
         save_data: bool = False,
         save_plot: bool = False,
         save_dict: Dict = dict(),
+        tracer : str = "qso",
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """
         Plotting cross-correlation errorbars in defined wedge.
@@ -772,11 +777,12 @@ class CorrelationPlots:
         save_data: Save the data into a npz file under the output_prefix file structure. (Default: False).
         save_plot: Save the plot into a png file. (Default: False).
         save_dict: Extra information to save in the npz file if save_data option is True. (Default: Empty dict)
+        tracer: tracer to use.
         """
         if output_prefix is not None:
             output_prefix = Path(output_prefix)
 
-        with fitsio.FITS(bookkeeper.paths.exp_xcf_fname(absorber, region)) as ffile:
+        with fitsio.FITS(bookkeeper.paths.exp_xcf_fname(absorber, region, tracer)) as ffile:
             try:
                 da = ffile["COR"]["DA"][:]
             except ValueError:
@@ -1065,6 +1071,7 @@ class CorrelationPlots:
         save_data: bool = False,
         save_plot: bool = False,
         save_dict: Dict = dict(),
+        tracer: str = "qso",
     ) -> Tuple[Tuple[float, ...], np.ndarray, np.ndarray, np.ndarray]:
         """
         Plotting correlation heatmap.
@@ -1079,11 +1086,12 @@ class CorrelationPlots:
         save_data: Save the data into a npz file under the output_prefix file structure. (Default: False).
         save_plot: Save the plot into a png file. (Default: False).
         save_dict: Extra information to save in the npz file if save_data option is True. (Default: Empty dict)
+        tracer: Tracer to use.
         """
         if output_prefix is not None:
             output_prefix = Path(output_prefix)
 
-        with fitsio.FITS(bookkeeper.paths.exp_xcf_fname(absorber, region)) as ffile:
+        with fitsio.FITS(bookkeeper.paths.exp_xcf_fname(absorber, region, tracer)) as ffile:
             try:
                 da = ffile["COR"]["DA"][:]
             except ValueError:
