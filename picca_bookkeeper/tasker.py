@@ -192,7 +192,7 @@ class Tasker:
                     args_list.append(f"--{key} {value}")
             else:
                 args_list.append(str(value))
-                
+
         args = " ".join(args_list)
         return f'command="{self.command} {args}"'
 

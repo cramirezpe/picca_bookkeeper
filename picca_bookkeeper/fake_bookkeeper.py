@@ -63,7 +63,7 @@ class FakePaths(PathBuilder):
 
         return Path(self.export_files[f"{absorber}{region}_{absorber2}{region2}"])
 
-    def exp_xcf_fname(self, absorber: str, region: str, tracer:  str = "qso") -> Path:
+    def exp_xcf_fname(self, absorber: str, region: str, tracer: str = "qso") -> Path:
         if absorber is None:
             absorber = "lya"
         if region is None:

@@ -60,14 +60,21 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
             + strCyan(f"\n\t+{bookkeeper2.paths.catalog_bal}\n")
         )
 
-    tracer_catalogs_1 = bookkeeper1.config.get("correlations", dict()).get("tracer catalogs", dict()).copy()
-    tracer_catalogs_2 = bookkeeper2.config.get("correlations", dict()).get("tracer catalogs", dict()).copy()
-    
+    tracer_catalogs_1 = (
+        bookkeeper1.config.get("correlations", dict())
+        .get("tracer catalogs", dict())
+        .copy()
+    )
+    tracer_catalogs_2 = (
+        bookkeeper2.config.get("correlations", dict())
+        .get("tracer catalogs", dict())
+        .copy()
+    )
+
     for tracer in set(tracer_catalogs_1.keys()).union(tracer_catalogs_2.keys()):
         cat_1 = tracer_catalogs_1.get(tracer, bookkeeper1.paths.catalog)
         cat_2 = tracer_catalogs_2.get(tracer, bookkeeper2.paths.catalog)
-        
-        
+
         if cat_1 != cat_2:
             print(
                 "Different tracer catalog:"
@@ -187,7 +194,11 @@ def replace_strings(text: str, bookkeeper: Bookkeeper) -> str:
     for original, replacement in zip(originals, replacements):
         text = re.sub(original, replacement, text)
 
-    for tracer, path in bookkeeper.config.get("correlations", dict()).get("tracer catalogs", dict()).values():
+    for tracer, path in (
+        bookkeeper.config.get("correlations", dict())
+        .get("tracer catalogs", dict())
+        .values()
+    ):
         text = re.sub(path, tracer, text)
 
     return text

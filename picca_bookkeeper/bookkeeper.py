@@ -4148,7 +4148,7 @@ class PathBuilder:
             / f"xcf.fits.gz"
         )
 
-    def xdmat_fname(self, absorber: str, region: str, tracer: str  = "qso") -> Path:
+    def xdmat_fname(self, absorber: str, region: str, tracer: str = "qso") -> Path:
         """Method to get the path to a distortion matrix file for forest-quasar
         correlations.
 
@@ -4163,7 +4163,6 @@ class PathBuilder:
         return self.xcf_fname(absorber, region, tracer).parent / f"xdmat.fits.gz"
 
     def xmetal_fname(self, absorber: str, region: str, tracer: str = "qso") -> Path:
-
         """Method to get the path to a metal distortion matrix file for forest-quasar
         correlations.
 

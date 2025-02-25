@@ -203,7 +203,9 @@ class CorrelationPlots:
                 )
                 name = "cf_rp"
             else:
-                correlation_file = bookkeeper.paths.exp_xcf_fname(absorber, region, tracer)
+                correlation_file = bookkeeper.paths.exp_xcf_fname(
+                    absorber, region, tracer
+                )
                 name = "xcf_rp"
 
         with fitsio.FITS(correlation_file) as ffile:
@@ -436,7 +438,7 @@ class CorrelationPlots:
         save_data: bool = False,
         save_plot: bool = False,
         save_dict: Dict = dict(),
-        tracer: str = "qso"
+        tracer: str = "qso",
     ) -> Tuple[np.ndarray, ...]:
         """
         Plotting correlation function in defined wedge.
@@ -757,7 +759,7 @@ class CorrelationPlots:
         save_data: bool = False,
         save_plot: bool = False,
         save_dict: Dict = dict(),
-        tracer : str = "qso",
+        tracer: str = "qso",
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """
         Plotting cross-correlation errorbars in defined wedge.
@@ -782,7 +784,9 @@ class CorrelationPlots:
         if output_prefix is not None:
             output_prefix = Path(output_prefix)
 
-        with fitsio.FITS(bookkeeper.paths.exp_xcf_fname(absorber, region, tracer)) as ffile:
+        with fitsio.FITS(
+            bookkeeper.paths.exp_xcf_fname(absorber, region, tracer)
+        ) as ffile:
             try:
                 da = ffile["COR"]["DA"][:]
             except ValueError:
@@ -1091,7 +1095,9 @@ class CorrelationPlots:
         if output_prefix is not None:
             output_prefix = Path(output_prefix)
 
-        with fitsio.FITS(bookkeeper.paths.exp_xcf_fname(absorber, region, tracer)) as ffile:
+        with fitsio.FITS(
+            bookkeeper.paths.exp_xcf_fname(absorber, region, tracer)
+        ) as ffile:
             try:
                 da = ffile["COR"]["DA"][:]
             except ValueError:

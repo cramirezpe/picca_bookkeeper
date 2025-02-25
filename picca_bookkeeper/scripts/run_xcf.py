@@ -59,7 +59,9 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
     logger.info("Done.\n")
 
     if not bookkeeper.config.get("fits", dict()).get("no distortion", False):
-        logger.info(f"Adding distortion matrix: {args.absorber}{args.region}_{args.tracer}")
+        logger.info(
+            f"Adding distortion matrix: {args.absorber}{args.region}_{args.tracer}"
+        )
         xdmat = bookkeeper.get_xdmat_tasker(
             region=args.region,
             absorber=args.absorber,
@@ -156,10 +158,7 @@ def get_args() -> argparse.Namespace:
     )
 
     parser.add_argument(
-        "--tracer",
-        type=str,
-        default="qso",
-        help="Tracer to use for the correlation."
+        "--tracer", type=str, default="qso", help="Tracer to use for the correlation."
     )
 
     parser.add_argument(

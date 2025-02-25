@@ -72,7 +72,9 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
     crosses = []
     cross_correlations = args.cross_correlations
     if config.get("fits", dict()).get("cross correlations", None) not in (None, ""):
-        cross_correlations += config["fits"]["cross correlations"].replace("-", ".").split(" ")
+        cross_correlations += (
+            config["fits"]["cross correlations"].replace("-", ".").split(" ")
+        )
     for cross in cross_correlations:
         tracer, absorber, region = cross.split(".")
         region = bookkeeper.validate_region(region)

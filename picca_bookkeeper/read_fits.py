@@ -77,7 +77,7 @@ class ReadFits:
         self.at_baseline = at_baseline
 
         self.read_fit()
-        
+
         self.values: Dict = dict()
         self.errors: Dict = dict()
         self.covs: Dict = dict()
