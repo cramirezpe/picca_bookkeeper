@@ -17,4 +17,4 @@ correlations:
 
 fits:
   auto correlations: lya.lya-lya.lyb
-  cross correlations: lya.lyb
+  cross correlations: qso-lya.lyb

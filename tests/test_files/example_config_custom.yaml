@@ -53,9 +53,8 @@ delta extraction:
   # We usually want to read from the continuum fitting output (our results are
   # being saved there)
 correlations:
-  catalog tracer:
-  
+
 fits:  
   auto correlations: lya.lyb-lya.lya
-  cross correlations: lya.lyb 
+  cross correlations: qso-lya.lyb 
 

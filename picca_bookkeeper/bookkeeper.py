@@ -256,7 +256,7 @@ class Bookkeeper:
                 "use existing",
                 "unblind",
                 "unblind y1",
-                "catalog tracer",
+                "tracer catalogs",
                 "fast metals",
                 "computed correlations",
                 "computed exports",
@@ -358,9 +358,7 @@ class Bookkeeper:
                         raise ValueError("Invalid command in bookkeeper config: ", key)
 
                     if self.config[section][arg_type][key] is not None:
-                        for region in (
-                            self.config[section][arg_type][key].keys()
-                        ):
+                        for region in self.config[section][arg_type][key].keys():
                             if region not in valid_regions:
                                 raise ValueError(
                                     f"Invalid region ({region}) in bookkeeper config "
@@ -406,6 +404,7 @@ class Bookkeeper:
         absorber: Optional[str] = None,
         region2: Optional[str] = None,
         absorber2: Optional[str] = None,
+        tracer: Optional[str] = None,
     ) -> Dict:
         """Add extra slurm header args to the run.
 
@@ -417,6 +416,7 @@ class Bookkeeper:
             absorber: First absorber to use for correlations.
             region2: For scripts where two regions are needed.
             absorber2: Second absorber to use for correlations.
+            tracer: Tracer to use (for cross-correlations)
         """
         if "slurm args" in config["general"]:
             args = copy.deepcopy(config["general"]["slurm args"])
@@ -427,14 +427,19 @@ class Bookkeeper:
 
         command_name = command.split(".py")[0]
 
+        tracer = "" if tracer is None else tracer
         absorber = "" if absorber is None else absorber
         absorber2 = "" if absorber2 is None else absorber2
         region = "" if region is None else region
         region2 = "" if region2 is None else region2
 
         region_subcommand = ""
+
+        if tracer != "":
+            region_subcommand += f"{tracer}_"
+
         if region != "":
-            region_subcommand = f"{absorber}{region}"
+            region_subcommand += f"{absorber}{region}"
 
         if region2 != "":
             region_subcommand += f"_{absorber2}{region2}"
@@ -461,6 +466,7 @@ class Bookkeeper:
         absorber: Optional[str] = None,
         region2: Optional[str] = None,
         absorber2: Optional[str] = None,
+        tracer: Optional[str] = None,
     ) -> Dict:
         """Add extra extra args to the run.
 
@@ -473,19 +479,25 @@ class Bookkeeper:
             absorber: First absorber to use for correlations.
             region2: For scripts where two regions are needed.
             absorber2: Second absorber to use for correlations.
+            tracer: Tracer to use (for cross-correlations)
         """
         config = copy.deepcopy(config[section])
 
         command_name = command.split(".py")[0]
 
+        tracer = "" if tracer is None else tracer
         absorber = "" if absorber is None else absorber
         absorber2 = "" if absorber2 is None else absorber2
         region = "" if region is None else region
         region2 = "" if region2 is None else region2
 
         region_subcommand = ""
+
+        if tracer != "":
+            region_subcommand += f"{tracer}_"
+
         if region != "":
-            region_subcommand = f"{absorber}{region}"
+            region_subcommand += f"{absorber}{region}"
 
         if region2 != "":
             region_subcommand += f"_{absorber2}{region2}"
@@ -1836,6 +1848,7 @@ class Bookkeeper:
         self,
         region: str = "lya",
         absorber: str = "lya",
+        tracer: str = "qso",
         system: Optional[str] = None,
         debug: bool = False,
         wait_for: Optional[Tasker | ChainedTasker | int | List[int]] = None,
@@ -1847,6 +1860,7 @@ class Bookkeeper:
         Args:
             region: Region to use. Options: ('lya', 'lyb'). Default: 'lya'.
             absorber: First absorber to use for correlations.
+            tracer: Tracer to use. Default: 'qso'.
             system: Shell to use for job. 'slurm_perlmutter' to use slurm
                 scripts on perlmutter, 'bash' to  run it in login nodes or
                 computer shell. Default: None, read from config file.
@@ -1874,12 +1888,12 @@ class Bookkeeper:
         region = self.validate_region(region)
         absorber = self.validate_absorber(absorber)
 
-        job_name = f"xcf_{absorber}{region}"
+        job_name = f"xcf_{tracer}_{absorber}{region}"
         job_name = job_name.replace("(", "").replace(")", "")
 
         # Check if output already there
         updated_system = self.generate_system_arg(system)
-        output_filename = self.paths.xcf_fname(absorber, region)
+        output_filename = self.paths.xcf_fname(absorber, region, tracer)
         if self.check_existing_output_file(
             output_filename,
             job_name,
@@ -1896,6 +1910,7 @@ class Bookkeeper:
             None,
             None,
             output_filename.name,
+            tracer=tracer,
         )
         if copy_xcf_file is not None:
             output_filename.unlink(missing_ok=True)
@@ -1912,6 +1927,7 @@ class Bookkeeper:
             command=command,
             region=region,
             absorber=absorber,
+            tracer=tracer,
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
             config=self.config,
@@ -1919,6 +1935,7 @@ class Bookkeeper:
             command=command,
             region=region,
             absorber=absorber,
+            tracer=tracer,
         )
 
         slurm_header_args = {
@@ -1931,7 +1948,7 @@ class Bookkeeper:
             slurm_header_args, updated_slurm_header_extra_args
         )
 
-        drq = self.paths.catalog_tracer
+        drq = self.paths.get_tracer_catalog(tracer)
 
         args = {
             "in-dir": str(self.paths.deltas_path(region).resolve()),
@@ -1974,6 +1991,7 @@ class Bookkeeper:
         self,
         region: str = "lya",
         absorber: str = "lya",
+        tracer: str = "qso",
         system: Optional[str] = None,
         debug: bool = False,
         wait_for: Optional[Tasker | ChainedTasker | int | List[int]] = None,
@@ -1987,6 +2005,7 @@ class Bookkeeper:
             region (str, optional): Region to use. Options: ('lya', 'lyb').
                 Default: 'lya'.
             absorber: First absorber to use for correlations.
+            tracer (str, optional): Tracer to use. Options: ('qso').
             system (str, optional): Shell to use for job. 'slurm_cori' to use slurm
                 scripts on cori, 'slurm_perlmutter' to use slurm scripts on perlmutter,
                 'bash' to run it in login nodes or computer shell. Default: None, read
@@ -2015,12 +2034,12 @@ class Bookkeeper:
         region = self.validate_region(region)
         absorber = self.validate_absorber(absorber)
 
-        job_name = f"xdmat_{absorber}{region}"
+        job_name = f"xdmat_{tracer}_{absorber}{region}"
         job_name = job_name.replace("(", "").replace(")", "")
 
         # Check if output already there
         updated_system = self.generate_system_arg(system)
-        output_filename = self.paths.xdmat_fname(absorber, region)
+        output_filename = self.paths.xdmat_fname(absorber, region, tracer)
         if self.check_existing_output_file(
             output_filename,
             job_name,
@@ -2037,6 +2056,7 @@ class Bookkeeper:
             None,
             None,
             output_filename.name,
+            tracer=tracer,
         )
         if copy_xdmat_file is not None:
             output_filename.unlink(missing_ok=True)
@@ -2053,6 +2073,7 @@ class Bookkeeper:
             command=command,
             region=region,
             absorber=absorber,
+            tracer=tracer,
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
             config=self.config,
@@ -2060,6 +2081,7 @@ class Bookkeeper:
             command=command,
             region=region,
             absorber=absorber,
+            tracer=tracer,
         )
 
         slurm_header_args = {
@@ -2072,7 +2094,7 @@ class Bookkeeper:
             slurm_header_args, updated_slurm_header_extra_args
         )
 
-        drq = self.paths.catalog_tracer
+        drq = self.paths.get_tracer_catalog(tracer)
 
         args = {
             "in-dir": str(self.paths.deltas_path(region).resolve()),
@@ -2114,6 +2136,7 @@ class Bookkeeper:
         self,
         region: str = "lya",
         absorber: str = "lya",
+        tracer: str = "qso",
         system: Optional[str] = None,
         debug: bool = False,
         wait_for: Optional[Tasker | ChainedTasker | int | List[int]] = None,
@@ -2128,6 +2151,7 @@ class Bookkeeper:
         Args:
             region: Region to use. Options: ('lya', 'lyb'). Default: 'lya'.
             absorber: First absorber to use for correlations.
+            tracer: Tracer to use. Default: 'qso'.
             system: Shell to use for job. 'slurm_perlmutter' to use slurm
                 scripts on perlmutter, 'bash' to  run it in login nodes or
                 computer shell. Default: None, read from config file.
@@ -2152,12 +2176,12 @@ class Bookkeeper:
             )
         region = self.validate_region(region)
         absorber = self.validate_absorber(absorber)
-        job_name = f"xcf_exp_{absorber}{region}"
+        job_name = f"xcf_exp_{tracer}_{absorber}{region}"
         job_name = job_name.replace("(", "").replace(")", "")
 
         # Check if output already there
         updated_system = self.generate_system_arg(system)
-        output_filename = self.paths.exp_xcf_fname(absorber, region)
+        output_filename = self.paths.exp_xcf_fname(absorber, region, tracer)
         if self.check_existing_output_file(
             output_filename,
             job_name,
@@ -2174,6 +2198,7 @@ class Bookkeeper:
             None,
             None,
             output_filename.name,
+            tracer=tracer,
         )
         if copy_xcf_exp_file is not None:
             output_filename.unlink(missing_ok=True)
@@ -2192,6 +2217,7 @@ class Bookkeeper:
             command=command,
             region=region,
             absorber=absorber,
+            tracer=tracer,
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
             config=self.config,
@@ -2199,6 +2225,7 @@ class Bookkeeper:
             command=command,
             region=region,
             absorber=absorber,
+            tracer=tracer,
         )
 
         slurm_header_args = {
@@ -2212,7 +2239,7 @@ class Bookkeeper:
         )
 
         args = {
-            "data": str(self.paths.xcf_fname(absorber, region).resolve()),
+            "data": str(self.paths.xcf_fname(absorber, region, tracer).resolve()),
             "out": str(output_filename),
         }
 
@@ -2225,7 +2252,7 @@ class Bookkeeper:
         output_filename.parent.mkdir(exist_ok=True, parents=True)
 
         in_files = [
-            self.paths.xcf_fname(absorber, region),
+            self.paths.xcf_fname(absorber, region, tracer),
         ]
 
         precommand = ""
@@ -2233,7 +2260,7 @@ class Bookkeeper:
             logger.warn("CORRELATIONS WILL BE UNBLINDED, BE CAREFUL.")
             precommand = f"picca_bookkeeper_unblind_correlations"
 
-            xcf_file = self.paths.xcf_fname(absorber, region).resolve()
+            xcf_file = self.paths.xcf_fname(absorber, region, tracer).resolve()
             precommand += f" --cf {str(xcf_file)}"
             if not self.config["fits"].get("no distortion", False):
                 xdmat_file = self.paths.xdmat_fname(absorber, region).resolve()
@@ -2271,6 +2298,7 @@ class Bookkeeper:
         self,
         region: str = "lya",
         absorber: str = "lya",
+        tracer: str = "qso",
         system: Optional[str] = None,
         debug: bool = False,
         wait_for: Optional[Tasker | ChainedTasker | int | List[int]] = None,
@@ -2283,6 +2311,7 @@ class Bookkeeper:
         Args:
             region: Region to use. Options: ('lya', 'lyb'). Default: 'lya'.
             absorber: First absorber to use for correlations.
+            tracer: Tracer to use for correlations. Default: 'qso'.
             system: Shell to use for job. 'slurm_perlmutter' to use slurm
                 scripts on perlmutter, 'bash' to  run it in login nodes or
                 computer shell. Default: None, read from config file.
@@ -2301,12 +2330,12 @@ class Bookkeeper:
             raise ValueError("Initialize bookkeeper without read_mode to run jobs.")
         region = self.validate_region(region)
         absorber = self.validate_absorber(absorber)
-        job_name = f"xmetal_{absorber}{region}"
+        job_name = f"xmetal_{tracer}_{absorber}{region}"
         job_name = job_name.replace("(", "").replace(")", "")
 
         # Check if output already there
         updated_system = self.generate_system_arg(system)
-        output_filename = self.paths.xmetal_fname(absorber, region)
+        output_filename = self.paths.xmetal_fname(absorber, region, tracer)
         if self.check_existing_output_file(
             output_filename,
             job_name,
@@ -2323,6 +2352,7 @@ class Bookkeeper:
             None,
             None,
             output_filename.name,
+            tracer=tracer,
         )
         if copy_metal_matrix is not None:
             output_filename.unlink(missing_ok=True)
@@ -2353,6 +2383,7 @@ class Bookkeeper:
             command=command,
             region=region,
             absorber=absorber,
+            tracer=tracer,
         )
         updated_slurm_header_extra_args = self.generate_slurm_header_extra_args(
             config=self.config,
@@ -2360,6 +2391,7 @@ class Bookkeeper:
             command=command,
             region=region,
             absorber=absorber,
+            tracer=tracer,
         )
 
         slurm_header_args = {
@@ -2372,7 +2404,7 @@ class Bookkeeper:
             slurm_header_args, updated_slurm_header_extra_args
         )
 
-        drq = self.paths.catalog_tracer
+        drq = self.paths.get_tracer_catalog(tracer)
 
         args = {}
         if fast_metal:
@@ -3062,15 +3094,15 @@ class Bookkeeper:
 
         # Set because there can be repeated values.
         for cross_correlation in cross_correlations:
-            absorber, region = cross_correlation.split(".")
+            tracer, absorber, region = cross_correlation.replace("-", ".").split(".")
             region = self.validate_region(region)
             absorber = self.validate_absorber(absorber)
 
-            export_file = self.paths.exp_xcf_fname(absorber, region).resolve()
+            export_file = self.paths.exp_xcf_fname(absorber, region, tracer).resolve()
             export_files_cross.append(export_file)
 
-            metals_file = self.paths.xmetal_fname(absorber, region).resolve()
-            distortion_file = self.paths.xdmat_fname(absorber, region).resolve()
+            metals_file = self.paths.xmetal_fname(absorber, region, tracer).resolve()
+            distortion_file = self.paths.xdmat_fname(absorber, region, tracer).resolve()
 
             args = DictUtils.merge_dicts(
                 config,
@@ -3080,9 +3112,9 @@ class Bookkeeper:
                             "vega_cross": {
                                 "general": {
                                     "data": {
-                                        "name": f"{absorber}{region}xqso",
+                                        "name": f"{absorber}{region}x{tracer}",
                                         "tracer1": absorber_igm[absorber],
-                                        "tracer2": "QSO",
+                                        "tracer2": tracer.upper(),
                                         "tracer1-type": "continuous",
                                         "tracer2-type": "discrete",
                                         "filename": export_file,
@@ -3107,7 +3139,9 @@ class Bookkeeper:
                                                 "weights-tracer1": self.paths.delta_attributes_file(
                                                     region=region
                                                 ).resolve(),
-                                                "weights-tracer2": self.paths.catalog_tracer.resolve(),
+                                                "weights-tracer2": self.paths.get_tracer_catalog(
+                                                    tracer
+                                                ).resolve(),
                                             },
                                             "model": {
                                                 "new_metals": True,
@@ -3155,9 +3189,10 @@ class Bookkeeper:
                 command="vega_cross.py",  # The use of .py only for using same function
                 region=region,
                 absorber=absorber,
+                tracer=tracer,
             )
 
-            filename = self.paths.fit_cross_fname(absorber, region)
+            filename = self.paths.fit_cross_fname(absorber, region, tracer)
             self.write_ini(vega_args, filename)
             ini_files.append(str(filename))
 
@@ -3307,15 +3342,20 @@ class Bookkeeper:
 
         for cross_correlation in cross_correlations:
             (
+                tracer,
                 absorber,
                 region,
-            ) = cross_correlation.split(".")
+            ) = cross_correlation.replace(
+                "-", "."
+            ).split(".")
             region = self.validate_region(region)
             absorber = self.validate_absorber(absorber)
 
-            input_files.append(self.paths.xcf_fname(absorber, region).resolve())
+            input_files.append(self.paths.xcf_fname(absorber, region, tracer).resolve())
 
-            args[f"{region}-qso"] = str(self.paths.xcf_fname("lya", region).resolve())
+            args[f"{region}-{tracer}"] = str(
+                self.paths.xcf_fname("lya", region, tracer).resolve()
+            )
 
         # Now slurm args
         command = "write_full_covariance.py"
@@ -3620,7 +3660,7 @@ class PathBuilder:
 
         Args:
             field (str): whether to use catalog, catalog tracer fields, dla fields or
-                bal fields. (Options: ["catalog", "catalog_tracer", "dla", "bal"])
+                bal fields. (Options: ["catalog", "dla", "bal"])
 
         Returns:
             Path: catalog to be used.
@@ -3637,14 +3677,6 @@ class PathBuilder:
             bal = self.config["delta extraction"].get("bal", None)
             if bal not in (True, None) and Path(bal).is_file():
                 catalog = Path(bal)
-            else:
-                catalog = self.get_catalog_from_field("catalog")
-        elif field == "catalog_tracer":
-            if (
-                self.config["correlations"].get("catalog tracer", None)
-                not in ("", None)
-            ) and Path(self.config["correlations"].get("catalog tracer", "")).is_file():
-                catalog = Path(self.config["correlations"]["catalog tracer"])
             else:
                 catalog = self.get_catalog_from_field("catalog")
         else:
@@ -3675,10 +3707,20 @@ class PathBuilder:
         """catalog to be used for BAL masking."""
         return self.get_catalog_from_field("bal")
 
-    @property
-    def catalog_tracer(self) -> Path:
-        """catalog to be used for cross-correlations with quasars"""
-        return self.get_catalog_from_field("catalog_tracer")
+    def get_tracer_catalog(self, tracer: str = "qso") -> Path:
+        """Get tracer catalog to be used for cross-correlations.
+
+        It will return the correspondent tracer catalog if existing, otherwise it will
+        return the general catalog.
+        """
+        candidate = (
+            self.config["correlations"].get("tracer catalogs", dict()).get(tracer, None)
+        )
+
+        if candidate not in ("", None) and Path(candidate).is_file():
+            return Path(candidate)
+        else:
+            return self.get_catalog_from_field("catalog")
 
     @staticmethod
     def compare_configs(
@@ -3877,6 +3919,7 @@ class PathBuilder:
         absorber2: Optional[str],
         region2: Optional[str],
         filename: Optional[str],
+        tracer: Optional[str] = "qso",
     ) -> Path | None:
         """Method to get a correlation file to copy given in the bookkeeper config
 
@@ -3891,24 +3934,24 @@ class PathBuilder:
         Returns:
             Path: Path to file
         """
-        if absorber2 is None:
+        if absorber2 is None and (tracer is not None):
             name = f"{absorber}{region}"
-            qso = "qso_"
+            tracer += "_"
         else:
             name = f"{absorber}{region}_{absorber2}{region2}"
-            qso = ""
+            tracer = ""
 
         if (
-            self.config["correlations"].get(subsection, dict()).get(qso + name, None)
+            self.config["correlations"].get(subsection, dict()).get(tracer + name, None)
             is not None
         ):
             file = Path(
-                self.config["correlations"].get(subsection, dict()).get(qso + name)
+                self.config["correlations"].get(subsection, dict()).get(tracer + name)
             )
 
             if not file.is_file():
                 raise FileNotFoundError(
-                    f"{qso + name}: Invalid correlation file provided", file
+                    f"{tracer + name}: Invalid correlation file provided", file
                 )
 
         elif (
@@ -3919,23 +3962,23 @@ class PathBuilder:
             parent = Path(
                 self.config["correlations"].get(subsection, dict()).get("general")
             )
-            file = parent / (qso + name) / filename
+            file = parent / (tracer + name) / filename
 
             if not file.is_file():
                 logger.info(
-                    f"{qso + name}: no file provided to use, correlation will be computed"
+                    f"{tracer + name}: no file provided to use, correlation will be computed"
                 )
 
                 return None
 
         else:
             logger.info(
-                f"{qso + name}: no file provided to use, correlation will be computed"
+                f"{tracer + name}: no file provided to use, correlation will be computed"
             )
 
             return None
 
-        logger.info(f"{qso + name}: Using correlation from file:\n\t{str(file)}")
+        logger.info(f"{tracer + name}: Using correlation from file:\n\t{str(file)}")
         return file
 
     def copied_covariance_file(self, smoothed: bool = False) -> Path | None:
@@ -4087,12 +4130,13 @@ class PathBuilder:
         cor_file = self.cf_fname(absorber, region, absorber2, region2)
         return cor_file.parent / f"cf_exp.fits.gz"
 
-    def xcf_fname(self, absorber: str, region: str) -> Path:
+    def xcf_fname(self, absorber: str, region: str, tracer: str = "qso") -> Path:
         """Method to get the path to a forest-quasar correlation export file.
 
         Args:
             region: Region of the forest used.
             absorber: Absorber to use (lya)
+            tracer: Tracer to use (qso)
 
         Returns:
             Path: Path to correlation file.
@@ -4100,51 +4144,54 @@ class PathBuilder:
         return (
             self.correlations_path
             / "results"
-            / f"qso_{absorber.replace('(', '').replace(')', '')}{region}"
+            / f"{tracer}_{absorber.replace('(', '').replace(')', '')}{region}"
             / f"xcf.fits.gz"
         )
 
-    def xdmat_fname(self, absorber: str, region: str) -> Path:
+    def xdmat_fname(self, absorber: str, region: str, tracer: str = "qso") -> Path:
         """Method to get the path to a distortion matrix file for forest-quasar
         correlations.
 
         Args:
             region: Region of the forest used.
             absorber: Absorber to use (lya)
+            tracer: Tracer to use (qso)
 
         Returns:
             Path: Path to export correlation file.
         """
-        return self.xcf_fname(absorber, region).parent / f"xdmat.fits.gz"
+        return self.xcf_fname(absorber, region, tracer).parent / f"xdmat.fits.gz"
 
-    def xmetal_fname(self, absorber: str, region: str) -> Path:
+    def xmetal_fname(self, absorber: str, region: str, tracer: str = "qso") -> Path:
         """Method to get the path to a metal distortion matrix file for forest-quasar
         correlations.
 
         Args:
             region (str): Region of the forest used.
             absorber: Absorber to use (lya)
+            tracer: Tracer to use (qso)
 
         Returns:
             Path: Path to export correlation file.
         """
-        parent = self.xcf_fname(absorber, region).parent
+        parent = self.xcf_fname(absorber, region, tracer).parent
         if (parent / "xmetal.fits.gz").is_file():
             return parent / "xmetal.fits.gz"
         else:
             return parent / "xmetal.fits"
 
-    def exp_xcf_fname(self, absorber: str, region: str) -> Path:
+    def exp_xcf_fname(self, absorber: str, region: str, tracer: str = "qso") -> Path:
         """Method to get the path to a forest-quasar correlation export file.
 
         Args:
             region: Region of the forest used.
             absorber: Absorber to use (lya)
+            tracer: Tracer to use (qso)
 
         Returns:
             Path: Path to export correlation file.
         """
-        cor_file = self.xcf_fname(absorber, region)
+        cor_file = self.xcf_fname(absorber, region, tracer)
         return cor_file.parent / f"xcf_exp.fits.gz"
 
     def fit_auto_fname(
@@ -4173,17 +4220,18 @@ class PathBuilder:
         )
         return name.parent / name.name.replace("(", "").replace(")", "")
 
-    def fit_cross_fname(self, absorber: str, region: str) -> Path:
+    def fit_cross_fname(self, absorber: str, region: str, tracer: str) -> Path:
         """Method to get te path to a given fit cross config file.
 
         Args:
             region: Region where the correlation is computed.
             absorber: First absorber
+            tracer: Tracer for cross
 
         Returns:
             Path: Path to fit config file.
         """
-        name = self.fits_path / "configs" / f"qsox{absorber}{region}.ini"
+        name = self.fits_path / "configs" / f"{tracer}x{absorber}{region}.ini"
         return name.parent / name.name.replace("(", "").replace(")", "")
 
     def fit_main_fname(self) -> Path:

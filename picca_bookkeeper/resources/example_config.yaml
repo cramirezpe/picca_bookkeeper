@@ -98,9 +98,10 @@ correlations:
   # commented out or removed
   # use existing: /path/to/bookkeeper (bookkeeper folder)
 
-  # catalog_tracer could be set up to use a different catalog for cross-correlations
-  # by default will use the previous one for all the analyses.
-  catalog tracer: 
+  # tracer catalogs could be set up to use a different catalog for cross-correlations
+  # by default will use data:catalog for the qso tracer.
+  #tracer catalogs:
+  #  qso: 
 
   # Unblind correlations. Only use this if you are allowed to!
   unblind: False
@@ -145,8 +146,9 @@ correlations:
 
     picca_xcf:
 
-    # For the cross we se lyalya format.
-    picca_xcf_lyalya:
+    # For the cross we use qso_lyalya format.
+    picca_xcf:
+        qso_lyalya:
 
     picca_dmat:
 
@@ -180,7 +182,7 @@ fits:
   # These are the correlations to use. If running the full analysis, 
   # the correspondent deltas and correlations will be computed
   auto correlations: lya.lya-lya.lya lya.lya-lya.lyb
-  cross correlations: lya.lya 
+  cross correlations: qso-lya.lya 
 
   # Whether to use a different environment for sampler. If empty, the general
   # environment will be used. The one below is mantained by Andrei Cuceu.
@@ -221,7 +223,7 @@ fits:
     vega_cross:
       general:
 
-      lyalya:
+      qso_lyalya:
 
     vega_main:
       general:

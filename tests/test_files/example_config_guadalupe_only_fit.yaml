@@ -17,7 +17,7 @@ correlations:
 
 fits:
   auto correlations: lya.lya-lya.lya
-  cross correlations: lya.lya 
+  cross correlations: qso-lya.lya 
 
 
   no metals: True

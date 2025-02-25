@@ -21,7 +21,6 @@ delta extraction:
 
   
 correlations:
-  catalog tracer:
 
   computed correlations:
     cflyalya_lyalyb:
@@ -37,4 +36,4 @@ correlations:
 
 fits:
   auto correlations: lya.lya-lya.lyb
-  cross correlations: lya.lyb
+  cross correlations: qso-lya.lyb

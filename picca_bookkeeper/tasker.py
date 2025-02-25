@@ -78,11 +78,11 @@ class Tasker:
         self,
         command: str,
         command_args: Dict,
-        packages: List[str],
         slurm_header_args: Dict,
         environment: str,
         run_file: Path | str,
         jobid_log_file: Path | str,
+        packages: List[str] = [],
         wait_for: Optional[
             ChainedTasker | Tasker | List[Type[Tasker]] | int | List[int]
         ] = None,
@@ -192,7 +192,7 @@ class Tasker:
                     args_list.append(f"--{key} {value}")
             else:
                 args_list.append(str(value))
-                
+
         args = " ".join(args_list)
         return f'command="{self.command} {args}"'
 

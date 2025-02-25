@@ -78,6 +78,11 @@ class ReadFits:
 
         self.read_fit()
 
+        self.values: Dict = dict()
+        self.errors: Dict = dict()
+        self.covs: Dict = dict()
+        self.names: List = []
+
     def __str__(self) -> str:
         if self.label is None:
             return self.fit_file.parents[1].name
@@ -1219,7 +1224,7 @@ class FitPlots:
         if ax is None:
             fig, ax = plt.subplots()
 
-        handles = []
+        handles: List[Any] = []
 
         # Check if blinded boolean is true / false
         if blinded:
@@ -1229,16 +1234,15 @@ class FitPlots:
             baseline_value = None
             baseline_error = None
 
-            if param in ("ap", "at") and readfits:
+            if param in ("ap", "at") and reference:
                 # Set the baseline using the first fit in the list
-                first_fit = reference
-                baseline_value = first_fit.values.get(param, None)
-                baseline_error = first_fit.errors.get(
+                baseline_value = reference.values.get(param, None)
+                baseline_error = reference.errors.get(
                     param, 0
                 )  # Assume first fit error is baseline error
 
                 if baseline_value is None:
-                    baseline_value = first_fit.model_header.get(param, None)
+                    baseline_value = reference.model_header.get(param, None)
                 if baseline_value is None and reference is not None:
                     baseline_value = reference.values.get(param, None)
                 if baseline_value is None:
@@ -1419,7 +1423,7 @@ class FitPlots:
         if ax is None:
             fig, ax = plt.subplots()
 
-        handles = []
+        handles: List[Any] = []
 
         if reference is not None:
             handles.append(

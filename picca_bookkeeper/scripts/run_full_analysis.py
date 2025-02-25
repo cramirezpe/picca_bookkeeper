@@ -72,14 +72,16 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
     crosses = []
     cross_correlations = args.cross_correlations
     if config.get("fits", dict()).get("cross correlations", None) not in (None, ""):
-        cross_correlations += config["fits"]["cross correlations"].split(" ")
+        cross_correlations += (
+            config["fits"]["cross correlations"].replace("-", ".").split(" ")
+        )
     for cross in cross_correlations:
-        absorber, region = cross.split(".")
+        tracer, absorber, region = cross.split(".")
         region = bookkeeper.validate_region(region)
         absorber = bookkeeper.validate_absorber(absorber)
 
         regions.append(region)
-        crosses.append([absorber, region])
+        crosses.append([absorber, region, tracer])
 
     regions = np.unique(regions)
 
@@ -147,13 +149,14 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
             run_cf(auto_args)
 
         for cross in crosses:
-            absorber, region = cross
+            absorber, region, tracer = cross
 
             cross_args = argparse.Namespace(
                 bookkeeper_config=args.bookkeeper_config,
                 overwrite_config=False,
                 region=region,
                 absorber=absorber,
+                tracer=tracer,
                 system=args.system,
                 debug=False,  # Debug, only set deltas,
                 only_write=args.only_write,

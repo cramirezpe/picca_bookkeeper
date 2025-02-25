@@ -145,7 +145,7 @@ correlations:
         time: '10:00:00'
 fits:
   auto correlations: lya.lya-lya.lya
-  cross correlations: lya.lya
+  cross correlations: qso-lya.lya
   no bao: false
   no hcd: false
   no metals: false
@@ -173,9 +173,8 @@ fits:
         model:
           model-hcd: Rogers2018
           z evol LYA: bias_vs_z_std
-          small scale nl: dnl_arinyo
-          ell-max: 6
-          desi-instrumental-systematics: true
+          fullshape smoothing: gauss
+          use_metal_autos: false
         metals:
           z evol: bias_vs_z_std
       lyalya_lyalya:
@@ -205,16 +204,13 @@ fits:
           model-hcd: Rogers2018
           z evol LYA: bias_vs_z_std
           z evol QSO: bias_vs_z_std
-          ell-max: 6
-          velocity dispersion: lorentz
-          radiation effects: true
         metals:
           z evol: bias_vs_z_std
           velocity dispersion: lorentz
-      lyalya:
+      qso_lyalya:
         metals:
           in tracer2: SiII(1260) SiIII(1207) SiII(1193) SiII(1190)
-      lyalyb:
+      qso_lyalyb:
         metals:
           in tracer2: SiII(1260) SiIII(1207) SiII(1193) SiII(1190)
     vega_main:
@@ -226,6 +222,8 @@ fits:
         cosmo-fit type:
           cosmo fit func: ap_at
           smooth-scaling: false
+          full-shape: false
+          full-shape-alpha: false
         control:
           sampler: true
           chi2: true
@@ -246,59 +244,26 @@ fits:
           bias_LYA: true
           beta_LYA: true
           bias_QSO: true
-          bias_hcd: true
-          beta_hcd: true
-          drp_QSO: true
+          sigmaNL_per: true
+          sigmaNL_par: true
           per_sigma_smooth: true
           par_sigma_smooth: true
-          sigma_velo_disp_lorentz_QSO: true
-        priors:
-          beta_hcd: gaussian 0.5 0.09
         parameters:
           ap: 1.0
           at: 1.0
-          per_sigma_smooth: 2.4
-          par_sigma_smooth: 2.4
-          bias_LYA: -0.1
-          beta_LYA: 1.6689842055246313
-          alpha_LYA: 2.9
-          bias_QSO: 3.5
-          bias_hcd: -0.05229593809709332
-          beta_hcd: 0.5
-          L0_hcd: 10.0
-          bias_eta_SiII(1260): -0.0026756210856865984
-          beta_SiII(1260): 0.5
-          alpha_SiII(1260): 1.0
-          bias_eta_SiIII(1207): -0.004500501963425506
-          beta_SiIII(1207): 0.5
-          alpha_SiIII(1207): 1.0
-          bias_eta_SiII(1193): -0.0020176237974432443
-          beta_SiII(1193): 0.5
-          alpha_SiII(1193): 1.0
-          bias_eta_SiII(1190): -0.002938954583714029
-          beta_SiII(1190): 0.5
-          alpha_SiII(1190): 1.0
-          bias_eta_CIV(eff): -0.005210131497292769
-          beta_CIV(eff): 0.27
-          alpha_CIV(eff): 1.0
-          desi_inst_sys_amp: 0.0003189935987295203
-          bao_amp: 1.0
           sigmaNL_per: 3.24
-          sigmaNL_par: 6.36984
-          growth_rate: 0.970386193694752
-          bias_eta_QSO: 1.0
+          sigmaNL_par: 6.2
+          bao_amp: 1.0
+          bias_LYA: -0.11293026944822375
+          beta_LYA: 1.67
+          alpha_LYA: 2.9
+          bias_QSO: 3.123
+          bias_eta_QSO: 1
+          growth_rate: 0.9664554856256127
           alpha_QSO: 1.44
-          drp_QSO: 0.2540594873990489
-          sigma_velo_disp_lorentz_QSO: 7.772443711873628
-          qso_rad_strength: 0.7386158105819112
-          qso_rad_asymmetry: 0.0
-          qso_rad_lifetime: 9e99
-          qso_rad_decrease: 300.0
-          dnl_arinyo_q1: 0.8558
-          dnl_arinyo_kv: 1.11454
-          dnl_arinyo_av: 0.5378
-          dnl_arinyo_bv: 1.607
-          dnl_arinyo_kp: 19.47
+          drp_QSO: 0.0
+          par_sigma_smooth: 2
+          per_sigma_smooth: 2
   slurm args:
     run_vega:
       general:

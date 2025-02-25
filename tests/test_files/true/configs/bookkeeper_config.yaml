@@ -15,8 +15,7 @@ delta extraction:
       general:
         expected flux:
           raw statistics file: /tmp/cdirs/desi/users/mail/Continuum_fitting/picca_runs/v9.0.0/raw/v9.0.0_cat_reduced/raw_0.0.0_0/deltas/lya/Delta-stats.fits.gz
-correlations:
-  catalog tracer:
+correlations: {}
 fits:
   auto correlations: lya.lyb-lya.lya
-  cross correlations: lya.lyb
+  cross correlations: qso-lya.lyb
