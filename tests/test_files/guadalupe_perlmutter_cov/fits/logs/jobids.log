@@ -1,0 +1,3 @@
+run_write_full_covariance.sh 10999861
+run_smooth_covariance.sh 25611047
+run_vega_fit.sh 54233503

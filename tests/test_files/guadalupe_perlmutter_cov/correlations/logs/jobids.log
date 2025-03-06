@@ -1,0 +1,8 @@
+run_cf_lyalya_lyalya.sh 10004315
+run_dmat_lyalya_lyalya.sh 65564281
+run_metal_lyalya_lyalya.sh 16784456
+run_cf_exp_lyalya_lyalya.sh 42968207
+run_xcf_qso_lyalya.sh 15265373
+run_xdmat_qso_lyalya.sh 10004315
+run_xmetal_qso_lyalya.sh 25611047
+run_xcf_exp_qso_lyalya.sh 65564281

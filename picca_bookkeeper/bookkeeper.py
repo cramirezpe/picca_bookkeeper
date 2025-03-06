@@ -3353,7 +3353,7 @@ class Bookkeeper:
 
             input_files.append(self.paths.xcf_fname(absorber, region, tracer).resolve())
 
-            args[f"{region}-{tracer}"] = str(
+            args[f"{region}-qso"] = str(
                 self.paths.xcf_fname("lya", region, tracer).resolve()
             )
 
@@ -3463,6 +3463,72 @@ class Bookkeeper:
         # Now slurm args
         command = "smooth_covariance.py"
 
+        input_files = []
+        if self.config["fits"].get("auto correlations", None) not in (None, ""):
+            auto_correlations = self.config["fits"]["auto correlations"].split(" ")
+        else:
+            auto_correlations = []
+        if self.config["fits"].get("cross correlations", None) not in (None, ""):
+            cross_correlations = self.config["fits"]["cross correlations"].split(" ")
+        else:
+            cross_correlations = []
+
+        args = {}
+        for auto_correlation in auto_correlations:
+            absorber, region, absorber2, region2 = auto_correlation.replace(
+                "-", "."
+            ).split(".")
+            region = self.validate_region(region)
+            absorber = self.validate_absorber(absorber)
+            region2 = self.validate_region(region2)
+            absorber2 = self.validate_absorber(absorber2)
+
+            cf_args = self.generate_extra_args(
+                config=self.config,
+                section="correlations",
+                command="picca_cf.py",
+                region=region,
+                absorber=absorber,
+                region2=region2,
+                absorber2=absorber2,
+            )
+
+            for range_ in ["rt-min", "rt-max", "rp-min", "rp-max", "np", "nt"]:
+                if range_ in cf_args:
+                    args[f"{range_}-auto"] = cf_args[range_]
+
+            # This ugly break indicates that we cannot pass multiple ranges, only 
+            # the first one...
+            break
+
+        for cross_correlation in cross_correlations:
+            (
+                tracer,
+                absorber,
+                region,
+            ) = cross_correlation.replace(
+                "-", "."
+            ).split(".")
+            region = self.validate_region(region)
+            absorber = self.validate_absorber(absorber)
+
+            xcf_args = self.generate_extra_args(
+                config=self.config,
+                section="correlations",
+                command="picca_xcf.py",
+                region=region,
+                absorber=absorber,
+                tracer=tracer,
+            )
+
+            for range_ in ["rt-min", "rt-max", "rp-min", "rp-max", "np", "nt"]:
+                if range_ in xcf_args:
+                    args[f"{range_}-cross"] = xcf_args[range_]
+
+            # This ugly break indicates that we cannot pass multiple ranges, only 
+            # the first one...
+            break
+
         updated_extra_args = self.generate_extra_args(
             config=self.config,
             section="fits",
@@ -3485,10 +3551,10 @@ class Bookkeeper:
             updated_slurm_header_extra_args,
         )
 
-        args = {
-            "input-cov": str(self.paths.covariance_file_unsmoothed()),
-            "output-cov": str(self.paths.covariance_file_smoothed()),
-        }
+        
+        args["input-cov"] = str(self.paths.covariance_file_unsmoothed()),
+        args["output-cov"] = str(self.paths.covariance_file_smoothed()),
+        
         args = DictUtils.merge_dicts(args, updated_extra_args)
 
         return get_Tasker(updated_system)(
