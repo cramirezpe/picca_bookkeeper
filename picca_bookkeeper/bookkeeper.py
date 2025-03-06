@@ -3353,7 +3353,7 @@ class Bookkeeper:
 
             input_files.append(self.paths.xcf_fname(absorber, region, tracer).resolve())
 
-            args[f"{region}-{tracer}"] = str(
+            args[f"{region}-qso"] = str(
                 self.paths.xcf_fname("lya", region, tracer).resolve()
             )
 
