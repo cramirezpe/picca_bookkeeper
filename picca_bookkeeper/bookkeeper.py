@@ -3552,8 +3552,8 @@ class Bookkeeper:
         )
 
         
-        args["input-cov"] = str(self.paths.covariance_file_unsmoothed()),
-        args["output-cov"] = str(self.paths.covariance_file_smoothed()),
+        args["input-cov"] = str(self.paths.covariance_file_unsmoothed())
+        args["output-cov"] = str(self.paths.covariance_file_smoothed())
         
         args = DictUtils.merge_dicts(args, updated_extra_args)
 

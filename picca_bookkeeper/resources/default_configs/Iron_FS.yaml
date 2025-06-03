@@ -526,7 +526,7 @@ fits:
       general:
         qos: shared
         ntasks: 1
-        time: "00:30:00"
+        time: "00:45:00"
         cpus-per-task: 20
 
     picca_bookkeeper_correct_config_zeff:
