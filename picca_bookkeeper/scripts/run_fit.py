@@ -38,37 +38,6 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
         bookkeeper.defaults,
         bookkeeper.config,
     )
-
-    # if config["fits"].get("compute covariance", False):
-    #     logger.info("Adding compute covariance matrix.")
-    #     compute_covariance = bookkeeper.get_covariance_matrix_tasker(
-    #         wait_for=args.wait_for,
-    #         system=args.system,
-    #         overwrite=args.overwrite,
-    #         skip_sent=args.skip_sent,
-    #     )
-    #     compute_covariance.write_job()
-    #     if not args.only_write:
-    #         compute_covariance.send_job()
-    #         if not isinstance(compute_covariance, DummyTasker):
-    #             logger.info(f"Sent compute covariance:\n\t{compute_covariance.jobid}")
-
-    #     logger.info("Done.\n")
-
-    #     if config["fits"].get("smooth covariance", False):
-    #         logger.info("Adding smooth covariance matrix.")
-    #         smooth_covariance = bookkeeper.get_smooth_covariance_tasker(
-    #             wait_for=args.wait_for,
-    #             system=args.system,
-    #             overwrite=args.overwrite,
-    #             skip_sent=args.skip_sent,
-    #         )
-    #         smooth_covariance.write_job()
-    #         if not args.only_write:
-    #             smooth_covariance.send_job()
-
-    #             if not isinstance(smooth_covariance, DummyTasker):
-    #                 logger.info(f"Sent smooth covariance:\n\t{smooth_covariance.jobid}")
   
     cov_jobid = None
     
