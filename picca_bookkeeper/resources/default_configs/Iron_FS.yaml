@@ -299,7 +299,7 @@ fits:
           rp-max: +200.
           rt-min: 0.
           rt-max: 200.
-          r-min: 10.
+          r-min: 25.
           r-max: 180.
           mu-min: -1.
           mu-max: +1.
@@ -347,7 +347,7 @@ fits:
           rp-max: +200.
           rt-min: 0.
           rt-max: 200.
-          r-min: 10.
+          r-min: 40.
           r-max: 180.
           mu-min: -1.
           mu-max: +1.
