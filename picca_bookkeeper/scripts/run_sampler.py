@@ -40,6 +40,8 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
         bookkeeper.config,
     )
 
+    cov_jobid = None
+
     if config["fits"].get("compute covariance", False):
         compute_covariance = bookkeeper.get_covariance_matrix_tasker(
             wait_for=args.wait_for,
@@ -51,18 +53,26 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
         if not args.only_write:
             compute_covariance.send_job()
             logger.info(f"Sent compute covariance:\n\t{compute_covariance.jobid}")
+            cov_jobid = compute_covariance.jobid
+    
+    if config["fits"].get("smooth covariance", False):
+        # Use jobid from compute_covariance only if it exists and we're not in only-write mode
+        wait_jobid = [cov_jobid] if cov_jobid and not args.only_write else args.wait_for
+    
+        smooth_covariance = bookkeeper.get_smooth_covariance_tasker(
+            wait_for=wait_jobid,
+            system=args.system,
+            overwrite=args.overwrite,
+            skip_sent=args.skip_sent,
+        )
+        smooth_covariance.write_job()
+    
+        if not args.only_write:
+            import time
+            time.sleep(15)  # Optional delay for file system sync
+            smooth_covariance.send_job()
+            logger.info(f"Sent smooth covariance:\n\t{smooth_covariance.jobid}")
 
-        if config["fits"].get("smooth covariance", False):
-            smooth_covariance = bookkeeper.get_smooth_covariance_tasker(
-                wait_for=args.wait_for,
-                system=args.system,
-                overwrite=args.overwrite,
-                skip_sent=args.skip_sent,
-            )
-            smooth_covariance.write_job()
-            if not args.only_write:
-                smooth_covariance.send_job()
-                logger.info(f"Sent smooth covariance:\n\t{smooth_covariance.jobid}")
 
     if config["fits"].get("compute zeff", False):
         compute_zeff = bookkeeper.get_compute_zeff_tasker(

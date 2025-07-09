@@ -1,0 +1,561 @@
+# This is a test default configuration matching Jurav1
+# the goal is to modify this for full shape analysis
+delta extraction: 
+  extra args:
+    picca_delta_extraction:
+      general:
+        data:
+          type: DesiHealpix
+          lambda min: 3600
+          lambda max: 5772
+          wave solution: lin
+          delta lambda: 0.8
+          minimum number pixels in forest: 150
+
+        expected flux:
+          type: Dr16FixedFudgeExpectedFlux
+          fudge value: 0
+          var lss mod: 7.5
+          limit var lss: (0, 0.4)
+
+      ciii:
+        expected flux:
+          var lss mod: 1
+
+      lya:
+        data:
+          lambda max rest frame: 1205.0
+    
+
+  slurm args:
+    picca_convert_transmission:
+      general:
+        time: "03:30:00"
+        qos: regular
+        cpus-per-task: 256
+    
+    picca_delta_extraction:
+      general:
+        time: "03:30:00"
+        qos: regular
+        cpus-per-task: 256
+
+      ciii:
+        time: "04:00:00"
+        cpus-per-task: $
+
+      lya:
+        time: "02:30:00"
+
+      lyb:
+        time: "01:10:00"
+
+
+correlations:
+  fast metals: True
+
+  extra args:
+    picca_cf:
+      general:
+        rp-min: 0
+        rp-max: 200
+        rt-max: 200
+        np: 50
+        nt: 50
+        fid-Or: 7.963e-5
+        fid-Om: 0.315
+        rebin-factor: 3
+
+    picca_dmat:
+      general:
+        rej: 0.99
+        rp-min: 0
+        rp-max: 300
+        rt-max: 200
+        np: 75
+        nt: 50
+        fid-Or: 7.963e-5
+        fid-Om: 0.315
+        rebin-factor: 3
+        coef-binning-model: 2
+
+    picca_fast_metal_dmat:
+      general:
+        abs-igm: "SiII(1190) SiII(1193) SiIII(1207) SiII(1260) CIV(eff)"
+        rp-min: 0
+        rp-max: 300
+        rt-max: 200
+        np: 75
+        nt: 50
+        fid-Or: 7.963e-5
+        fid-Om: 0.315
+        rebin-factor: 3
+        coef-binning-model: 2
+
+    picca_metal_dmat:
+      general:
+        rej: 0.999
+        abs-igm: "SiII(1190) SiII(1193) SiIII(1207) SiII(1260) CIV(eff)"
+        rp-min: 0
+        rp-max: 300
+        rt-max: 200
+        np: 75
+        nt: 50
+        fid-Or: 7.963e-5
+        fid-Om: 0.315
+        rebin-factor: 3
+        coef-binning-model: 1
+
+      lyaciv_lyaciv:
+        abs-igm: "CIV(eff)"
+
+    picca_xcf:
+      general:
+        mode: desi_healpix
+        nside: 16
+        rp-min: -200
+        rp-max: 200
+        rt-max: 200
+        np: 100
+        nt: 50
+        fid-Or: 7.963e-5
+        fid-Om: 0.315
+        rebin-factor: 3
+
+      lyalya_lyalyb:
+        smooth-per-r-par: ""
+
+    picca_xdmat:
+      general:
+        mode: "desi_healpix"
+        rej: 0.99
+        nside: 16
+        rp-min: -300
+        rp-max: 300
+        rt-max: 200
+        np: 150
+        nt: 50
+        fid-Or: 7.963e-5
+        fid-Om: 0.315
+        rebin-factor: 3
+        coef-binning-model: 2
+
+    picca_fast_metal_xdmat:
+      general:
+        mode: "desi_healpix"
+        abs-igm: "SiII(1190) SiII(1193) SiIII(1207) SiII(1260)"
+        rp-min: -300
+        rp-max: 300
+        rt-max: 200
+        np: 150
+        nt: 50
+        fid-Or: 7.963e-5
+        fid-Om: 0.315
+        rebin-factor: 3
+        coef-binning-model: 2
+
+      lyaciv:
+        abs-igm: "CIV(eff)"
+
+    picca_metal_xdmat:
+      general:
+        mode: "desi_healpix"
+        rej: 0.999
+        abs-igm: "SiII(1190) SiII(1193) SiIII(1207) SiII(1260)"
+        rp-min: -300
+        rp-max: 300
+        rt-max: 200
+        np: 150
+        nt: 50
+        fid-Or: 7.963e-5
+        fid-Om: 0.315
+        rebin-factor: 3
+        coef-binning-model: 1
+    
+    picca_export:
+      lyalya_lyalya:
+        blind-corr-type: lyaxlya
+      
+      lyalya_lyalyb:
+        blind-corr-type: lyaxlyb
+        smooth-per-r-par: ""
+
+      qso_lyalya:
+        blind-corr-type: qsoxlya
+        
+      lyalyb:
+        blind-corr-type: qsoxlyb
+
+
+  slurm args:
+    picca_cf:
+      general:
+        qos: regular
+        time: "01:30:00"
+        cpus-per-task: 256
+      
+      lyalya_lyalya:
+        time: "00:50:00"
+
+      lyalya_lyalyb:
+        time: "00:30:00"
+
+    picca_dmat:
+      general:
+        qos: regular
+        time: "05:00:00"
+        cpus-per-task: 256
+      
+      lyalya_lyalya:
+        time: "05:00:00"
+        OMP_NUM_THREADS: 1
+
+      lyalya_lyalyb:
+        time: "03:00:00"
+
+    picca_export:
+      general:
+        qos: regular
+        time: "00:15:00"
+        cpus-per-task: 1
+
+    picca_fast_metal_dmat:
+      general:
+        qos: regular
+        time: "00:20:00"
+        cpus-per-task: 256     
+
+    picca_metal_dmat:
+      general:
+        qos: regular
+        time: "12:00:00"
+        cpus-per-task: 128
+
+    picca_xcf:
+      general:
+        qos: regular
+        time: "01:00:00"
+        cpus-per-task: 256
+
+      qso_lyalya:
+        time: "01:00:00"
+
+      lyalyb:
+        time: "00:30:00"
+
+    picca_xdmat:
+      general:
+        qos: regular
+        time: "02:00:00"
+        cpus-per-task: 256
+
+      qso_lyalya:
+        time: "01:40:00"
+
+      qso_lyalyb:
+        time: "00:40:00"
+
+    picca_fast_metal_xdmat:
+      general:
+        qos: regular
+        time: "00:10:00"
+        cpus-per-task: 256
+
+    picca_metal_xdmat:
+      general:
+        qos: regular
+        time: "12:00:00"
+        cpus-per-task: 128
+
+
+fits:
+  auto correlations: lya.lya-lya.lya lya.lya-lya.lyb
+  cross correlations: qso-lya.lya qso-lya.lyb
+
+  sampler environment: /global/common/software/desi/users/acuceu/stable_vega/activate_vega.sh
+
+  compute covariance: True
+  smooth covariance: True
+
+  compute zeff: False
+
+  vega metals: True
+
+  no bao: False
+  no hcd: False
+  no metals: False
+  no sky: False
+  no qso rad: False
+  rmin cf:
+  rmax cf: 
+  rmin xcf:
+  rmax xcf:
+
+  extra args:
+    vega_auto:
+      general:
+        cuts:
+          rp-min: -200.
+          rp-max: +200.
+          rt-min: 0.
+          rt-max: 200.
+          r-min: 30.
+          r-max: 180.
+          mu-min: -1.
+          mu-max: +1.
+
+        model:
+          z evol LYA: bias_vs_z_std
+          small scale nl: dnl_arinyo
+          use_metal_autos: True
+          desi-instrumental-systematics: True
+          model-hcd: Rogers2018
+          fast_metals: True
+
+        metals:
+          filename: None
+          z evol: bias_vs_z_std
+          in tracer1:  SiII(1190) SiII(1193) SiIII(1207) SiII(1260) CIV(eff)
+          in tracer2:  SiII(1190) SiII(1193) SiIII(1207) SiII(1260) CIV(eff)
+
+        metal-matrix:
+          rebin_factor: 3
+          alpha_LYA: 2.9
+          alpha_SiII(1260): 1.
+          alpha_SiIII(1207): 1.
+          alpha_SiII(1193): 1.
+          alpha_SiII(1190): 1.
+          alpha_CIV(eff): 1.
+          z_ref_objects: 2.25
+          z_evol_objects: 1.44
+          z_bins_objects: 1000
+
+      lyaciv_lya_civ:
+        metals:
+          in tracer1: CIV(eff)
+          in tracer2: CIV(eff)
+      
+      lyaciv:
+        metals:
+          in tracer2: CIV(eff)
+
+
+    vega_cross:
+      general:
+        cuts:
+          rp-min: -200.
+          rp-max: +200.
+          rt-min: 0.
+          rt-max: 200.
+          r-min: 30.
+          r-max: 180.
+          mu-min: -1.
+          mu-max: +1.
+
+        model:
+          z evol LYA: bias_vs_z_std
+          z evol QSO: bias_vs_z_std
+          model-hcd: Rogers2018
+          fast_metals: True
+          velocity dispersion: lorentz
+          radiation effects: True
+
+        metals:
+          filename: None
+          z evol: bias_vs_z_std
+          in tracer1:  SiII(1190) SiII(1193) SiIII(1207) SiII(1260) CIV(eff)
+          velocity dispersion: lorentz
+        
+        metal-matrix:
+          rebin_factor: 3
+          alpha_LYA: 2.9
+          alpha_SiII(1260): 1.
+          alpha_SiIII(1207): 1.
+          alpha_SiII(1193): 1.
+          alpha_SiII(1190): 1.
+          alpha_CIV(eff): 1.
+          z_ref_objects: 2.25
+          z_evol_objects: 1.44
+          z_bins_objects: 1000
+
+    vega_main:
+      general:
+        data sets:
+          zeff: 2.33
+
+        cosmo-fit type:
+        ## BAO: fit ap_at, all others False
+          # cosmo fit func: ap_at
+          # full-shape: False
+          # full-shape-alpha: False
+          # smooth-scaling: False
+          
+        ## FS peak/smooth AP: fit phi-alpha, smooth-scaling True
+          cosmo fit func: phi_alpha
+          full-shape: False
+          full-shape-alpha: False
+          smooth-scaling: True
+
+        ## FS AP: fit phi_alpha, smooth-scaling True, FS True
+          # cosmo fit func: phi_alpha
+          # full-shape: True
+          # full-shape-alpha: False
+          # smooth-scaling: True
+          
+        ## FS galaxy: fit phi-alpha, all True
+          # cosmo fit func: phi_alpha
+          # full-shape: True
+          # full-shape-alpha: True
+          # smooth-scaling: True
+          
+        fiducial: 
+          filename: Planck18/DESI-2024_z_2.33.fits
+
+        output:
+          filename: combined.fits
+          overwrite: True
+          
+        sample:
+          # ap: True
+          # at: True
+          growth_rate: True
+          dnl_arinyo_q1: 0 1 0.3 0.1
+          bias_LYA: True
+          beta_LYA: True
+          bias_QSO: True
+          sigma_velo_disp_lorentz_QSO: True
+          drp_QSO: True
+          qso_rad_strength: True
+          bias_hcd: True
+          beta_hcd: True
+          L0_hcd: True
+          bias_SiII(1190): True
+          bias_SiII(1193): True
+          bias_SiIII(1207): True
+          bias_SiII(1260): True
+          bias_CIV(eff): True
+          desi_inst_sys_amp: True
+          dnl_arinyo_kv: 0.3 2.0 1.11454 0.1
+          dnl_arinyo_av: 0.1 1.0 0.5378 0.1
+          dnl_arinyo_bv: 1 2.0 1.607 0.1
+          dnl_arinyo_kp: 5 22 19.47 0.1
+
+          # Peak/smooth AP config
+          phi: True
+          alpha: True
+          phi_smooth: True
+          alpha_smooth: True
+            
+          # Full-shape AP config
+          # alpha: True
+          # phi_full: True
+          # alpha_smooth: True
+            
+          # Galaxy full-shape config
+          # phi_full: True
+          # alpha_full: True
+
+        priors:
+          beta_hcd: gaussian 0.5 0.09
+          bias_CIV(eff): gaussian -0.0243 0.0015
+          drp_QSO: gaussian 0 1
+
+        parameters:
+          # ap: 1.0
+          # at: 1.0
+          sigmaNL_per: 3.24
+          sigmaNL_par: 6.36984
+          bao_amp: 1.
+          bias_LYA: -0.11629442782749021
+          beta_LYA: 1.67
+          alpha_LYA: 2.9
+          bias_QSO: 3.792183285869361
+          bias_eta_QSO: 1
+          growth_rate: 0.9674624900622072
+          alpha_QSO: 1.44
+          dnl_arinyo_q1: 0.8558
+          dnl_arinyo_kv: 1.11454
+          dnl_arinyo_av: 0.5378
+          dnl_arinyo_bv: 1.607
+          dnl_arinyo_kp: 19.47
+          bias_hcd: -0.05
+          beta_hcd: 0.7
+          L0_hcd: 6.51
+          drp_QSO: 0.0
+          sigma_velo_disp_lorentz_QSO: 6.86
+          qso_rad_strength: 0.74
+          qso_rad_asymmetry: 0.
+          qso_rad_lifetime: 9e99
+          qso_rad_decrease: 300.
+          bias_SiII(1190): -0.0052
+          beta_SiII(1190): 0.5
+          alpha_SiII(1190): 1.
+          bias_SiII(1193): -0.0024
+          beta_SiII(1193): 0.5
+          alpha_SiII(1193): 1.
+          bias_SiIII(1207): -0.0074
+          beta_SiIII(1207): 0.5
+          alpha_SiIII(1207): 1.
+          bias_SiII(1260): -0.0046
+          beta_SiII(1260): 0.5
+          alpha_SiII(1260): 1.
+          bias_CIV(eff): -0.01
+          beta_CIV(eff): 0.5
+          alpha_CIV(eff): 0.
+          desi_inst_sys_amp: 1e-4
+
+          # Peak/smooth AP config
+          phi: 1.0
+          alpha: 1.0
+          phi_smooth: 1.0
+          alpha_smooth: 1.0
+            
+          # Full-shape AP config
+          # alpha: 1.0
+          # phi_full: 1.0
+          # alpha_smooth: 1.0
+            
+          # Galaxy full-shape config
+          # phi_full: 1.0
+          # alpha_full: 1.0
+
+        control:
+          sampler: True
+          use_template_growth_rate: False
+
+        Polychord:
+          seed: 2
+          num_live: 512
+          num_repeats: 25
+          path:
+          name: com
+          do_clustering: True
+          resume: True
+          boost_posterior: 3
+
+  slurm args:
+    run_vega:
+      general:
+        qos: shared
+        ntasks: 1
+        time: "00:45:00"
+        cpus-per-task: 20
+
+    picca_bookkeeper_correct_config_zeff:
+      general:
+        qos: shared
+        ntasks: 1
+        time: "00:04:00"
+        cpus-per-task: 5
+
+    write_full_covariance:
+      general:
+        qos: regular
+        time: "00:05:00"
+        cpus-per-task: 256
+
+    smooth_covariance:
+      general:
+        qos: shared
+        time: "00:30:00"
+        cpus-per-task: 5
