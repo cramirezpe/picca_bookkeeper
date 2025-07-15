@@ -22,7 +22,7 @@ echo used picca_bookkeeper version: x.xx
 echo using picca version: $(python -c "import importlib.metadata; print(importlib.metadata.version('picca'))")
 echo -e '\n'
 
-command="/global/cfs/cdirs/desicollab/science/lya/y1-kp6/iron-tests/correlations/scripts/write_smooth_covariance_flex_size.py --rt-max-auto 200 --rp-min-auto 0 --rp-max-auto 300 --np-auto 75 --nt-auto 50 --rt-max-cross 200 --rp-min-cross -300 --rp-max-cross 300 --np-cross 150 --nt-cross 50 --input-cov ('/picca_bookkeeper/tests/test_files/output/results/fits/results/full-covariance.fits',) --output-cov ('/picca_bookkeeper/tests/test_files/output/results/fits/results/full-covariance-smoothed.fits',)"
+command="/global/cfs/cdirs/desicollab/science/lya/y1-kp6/iron-tests/correlations/scripts/write_smooth_covariance_flex_size.py --rt-max-auto 200 --rp-min-auto 0 --rp-max-auto 300 --np-auto 75 --nt-auto 50 --rt-max-cross 200 --rp-min-cross -300 --rp-max-cross 300 --np-cross 150 --nt-cross 50 --input-cov /picca_bookkeeper/tests/test_files/output/results/fits/results/full-covariance.fits --output-cov /picca_bookkeeper/tests/test_files/output/results/fits/results/full-covariance-smoothed.fits"
 date
 srun  $command
 
