@@ -1850,30 +1850,32 @@ class Bookkeeper:
         overwrite: bool = False,
         skip_sent: bool = False,
     ) -> Tasker:
-        """Method to get a Tasker object to run forest-forest metal distortion matrix
-        measurements with picca.
-
-        Args:
-            region: Region to use. Options: ('lya', 'lyb'). Default: 'lya'.
-            region2: Region to use for cross-correlations.
-                Default: None, auto-correlation.
-            absorber: First absorber to use for correlations.
-            absorber2: Second absorber to use for correlations.
-                Default: Same as absorber.
-            system: Shell to use for job. 'slurm_perlmutter' to use slurm
-                scripts on perlmutter, 'bash' to  run it in login nodes or
-                computer shell. Default: None, read from config file.
-            debug: Whether to use debug options.
-            wait_for: In NERSC, wait for a given job to finish before running
-                the current one. Could be a  Tasker object or a slurm jobid
-                (int). (Default: None, won't wait for anything).
-            overwrite: Overwrite files in destination.
-            skip_sent: Skip this and return a DummyTasker if the run
-                was already sent before.
-
-        Returns:
-            Tasker: Tasker object to run forest-forest correlation.
         """
+        Method to get a Tasker object to run forest-forest metal distortion matrix
+        measurements with picca.
+    
+        Args:
+            region (str): Primary forest region. Options include 'lya', 'lyb'. Default: 'lya'.
+            region2 (Optional[str]): Secondary forest region for cross-correlations.
+                Defaults to None for auto-correlation with `region`.
+            absorber (str): First absorber to use for correlations. (e.g., 'lya').
+            absorber2 (Optional[str]): Second absorber to use for correlations.
+                Defaults to None, meaning same absorber as `absorber`.
+            system (Optional[str]): Execution system or shell to use  (e.g., 'slurm_perlmutter' to use slurm
+                scripts on perlmutter, 'bash' to  run it in login nodes or computer shell). 
+                Defaults to config value if None.
+            debug: Whether to use debug options.
+            wait_for (Optional[Tasker | ChainedTasker | int | List[int]]): Job(s) to wait for before starting
+                (default: None). Could be a Tasker object or a slurm jobid (int).
+            overwrite (bool): Overwrite existing output files if True (default: False).
+            skip_sent (bool): Skip and return DummyTasker if the output already exists (default: False).
+    
+        Returns:
+            Tasker: Configured Tasker object to run metal distortion matrix measurements.
+    
+        Raises:
+            ValueError: If initialized in read mode or if config defaults have changed since last run.
+        """        
         if self.read_mode:
             raise ValueError("Initialize bookkeeper without read_mode to run jobs.")
         if self.defaults_diff != {}:
@@ -2024,26 +2026,28 @@ class Bookkeeper:
         overwrite: bool = False,
         skip_sent: bool = False,
     ) -> Tasker:
-        """Method to get a Tasker object to run forest-quasar correlations with picca.
-
-        Args:
-            region: Region to use. Options: ('lya', 'lyb'). Default: 'lya'.
-            absorber: First absorber to use for correlations.
-            tracer: Tracer to use. Default: 'qso'.
-            system: Shell to use for job. 'slurm_perlmutter' to use slurm
-                scripts on perlmutter, 'bash' to  run it in login nodes or
-                computer shell. Default: None, read from config file.
-            debug: Whether to use debug options.
-            wait_for: In NERSC, wait for a given job to finish before running
-                the current one. Could be a  Tasker object or a slurm jobid
-                (int). (Default: None, won't wait for anything).
-            overwrite: Overwrite files in destination.
-            skip_sent: Skip this and return a DummyTasker if the run
-                was already sent before.
-
-        Returns:
-            Tasker: Tasker object to run forest-forest correlation.
         """
+        Method to get a Tasker object to run forest-quasar correlations with picca.
+    
+        Args:
+            region (str): Region to use. Options: ('lya', 'lyb'). Default: 'lya'.
+            absorber (str):  First absorber to use for correlations. Default: 'lya'.
+            tracer (str): Tracer type for cross-correlation (e.g., 'qso'). Default: 'qso'.
+            system (Optional[str]): Execution system or shell to use  (e.g., 'slurm_perlmutter' to use slurm
+                scripts on perlmutter, 'bash' to  run it in login nodes or computer shell). 
+                Defaults to config value if None.
+            debug: Whether to use debug options.
+            wait_for (Optional[Tasker | ChainedTasker | int | List[int]]): Job(s) to wait for before starting
+                (default: None). Could be a Tasker object or a slurm jobid (int).
+            overwrite (bool): Overwrite existing output files if True (default: False).
+            skip_sent (bool): Skip and return DummyTasker if the output already exists (default: False).
+    
+        Returns:
+            Tasker: Configured Tasker object to run forest-quasar cross-correlation.
+    
+        Raises:
+            ValueError: If initialized in read mode or if config defaults have changed since last run.
+        """     
         if self.read_mode:
             raise ValueError("Initialize bookkeeper without read_mode to run jobs.")
         if self.defaults_diff != {}:
@@ -2167,29 +2171,29 @@ class Bookkeeper:
         overwrite: bool = False,
         skip_sent: bool = False,
     ) -> Tasker:
-        """Method to get a Tasker object to run forest-quasar distortion matrix
-        measurements with picca.
-
-        Args:
-            region (str, optional): Region to use. Options: ('lya', 'lyb').
-                Default: 'lya'.
-            absorber: First absorber to use for correlations.
-            tracer (str, optional): Tracer to use. Options: ('qso').
-            system (str, optional): Shell to use for job. 'slurm_cori' to use slurm
-                scripts on cori, 'slurm_perlmutter' to use slurm scripts on perlmutter,
-                'bash' to run it in login nodes or computer shell. Default: None, read
-                from config file.
-            debug (bool, optional): Whether to use debug options.
-            wait_for (Tasker or int, optional): In NERSC, wait for a given job to
-                finish before running the current one. Could be a  Tasker object
-                or a slurm jobid (int). (Default: None, won't wait for anything).
-            overwrite: Overwrite files in destination.
-            skip_sent: Skip this and return a DummyTasker if the run
-                was already sent before.
-
-        Returns:
-            Tasker: Tasker object to run forest-quasar distortion matrix.
         """
+        Method to get a Tasker object to run forest-quasar distortion matrix
+        measurements with picca.
+    
+        Args:
+            region (str, optional): Absorption region to use ('lya', 'lyb'). Default is 'lya'.
+            absorber (str): irst absorber to use for correlations. Default is 'lya'.
+            tracer (str, optional): Tracer type for cross-correlation (e.g., 'qso'). Default is 'qso'.
+            system (Optional[str]): Execution system or shell to use  (e.g., 'slurm_perlmutter' to use slurm
+                scripts on perlmutter, 'bash' to  run it in login nodes or computer shell). 
+                Defaults to config value if None.
+            debug: Whether to use debug options.
+            wait_for (Optional[Tasker | ChainedTasker | int | List[int]]): Job(s) to wait for before starting
+                (default: None). Could be a Tasker object or a slurm jobid (int).
+            overwrite (bool): Overwrite existing output files if True (default: False).
+            skip_sent (bool): Skip and return DummyTasker if the output already exists (default: False).
+    
+        Returns:
+            Tasker: Configured Tasker object to run the forest-quasar distortion matrix measurement.
+    
+        Raises:
+            ValueError: If initialized in read mode or if config defaults have changed since last run.
+        """        
         if self.read_mode:
             raise ValueError("Initialize bookkeeper without read_mode to run jobs.")
         if self.defaults_diff != {}:
@@ -2314,27 +2318,29 @@ class Bookkeeper:
     ) -> Tasker:
         if self.read_mode:
             raise ValueError("Initialize bookkeeper without read_mode to run jobs.")
-        """Method to get a Tasker object to run forest-quasar correlation export with
-        picca.
-
-        Args:
-            region: Region to use. Options: ('lya', 'lyb'). Default: 'lya'.
-            absorber: First absorber to use for correlations.
-            tracer: Tracer to use. Default: 'qso'.
-            system: Shell to use for job. 'slurm_perlmutter' to use slurm
-                scripts on perlmutter, 'bash' to  run it in login nodes or
-                computer shell. Default: None, read from config file.
-            debug: Whether to use debug options.
-            wait_for: In NERSC, wait for a given job to finish before running
-                the current one. Could be a  Tasker object or a slurm jobid
-                (int). (Default: None, won't wait for anything).
-            overwrite: Overwrite files in destination.
-            skip_sent: Skip this and return a DummyTasker if the run
-                was already sent before.
-
-        Returns:
-            Tasker: Tasker object to run forest-forest correlation.
         """
+        Method to get a Tasker object to run forest-quasar correlation export with
+        picca.
+    
+        Args:
+            region (str, optional): Absorption region to use ('lya', 'lyb'). Default is 'lya'.
+            absorber (str): First absorber to use for correlations. Default is 'lya'.
+            tracer (str, optional): Tracer type for the cross-correlation. Default is 'qso'.
+            system (Optional[str]): Execution system or shell to use  (e.g., 'slurm_perlmutter' to use slurm
+                scripts on perlmutter, 'bash' to  run it in login nodes or computer shell). 
+                Defaults to config value if None.
+            debug: Whether to use debug options.
+            wait_for (Optional[Tasker | ChainedTasker | int | List[int]]): Job(s) to wait for before starting
+                (default: None). Could be a Tasker object or a slurm jobid (int).
+            overwrite (bool): Overwrite existing output files if True (default: False).
+            skip_sent (bool): Skip and return DummyTasker if the output already exists (default: False).
+    
+        Returns:
+            Tasker: Configured Tasker object to export forest-quasar correlation data.
+    
+        Raises:
+            ValueError: If initialized in read mode or if config defaults have changed since last run.
+        """        
         if self.defaults_diff != {}:
             raise ValueError(
                 "Default values changed since last run of the "
@@ -2474,27 +2480,29 @@ class Bookkeeper:
         overwrite: bool = False,
         skip_sent: bool = False,
     ) -> Tasker:
-        """Method to get a Tasker object to run forest-quasar metal distortion matrix
-        measurements with picca.
-
-        Args:
-            region: Region to use. Options: ('lya', 'lyb'). Default: 'lya'.
-            absorber: First absorber to use for correlations.
-            tracer: Tracer to use for correlations. Default: 'qso'.
-            system: Shell to use for job. 'slurm_perlmutter' to use slurm
-                scripts on perlmutter, 'bash' to  run it in login nodes or
-                computer shell. Default: None, read from config file.
-            debug: Whether to use debug options.
-            wait_for: In NERSC, wait for a given job to finish before running
-                the current one. Could be a  Tasker object or a slurm jobid
-                (int). (Default: None, won't wait for anything).
-            overwrite: Overwrite files in destination.
-            skip_sent: Skip this and return a DummyTasker if the run
-                was already sent before.
-
-        Returns:
-            Tasker: Tasker object to run forest-forest correlation.
         """
+        Method to get a Tasker object to run forest-quasar metal distortion matrix
+                measurements with picca.    
+                
+        Args:
+            region (str, optional): Absorption region to use ('lya', 'lyb'). Default is 'lya'.
+            absorber (str): First absorber to use for correlations. Default is 'lya'.
+            tracer (str, optional): Tracer type for the cross-correlation. Default is 'qso'.
+            system (Optional[str]): Execution system or shell to use  (e.g., 'slurm_perlmutter' to use slurm
+                scripts on perlmutter, 'bash' to  run it in login nodes or computer shell). 
+                Defaults to config value if None.
+            debug: Whether to use debug options.
+            wait_for (Optional[Tasker | ChainedTasker | int | List[int]]): Job(s) to wait for before starting
+                (default: None). Could be a Tasker object or a slurm jobid (int).
+            overwrite (bool): Overwrite existing output files if True (default: False).
+            skip_sent (bool): Skip and return DummyTasker if the output already exists (default: False).
+    
+        Returns:
+            Tasker: Configured Tasker object to run forest-quasar metal distortion matrix computation.
+    
+        Raises:
+            ValueError: If initialized in read mode or if config defaults have changed since last run.
+        """ 
         if self.read_mode:
             raise ValueError("Initialize bookkeeper without read_mode to run jobs.")
         region = self.validate_region(region)
@@ -2630,22 +2638,23 @@ class Bookkeeper:
         overwrite: bool = False,
         skip_sent: bool = False,
     ) -> Tasker | DummyTasker:
-        """Method to get a Tasker object to run correct_config_zeff
-
-        Args:
-            system: Shell to use for job. 'slurm_cori' to use slurm scripts on
-                cori, 'slurm_perlmutter' to use slurm scripts on perlmutter,
-                'bash' to run it in login nodes or computer shell.
-                Default: None, read from config file.
-            wait_for: In NERSC, wait for a given job to finish before running
-                the current one. Could be a  Tasker object or a slurm jobid
-                (int). (Default: None, won't wait for anything).
-            overwrite: Overwrite files in destination.
-            skip_sent: Skip the run if fit output already present.
-
-        Returns:
-            Tasker: Tasker object to run correct_config_zeff.
         """
+        Create a Tasker to compute the effective redshift using 
+        `picca_bookkeeper_correct_config_zeff`.
+    
+        Args:
+            system (Optional[str]): Execution system or shell to use  (e.g., 'slurm_perlmutter' to use slurm
+                scripts on perlmutter, 'bash' to  run it in login nodes or computer shell). 
+                Defaults to config value if None.
+            wait_for (Optional[Tasker | ChainedTasker | int | List[int]]): Job(s) to wait for before starting
+                (default: None). Could be a Tasker object or a slurm jobid (int).
+            overwrite (bool): Overwrite existing output files if True (default: False).
+            skip_sent (bool): Skip and return DummyTasker if the output already exists (default: False).
+    
+        Returns:
+            Tasker | DummyTasker: Tasker object to submit the job, or 
+                    DummyTasker if the task is skipped.
+        """        
         if self.read_mode:
             raise ValueError("Initialize bookkeeper without read_mode to run jobs.")
         if self.defaults_diff != {}:
@@ -2726,21 +2735,21 @@ class Bookkeeper:
         overwrite: bool = False,
         skip_sent: bool = False,
     ) -> Tasker | DummyTasker:
-        """Method to get a Tasker object to run vega with correlation data.
-
+        """
+        Method to get a Tasker object to run vega with correlation data.
+    
         Args:
-            system: Shell to use for job. 'slurm_cori' to use slurm scripts on
-                cori, 'slurm_perlmutter' to use slurm scripts on perlmutter,
-                'bash' to run it in login nodes or computer shell.
-                Default: None, read from config file.
-            wait_for: In NERSC, wait for a given job to finish before running
-                the current one. Could be a  Tasker object or a slurm jobid
-                (int). (Default: None, won't wait for anything).
-            overwrite: Overwrite files in destination.
-            skip_sent: Skip the run if fit output already present.
-
+            system (Optional[str]): Execution system or shell to use  (e.g., 'slurm_perlmutter' to use slurm
+                scripts on perlmutter, 'bash' to  run it in login nodes or computer shell). 
+                Defaults to config value if None.
+            wait_for (Optional[Tasker | ChainedTasker | int | List[int]]): Job(s) to wait for before starting
+                (default: None). Could be a Tasker object or a slurm jobid (int).
+            overwrite (bool): Overwrite existing output files if True (default: False).
+            skip_sent (bool): Skip and return DummyTasker if the output already exists (default: False).
+    
         Returns:
-            Tasker: Tasker object to run vega.
+            Tasker | DummyTasker: Tasker object to submit the job, or 
+            DummyTasker if the task is skipped.
         """
         if self.read_mode:
             raise ValueError("Initialize bookkeeper without read_mode to run jobs.")
@@ -2810,21 +2819,23 @@ class Bookkeeper:
         overwrite: bool = False,
         skip_sent: bool = False,
     ) -> Tasker | DummyTasker:
-        """Method to get a Tasker object to run vega sampler with correlation data.
-
+        """
+        Method to get a Tasker object to run vega sampler with correlation data.    
+        
         Args:
-            system: Shell to use for job. 'slurm_cori' to use slurm scripts on
-                cori, 'slurm_perlmutter' to use slurm scripts on perlmutter,
-                'bash' to run it in login nodes or computer shell.
-                Default: None, read from config file.
-            wait_for: In NERSC, wait for a given job to finish before running
-                the current one. Could be a  Tasker object or a slurm jobid
-                (int). (Default: None, won't wait for anything).
-            overwrite: Overwrite files in destination.
-            skip_sent: Skip the run if sampler output already present.
-
+            auto_correlations (List[str]): List of auto-correlation names to include.
+            cross_correlations (List[str]): List of cross-correlation names to include.
+            system (Optional[str]): Execution system or shell to use  (e.g., 'slurm_perlmutter' to use slurm
+                scripts on perlmutter, 'bash' to  run it in login nodes or computer shell). 
+                Defaults to config value if None.
+            wait_for (Optional[Tasker | ChainedTasker | int | List[int]]): Job(s) to wait for before starting
+                (default: None). Could be a Tasker object or a slurm jobid (int).
+            overwrite (bool): Overwrite existing output files if True (default: False).
+            skip_sent (bool): Skip and return DummyTasker if the output already exists (default: False).
+    
         Returns:
-            Tasker: Tasker object to run vega sampler.
+            Tasker | DummyTasker: A Tasker object to submit the job, or a DummyTasker if
+            the task is skipped due to existing output or config issues.
         """
         if self.read_mode:
             raise ValueError("Initialize bookkeeper without read_mode to run jobs.")
@@ -2891,9 +2902,23 @@ class Bookkeeper:
 
     def generate_fit_configuration(self) -> Dict:
         """
-        Method to generate fit configuration args to be combined with input
-        yaml file
+        Method to generate fit configuration args to be combined with input YAML file.
+    
+        This method constructs and validates a nested dictionary of fit options to be passed to
+        vega for correlation function fitting. It checks types for key fit flags and cut ranges,
+        and conditionally sets parameters and sampling flags based on booleans in the config
+        (e.g., disabling BAO, HCD, metals, sky systematics, or QSO radiation effects).
+    
+        It also applies rmin/rmax cuts for auto- and cross-correlations if defined.
+    
+        Returns:
+            Dict: A complete dictionary with validated and modified fit configuration,
+                  stored under `config["fits"]["extra args"]`.
+                  
+        Raises:
+            ValueError: If required fields in the config are not of the expected type.
         """
+        
         config = DictUtils.merge_dicts(
             {
                 "fits": {
@@ -3116,12 +3141,26 @@ class Bookkeeper:
 
     def write_fit_configuration(self) -> List[Path]:
         """
-        Method to generate and write vega configuration files from bookkeeper config.
-
+        Generate and write full Vega configuration `.ini` files for auto, cross, and main fits, 
+        using the main bookkeeper config YAML.
+    
+        This method uses the current bookkeeper config to:
+        - Generate correlation-specific configuration arguments (via `generate_fit_configuration`)
+        - Build `.ini` files for each auto- and cross-correlation, including optional metadata such as:
+            - Metal models (from precomputed files or Vega internal models)
+            - Distortion matrices
+            - Unblinding flags
+        - Assemble the final `vega_main.ini` file with paths to all sub-configs and output locations
+        - Add dependencies for sampler input, covariance matrix, or derived parameters if required
+    
         Returns:
-            List of input files, needed by the Tasker instance to correctly
-            set up dependencies.
+            List[Path]: All input files (e.g., exports, distortions, metal files) used by the Tasker 
+            instance to correctly set up dependencies.
+    
+        Raises:
+            ValueError: If any required format or validation fails during file generation.
         """
+
         ini_files = []
         input_files = []
 
@@ -3579,21 +3618,28 @@ class Bookkeeper:
     ) -> Tasker:
         """
         Method to get a Tasker object to run smooth covariance.
-
+    
+        This task reads the unsmoothed covariance matrix and outputs a smoothed version,
+        using configuration from the first available auto or cross-correlation. If the 
+        smoothed file already exists or has been copied, a DummyTasker is returned.
+    
         Args:
-            system: Shell to use for job. 'slurm_cori' to use slurm scripts on
-                cori, 'slurm_perlmutter' to use slurm scripts on perlmutter,
-                'bash' to run it in login nodes or computer shell.
-                Default: None, read from config file.
-            wait_for: In NERSC, wait for a given job to finish before running
-                the current one. Could be a  Tasker object or a slurm jobid
-                (int). (Default: None, won't wait for anything).
-            overwrite: Overwrite files in destination.
-            skip_sent: Skip the run if fit output already present.
-
+            system (Optional[str]): Execution system or shell to use  (e.g., 'slurm_perlmutter' to use slurm
+                scripts on perlmutter, 'bash' to  run it in login nodes or computer shell). 
+                Defaults to config value if None.
+            wait_for (Optional[Tasker | ChainedTasker | int | List[int]]): Job(s) to wait for before starting
+                (default: None). Could be a Tasker object or a slurm jobid (int).
+            overwrite (bool): Overwrite existing output files if True (default: False).
+            skip_sent (bool): Skip and return DummyTasker if the output already exists (default: False).
+    
         Returns:
-            Tasker: Tasker object to run smooth matrix.
+            Tasker: Configured Tasker to execute the smoothing job, or DummyTasker
+            if no execution is needed.
+    
+        Raises:
+            ValueError: If bookkeeper is in read-only mode or config defaults differ.
         """
+        
         if self.read_mode:
             raise ValueError("Initialize bookkeeper without read_mode to run jobs.")
         if self.defaults_diff != {}:
@@ -3746,20 +3792,29 @@ class Bookkeeper:
     ) -> bool:
         """
         Method to check the status of an output file.
-
+    
+        This is primarily used to avoid re-running tasks that have already completed 
+        or are in progress, based on the presence and contents of the output file.
+    
         Args:
-            file: Path to the file we want to check.
-            job_name: Job name used for logging.
-            skip_sent: Whether sent jobs should be skipped.
-            overwrite: Whether existing runs should be overwritten.
-            system: System where the jobs are being run.
-
+            file (Path): Path to the output file to check.
+            job_name (str): Name of the job (used for logging).
+            skip_sent (bool): If True, skip jobs that were already sent or are still running.
+            overwrite (bool): Whether existing runs should be overwritten.
+            system (str): System where jobs are being run (used to query job status).
+    
         Returns:
-            True if the file exists and the run has to be skipped. False if the file does
-                not exist or the run has to be overwritten. It will raise a
-                FileExistsError if the overwrite option is disabled, a file exists and
-                skip_sent is disabled.
-        """
+            bool: True if the job should be skipped (file exists and skip_sent is True).
+                  False if the job should proceed (file does not exits, or run to be overwritten).
+    
+        Raises:
+            FileExistsError: If the file exists, overwrite is False, and skip_sent is False.
+    
+        Notes:
+            - If the file exists but is very small (<40 bytes), it is assumed to contain a job ID.
+              The job status is then checked via the system's scheduler.
+            - If the job is no longer active, it will not be skipped.
+        """      
         if not file.is_file():
             return False
         else:
