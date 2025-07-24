@@ -1,3 +1,16 @@
+"""
+picca_bookkeeper.bookkeeper
+
+This module provides the Bookkeeper and PathBuilder classes, which manage configuration, 
+tasking, and filesystem structure for orchestrating picca and vega analysis runs, including 
+delta extraction, correlations, and fitting. It includes task scheduling, configuration 
+validation, and path management utilities.
+
+Classes:
+    - Bookkeeper: High-level interface for managing picca and vega jobs and configurations.
+    - PathBuilder: Utility for generating standardized paths for input/output.
+"""
+
 from __future__ import annotations
 
 import configparser
@@ -33,12 +46,22 @@ config_file_sorting = ["general", "delta extraction", "correlations", "fits"]
 
 
 class Bookkeeper:
-    """Class to generate Tasker objects which can be used to run different picca jobs.
+    """
+    Class to generate Tasker objects which can be used to run different picca jobs.
+
+    Handles configuration loading, validation, and management of directories, 
+    and constructs Tasker objects to run various stages of the analysis 
+    (delta extraction, correlation, fitting, etc.).
 
     Attributes:
         config (configparser.ConfigParser): Configuration file for the bookkeeper.
-    """
+        paths (PathBuilder): Helper for constructing standardized file paths.
 
+    Usage:
+        bookkeeper = Bookkeeper("config.yaml")
+        tasker = bookkeeper.get_delta_extraction_tasker(region="lya")
+    """
+    
     label: Optional[str]
 
     def __init__(
@@ -165,6 +188,20 @@ class Bookkeeper:
         self.paths.config = self.config
 
     def check_existing_config(self, section: str, destination: Path) -> None:
+        """
+        Ensure that the configuration for a section matches the on-disk config file.
+    
+        If the config differs, this method will raise a ValueError unless overwrite is enabled.
+        Writes the config to disk if missing or if overwrite is set.
+    
+        Args:
+            section (str): Which section of the config to check (e.g., 'delta extraction').
+            destination (Path): The config file to check/write.
+    
+        Raises:
+            ValueError: If the configs differ and overwrite is False.
+        """
+        
         config = copy.deepcopy(self.config)
 
         # for key in list(config.keys()):
@@ -192,12 +229,17 @@ class Bookkeeper:
 
     @staticmethod
     def write_ini(config: Dict, file: Path | str) -> None:
-        """Safely save a dictionary into an .ini file
-
-        Args
-            config: Dict to store as ini file.
-            file: path where to store the ini.
         """
+        Safely save a dictionary into an .ini file
+    
+        Converts all values to strings and uses ConfigParser to write the result 
+        to disk with consistent formatting.
+    
+        Args:
+            config (Dict): Dict to store as ini file.
+            file (Path | str): Destination path for the .ini file.
+        """
+    
         config = DictUtils.convert_to_string(config)
 
         parser = configparser.ConfigParser()
@@ -209,12 +251,22 @@ class Bookkeeper:
 
     @staticmethod
     def write_bookkeeper(config: Dict, file: Path | str) -> None:
-        """Method to write bookkeeper yaml file to file
-
-        Args:
-            config: Dict to store as yaml file.
-            file: path where to store the bookkeeper.
         """
+        Write a validated bookkeeper YAML configuration file to file.
+    
+        This method transforms the configuration to ensure compatibility with 
+        existing workflows by rewriting certain sections (e.g., replacing 
+        "original path" with "use existing"). It also enforces a specific key 
+        ordering for clarity and consistency.
+    
+        Args:
+            config (Dict): Bookkeeper configuration to store as yaml file.
+            file (Path | str): Destination path for the bookkeeper config file.
+    
+        Raises:
+            ValueError: If the configuration contains unexpected keys that violate the expected order.
+        """
+        
         # I need to recover the use existing and remove the original structure
         # To avoid issues if re-running with stored bookkeeper
         if (
@@ -306,8 +358,20 @@ class Bookkeeper:
         with open(file, "w") as f:
             yaml.safe_dump(config, f, sort_keys=False)
 
-    def check_bookkeeper_config(self) -> None:
-        """Check bookkeeper config and rise Error if invalid"""
+    def check_bookkeeper_config(self) -> None:        
+        """
+        Validate the bookkeeper config file, raise error if invalid.
+    
+        Checks for incompatible settings (e.g., smoothing covariance without computing it),
+        validates command names for each analysis stage, and ensures region keys are valid.
+    
+        Raises:
+            ValueError: If an invalid configuration is detected, such as:
+                - Smoothing covariance without enabling covariance computation.
+                - Unrecognized command names in 'slurm args' or 'extra args'.
+                - Invalid region names within argument mappings.
+        """
+
         logger.debug("Checking smooth covariance consistency")
         if self.config.get("fits", dict()).get(
             "smooth covariance", False
@@ -366,14 +430,20 @@ class Bookkeeper:
                                 )
 
     @staticmethod
-    def validate_region(region: str) -> str:
-        """Method to check if a region string is valid.
-
-        Will raise value error if the region is not in forest_regions.
-
+    def validate_region(region: str) -> str:        
+        """
+        Validate that the specified region is present in the forest_regions dictionary.
+    
         Args:
             region: Region (should be in forest_regions to pass the validation).
+    
+        Returns:
+            str: The validated region name.
+    
+        Raises:
+            ValueError: If the region string is not recognized / not in forest_regions.
         """
+        
         if region not in forest_regions:
             raise ValueError("Invalid region", region)
 
@@ -381,15 +451,22 @@ class Bookkeeper:
 
     @staticmethod
     def validate_absorber(absorber: str) -> str:
-        """Method to check if a absorber is valid.
-
-        Will raise value error if the absorber not in picca.absorbers.ABSORBER_IGM
-
-        lya and lyb are exceptions in lowercase.
-
-        Args:
-            absorber: Absorber to be used
         """
+        Validate that the specified absorber is supported in the absorber list.
+    
+        Allows lowercase 'lya' and 'lyb' as valid exceptions. Raises an error for 
+        any unrecognized absorber name.
+    
+        Args:
+            absorber (str): Absorber name to use.
+    
+        Returns:
+            str: The validated absorber name.
+    
+        Raises:
+            ValueError: If the absorber is not found in absorber_igm.
+        """
+
         if absorber not in absorber_igm:
             raise ValueError("Invalid absorber", absorber)
 
@@ -406,18 +483,28 @@ class Bookkeeper:
         absorber2: Optional[str] = None,
         tracer: Optional[str] = None,
     ) -> Dict:
-        """Add extra slurm header args to the run.
-
-        Args:
-            config: bookkeeper config to look into.
-            section: Section name to look into.
-            command: Picca command to be run.
-            region: Specify region where the command will be run.
-            absorber: First absorber to use for correlations.
-            region2: For scripts where two regions are needed.
-            absorber2: Second absorber to use for correlations.
-            tracer: Tracer to use (for cross-correlations)
         """
+        Generate and merge extra SLURM header arguments to the run.
+    
+        This method constructs a subcommand key based on absorber(s), region(s), and tracer,
+        then looks up and merges SLURM arguments from the general and section-specific config
+        under matching subcommand keys. General arguments are merged first, followed by more
+        specific ones, with later entries overriding earlier ones.
+    
+        Args:
+            config (Dict): Bookkeeper config.
+            section (str): Section of the config to query (e.g., "correlations", "fits").
+            command (str): Command to be run (e.g., "picca_cf", "smooth_covariance").
+            region (Optional[str]): Specify region where the command will be run.
+            absorber (Optional[str]): First absorber to use for correlations.
+            region2 (Optional[str]): Region label for the second absorber (if applicable).
+            absorber2 (Optional[str]): Second absorber to use for correlations (if applicable).
+            tracer (Optional[str]): Tracer used in cross-correlations (e.g., "qso", "dla").
+    
+        Returns:
+            Dict: Merged SLURM argument dictionary for the specified context.
+        """
+        
         if "slurm args" in config["general"]:
             args = copy.deepcopy(config["general"]["slurm args"])
         else:
@@ -468,19 +555,28 @@ class Bookkeeper:
         absorber2: Optional[str] = None,
         tracer: Optional[str] = None,
     ) -> Dict:
-        """Add extra extra args to the run.
-
-        Args:
-            config: Section of the bookkeeper config to look into.
-            section: Section name to look into.
-                should be prioritized.
-            command: picca command to be run.
-            region: specify region where the command will be run.
-            absorber: First absorber to use for correlations.
-            region2: For scripts where two regions are needed.
-            absorber2: Second absorber to use for correlations.
-            tracer: Tracer to use (for cross-correlations)
         """
+        Generate and merge additional runtime arguments to the run.
+    
+        Constructs a subcommand key using absorber(s), region(s), and tracer, and merges any 
+        matching 'extra args' entries from the config. General arguments are merged first, followed 
+        by context-specific overrides.
+    
+        Args:
+            config (Dict): Section of the bookkeeper config to look into.
+            section (str): Section of the config to query (e.g., "correlations", "fits"), 
+                            should be prioritized.
+            command (str): Command to be run (e.g., "picca_cf", "vega_cross").
+            region (Optional[str]): Specify region where the command will be run.
+            absorber (Optional[str]): First absorber to use for correlations.
+            region2 (Optional[str]): Region label for the second absorber (if applicable).
+            absorber2 (Optional[str]): Second absorber to use for correlations (if applicable).
+            tracer (Optional[str]): Tracer used in cross-correlations (e.g., "qso", "dla").
+    
+        Returns:
+            Dict: Merged dictionary of extra arguments for the specified command context.
+        """
+        
         config = copy.deepcopy(config[section])
 
         command_name = command.split(".py")[0]
@@ -517,6 +613,16 @@ class Bookkeeper:
         return DictUtils.remove_dollar(args)
 
     def generate_system_arg(self, system: Optional[str]) -> str:
+        """
+        Return the specified system or fallback to the default from config.
+    
+        Args:
+            system (Optional[str]): System name to use, or None to use the default.
+    
+        Returns:
+            str: Resolved system name (e.g., "slurm_perlmutter").
+        """
+        
         if system is None:
             return copy.copy(
                 self.config.get("general", dict()).get("system", "slurm_perlmutter")
@@ -527,15 +633,28 @@ class Bookkeeper:
     def add_calibration_options(
         self, extra_args: Dict, calib_step: Optional[int] = None
     ) -> Tuple[List[Path], Dict]:
-        """Method to add calibration options to extra args
-
-        Args:
-            extra_args: Configuration to be used in the run.
-            calib_step: Current calibration step, None if main run.
-
-        Retursn:
-            updated extra_args
         """
+        Method to add calibration options to extra args. 
+    
+        Depending on the calibration mode set in the config (`calib` = 1 or 2), this method 
+        appends the appropriate correction types and file paths to the argument dictionary. 
+        It also verifies that required calibration files and directories exist and raises 
+        errors when they don't.
+    
+        Args:
+            extra_args (Dict): Configuration to be used in the run.
+            calib_step (Optional[int]): Current calibration step (1 or 2), or None for the main run.
+    
+        Returns:
+            Tuple[List[Path], Dict]: A tuple containing:
+                - List of input files required for calibration.
+                - Updated `extra_args` dictionary including calibration corrections.
+    
+        Raises:
+            ValueError: If calibration settings are inconsistent with the config.
+            FileNotFoundError: If required calibration output files or directories are missing.
+        """
+        
         # List input files needed
         input_files = []
 
@@ -664,15 +783,27 @@ class Bookkeeper:
     def add_mask_options(
         self, extra_args: Dict, calib_step: Optional[int] = None
     ) -> Dict:
-        """Method to add mask options to extra args
-
-        Args:
-            extra_args: Configuration to be used in the run.
-            calib_step: Current calibration step, None if main run.
-
-        Retursn:
-            updated extra_args
         """
+        Add masking options to extra args.
+    
+        Includes user-supplied mask files, and optionally adds DLA or BAL masking based on 
+        the bookkeeper config YAML. Ensures that referenced mask files exist and are consistent 
+        with stored copies, raising errors if mismatches are detected.
+    
+        Args:
+            extra_args (Dict): Configuration to be used in the run.
+            calib_step (Optional[int]): Current calibration step. If None, masking for DLA/BAL is applied.
+    
+        Returns:
+            Dict: Updated `extra_args` dictionary including all applicable mask configurations.
+    
+        Raises:
+            FileNotFoundError: If a user-provided mask file is missing.
+            FileExistsError: If a different mask file is already stored in the bookkeeper path.
+            ValueError: If a DlaMask or BalMask is already set by the user when the 
+                        corresponding config option is active.
+        """
+
         if self.config["delta extraction"].get("mask file", "") not in ("", None):
             # If a mask file is given in the config file
             if not Path(self.config["delta extraction"]["mask file"]).is_file():
@@ -753,10 +884,20 @@ class Bookkeeper:
         return extra_args
 
     def validate_mock_runs(self, deltas_config_dict: Dict) -> None:
-        """Method to validate config file for mock runs
-
+        """
+        Validate config file for mock runs.
+    
+        Performs sanity checks on the bookkeeper config and provided delta config 
+        to ensure compatibility with mock run requirements. Raises errors if 
+        raw mocks are improperly configured or if required expected flux parameters 
+        for true mocks are missing or incomplete.
+    
         Args:
-            delta_config_dict: Dict containing config to be used
+            deltas_config_dict (Dict): Dictionary containing config to be used.
+    
+        Raises:
+            ValueError: If raw mocks are set but improperly handled, or if required 
+                        expected flux fields are missing for true mocks.
         """
         # if self.config["delta extraction"]["prefix"] not in [
         #     "dMdB20",
@@ -805,24 +946,30 @@ class Bookkeeper:
         overwrite: bool = False,
         skip_sent: bool = False,
     ) -> Tasker:
-        """Method to get a Tasker object to run raw deltas with picca.
-
+        """
+        Create a Tasker object to run raw deltas with picca.
+    
+        This method sets up all necessary arguments, SLURM header options, and paths 
+        for running the delta extraction step on the specified forest region. It 
+        validates configurations, checks for existing outputs, and supports debug mode.
+    
         Args:
-            region: Region where to compute deltas. Options: forest_regions.
-                Default: 'lya'
-            system: Shell to use for job. 'slurm_perlmutter' to use slurm
-                scripts on perlmutter, 'bash' to  run it in login nodes or
-                computer shell. Default: None, read from config file.
-            debug: Whether to use debug options.
-            wait_for: In NERSC, wait for a given job to finish before running
-                the current one. Could be a  Tasker object or a slurm jobid
-                (int). (Default: None, won't wait for anything).
-            overwrite: Overwrite files in destination.
-            skip_sent: Skip this and return a DummyTasker if the run was already
-                sent before.
-
+            region (str): Forest region to compute deltas (default: 'lya'). Must be in `forest_regions`.
+            system (Optional[str]): Execution system or shell to use (e.g., 'slurm_perlmutter' to use slurm
+                scripts on perlmutter, 'bash' to  run it in login nodes or computer shell). 
+                Defaults to config value if None.
+            debug (bool): Enable debug mode with reduced runtime and sample size (default: False).
+            wait_for (Optional[Tasker | ChainedTasker | int | List[int]]): Job(s) to wait for before starting 
+                (default: None). Could be a  Tasker object or a slurm jobid
+            overwrite (bool): Overwrite existing files if True (default: False).
+            skip_sent (bool): If True, skip and return a DummyTasker if output already exists (default: False).
+    
         Returns:
-            Tasker: Tasker object to run delta extraction.
+            Tasker: Configured Tasker object ready to submit or run the delta extraction job.
+    
+        Raises:
+            ValueError: If the Bookkeeper is initialized in read mode or if default config values have changed 
+                since the last run.
         """
         if self.read_mode:
             raise ValueError("Initialize bookkeeper without read_mode to run jobs.")
@@ -919,27 +1066,33 @@ class Bookkeeper:
         calib_step: Optional[int] = None,
         overwrite: bool = False,
         skip_sent: bool = False,
-    ) -> Tasker:
-        """Method to get a Tasker object to run delta extraction with picca.
-
+    ) -> Tasker:   
+        """
+        Create a Tasker object to run delta extraction with picca.
+    
+        This method prepares the configuration, SLURM headers, and input/output file handling 
+        necessary for running the delta extraction on a specified forest region. It supports 
+        optional calibration steps, validates mock run configurations, and handles cases 
+        where outputs or calibration data already exist by returning a DummyTasker.
+    
         Args:
-            region: Region where to compute deltas. Options: forest_regions.
-                Default: 'lya'
-            system: Shell to use for job. 'slurm_cori' to use slurm scripts on
-                cori, 'slurm_perlmutter' to use slurm scripts on perlmutter,
-                'bash' to run it in login nodes or computer shell.
-                Default: None, read from config file.
-            debug: Whether to use debug options.
-            wait_for: In NERSC, wait for a given job to finish before running
-                the current one. Could be a  Tasker object or a slurm jobid
-                (int). (Default: None, won't wait for anything).
-            calib_step: Calibration step. Default: None, no calibration
-            overwrite: Overwrite files in destination.
-            skip_sent: Skip this and return a DummyTasker if the run
-                was already sent before.
-
+            region (str): Forest region to compute deltas (default: 'lya'). Must be in `forest_regions`.
+            system (Optional[str]): Execution system or shell to use  (e.g., 'slurm_perlmutter' to use slurm
+                scripts on perlmutter, 'bash' to  run it in login nodes or computer shell). 
+                Defaults to config value if None.
+            debug (bool): Enable debug mode with reduced runtime and sample size (default: False).
+            wait_for (Optional[Tasker | ChainedTasker | int | List[int]]): Job(s) to wait for before starting 
+                (default: None). Could be a Tasker object or a slurm jobid.
+            calib_step (Optional[int]): Calibration step number. If None, runs without calibration (default: None).
+            overwrite (bool): Overwrite existing output files if True (default: False).
+            skip_sent (bool): If True, skip and return a DummyTasker if output already exists (default: False).
+    
         Returns:
-            Tasker: Tasker object to run delta extraction.
+            Tasker: Configured Tasker object ready to submit or run the delta extraction job.
+    
+        Raises:
+            ValueError: If the Bookkeeper is initialized in read mode or if default config values have changed 
+                since the last run (most overwrite or delete existing config file).
         """
         copied_attributes: Path | None
 
@@ -1104,24 +1257,31 @@ class Bookkeeper:
         overwrite: bool = False,
         skip_sent: bool = False,
     ) -> ChainedTasker:
-        """Method to get a Tasker object to run calibration with picca delta
+        """
+        Method to get a Tasker object to run calibration with picca delta
         extraction method.
-
+    
+        This method determines the appropriate calibration steps based on the config,
+        validates the calibration region, and returns a chained sequence of Taskers
+        for each calibration step. It handles calibration modes 1, 2, and 10 explicitly,
+        raising errors if the configuration is invalid or incomplete.
+    
         Args:
-            system (str, optional): Shell to use for job. 'slurm_cori' to use
-                slurm scripts on cori, 'slurm_perlmutter' to use slurm scripts
-                on perlmutter, 'bash' to run it in login nodes or computer
-                shell. Default: None, read from config file.
-            debug (bool, optional): Whether to use debug options.
-            wait_for (Tasker or int, optional): In NERSC, wait for a given job
-                to finish before running the current one. Could be a  Tasker object
-                or a slurm jobid (int). (Default: None, won't wait for anything).
-            overwrite: Overwrite files in destination.
-            skip_sent: Skip this and return a DummyTasker if the run
-                was already sent before.
-
+            system (Optional[str]): Execution system or shell to use  (e.g., 'slurm_perlmutter' to use slurm
+                scripts on perlmutter, 'bash' to  run it in login nodes or computer shell). 
+                Defaults to config value if None.
+            debug (bool): Enable debug mode with reduced runtime and sample size (default: False).
+            wait_for (Optional[Tasker | ChainedTasker | int | List[int]]): Job(s) to wait for before starting 
+                (default: None). Could be a Tasker object or a slurm jobid (int).
+            overwrite (bool): Overwrite existing output files if True (default: False).
+            skip_sent (bool): If True, skip and return a DummyTasker if outputs already exist (default: False).
+    
         Returns:
-            Tasker: Tasker object to run delta extraction for calibration.
+            ChainedTasker: A chained sequence of Taskers that run calibration delta extraction steps in order.
+    
+        Raises:
+            ValueError: If the bookkeeper is in read mode, the calibration region is undefined or invalid,
+                or the calibration mode is unsupported.
         """
         if self.read_mode:
             raise ValueError("Initialize bookkeeper without read_mode to run jobs.")
@@ -1188,28 +1348,31 @@ class Bookkeeper:
         overwrite: bool = False,
         skip_sent: bool = False,
     ) -> Tasker:
-        """Method to get a Tasker object to run forest-forest correlations with picca.
-
+        """
+        Method to get a Tasker object to run forest-forest correlations with picca.    
+        
         Args:
-            region: Region to use. Options: ('lya', 'lyb'). Default: 'lya'.
-            region2: Region to use for cross-correlations.
-                Default: None, auto-correlation.
-            absorber: First absorber to use for correlations.
-            absorber2: Second absorber to use for correlations.
-                Default: Same as absorber.
-            system: Shell to use for job. 'slurm_perlmutter' to use slurm
-                scripts on perlmutter, 'bash' to  run it in login nodes or
-                computer shell. Default: None, read from config file.
-            debug: Whether to use debug options.
-            wait_for: In NERSC, wait for a given job to finish before running
-                the current one. Could be a  Tasker object or a slurm jobid
-                (int). (Default: None, won't wait for anything).
-            overwrite: Overwrite files in destination.
-            skip_sent: Skip this and return a DummyTasker if the run
-                was already sent before.
-
+            region (str): Region to use. Options: ('lya', 'lyb'). Default: 'lya'.
+            region2 (Optional[str]): Secondary forest region for cross-correlation.
+                Defaults to None, which means auto-correlation with the primary region.
+            absorber (str): First absorber to use for correlations (e.g., 'lya').
+            absorber2 (Optional[str]): Second absorber to use for correlations.
+                Defaults to None, which uses the same absorber as `absorber`.
+            system (Optional[str]): Execution system or shell to use  (e.g., 'slurm_perlmutter' to use slurm
+                scripts on perlmutter, 'bash' to  run it in login nodes or computer shell). 
+                Defaults to config value if None.
+            debug (bool): Enable debug mode with reduced runtime and sample size (default: False).
+            wait_for (Optional[Tasker | ChainedTasker | int | List[int]]): Job(s) to wait for before starting 
+                (default: None). Tasker object or a slurm jobid (int).
+            overwrite (bool): Overwrite existing output files if True (default: False).
+            skip_sent (bool): Skip and return DummyTasker if the output already exists (default: False).
+    
         Returns:
-            Tasker: Tasker object to run forest-forest correlation.
+            Tasker: A Tasker object configured to run the forest correlation function.
+    
+        Raises:
+            ValueError: If bookkeeper is initialized in read mode or if default config values have changed
+                since the last run.
         """
         if self.read_mode:
             raise ValueError("Initialize bookkeeper without read_mode to run jobs.")
@@ -1345,30 +1508,33 @@ class Bookkeeper:
         overwrite: bool = False,
         skip_sent: bool = False,
     ) -> Tasker:
-        """Method to get a Tasker object to run forest-forest distortion matrix
-        measurements with picca.
-
-        Args:
-            region: Region to use. Options: ('lya', 'lyb'). Default: 'lya'.
-            region2: Region to use for cross-correlations.
-                Default: None, auto-correlation.
-            absorber: First absorber to use for correlations.
-            absorber2: Second absorber to use for correlations.
-                Default: Same as absorber.
-            system: Shell to use for job. 'slurm_perlmutter' to use slurm
-                scripts on perlmutter, 'bash' to  run it in login nodes or
-                computer shell. Default: None, read from config file.
-            debug: Whether to use debug options.
-            wait_for: In NERSC, wait for a given job to finish before running
-                the current one. Could be a  Tasker object or a slurm jobid
-                (int). (Default: None, won't wait for anything).
-            overwrite: Overwrite files in destination.
-            skip_sent: Skip this and return a DummyTasker if the run
-                was already sent before.
-
-        Returns:
-            Tasker: Tasker object to run forest-forest correlation.
         """
+        Method to get a Tasker object to run forest-forest distortion matrix
+        measurements with picca.
+    
+        Args:
+            region (str): Primary forest region. Options include 'lya', 'lyb'. Default is 'lya'.
+            region2 (Optional[str]): Region to use for cross-correlations.
+                Default: None, auto-correlation.
+            absorber (str): First absorber to use for correlations (e.g., 'lya').
+            absorber2 (Optional[str]): Second absorber to use for correlations.
+                Defaults to None, which uses the same absorber as `absorber`.
+            system (Optional[str]): Execution system or shell to use  (e.g., 'slurm_perlmutter' to use slurm
+                scripts on perlmutter, 'bash' to  run it in login nodes or computer shell). 
+                Defaults to config value if None.
+            debug (bool): Enable debug mode with reduced runtime and sample size (default: False).
+            wait_for (Optional[Tasker | ChainedTasker | int | List[int]]): Job(s) to wait for before starting 
+                (default: None). Could be a Tasker object or a slurm jobid (int).
+            overwrite (bool): Overwrite existing output files if True (default: False).
+            skip_sent (bool): Skip and return DummyTasker if the output already exists (default: False).
+    
+        Returns:
+            Tasker: A Tasker object configured to run the distortion matrix measurement.
+    
+        Raises:
+            ValueError: If bookkeeper is initialized in read mode or if default config values
+                have changed since the last run.
+        """        
         if self.read_mode:
             raise ValueError("Initialize bookkeeper without read_mode to run jobs.")
         if self.defaults_diff != {}:
@@ -1503,28 +1669,31 @@ class Bookkeeper:
         overwrite: bool = False,
         skip_sent: bool = False,
     ) -> Tasker:
-        """Method to get a Tasker object to run forest-forest correlation export with
+        """
+        Method to get a Tasker object to run forest-forest correlation export with
          picca.
-
+    
         Args:
-            region: Region to use. Options: ('lya', 'lyb'). Default: 'lya'.
-            region2: Region to use for cross-correlations.
-                Default: None, auto-correlation.
-            absorber: First absorber to use for correlations.
-            absorber2: Second absorber to use for correlations.
-                Default: Same as absorber.
-            system: Shell to use for job. 'slurm_perlmutter' to use slurm
-                scripts on perlmutter, 'bash' to  run it in login nodes or
-                computer shell. Default: None, read from config file.
-            wait_for: In NERSC, wait for a given job to finish before running
-                the current one. Could be a  Tasker object or a slurm jobid
-                (int). (Default: None, won't wait for anything).
-            overwrite: Overwrite files in destination.
-            skip_sent: Skip this and return a DummyTasker if the run
-                was already sent before.
-
+            region (str): Primary forest region. Options include 'lya', 'lyb'. Default: 'lya'.
+            region2 (Optional[str]): Secondary forest region for cross-correlation.
+                Defaults to None for auto-correlation with `region`.
+            absorber (str): First absorber to use for correlations (e.g., 'lya').
+            absorber2 (Optional[str]): cond absorber to use for cross-correlations.
+                Defaults to None, meaning same absorber as `absorber`.
+            system (Optional[str]): Execution system or shell to use  (e.g., 'slurm_perlmutter' to use slurm
+                scripts on perlmutter, 'bash' to  run it in login nodes or computer shell). 
+                Defaults to config value if None.
+            wait_for (Optional[Tasker | ChainedTasker | int | List[int]]): Job(s) to wait for before starting
+                (default: None). Could be a Tasker object or a slurm jobid (int).
+            overwrite (bool): Overwrite existing output files if True (default: False).
+            skip_sent (bool): Skip and return DummyTasker if the output already exists (default: False).
+    
         Returns:
-            Tasker: Tasker object to run forest-forest correlation.
+            Tasker: Configured Tasker object to run the correlation export.
+    
+        Raises:
+            ValueError: If bookkeeper is initialized in read mode or if default config values
+                have changed since the last run.
         """
         if self.read_mode:
             raise ValueError("Initialize bookkeeper without read_mode to run jobs.")
