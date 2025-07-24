@@ -3845,25 +3845,54 @@ class Bookkeeper:
 
 
 class PathBuilder:
-    """Class to define paths following the bookkeeper convention.
+    """
+    Class to define and manage filesystem paths according to bookkeeper conventions.
+
+    Handles the construction and validation of standardized paths for all input and output
+    files required by the picca_bookkeeper workflow, including locations for data, deltas,
+    correlations, fits, and configuration files. Automates creation and checking of directories,
+    provides utilities to resolve paths for specific analysis products, and implements logic for
+    linking or copying results from previous runs or external sources as specified in the config.
 
     Attributes:
-        config (configparser.ConfigParser): Configuration used to build paths.
+        config (dict / configparser.ConfigParser): Bookkeeper configuration used to build all relevant paths.
 
+    Usage:
+        paths = PathBuilder(config)
+        deltas_dir = paths.deltas_path(region="lya")
+        correlation_file = paths.cf_fname("lya", "lya", "lya", "lya")
+        paths.check_run_directories()
+        catalog_path = paths.catalog
+
+    Main Features:
+        - Constructs paths for all data products based on config.
+        - Validates existence of critical files and directories; raises errors if misconfigured.
+        - Supports both absolute and relative paths, expanding and checking as needed.
+        - Allows access to specialized outputs (deltas, correlations, fits, masks, metals, covariance, etc.).
+        - Handles linking/copying of external results into the workflow as configured.
+        - Provides static comparison utilities for config validation.
+        - Automates directory creation for each analysis stage.
     """
 
     def __init__(self, config: Dict):
         """
+        Initialize the PathBuilder with a given configuration.
+
         Args:
-            config: Configuration to be used.
+            config (dict): Configuration dictionary used to resolve paths.
         """
         self.config = config
 
     @property
     def healpix_data(self) -> Path:
         """
+        Get the path to the healpix data directory.
+
         Returns:
-            Path
+            Path: Path to the healpix data.
+
+        Raises:
+            FileNotFoundError: If the directory does not exist.
         """
         healpix_data = Path(self.config["data"]["healpix data"])
 
@@ -3874,10 +3903,14 @@ class PathBuilder:
 
     @property
     def run_path(self) -> Path:
-        """Give full path to the bookkeeper run.
+        """
+        Get the root path for the bookkeeper run.
 
         Returns:
-            Path
+            Path: Root path where all outputs and intermediate files are stored.
+
+        Raises:
+            ValueError: If the path is not specified in the config.
         """
         bookkeeper_dir = self.config.get("data", dict()).get("bookkeeper dir", None)
 
@@ -3888,10 +3921,11 @@ class PathBuilder:
 
     @property
     def delta_extraction_path(self) -> Path:
-        """Give full path to the delta runs.
+        """
+        Get the path to the delta extraction directory.
 
         Returns:
-            Path
+            Path: Path to the delta results, either from original path or run directory.
         """
         if self.config.get("delta extraction", dict()).get("original path") is not None:
             return Path(self.config["delta extraction"]["original path"]) / "deltas"
@@ -3900,15 +3934,20 @@ class PathBuilder:
 
     @property
     def continuum_fitting_mask(self) -> Path:
-        """Path: file with masking used in continuum fitting."""
-        return self.delta_extraction_path / "configs" / "continuum_fitting_mask.txt"
+        """
+        Get the path to the continuum fitting mask file.
+
+        Returns:
+            Path: Path to `continuum_fitting_mask.txt`, used in continuum fitting.
+        """        return self.delta_extraction_path / "configs" / "continuum_fitting_mask.txt"
 
     @property
     def correlations_path(self) -> Path:
-        """Give full path to the correlation runs.
+        """
+        Get the path to the correlation output directory.
 
         Returns:
-            Path
+            Path: Path to correlation results, either from original path or run directory.
         """
         if self.config.get("correlations", dict()).get("original path") is not None:
             return Path(self.config["correlations"]["original path"]) / "correlations"
@@ -3917,43 +3956,53 @@ class PathBuilder:
 
     @property
     def fits_path(self) -> Path:
-        """Give full path to the fits runs.
+        """
+        Get the path to the fits output directory.
 
         Returns:
-            Path
+            Path: Path to where fit results are stored.
         """
         return self.run_path / "fits"
 
     @property
     def config_file(self) -> Path:
-        """Default path to the bookkeeper config file inside bookkeeper.
+       """
+        Get the default path to the bookkeeper configuration file inside bookkeeper.
 
-        Returns
-            Path
+        Returns:
+            Path: Path to `bookkeeper_config.yaml` inside the run directory.
         """
         return self.run_path / "configs" / "bookkeeper_config.yaml"
 
     @property
     def defaults_file(self) -> Path:
-        """Location of the defaults file inside the bookkeeper.
+        """
+        Get the path to the defaults configuration file inside bookkeeper.
 
-        Returns
-            Path
+        Returns:
+            Path: Path to `defaults.yaml` in the configs directory.
         """
         return self.config_file.parent / "defaults.yaml"
 
     def get_catalog_from_field(self, field: str) -> Path:
-        """Method to obtain catalogs given a catalog name in config file.
+        """
+        Get the path to a catalog file from a catalog name in a given config field.
 
-        It will check if the file exists, expand the full path if only the filename
-        is given and raise a ValueError if the file does not exist.
+        Supports resolution of catalogs for standard quasars, DLAs, or BALs. Validates
+        existence of the specified catalog file, expands the full path if only the filename
+        is given.
 
         Args:
-            field (str): whether to use catalog, catalog tracer fields, dla fields or
-                bal fields. (Options: ["catalog", "dla", "bal"])
+            field (str): Catalog field to resolve. Options are:
+                - "catalog": main QSO catalog
+                - "dla": Damped Lyman-Alpha catalog
+                - "bal": BAL masking catalog
 
         Returns:
-            Path: catalog to be used.
+            Path: Path to the resolved catalog file to be used.
+
+        Raises:
+            FileNotFoundError: If the specified catalog does not exist.
         """
         if field == "dla":
             dla = self.config["delta extraction"].get("dla", None)
@@ -3984,25 +4033,47 @@ class PathBuilder:
 
     @property
     def catalog(self) -> Path:
-        """catalog to be used for deltas."""
+        """
+        Get the main QSO catalog used for delta extraction.
+
+        Returns:
+            Path: Path to the main catalog file.
+        """        
         return self.get_catalog_from_field("catalog")
 
     @property
     def catalog_dla(self) -> Path:
-        """DLA catalog to be used."""
+        """
+        Get the catalog used for masking DLAs in delta extraction.
+
+        Returns:
+            Path: Path to the DLA catalog file.
+        """
         return self.get_catalog_from_field("dla")
 
     @property
     def catalog_bal(self) -> Path:
-        """catalog to be used for BAL masking."""
+        """
+        Get the catalog used for BAL masking in delta extraction.
+
+        Returns:
+            Path: Path to the BAL catalog file.
+        """
         return self.get_catalog_from_field("bal")
 
     def get_tracer_catalog(self, tracer: str = "qso") -> Path:
-        """Get tracer catalog to be used for cross-correlations.
-
-        It will return the correspondent tracer catalog if existing, otherwise it will
-        return the general catalog.
         """
+        Get a tracer catalog used in cross-correlation.
+
+        If the tracer-specific catalog exists, it is returned; otherwise, the default
+        QSO catalog is used as a fallback.
+
+        Args:
+            tracer (str): Name of the tracer, e.g., "qso", "lya", etc.
+
+        Returns:
+            Path: Path to the resolved tracer catalog file.
+        """        
         candidate = (
             self.config["correlations"].get("tracer catalogs", dict()).get(tracer, None)
         )
@@ -4019,11 +4090,19 @@ class PathBuilder:
         section: Optional[str] = None,
         ignore_fields: List[str] = [],
     ) -> Dict:
-        """Compare two configs to determine if they are the same.
+        """
+        Compare two configurations and return their differences.
+
+        Optionally limits comparison to a specific section and ignores given fields.
 
         Args:
-            section: Section of the yaml file to compare.
-            ignore_fields: Fields to ignore in the comparison
+            config1 (Dict): First config dictionary.
+            config2 (Dict): Second config dictionary.
+            section (Optional[str]): Config section to compare.
+            ignore_fields (List[str]): List of fields to ignore during comparison.
+
+        Returns:
+            Dict: Dictionary of differences between configs.
         """
         if section is not None:
             config1 = config1[section]
@@ -4043,37 +4122,58 @@ class PathBuilder:
         )
 
     def check_run_directories(self) -> None:
-        """Method to create basic directories in run directory."""
+        """
+        Ensure base directories exist in the run path.
+
+        Currently ensures the existence of the `configs/` directory.
+        """
         for folder in ("configs",):
             (self.run_path / folder).mkdir(exist_ok=True, parents=True)
 
     def check_delta_directories(self) -> None:
-        """Method to create basic directories in run directory."""
+        """
+        Ensure necessary subdirectories exist in the delta extraction path.
+
+        Creates `scripts`, `logs`, `results`, and `configs` if they do not exist.
+        """
         for folder in ("scripts", "logs", "results", "configs"):
             (self.delta_extraction_path / folder).mkdir(exist_ok=True, parents=True)
 
     def check_correlation_directories(self) -> None:
-        """Method to create basic directories in correlations directory."""
+        """
+        Ensure necessary subdirectories exist in the correlations path.
+
+        Creates `scripts`, `results`, `logs`, and `configs` if they do not exist.
+        """
         for folder in ("scripts", "results", "logs", "configs"):
             (self.correlations_path / folder).mkdir(exist_ok=True, parents=True)
 
     def check_fit_directories(self) -> None:
-        """Method to create basic directories in fits directory."""
+        """
+        Ensure necessary subdirectories exist in the fits path.
+
+        Creates `scripts`, `results`, `logs`, `configs`, and nested `results/sampler` if missing.
+        """
         for folder in ("scripts", "results", "logs", "configs", "results/sampler"):
             (self.fits_path / folder).mkdir(exist_ok=True, parents=True)
 
     def deltas_path(
         self, region: Optional[str] = None, calib_step: Optional[int] = None
-    ) -> Path:
-        """Method to obtain the path to deltas output.
+    ) -> Path:       
+        """
+        Get the path to the deltas output directory.
 
         Args:
-            region: Region used (in valid_regions).
-            calib_step: Calibration step of the run (1 or 2 for usual runs).
+            region (Optional[str]): Sky region label used (e.g., 'lya', 'lyb'). 
+                                    Required if `calib_step` is not given.
+            calib_step (Optional[int]): Calibration step (1 or 2). If provided, region is ignored.
 
         Returns:
-            Path: Path to deltas directory.
-        """
+            Path: Path to the directory containing delta files.
+
+        Raises:
+            ValueError: If neither `calib_step` nor valid `region` is provided.
+        """        
         if calib_step is not None:
             return (
                 self.delta_extraction_path
@@ -4090,14 +4190,15 @@ class PathBuilder:
     def deltas_log_path(
         self, region: Optional[str] = None, calib_step: Optional[int] = None
     ) -> Path:
-        """Method to get the path to deltas log.
+        """
+        Get the path to the log directory for delta outputs.
 
         Args:
-            region: Region used (in valid_regions).
-            calib_step: Calibration step of the run (1 or 2 for usual runs).
+            region (Optional[str]): Sky region used (required if `calib_step` is not set).
+            calib_step (Optional[int]): Calibration step (1 or 2).
 
         Returns:
-            Path: Path to deltas direct
+            Path: Path to the log directory associated with deltas.
         """
         deltas_path = self.deltas_path(region, calib_step)
         return deltas_path.parent / "Log"
@@ -4105,14 +4206,15 @@ class PathBuilder:
     def delta_attributes_file(
         self, region: Optional[str] = None, calib_step: Optional[int] = None
     ) -> Path:
-        """Method to get the path to deltas attributes file.
+        """
+        Get the path to the delta attributes FITS file.
 
         Args:
-            region: Region used (should be in valid_regions).
-            calib_step: Calibration step of the run (1 or 2 for usual runs).
+            region (Optional[str]): Sky region (required if `calib_step` is not set).
+            calib_step (Optional[int]): Calibration step.
 
         Returns:
-            Path: Path to delta attributes file
+            Path: Path to `delta_attributes.fits.gz`.
         """
         return (
             self.deltas_log_path(region=region, calib_step=calib_step)
@@ -4120,12 +4222,20 @@ class PathBuilder:
         )
 
     def copied_calib_attributes(self, step: int) -> Path | None:
-        """Method to get path to delta attributes for calibration if it
-        appears as the one to be read in the bookkeeper (instead of computing
-        it).
+        """
+        Get the path to a precomputed calibration attributes file.
+
+        Reads from the bookkeeper config and checks that the file exists.
+        Logs whether the file is used or computed.
 
         Args:
-            step: Current calibration step.
+            step (int): Current calibration step (1 or 2).
+
+        Returns:
+            Path | None: Path to attributes file if found, else None.
+
+        Raises:
+            FileNotFoundError: If a file is listed but does not exist.
         """
         calibration_data = self.config["delta extraction"].get("calibration data", None)
 
@@ -4151,11 +4261,21 @@ class PathBuilder:
         return attributes
 
     def copied_deltas_files(self, region: str) -> List[Path] | None:
-        """Method to get path to deltas files and delta attributes if it
-        appears in the bookkeeper config file (instead of computing it)
+        """
+        Get paths to precomputed deltas and attributes for a region.
+
+        Checks for exiting delta files if specified in bookkeeper config file. 
+        Looks for region-specific or general configuration, checks file existence,
+        and logs whether files will be used or recomputed.
 
         Args:
-            region: Region to look in the configuration file.
+            region (str): Sky region name to look for in config file (e.g., 'lya').
+
+        Returns:
+            List[Path] | None: Paths to [Delta/, delta_attributes.fits.gz], or None if not found.
+
+        Raises:
+            FileNotFoundError: If provided paths exist in config but files are missing.
         """
         if (
             self.config["delta extraction"]
@@ -4211,18 +4331,26 @@ class PathBuilder:
         filename: Optional[str],
         tracer: Optional[str] = "qso",
     ) -> Path | None:
-        """Method to get a correlation file to copy given in the bookkeeper config
+        """
+        Get the path to a precomputed correlation file if configured.
+
+        Tries to retrieve correlation from bookkeeper config using absorber/region keys,
+        optionally falling back to a general file + filename.
 
         Args:
-            subsection: Subsection of config file to read
-            region: Region where the correlation is computed.
-            region2: Second region used (if cross-correlation).
-            absorber: First absorber
-            absorber2: Second absorber
-            filename: Filename to tried being read from linked correlations.
+            subsection (str): Subsection of the config to search in (e.g., "computed correlations").
+            absorber (str): First absorber name (e.g., "lya").
+            region (str): First region where the correlation is computed.
+            absorber2 (Optional[str]): Second absorber name (for cross-correlations) if applicable.
+            region2 (Optional[str]): Second region where the correlation is computed, if applicable.
+            filename (Optional[str]): Name of the file to retrieve under general path.
+            tracer (Optional[str]): Tracer name (e.g., "qso").
 
         Returns:
-            Path: Path to file
+            Path | None: Path to the correlation file if found; otherwise, None.
+
+        Raises:
+            FileNotFoundError: If a configured path exists but the file is missing.
         """
         if absorber2 is None and (tracer is not None):
             name = f"{absorber}{region}"
@@ -4272,13 +4400,15 @@ class PathBuilder:
         return file
 
     def copied_covariance_file(self, smoothed: bool = False) -> Path | None:
-        """Method to get a covariance file to copy given in the bookkeeper config
-
+        """
+        Return the path to a precomputed covariance file, if specified in the bookkeeper config.
+    
         Args:
             smoothed (bool, optional): If True, returns the smoothed covariance file.
-
+                                       Defaults to False.
+    
         Returns:
-            Path: Path to covariance file.
+            Path | None: Path to the covariance file, or None if it should be computed.
         """
         name = "full-covariance"
 
@@ -4331,16 +4461,17 @@ class PathBuilder:
         absorber2: Optional[str] = None,
         region2: Optional[str] = None,
     ) -> Path:
-        """Method to get the path to a forest-forest correlation file.
-
+        """
+        Return the path to the forest-forest correlation function file.
+    
         Args:
-            region: Region where the correlation is computed.
-            region2: Second region used (if cross-correlation).
-            absorber: First absorber
-            absorber2: Second absorber
-
+            absorber (str): First absorber.
+            region (str): Region where the correlation is computed.
+            absorber2 (Optional[str]): Second absorber (for cross-correlations), if applicable.
+            region2 (Optional[str]): Second region (for cross-correlations), if applicable.
+    
         Returns:
-            Path: Path to correlation file.
+            Path: Path to the correlation file (cf.fits.gz).
         """
         region2 = region if region2 is None else region2
         absorber2 = absorber if absorber2 is None else absorber2
@@ -4358,17 +4489,17 @@ class PathBuilder:
         absorber2: Optional[str] = None,
         region2: Optional[str] = None,
     ) -> Path:
-        """Method to get the path to a distortion matrix file for forest-forest
-        correlations.
-
+        """
+        Return the path to the distortion matrix file for forest-forest correlations.
+    
         Args:
-            region: Region where the correlation is computed.
-            region2: Second region used (if cross-correlation).
-            absorber: First absorber
-            absorber2: Second absorber
-
+            absorber (str): First absorber.
+            region (str): Region where the correlation is computed.
+            absorber2 (Optional[str]): Second absorber (for cross-correlations), if applicable.
+            region2 (Optional[str]): Second region (for cross-correlations), if applicable.
+    
         Returns:
-            Path: Path to correlation file.
+            Path: Path to the distortion matrix file (dmat.fits.gz).
         """
         return (
             self.cf_fname(absorber, region, absorber2, region2).parent / f"dmat.fits.gz"
@@ -4381,17 +4512,18 @@ class PathBuilder:
         absorber2: Optional[str] = None,
         region2: Optional[str] = None,
     ) -> Path:
-        """Method to get the path to a metal distortion matrix file for forest-forest
-        correlations.
-
+        """
+        Return the path to the metal distortion matrix file, for forest-forest correlations,
+        if it exists.
+    
         Args:
-            region: Region where the correlation is computed.
-            region2: Second region used (if cross-correlation).
-            absorber: First absorber
-            absorber2: Second absorber
-
+            absorber (str): First absorber.
+            region (str): Region where the correlation is computed.
+            absorber2 (Optional[str]): Second absorber (for cross-correlations), if applicable.
+            region2 (Optional[str]): Second region (for cross-correlations), if applicable.
+    
         Returns:
-            Path: Path to correlation file.
+            Path: Path to the metal distortion file (metal.fits or metal.fits.gz).
         """
         parent = self.cf_fname(absorber, region, absorber2, region2).parent
         if (parent / "metal.fits.gz").is_file():
@@ -4406,30 +4538,32 @@ class PathBuilder:
         absorber2: Optional[str] = None,
         region2: Optional[str] = None,
     ) -> Path:
-        """Method to get the path to a forest-forest correlation export file.
-
-        Args:
-            region: Region where the correlation is computed.
-            region2: Second region used (if cross-correlation).
-            absorber: First absorber
-            absorber2: Second absorber
-
-        Returns:
-            Path: Path to export correlation file.
         """
+        Return the path to the exported forest-forest correlation function export file.
+    
+        Args:
+            absorber (str): First absorber.
+            region (str): Region where the correlation is computed.
+            absorber2 (Optional[str]): Second absorber (if cross-correlation), if applicable.
+            region2 (Optional[str]): Second region (if cross-correlation), if applicable.
+    
+        Returns:
+            Path: Path to the exported correlation file (cf_exp.fits.gz).
+        """        
         cor_file = self.cf_fname(absorber, region, absorber2, region2)
         return cor_file.parent / f"cf_exp.fits.gz"
 
     def xcf_fname(self, absorber: str, region: str, tracer: str = "qso") -> Path:
-        """Method to get the path to a forest-quasar correlation export file.
-
+        """
+        Return the path to the forest-quasar correlation function export file.
+    
         Args:
-            region: Region of the forest used.
-            absorber: Absorber to use (lya)
-            tracer: Tracer to use (qso)
-
+            absorber (str): Absorber to use (e.g., 'lya').
+            region (str): Region of the forest used.
+            tracer (str): Tracer to use (default: 'qso').
+    
         Returns:
-            Path: Path to correlation file.
+            Path: Path to the correlation file (xcf.fits.gz).
         """
         return (
             self.correlations_path
@@ -4439,30 +4573,30 @@ class PathBuilder:
         )
 
     def xdmat_fname(self, absorber: str, region: str, tracer: str = "qso") -> Path:
-        """Method to get the path to a distortion matrix file for forest-quasar
-        correlations.
-
-        Args:
-            region: Region of the forest used.
-            absorber: Absorber to use (lya)
-            tracer: Tracer to use (qso)
-
-        Returns:
-            Path: Path to export correlation file.
         """
+        Return the path to the distortion matrix file for forest-quasar correlations.
+    
+        Args:
+            absorber (str): Absorber to use (e.g., 'lya').
+            region (str): Region of the forest used.
+            tracer (str): Tracer to use (default: 'qso').
+    
+        Returns:
+            Path: Path to the distortion matrix file (xdmat.fits.gz).
+        """    
         return self.xcf_fname(absorber, region, tracer).parent / f"xdmat.fits.gz"
 
     def xmetal_fname(self, absorber: str, region: str, tracer: str = "qso") -> Path:
-        """Method to get the path to a metal distortion matrix file for forest-quasar
-        correlations.
-
+        """
+        Return the path to the metal distortion matrix file for forest-quasar correlations.
+    
         Args:
+            absorber (str): Absorber to use (e.g., 'lya').
             region (str): Region of the forest used.
-            absorber: Absorber to use (lya)
-            tracer: Tracer to use (qso)
-
+            tracer (str): Tracer to use (default: 'qso').
+    
         Returns:
-            Path: Path to export correlation file.
+            Path: Path to the metal distortion matrix file (xmetal.fits[.gz]).
         """
         parent = self.xcf_fname(absorber, region, tracer).parent
         if (parent / "xmetal.fits.gz").is_file():
@@ -4471,16 +4605,17 @@ class PathBuilder:
             return parent / "xmetal.fits"
 
     def exp_xcf_fname(self, absorber: str, region: str, tracer: str = "qso") -> Path:
-        """Method to get the path to a forest-quasar correlation export file.
-
-        Args:
-            region: Region of the forest used.
-            absorber: Absorber to use (lya)
-            tracer: Tracer to use (qso)
-
-        Returns:
-            Path: Path to export correlation file.
         """
+        Return the path to the exported forest-quasar correlation function export file.
+    
+        Args:
+            absorber (str): Absorber to use (e.g., 'lya').
+            region (str): Region of the forest used.
+            tracer (str): Tracer to use (default: 'qso').
+    
+        Returns:
+            Path: Path to the exported correlation file (xcf_exp.fits.gz).
+        """    
         cor_file = self.xcf_fname(absorber, region, tracer)
         return cor_file.parent / f"xcf_exp.fits.gz"
 
@@ -4491,16 +4626,17 @@ class PathBuilder:
         absorber2: Optional[str] = None,
         region2: Optional[str] = None,
     ) -> Path:
-        """Method to get te path to a given fit auto config file.
-
+        """
+        Return the path to the fit config file for forest-forest auto- correlations.
+    
         Args:
-            region: Region where the correlation is computed.
-            region2: Second region used (if cross-correlation).
-            absorber: First absorber
-            absorber2: Second absorber
-
+            absorber (str): First absorber.
+            region (str): First region.
+            absorber2 (Optional[str]): Second absorber (defaults to first if None), if applicable.
+            region2 (Optional[str]): Second region (defaults to first if None), if applicable.
+    
         Returns:
-            Path: Path to fit config file.
+            Path: Path to the fit config file (.ini).
         """
         region2 = region if region2 is None else region2
         absorber2 = absorber if absorber2 is None else absorber2
@@ -4511,59 +4647,62 @@ class PathBuilder:
         return name.parent / name.name.replace("(", "").replace(")", "")
 
     def fit_cross_fname(self, absorber: str, region: str, tracer: str) -> Path:
-        """Method to get te path to a given fit cross config file.
-
+        """
+        Return the path to the fit config file for forest-quasar cross-correlations.
+    
         Args:
-            region: Region where the correlation is computed.
-            absorber: First absorber
-            tracer: Tracer for cross
-
+            absorber (str): Absorber used (e.g., 'lya').
+            region (str): Region used.
+            tracer (str): Tracer used (e.g., 'qso').
+    
         Returns:
-            Path: Path to fit config file.
+            Path: Path to the fit config file (.ini).
         """
         name = self.fits_path / "configs" / f"{tracer}x{absorber}{region}.ini"
         return name.parent / name.name.replace("(", "").replace(")", "")
 
     def fit_main_fname(self) -> Path:
-        """Method to get the path to the main fit config file.
-
+        """
+        Return the path to the main fit configuration file.
+    
         Returns:
-            Path: Path to main fit config file.
+            Path: Path to main fit config file (main.ini).
         """
         return self.fits_path / "configs" / "main.ini"
 
     def fit_out_fname(self) -> Path:
-        """Method to get the path to the fit output file.
-
+         """
+        Return the path to the output file from the fit.
+    
         Returns:
-            Path: Path to fit output file.
+            Path: Path to fit output file (fit_output.fits).
         """
         return self.fits_path / "results" / "fit_output.fits"
 
     def covariance_file_unsmoothed(self) -> Path:
         """
-        Returns the path to the unsmoothed covariance file.
-
+        Return the path to the unsmoothed covariance file.
+    
         Returns:
-            Path: The path to the unsmoothed covariance file.
+            Path: The path to the unsmoothed covariance file (full-covariance.fits).
         """
         return self.fits_path / "results" / "full-covariance.fits"
 
     def covariance_file_smoothed(self) -> Path:
         """
-        Returns the path to the smoothed covariance file.
-
+        Return the path to the smoothed covariance file.
+    
         Returns:
-            Path: The path to the smoothed covariance file.
+            Path: The path to the smoothed covariance file (full-covariance-smoothed.fits).
         """
         return self.fits_path / "results" / "full-covariance-smoothed.fits"
 
     def covariance_file(self) -> Path:
         """
-        Returns the path to the covariance file.
-
+        Return the path to the covariance file, selecting smoothed or unsmoothed based on config.
+    
         Returns:
-            Path: The path to the covariance file.
+            Path: Path to the selected covariance file.
         """
         if self.config["fits"].get("smooth covariance", False):
             return self.covariance_file_smoothed()
@@ -4571,13 +4710,19 @@ class PathBuilder:
             return self.covariance_file_unsmoothed()
 
     def sampler_out_path(self) -> Path:
-        """Method to get the path to the sampler output foler
-
+        """
+        Return the path to the sampler output directory.
+    
         Returns:
-            Path to sampler output folder.
+            Path: Path to sampler output folder.
         """
         return self.fits_path / "results" / "sampler"
 
     def fit_computed_params_out(self) -> Path:
-        """Method to get the path of the computed zeff output file"""
+        """
+        Return the path to the file containing computed fit parameters (e.g., zeff).
+    
+        Returns:
+            Path: Path to file (computed_parameters.yaml).
+        """
         return self.fits_path / "results" / "computed_parameters.yaml"
