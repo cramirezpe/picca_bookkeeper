@@ -1,13 +1,15 @@
 """
 picca_bookkeeper.bookkeeper
 
-This module provides the Bookkeeper and PathBuilder classes, which manage configuration, 
-tasking, and filesystem structure for orchestrating picca and vega analysis runs, including 
-delta extraction, correlations, and fitting. It includes task scheduling, configuration 
-validation, and path management utilities.
+This module provides the Bookkeeper and PathBuilder classes, which manage
+configuration, tasking, and filesystem structure for orchestrating picca and
+vega analysis runs, including delta extraction, correlations, and fitting.
+It includes task scheduling, configuration validation, and path management
+utilities.
 
 Classes:
-    - Bookkeeper: High-level interface for managing picca and vega jobs and configurations.
+    - Bookkeeper: High-level interface for managing picca and vega jobs
+                and configurations.
     - PathBuilder: Utility for generating standardized paths for input/output.
 """
 
@@ -39,7 +41,8 @@ logger = logging.getLogger(__name__)
 # This converts Nones in dict into empty fields in yaml.
 SafeDumper.add_representer(
     type(None),
-    lambda dumper, value: dumper.represent_scalar("tag:yaml.org,2002:null", ""),
+    lambda dumper, value: dumper.represent_scalar(
+        "tag:yaml.org,2002:null", ""),
 )
 
 config_file_sorting = ["general", "delta extraction", "correlations", "fits"]
@@ -49,8 +52,8 @@ class Bookkeeper:
     """
     Class to generate Tasker objects which can be used to run different picca jobs.
 
-    Handles configuration loading, validation, and management of directories, 
-    and constructs Tasker objects to run various stages of the analysis 
+    Handles configuration loading, validation, and management of directories,
+    and constructs Tasker objects to run various stages of the analysis
     (delta extraction, correlation, fitting, etc.).
 
     Attributes:
@@ -61,7 +64,7 @@ class Bookkeeper:
         bookkeeper = Bookkeeper("config.yaml")
         tasker = bookkeeper.get_delta_extraction_tasker(region="lya")
     """
-    
+
     label: Optional[str]
 
     def __init__(
@@ -85,7 +88,8 @@ class Bookkeeper:
             if (config_path / "configs/bookkeeper_config.yaml").is_file():
                 config_path = config_path / "configs/bookkeeper_config.yaml"
             else:
-                raise FileNotFoundError("Config file couldn't be found", config_path)
+                raise FileNotFoundError(
+                    "Config file couldn't be found", config_path)
 
         with open(config_path) as file:
             self.config = yaml.safe_load(file)
@@ -96,7 +100,7 @@ class Bookkeeper:
         # Needed to retrieve continuum tag
         self.paths = PathBuilder(self.config)
 
-        ## Needed for partially written bookkeepers
+        # Needed for partially written bookkeepers
         if self.config.get("correlations", None) is None:
             self.config["correlations"] = dict()
 
@@ -120,7 +124,8 @@ class Bookkeeper:
             ]
         elif not self.read_mode:
             self.paths.check_delta_directories()
-            self.check_existing_config("delta extraction", self.paths.config_file)
+            self.check_existing_config(
+                "delta extraction", self.paths.config_file)
 
         if self.config["correlations"].get("use existing", None) is not None:
             original_config = (
@@ -190,18 +195,19 @@ class Bookkeeper:
     def check_existing_config(self, section: str, destination: Path) -> None:
         """
         Ensure that the configuration for a section matches the on-disk config file.
-    
-        If the config differs, this method will raise a ValueError unless overwrite is enabled.
-        Writes the config to disk if missing or if overwrite is set.
-    
+
+        If the config differs, this method will raise a ValueError unless overwrite
+        is enabled. Writes the config to disk if missing or if overwrite is set.
+
         Args:
-            section (str): Which section of the config to check (e.g., 'delta extraction').
+            section (str): Which section of the config to check
+                        (e.g., 'delta extraction').
             destination (Path): The config file to check/write.
-    
+
         Raises:
             ValueError: If the configs differ and overwrite is False.
         """
-        
+
         config = copy.deepcopy(self.config)
 
         # for key in list(config.keys()):
@@ -231,15 +237,15 @@ class Bookkeeper:
     def write_ini(config: Dict, file: Path | str) -> None:
         """
         Safely save a dictionary into an .ini file
-    
-        Converts all values to strings and uses ConfigParser to write the result 
+
+        Converts all values to strings and uses ConfigParser to write the result
         to disk with consistent formatting.
-    
+
         Args:
             config (Dict): Dict to store as ini file.
             file (Path | str): Destination path for the .ini file.
         """
-    
+
         config = DictUtils.convert_to_string(config)
 
         parser = configparser.ConfigParser()
@@ -253,20 +259,21 @@ class Bookkeeper:
     def write_bookkeeper(config: Dict, file: Path | str) -> None:
         """
         Write a validated bookkeeper YAML configuration file to file.
-    
-        This method transforms the configuration to ensure compatibility with 
-        existing workflows by rewriting certain sections (e.g., replacing 
-        "original path" with "use existing"). It also enforces a specific key 
+
+        This method transforms the configuration to ensure compatibility with
+        existing workflows by rewriting certain sections (e.g., replacing
+        "original path" with "use existing"). It also enforces a specific key
         ordering for clarity and consistency.
-    
+
         Args:
             config (Dict): Bookkeeper configuration to store as yaml file.
             file (Path | str): Destination path for the bookkeeper config file.
-    
+
         Raises:
-            ValueError: If the configuration contains unexpected keys that violate the expected order.
+            ValueError: If the configuration contains unexpected keys that
+                        violate the expected order.
         """
-        
+
         # I need to recover the use existing and remove the original structure
         # To avoid issues if re-running with stored bookkeeper
         if (
@@ -343,12 +350,14 @@ class Bookkeeper:
 
         try:
             config = dict(
-                sorted(config.items(), key=lambda s: list(correct_order).index(s[0]))
+                sorted(config.items(), key=lambda s: list(
+                    correct_order).index(s[0]))
             )
 
             for key, value in config.items():
                 config[key] = dict(
-                    sorted(value.items(), key=lambda s: correct_order[key].index(s[0]))
+                    sorted(value.items(),
+                           key=lambda s: correct_order[key].index(s[0]))
                 )
         except ValueError as e:
             raise ValueError(f"Invalid item in config file").with_traceback(
@@ -358,13 +367,15 @@ class Bookkeeper:
         with open(file, "w") as f:
             yaml.safe_dump(config, f, sort_keys=False)
 
-    def check_bookkeeper_config(self) -> None:        
+    def check_bookkeeper_config(self) -> None:
         """
         Validate the bookkeeper config file, raise error if invalid.
-    
-        Checks for incompatible settings (e.g., smoothing covariance without computing it),
-        validates command names for each analysis stage, and ensures region keys are valid.
-    
+
+        Checks for incompatible settings (e.g., smoothing covariance without
+                                          computing it),
+        validates command names for each analysis stage, and ensures region
+        keys are valid.
+
         Raises:
             ValueError: If an invalid configuration is detected, such as:
                 - Smoothing covariance without enabling covariance computation.
@@ -416,10 +427,12 @@ class Bookkeeper:
                 (delta_extraction_commands, correlation_commands, fit_commands),
             ):
                 for key in (
-                    self.config.get(section, dict()).get(arg_type, dict()).keys()
+                    self.config.get(section, dict()).get(
+                        arg_type, dict()).keys()
                 ):
                     if key not in commands:
-                        raise ValueError("Invalid command in bookkeeper config: ", key)
+                        raise ValueError(
+                            "Invalid command in bookkeeper config: ", key)
 
                     if self.config[section][arg_type][key] is not None:
                         for region in self.config[section][arg_type][key].keys():
@@ -430,20 +443,22 @@ class Bookkeeper:
                                 )
 
     @staticmethod
-    def validate_region(region: str) -> str:        
+    def validate_region(region: str) -> str:
         """
-        Validate that the specified region is present in the forest_regions dictionary.
-    
+        Validate that the specified region is present in the forest_regions
+        dictionary.
+
         Args:
             region: Region (should be in forest_regions to pass the validation).
-    
+
         Returns:
             str: The validated region name.
-    
+
         Raises:
-            ValueError: If the region string is not recognized / not in forest_regions.
+            ValueError: If the region string is not recognized / not in
+                        forest_regions.
         """
-        
+
         if region not in forest_regions:
             raise ValueError("Invalid region", region)
 
@@ -453,16 +468,16 @@ class Bookkeeper:
     def validate_absorber(absorber: str) -> str:
         """
         Validate that the specified absorber is supported in the absorber list.
-    
-        Allows lowercase 'lya' and 'lyb' as valid exceptions. Raises an error for 
-        any unrecognized absorber name.
-    
+
+        Allows lowercase 'lya' and 'lyb' as valid exceptions. Raises an error
+        for any unrecognized absorber name.
+
         Args:
             absorber (str): Absorber name to use.
-    
+
         Returns:
             str: The validated absorber name.
-    
+
         Raises:
             ValueError: If the absorber is not found in absorber_igm.
         """
@@ -485,26 +500,32 @@ class Bookkeeper:
     ) -> Dict:
         """
         Generate and merge extra SLURM header arguments to the run.
-    
-        This method constructs a subcommand key based on absorber(s), region(s), and tracer,
-        then looks up and merges SLURM arguments from the general and section-specific config
-        under matching subcommand keys. General arguments are merged first, followed by more
-        specific ones, with later entries overriding earlier ones.
-    
+
+        This method constructs a subcommand key based on absorber(s), region(s),
+        and tracer, then looks up and merges SLURM arguments from the general
+        and section-specific config under matching subcommand keys. General
+        arguments are merged first, followed by more specific ones, with later
+        entries overriding earlier ones.
+
         Args:
             config (Dict): Bookkeeper config.
-            section (str): Section of the config to query (e.g., "correlations", "fits").
-            command (str): Command to be run (e.g., "picca_cf", "smooth_covariance").
+            section (str): Section of the config to query
+                        (e.g., "correlations", "fits").
+            command (str): Command to be run
+                        (e.g., "picca_cf", "smooth_covariance").
             region (Optional[str]): Specify region where the command will be run.
             absorber (Optional[str]): First absorber to use for correlations.
-            region2 (Optional[str]): Region label for the second absorber (if applicable).
-            absorber2 (Optional[str]): Second absorber to use for correlations (if applicable).
-            tracer (Optional[str]): Tracer used in cross-correlations (e.g., "qso", "dla").
-    
+            region2 (Optional[str]): Region label for the second absorber
+                        (if applicable).
+            absorber2 (Optional[str]): Second absorber to use for correlations
+                        (if applicable).
+            tracer (Optional[str]): Tracer used in cross-correlations
+                        (e.g., "qso", "dla").
+
         Returns:
             Dict: Merged SLURM argument dictionary for the specified context.
         """
-        
+
         if "slurm args" in config["general"]:
             args = copy.deepcopy(config["general"]["slurm args"])
         else:
@@ -557,26 +578,30 @@ class Bookkeeper:
     ) -> Dict:
         """
         Generate and merge additional runtime arguments to the run.
-    
-        Constructs a subcommand key using absorber(s), region(s), and tracer, and merges any 
-        matching 'extra args' entries from the config. General arguments are merged first, followed 
-        by context-specific overrides.
-    
+
+        Constructs a subcommand key using absorber(s), region(s), and tracer,
+        and merges any matching 'extra args' entries from the config. General
+        arguments are merged first, followed by context-specific overrides.
+
         Args:
             config (Dict): Section of the bookkeeper config to look into.
-            section (str): Section of the config to query (e.g., "correlations", "fits"), 
-                            should be prioritized.
+            section (str): Section of the config to query
+                            (e.g., "correlations", "fits"), should be prioritized.
             command (str): Command to be run (e.g., "picca_cf", "vega_cross").
             region (Optional[str]): Specify region where the command will be run.
             absorber (Optional[str]): First absorber to use for correlations.
-            region2 (Optional[str]): Region label for the second absorber (if applicable).
-            absorber2 (Optional[str]): Second absorber to use for correlations (if applicable).
-            tracer (Optional[str]): Tracer used in cross-correlations (e.g., "qso", "dla").
-    
+            region2 (Optional[str]): Region label for the second absorber
+                            (if applicable).
+            absorber2 (Optional[str]): Second absorber to use for correlations
+                            (if applicable).
+            tracer (Optional[str]): Tracer used in cross-correlations
+                            (e.g., "qso", "dla").
+
         Returns:
-            Dict: Merged dictionary of extra arguments for the specified command context.
+            Dict: Merged dictionary of extra arguments for the specified
+                command context.
         """
-        
+
         config = copy.deepcopy(config[section])
 
         command_name = command.split(".py")[0]
@@ -615,17 +640,18 @@ class Bookkeeper:
     def generate_system_arg(self, system: Optional[str]) -> str:
         """
         Return the specified system or fallback to the default from config.
-    
+
         Args:
             system (Optional[str]): System name to use, or None to use the default.
-    
+
         Returns:
             str: Resolved system name (e.g., "slurm_perlmutter").
         """
-        
+
         if system is None:
             return copy.copy(
-                self.config.get("general", dict()).get("system", "slurm_perlmutter")
+                self.config.get("general", dict()).get(
+                    "system", "slurm_perlmutter")
             )
         else:
             return system
@@ -634,27 +660,29 @@ class Bookkeeper:
         self, extra_args: Dict, calib_step: Optional[int] = None
     ) -> Tuple[List[Path], Dict]:
         """
-        Method to add calibration options to extra args. 
-    
-        Depending on the calibration mode set in the config (`calib` = 1 or 2), this method 
-        appends the appropriate correction types and file paths to the argument dictionary. 
-        It also verifies that required calibration files and directories exist and raises 
-        errors when they don't.
-    
+        Method to add calibration options to extra args.
+
+        Depending on the calibration mode set in the config (`calib` = 1 or 2),
+        this method appends the appropriate correction types and file paths to
+        the argument dictionary. It also verifies that required calibration
+        files and directories exist and raises errors when they don't.
+
         Args:
             extra_args (Dict): Configuration to be used in the run.
-            calib_step (Optional[int]): Current calibration step (1 or 2), or None for the main run.
-    
+            calib_step (Optional[int]): Current calibration step (1 or 2),
+                                        or None for the main run.
+
         Returns:
             Tuple[List[Path], Dict]: A tuple containing:
                 - List of input files required for calibration.
                 - Updated `extra_args` dictionary including calibration corrections.
-    
+
         Raises:
             ValueError: If calibration settings are inconsistent with the config.
-            FileNotFoundError: If required calibration output files or directories are missing.
+            FileNotFoundError: If required calibration output files or
+                                directories are missing.
         """
-        
+
         # List input files needed
         input_files = []
 
@@ -671,7 +699,8 @@ class Bookkeeper:
                 )
 
         if self.config["delta extraction"]["calib"] == 0 and calib_step is not None:
-            raise ValueError("Trying to run calibration with calib = 0 in config file.")
+            raise ValueError(
+                "Trying to run calibration with calib = 0 in config file.")
 
         # Two calibration steps:
         elif self.config["delta extraction"]["calib"] == 2:
@@ -716,7 +745,8 @@ class Bookkeeper:
                     )
 
                 num_corrections = (
-                    int(extra_args.get("corrections", dict()).get("num corrections", 0))
+                    int(extra_args.get("corrections", dict()).get(
+                        "num corrections", 0))
                     + 2
                 )
 
@@ -744,8 +774,10 @@ class Bookkeeper:
                         },
                     },
                 )
-                input_files.append(self.paths.delta_attributes_file(None, calib_step=1))
-                input_files.append(self.paths.delta_attributes_file(None, calib_step=2))
+                input_files.append(
+                    self.paths.delta_attributes_file(None, calib_step=1))
+                input_files.append(
+                    self.paths.delta_attributes_file(None, calib_step=2))
 
         elif self.config["delta extraction"]["calib"] == 1:
             # No special action for calibration steps,
@@ -757,7 +789,8 @@ class Bookkeeper:
                         "before running deltas."
                     )
                 num_corrections = (
-                    int(extra_args.get("corrections", dict()).get("num corrections", 0))
+                    int(extra_args.get("corrections", dict()).get(
+                        "num corrections", 0))
                     + 1
                 )
 
@@ -777,7 +810,8 @@ class Bookkeeper:
                         },
                     },
                 )
-                input_files.append(self.paths.delta_attributes_file(None, calib_step=1))
+                input_files.append(
+                    self.paths.delta_attributes_file(None, calib_step=1))
         return input_files, extra_args
 
     def add_mask_options(
@@ -785,23 +819,27 @@ class Bookkeeper:
     ) -> Dict:
         """
         Add masking options to extra args.
-    
-        Includes user-supplied mask files, and optionally adds DLA or BAL masking based on 
-        the bookkeeper config YAML. Ensures that referenced mask files exist and are consistent 
-        with stored copies, raising errors if mismatches are detected.
-    
+
+        Includes user-supplied mask files, and optionally adds DLA or BAL
+        masking based on the bookkeeper config YAML. Ensures that referenced
+        mask files exist and are consistent with stored copies, raising errors
+        if mismatches are detected.
+
         Args:
             extra_args (Dict): Configuration to be used in the run.
-            calib_step (Optional[int]): Current calibration step. If None, masking for DLA/BAL is applied.
-    
+            calib_step (Optional[int]): Current calibration step. If None,
+                                        masking for DLA/BAL is applied.
+
         Returns:
-            Dict: Updated `extra_args` dictionary including all applicable mask configurations.
-    
+            Dict: Updated `extra_args` dictionary including all applicable mask
+                configurations.
+
         Raises:
             FileNotFoundError: If a user-provided mask file is missing.
-            FileExistsError: If a different mask file is already stored in the bookkeeper path.
-            ValueError: If a DlaMask or BalMask is already set by the user when the 
-                        corresponding config option is active.
+            FileExistsError: If a different mask file is already stored in the
+                        bookkeeper path.
+            ValueError: If a DlaMask or BalMask is already set by the user when
+                        the corresponding config option is active.
         """
 
         if self.config["delta extraction"].get("mask file", "") not in ("", None):
@@ -845,7 +883,8 @@ class Bookkeeper:
         if calib_step is None:
             if self.config["delta extraction"].get("dla", None) is not None:
                 if "DlaMask" in extra_args["masks"].values():
-                    raise ValueError("DlaMask set by user with dla option != None")
+                    raise ValueError(
+                        "DlaMask set by user with dla option != None")
 
                 prev_mask_number = int(extra_args["masks"]["num masks"])
                 extra_args = DictUtils.merge_dicts(
@@ -864,7 +903,8 @@ class Bookkeeper:
 
             if self.config["delta extraction"].get("bal", None) not in (None, False):
                 if "BalMask" in extra_args["masks"].values():
-                    raise ValueError("BalMask set by user with bal option != None")
+                    raise ValueError(
+                        "BalMask set by user with bal option != None")
 
                 prev_mask_number = int(extra_args["masks"]["num masks"])
                 extra_args = DictUtils.merge_dicts(
@@ -886,17 +926,17 @@ class Bookkeeper:
     def validate_mock_runs(self, deltas_config_dict: Dict) -> None:
         """
         Validate config file for mock runs.
-    
-        Performs sanity checks on the bookkeeper config and provided delta config 
-        to ensure compatibility with mock run requirements. Raises errors if 
-        raw mocks are improperly configured or if required expected flux parameters 
+
+        Performs sanity checks on the bookkeeper config and provided delta config
+        to ensure compatibility with mock run requirements. Raises errors if
+        raw mocks are improperly configured or if required expected flux parameters
         for true mocks are missing or incomplete.
-    
+
         Args:
             deltas_config_dict (Dict): Dictionary containing config to be used.
-    
+
         Raises:
-            ValueError: If raw mocks are set but improperly handled, or if required 
+            ValueError: If raw mocks are set but improperly handled, or if required
                         expected flux fields are missing for true mocks.
         """
         # if self.config["delta extraction"]["prefix"] not in [
@@ -948,31 +988,39 @@ class Bookkeeper:
     ) -> Tasker:
         """
         Create a Tasker object to run raw deltas with picca.
-    
-        This method sets up all necessary arguments, SLURM header options, and paths 
-        for running the delta extraction step on the specified forest region. It 
-        validates configurations, checks for existing outputs, and supports debug mode.
-    
+
+        This method sets up all necessary arguments, SLURM header options,
+        and paths for running the delta extraction step on the specified forest
+        region. It validates configurations, checks for existing outputs,
+        and supports debug mode.
+
         Args:
-            region (str): Forest region to compute deltas (default: 'lya'). Must be in `forest_regions`.
-            system (Optional[str]): Execution system or shell to use (e.g., 'slurm_perlmutter' to use slurm
-                scripts on perlmutter, 'bash' to  run it in login nodes or computer shell). 
-                Defaults to config value if None.
-            debug (bool): Enable debug mode with reduced runtime and sample size (default: False).
-            wait_for (Optional[Tasker | ChainedTasker | int | List[int]]): Job(s) to wait for before starting 
-                (default: None). Could be a  Tasker object or a slurm jobid
+            region (str): Forest region to compute deltas (default: 'lya').
+                        Must be in `forest_regions`.
+            system (Optional[str]): Execution system or shell to use
+                        (e.g., 'slurm_perlmutter' to use slurm scripts on perlmutter,
+                        'bash' to  run it in login nodes or computer shell).
+                        Defaults to config value if None.
+            debug (bool): Enable debug mode with reduced runtime and sample size
+                        (default: False).
+            wait_for (Optional[Tasker | ChainedTasker | int | List[int]]): Job(s)
+                        to wait for before starting (default: None).
+                        Could be a Tasker object or a slurm jobid
             overwrite (bool): Overwrite existing files if True (default: False).
-            skip_sent (bool): If True, skip and return a DummyTasker if output already exists (default: False).
-    
+            skip_sent (bool): If True, skip and return a DummyTasker if output
+                        already exists (default: False).
+
         Returns:
-            Tasker: Configured Tasker object ready to submit or run the delta extraction job.
-    
+            Tasker: Configured Tasker object ready to submit or run the delta
+                    extraction job.
+
         Raises:
-            ValueError: If the Bookkeeper is initialized in read mode or if default config values have changed 
-                since the last run.
+            ValueError: If the Bookkeeper is initialized in read mode or if
+                        default config values have changed since the last run.
         """
         if self.read_mode:
-            raise ValueError("Initialize bookkeeper without read_mode to run jobs.")
+            raise ValueError(
+                "Initialize bookkeeper without read_mode to run jobs.")
         if self.defaults_diff != {}:
             raise ValueError(
                 "Default values changed since last run of the "
@@ -1040,8 +1088,10 @@ class Bookkeeper:
         self.paths.delta_attributes_file(region, None).parent.mkdir(
             exist_ok=True, parents=True
         )
-        delta_stats_file = self.paths.deltas_path(region).parent / "Delta-stats.fits.gz"
-        self.paths.delta_attributes_file(region, None).symlink_to(delta_stats_file)
+        delta_stats_file = self.paths.deltas_path(
+            region).parent / "Delta-stats.fits.gz"
+        self.paths.delta_attributes_file(
+            region, None).symlink_to(delta_stats_file)
 
         return get_Tasker(updated_system)(
             command=command,
@@ -1049,7 +1099,8 @@ class Bookkeeper:
             packages=["picca"],
             slurm_header_args=slurm_header_args,
             environment=self.config["general"]["conda environment"],
-            run_file=self.paths.delta_extraction_path / f"scripts/run_{job_name}.sh",
+            run_file=self.paths.delta_extraction_path /
+            f"scripts/run_{job_name}.sh",
             jobid_log_file=self.paths.delta_extraction_path / f"logs/jobids.log",
             wait_for=wait_for,
             out_files=[
@@ -1066,38 +1117,49 @@ class Bookkeeper:
         calib_step: Optional[int] = None,
         overwrite: bool = False,
         skip_sent: bool = False,
-    ) -> Tasker:   
+    ) -> Tasker:
         """
         Create a Tasker object to run delta extraction with picca.
-    
-        This method prepares the configuration, SLURM headers, and input/output file handling 
-        necessary for running the delta extraction on a specified forest region. It supports 
-        optional calibration steps, validates mock run configurations, and handles cases 
-        where outputs or calibration data already exist by returning a DummyTasker.
-    
+
+        This method prepares the configuration, SLURM headers, and input/output
+        file handling necessary for running the delta extraction on a specified
+        forest region. It supports optional calibration steps, validates mock
+        run configurations, and handles cases where outputs or calibration data
+        already exist by returning a DummyTasker.
+
         Args:
-            region (str): Forest region to compute deltas (default: 'lya'). Must be in `forest_regions`.
-            system (Optional[str]): Execution system or shell to use  (e.g., 'slurm_perlmutter' to use slurm
-                scripts on perlmutter, 'bash' to  run it in login nodes or computer shell). 
-                Defaults to config value if None.
-            debug (bool): Enable debug mode with reduced runtime and sample size (default: False).
-            wait_for (Optional[Tasker | ChainedTasker | int | List[int]]): Job(s) to wait for before starting 
-                (default: None). Could be a Tasker object or a slurm jobid.
-            calib_step (Optional[int]): Calibration step number. If None, runs without calibration (default: None).
-            overwrite (bool): Overwrite existing output files if True (default: False).
-            skip_sent (bool): If True, skip and return a DummyTasker if output already exists (default: False).
-    
+            region (str): Forest region to compute deltas (default: 'lya').
+                        Must be in `forest_regions`.
+            system (Optional[str]): Execution system or shell to use
+                        (e.g., 'slurm_perlmutter' to use slurm cripts on perlmutter,
+                        'bash' to  run it in login nodes or computer shell).
+                        Defaults to config value if None.
+            debug (bool): Enable debug mode with reduced runtime and sample size
+                        (default: False).
+            wait_for (Optional[Tasker | ChainedTasker | int | List[int]]): Job(s)
+                        to wait for before starting (default: None).
+                        Could be a Tasker object or a slurm jobid.
+            calib_step (Optional[int]): Calibration step number. If None, runs
+                        without calibration (default: None).
+            overwrite (bool): Overwrite existing output files if True
+                        (default: False).
+            skip_sent (bool): If True, skip and return a DummyTasker if output
+                        already exists (default: False).
+
         Returns:
-            Tasker: Configured Tasker object ready to submit or run the delta extraction job.
-    
+            Tasker: Configured Tasker object ready to submit or run the delta
+                    extraction job.
+
         Raises:
-            ValueError: If the Bookkeeper is initialized in read mode or if default config values have changed 
-                since the last run (most overwrite or delete existing config file).
+            ValueError: If the Bookkeeper is initialized in read mode or if
+                        default config values have changed since the last run
+                        (most overwrite or delete existing config file).
         """
         copied_attributes: Path | None
 
         if self.read_mode:
-            raise ValueError("Initialize bookkeeper without read_mode to run jobs.")
+            raise ValueError(
+                "Initialize bookkeeper without read_mode to run jobs.")
         if self.defaults_diff != {}:
             raise ValueError(
                 "Default values changed since last run of the "
@@ -1130,7 +1192,8 @@ class Bookkeeper:
             if copy_deltas_paths is not None:
                 copied_attributes = copy_deltas_paths[1]
             else:
-                copied_attributes = self.paths.copied_calib_attributes(calib_step)
+                copied_attributes = self.paths.copied_calib_attributes(
+                    calib_step)
 
             if copied_attributes is not None:
                 filename = self.paths.delta_attributes_file(None, calib_step)
@@ -1170,14 +1233,16 @@ class Bookkeeper:
             region=region,
         )
 
-        config_file = self.paths.delta_extraction_path / f"configs/{job_name}.ini"
+        config_file = self.paths.delta_extraction_path / \
+            f"configs/{job_name}.ini"
 
         deltas_config_dict = DictUtils.merge_dicts(
             {
                 "general": {
                     "overwrite": True,
                     "out dir": str(
-                        self.paths.deltas_path(region, calib_step).parent.resolve()
+                        self.paths.deltas_path(
+                            region, calib_step).parent.resolve()
                     )
                     + "/",
                 },
@@ -1212,7 +1277,8 @@ class Bookkeeper:
         self.validate_mock_runs(deltas_config_dict)
 
         # create config for delta_extraction options
-        self.paths.deltas_path(region, calib_step).mkdir(parents=True, exist_ok=True)
+        self.paths.deltas_path(region, calib_step).mkdir(
+            parents=True, exist_ok=True)
         self.paths.deltas_log_path(region, calib_step).mkdir(
             parents=True, exist_ok=True
         )
@@ -1232,7 +1298,8 @@ class Bookkeeper:
             slurm_header_args = DictUtils.merge_dicts(
                 slurm_header_args, dict(qos="debug", time="00:30:00")
             )
-            deltas_config_dict.get("data", dict()).update({"max num spec": 1000})
+            deltas_config_dict.get("data", dict()).update(
+                {"max num spec": 1000})
 
         return get_Tasker(updated_system)(
             command=command,
@@ -1240,7 +1307,8 @@ class Bookkeeper:
             packages=["picca"],
             slurm_header_args=slurm_header_args,
             environment=self.config["general"]["conda environment"],
-            run_file=self.paths.delta_extraction_path / f"scripts/run_{job_name}.sh",
+            run_file=self.paths.delta_extraction_path /
+            f"scripts/run_{job_name}.sh",
             jobid_log_file=self.paths.delta_extraction_path / f"logs/jobids.log",
             wait_for=wait_for,
             in_files=input_files,
@@ -1260,31 +1328,39 @@ class Bookkeeper:
         """
         Method to get a Tasker object to run calibration with picca delta
         extraction method.
-    
-        This method determines the appropriate calibration steps based on the config,
-        validates the calibration region, and returns a chained sequence of Taskers
-        for each calibration step. It handles calibration modes 1, 2, and 10 explicitly,
-        raising errors if the configuration is invalid or incomplete.
-    
+
+        This method determines the appropriate calibration steps based on the
+        config, validates the calibration region, and returns a chained sequence
+        of Taskers for each calibration step. It handles calibration modes 1, 2,
+        and 10 explicitly, raising errors if the configuration is invalid or
+        incomplete.
+
         Args:
-            system (Optional[str]): Execution system or shell to use  (e.g., 'slurm_perlmutter' to use slurm
-                scripts on perlmutter, 'bash' to  run it in login nodes or computer shell). 
-                Defaults to config value if None.
-            debug (bool): Enable debug mode with reduced runtime and sample size (default: False).
-            wait_for (Optional[Tasker | ChainedTasker | int | List[int]]): Job(s) to wait for before starting 
-                (default: None). Could be a Tasker object or a slurm jobid (int).
-            overwrite (bool): Overwrite existing output files if True (default: False).
-            skip_sent (bool): If True, skip and return a DummyTasker if outputs already exist (default: False).
-    
+            system (Optional[str]): Execution system or shell to use
+                        (e.g., 'slurm_perlmutter' to use slurm cripts on perlmutter,
+                        'bash' to  run it in login nodes or computer shell).
+                        Defaults to config value if None.
+            debug (bool): Enable debug mode with reduced runtime and sample size
+                        (default: False).
+            wait_for (Optional[Tasker | ChainedTasker | int | List[int]]): Job(s)
+                        to wait for before starting (default: None).
+                        Could be a Tasker object or a slurm jobid.
+            overwrite (bool): Overwrite existing output files if True
+                        (default: False).
+            skip_sent (bool): If True, skip and return a DummyTasker if output
+                        already exists (default: False).
+
         Returns:
-            ChainedTasker: A chained sequence of Taskers that run calibration delta extraction steps in order.
-    
+            ChainedTasker: A chained sequence of Taskers that run calibration
+                        delta extraction steps in order.
+
         Raises:
-            ValueError: If the bookkeeper is in read mode, the calibration region is undefined or invalid,
-                or the calibration mode is unsupported.
+            ValueError: If the bookkeeper is in read mode, the calibration region
+                is undefined or invalid, or the calibration mode is unsupported.
         """
         if self.read_mode:
-            raise ValueError("Initialize bookkeeper without read_mode to run jobs.")
+            raise ValueError(
+                "Initialize bookkeeper without read_mode to run jobs.")
         steps = []
         region = self.config["delta extraction"].get("calib region", 0)
         if region in (0, "", None):
@@ -1332,7 +1408,8 @@ class Bookkeeper:
                 ),
             ]
         else:
-            raise ValueError("Trying to run calibration with calib=0 in config file.")
+            raise ValueError(
+                "Trying to run calibration with calib=0 in config file.")
 
         return ChainedTasker(taskers=steps)
 
@@ -1349,8 +1426,8 @@ class Bookkeeper:
         skip_sent: bool = False,
     ) -> Tasker:
         """
-        Method to get a Tasker object to run forest-forest correlations with picca.    
-        
+        Method to get a Tasker object to run forest-forest correlations with picca.
+
         Args:
             region (str): Region to use. Options: ('lya', 'lyb'). Default: 'lya'.
             region2 (Optional[str]): Secondary forest region for cross-correlation.
@@ -1358,24 +1435,31 @@ class Bookkeeper:
             absorber (str): First absorber to use for correlations (e.g., 'lya').
             absorber2 (Optional[str]): Second absorber to use for correlations.
                 Defaults to None, which uses the same absorber as `absorber`.
-            system (Optional[str]): Execution system or shell to use  (e.g., 'slurm_perlmutter' to use slurm
-                scripts on perlmutter, 'bash' to  run it in login nodes or computer shell). 
-                Defaults to config value if None.
-            debug (bool): Enable debug mode with reduced runtime and sample size (default: False).
-            wait_for (Optional[Tasker | ChainedTasker | int | List[int]]): Job(s) to wait for before starting 
-                (default: None). Tasker object or a slurm jobid (int).
-            overwrite (bool): Overwrite existing output files if True (default: False).
-            skip_sent (bool): Skip and return DummyTasker if the output already exists (default: False).
-    
+            system (Optional[str]): Execution system or shell to use
+                        (e.g., 'slurm_perlmutter' to use slurm cripts on perlmutter,
+                        'bash' to  run it in login nodes or computer shell).
+                        Defaults to config value if None.
+            debug (bool): Enable debug mode with reduced runtime and sample size
+                        (default: False).
+            wait_for (Optional[Tasker | ChainedTasker | int | List[int]]): Job(s)
+                        to wait for before starting (default: None).
+                        Could be a Tasker object or a slurm jobid.
+            overwrite (bool): Overwrite existing output files if True
+                        (default: False).
+            skip_sent (bool): If True, skip and return a DummyTasker if output
+                        already exists (default: False).
+
         Returns:
-            Tasker: A Tasker object configured to run the forest correlation function.
-    
+            Tasker: A Tasker object configured to run the forest correlation
+                    function.
+
         Raises:
-            ValueError: If bookkeeper is initialized in read mode or if default config values have changed
-                since the last run.
+            ValueError: If bookkeeper is initialized in read mode or if default
+                    config values have changed since the last run.
         """
         if self.read_mode:
-            raise ValueError("Initialize bookkeeper without read_mode to run jobs.")
+            raise ValueError(
+                "Initialize bookkeeper without read_mode to run jobs.")
         if self.defaults_diff != {}:
             raise ValueError(
                 "Default values changed since last run of the "
@@ -1397,7 +1481,8 @@ class Bookkeeper:
 
         # Check if output already there
         updated_system = self.generate_system_arg(system)
-        output_filename = self.paths.cf_fname(absorber, region, absorber2, region2)
+        output_filename = self.paths.cf_fname(
+            absorber, region, absorber2, region2)
         if self.check_existing_output_file(
             output_filename,
             job_name,
@@ -1484,7 +1569,8 @@ class Bookkeeper:
             packages=["picca"],
             slurm_header_args=slurm_header_args,
             environment=self.config["general"]["conda environment"],
-            run_file=self.paths.correlations_path / f"scripts/run_{job_name}.sh",
+            run_file=self.paths.correlations_path /
+            f"scripts/run_{job_name}.sh",
             jobid_log_file=self.paths.correlations_path / f"logs/jobids.log",
             wait_for=wait_for,
             in_files=[
@@ -1511,32 +1597,40 @@ class Bookkeeper:
         """
         Method to get a Tasker object to run forest-forest distortion matrix
         measurements with picca.
-    
+
         Args:
-            region (str): Primary forest region. Options include 'lya', 'lyb'. Default is 'lya'.
+            region (str): Primary forest region. Options include 'lya', 'lyb'.
+                        Default is 'lya'.
             region2 (Optional[str]): Region to use for cross-correlations.
-                Default: None, auto-correlation.
+                        Default: None, auto-correlation.
             absorber (str): First absorber to use for correlations (e.g., 'lya').
             absorber2 (Optional[str]): Second absorber to use for correlations.
-                Defaults to None, which uses the same absorber as `absorber`.
-            system (Optional[str]): Execution system or shell to use  (e.g., 'slurm_perlmutter' to use slurm
-                scripts on perlmutter, 'bash' to  run it in login nodes or computer shell). 
-                Defaults to config value if None.
-            debug (bool): Enable debug mode with reduced runtime and sample size (default: False).
-            wait_for (Optional[Tasker | ChainedTasker | int | List[int]]): Job(s) to wait for before starting 
-                (default: None). Could be a Tasker object or a slurm jobid (int).
-            overwrite (bool): Overwrite existing output files if True (default: False).
-            skip_sent (bool): Skip and return DummyTasker if the output already exists (default: False).
-    
+                        Defaults to None, which uses the same absorber as `absorber`.
+            system (Optional[str]): Execution system or shell to use
+                        (e.g., 'slurm_perlmutter' to use slurm cripts on perlmutter,
+                        'bash' to  run it in login nodes or computer shell).
+                        Defaults to config value if None.
+            debug (bool): Enable debug mode with reduced runtime and sample size
+                        (default: False).
+            wait_for (Optional[Tasker | ChainedTasker | int | List[int]]): Job(s)
+                        to wait for before starting (default: None).
+                        Could be a Tasker object or a slurm jobid.
+            overwrite (bool): Overwrite existing output files if True
+                        (default: False).
+            skip_sent (bool): If True, skip and return a DummyTasker if output
+                        already exists (default: False).
+
         Returns:
-            Tasker: A Tasker object configured to run the distortion matrix measurement.
-    
+            Tasker: A Tasker object configured to run the distortion matrix
+                measurement.
+
         Raises:
-            ValueError: If bookkeeper is initialized in read mode or if default config values
-                have changed since the last run.
-        """        
+            ValueError: If bookkeeper is initialized in read mode or if default
+                config values have changed since the last run.
+        """
         if self.read_mode:
-            raise ValueError("Initialize bookkeeper without read_mode to run jobs.")
+            raise ValueError(
+                "Initialize bookkeeper without read_mode to run jobs.")
         if self.defaults_diff != {}:
             raise ValueError(
                 "Default values changed since last run of the "
@@ -1556,7 +1650,8 @@ class Bookkeeper:
         job_name = f"dmat_{absorber}{region}_{absorber2}{region2}"
         job_name = job_name.replace("(", "").replace(")", "")
 
-        output_filename = self.paths.dmat_fname(absorber, region, absorber2, region2)
+        output_filename = self.paths.dmat_fname(
+            absorber, region, absorber2, region2)
         # Check if output already there
         updated_system = self.generate_system_arg(system)
         if self.check_existing_output_file(
@@ -1646,7 +1741,8 @@ class Bookkeeper:
             packages=["picca"],
             slurm_header_args=slurm_header_args,
             environment=self.config["general"]["conda environment"],
-            run_file=self.paths.correlations_path / f"scripts/run_{job_name}.sh",
+            run_file=self.paths.correlations_path /
+            f"scripts/run_{job_name}.sh",
             jobid_log_file=self.paths.correlations_path / f"logs/jobids.log",
             wait_for=wait_for,
             in_files=[
@@ -1672,31 +1768,37 @@ class Bookkeeper:
         """
         Method to get a Tasker object to run forest-forest correlation export with
          picca.
-    
+
         Args:
-            region (str): Primary forest region. Options include 'lya', 'lyb'. Default: 'lya'.
+            region (str): Primary forest region. Options include 'lya', 'lyb'.
+                        Default: 'lya'.
             region2 (Optional[str]): Secondary forest region for cross-correlation.
                 Defaults to None for auto-correlation with `region`.
             absorber (str): First absorber to use for correlations (e.g., 'lya').
             absorber2 (Optional[str]): cond absorber to use for cross-correlations.
                 Defaults to None, meaning same absorber as `absorber`.
-            system (Optional[str]): Execution system or shell to use  (e.g., 'slurm_perlmutter' to use slurm
-                scripts on perlmutter, 'bash' to  run it in login nodes or computer shell). 
-                Defaults to config value if None.
-            wait_for (Optional[Tasker | ChainedTasker | int | List[int]]): Job(s) to wait for before starting
-                (default: None). Could be a Tasker object or a slurm jobid (int).
-            overwrite (bool): Overwrite existing output files if True (default: False).
-            skip_sent (bool): Skip and return DummyTasker if the output already exists (default: False).
-    
+            system (Optional[str]): Execution system or shell to use
+                        (e.g., 'slurm_perlmutter' to use slurm cripts on perlmutter,
+                        'bash' to  run it in login nodes or computer shell).
+                        Defaults to config value if None.
+            wait_for (Optional[Tasker | ChainedTasker | int | List[int]]): Job(s)
+                        to wait for before starting (default: None).
+                        Could be a Tasker object or a slurm jobid.
+            overwrite (bool): Overwrite existing output files if True
+                        (default: False).
+            skip_sent (bool): If True, skip and return a DummyTasker if output
+                        already exists (default: False).
+
         Returns:
             Tasker: Configured Tasker object to run the correlation export.
-    
+
         Raises:
-            ValueError: If bookkeeper is initialized in read mode or if default config values
-                have changed since the last run.
+            ValueError: If bookkeeper is initialized in read mode or if default
+                config values have changed since the last run.
         """
         if self.read_mode:
-            raise ValueError("Initialize bookkeeper without read_mode to run jobs.")
+            raise ValueError(
+                "Initialize bookkeeper without read_mode to run jobs.")
         if self.defaults_diff != {}:
             raise ValueError(
                 "Default values changed since last run of the "
@@ -1716,7 +1818,8 @@ class Bookkeeper:
         job_name = f"cf_exp_{absorber}{region}_{absorber2}{region2}"
         job_name = job_name.replace("(", "").replace(")", "")
 
-        output_filename = self.paths.exp_cf_fname(absorber, region, absorber2, region2)
+        output_filename = self.paths.exp_cf_fname(
+            absorber, region, absorber2, region2)
         # Check if output already there
         updated_system = self.generate_system_arg(system)
         if self.check_existing_output_file(
@@ -1776,7 +1879,8 @@ class Bookkeeper:
 
         args = {
             "data": str(
-                self.paths.cf_fname(absorber, region, absorber2, region2).resolve()
+                self.paths.cf_fname(
+                    absorber, region, absorber2, region2).resolve()
             ),
             "out": str(output_filename),
         }
@@ -1790,7 +1894,8 @@ class Bookkeeper:
         output_filename.parent.mkdir(exist_ok=True, parents=True)
 
         in_files = [
-            self.paths.cf_fname(absorber, region, absorber2, region2).resolve(),
+            self.paths.cf_fname(
+                absorber, region, absorber2, region2).resolve(),
         ]
 
         precommand = ""
@@ -1829,7 +1934,8 @@ class Bookkeeper:
             slurm_header_args=slurm_header_args,
             environment=self.config["general"]["conda environment"],
             environmental_variables=environmental_variables,
-            run_file=self.paths.correlations_path / f"scripts/run_{job_name}.sh",
+            run_file=self.paths.correlations_path /
+            f"scripts/run_{job_name}.sh",
             jobid_log_file=self.paths.correlations_path / f"logs/jobids.log",
             wait_for=wait_for,
             in_files=in_files,
@@ -1853,31 +1959,40 @@ class Bookkeeper:
         """
         Method to get a Tasker object to run forest-forest metal distortion matrix
         measurements with picca.
-    
+
         Args:
-            region (str): Primary forest region. Options include 'lya', 'lyb'. Default: 'lya'.
+            region (str): Primary forest region. Options include 'lya', 'lyb'.
+                        Default: 'lya'.
             region2 (Optional[str]): Secondary forest region for cross-correlations.
-                Defaults to None for auto-correlation with `region`.
+                        Defaults to None for auto-correlation with `region`.
             absorber (str): First absorber to use for correlations. (e.g., 'lya').
             absorber2 (Optional[str]): Second absorber to use for correlations.
-                Defaults to None, meaning same absorber as `absorber`.
-            system (Optional[str]): Execution system or shell to use  (e.g., 'slurm_perlmutter' to use slurm
-                scripts on perlmutter, 'bash' to  run it in login nodes or computer shell). 
-                Defaults to config value if None.
-            debug: Whether to use debug options.
-            wait_for (Optional[Tasker | ChainedTasker | int | List[int]]): Job(s) to wait for before starting
-                (default: None). Could be a Tasker object or a slurm jobid (int).
-            overwrite (bool): Overwrite existing output files if True (default: False).
-            skip_sent (bool): Skip and return DummyTasker if the output already exists (default: False).
-    
+                        Defaults to None, meaning same absorber as `absorber`.
+            system (Optional[str]): Execution system or shell to use
+                        (e.g., 'slurm_perlmutter' to use slurm cripts on perlmutter,
+                        'bash' to  run it in login nodes or computer shell).
+                        Defaults to config value if None.
+            debug (bool): Enable debug mode with reduced runtime and sample size
+                        (default: False).
+            wait_for (Optional[Tasker | ChainedTasker | int | List[int]]): Job(s)
+                        to wait for before starting (default: None).
+                        Could be a Tasker object or a slurm jobid.
+            overwrite (bool): Overwrite existing output files if True
+                        (default: False).
+            skip_sent (bool): If True, skip and return a DummyTasker if output
+                        already exists (default: False).
+
         Returns:
-            Tasker: Configured Tasker object to run metal distortion matrix measurements.
-    
+            Tasker: Configured Tasker object to run metal distortion matrix
+                measurements.
+
         Raises:
-            ValueError: If initialized in read mode or if config defaults have changed since last run.
-        """        
+            ValueError: If initialized in read mode or if config defaults have
+                changed since last run.
+        """
         if self.read_mode:
-            raise ValueError("Initialize bookkeeper without read_mode to run jobs.")
+            raise ValueError(
+                "Initialize bookkeeper without read_mode to run jobs.")
         if self.defaults_diff != {}:
             raise ValueError(
                 "Default values changed since last run of the "
@@ -1899,7 +2014,8 @@ class Bookkeeper:
 
         # Check if output already there
         updated_system = self.generate_system_arg(system)
-        output_filename = self.paths.metal_fname(absorber, region, absorber2, region2)
+        output_filename = self.paths.metal_fname(
+            absorber, region, absorber2, region2)
         if self.check_existing_output_file(
             output_filename,
             job_name,
@@ -2003,7 +2119,8 @@ class Bookkeeper:
             packages=["picca"],
             slurm_header_args=slurm_header_args,
             environment=self.config["general"]["conda environment"],
-            run_file=self.paths.correlations_path / f"scripts/run_{job_name}.sh",
+            run_file=self.paths.correlations_path /
+            f"scripts/run_{job_name}.sh",
             jobid_log_file=self.paths.correlations_path / f"logs/jobids.log",
             wait_for=wait_for,
             in_files=[
@@ -2028,28 +2145,39 @@ class Bookkeeper:
     ) -> Tasker:
         """
         Method to get a Tasker object to run forest-quasar correlations with picca.
-    
+
         Args:
-            region (str): Region to use. Options: ('lya', 'lyb'). Default: 'lya'.
-            absorber (str):  First absorber to use for correlations. Default: 'lya'.
-            tracer (str): Tracer type for cross-correlation (e.g., 'qso'). Default: 'qso'.
-            system (Optional[str]): Execution system or shell to use  (e.g., 'slurm_perlmutter' to use slurm
-                scripts on perlmutter, 'bash' to  run it in login nodes or computer shell). 
-                Defaults to config value if None.
-            debug: Whether to use debug options.
-            wait_for (Optional[Tasker | ChainedTasker | int | List[int]]): Job(s) to wait for before starting
-                (default: None). Could be a Tasker object or a slurm jobid (int).
-            overwrite (bool): Overwrite existing output files if True (default: False).
-            skip_sent (bool): Skip and return DummyTasker if the output already exists (default: False).
-    
+            region (str): Region to use. Options: ('lya', 'lyb').
+                        Default: 'lya'.
+            absorber (str):  First absorber to use for correlations.
+                        Default: 'lya'.
+            tracer (str): Tracer type for cross-correlation (e.g., 'qso').
+                        Default: 'qso'.
+            system (Optional[str]): Execution system or shell to use
+                        (e.g., 'slurm_perlmutter' to use slurm cripts on perlmutter,
+                        'bash' to  run it in login nodes or computer shell).
+                        Defaults to config value if None.
+            debug (bool): Enable debug mode with reduced runtime and sample size
+                        (default: False).
+            wait_for (Optional[Tasker | ChainedTasker | int | List[int]]): Job(s)
+                        to wait for before starting (default: None).
+                        Could be a Tasker object or a slurm jobid.
+            overwrite (bool): Overwrite existing output files if True
+                        (default: False).
+            skip_sent (bool): If True, skip and return a DummyTasker if output
+                        already exists (default: False).
+
         Returns:
-            Tasker: Configured Tasker object to run forest-quasar cross-correlation.
-    
+            Tasker: Configured Tasker object to run forest-quasar
+                    cross-correlation.
+
         Raises:
-            ValueError: If initialized in read mode or if config defaults have changed since last run.
-        """     
+            ValueError: If initialized in read mode or if config defaults have
+                    changed since last run.
+        """
         if self.read_mode:
-            raise ValueError("Initialize bookkeeper without read_mode to run jobs.")
+            raise ValueError(
+                "Initialize bookkeeper without read_mode to run jobs.")
         if self.defaults_diff != {}:
             raise ValueError(
                 "Default values changed since last run of the "
@@ -2149,7 +2277,8 @@ class Bookkeeper:
             packages=["picca"],
             slurm_header_args=slurm_header_args,
             environment=self.config["general"]["conda environment"],
-            run_file=self.paths.correlations_path / f"scripts/run_{job_name}.sh",
+            run_file=self.paths.correlations_path /
+            f"scripts/run_{job_name}.sh",
             jobid_log_file=self.paths.correlations_path / f"logs/jobids.log",
             wait_for=wait_for,
             in_files=[
@@ -2174,28 +2303,39 @@ class Bookkeeper:
         """
         Method to get a Tasker object to run forest-quasar distortion matrix
         measurements with picca.
-    
+
         Args:
-            region (str, optional): Absorption region to use ('lya', 'lyb'). Default is 'lya'.
-            absorber (str): irst absorber to use for correlations. Default is 'lya'.
-            tracer (str, optional): Tracer type for cross-correlation (e.g., 'qso'). Default is 'qso'.
-            system (Optional[str]): Execution system or shell to use  (e.g., 'slurm_perlmutter' to use slurm
-                scripts on perlmutter, 'bash' to  run it in login nodes or computer shell). 
-                Defaults to config value if None.
-            debug: Whether to use debug options.
-            wait_for (Optional[Tasker | ChainedTasker | int | List[int]]): Job(s) to wait for before starting
-                (default: None). Could be a Tasker object or a slurm jobid (int).
-            overwrite (bool): Overwrite existing output files if True (default: False).
-            skip_sent (bool): Skip and return DummyTasker if the output already exists (default: False).
-    
+            region (str, optional): Absorption region to use ('lya', 'lyb').
+                        Default is 'lya'.
+            absorber (str): irst absorber to use for correlations.
+                        Default is 'lya'.
+            tracer (str, optional): Tracer type for cross-correlation (e.g., 'qso').
+                        Default is 'qso'.
+            system (Optional[str]): Execution system or shell to use
+                        (e.g., 'slurm_perlmutter' to use slurm cripts on perlmutter,
+                        'bash' to  run it in login nodes or computer shell).
+                        Defaults to config value if None.
+            debug (bool): Enable debug mode with reduced runtime and sample size
+                        (default: False).
+            wait_for (Optional[Tasker | ChainedTasker | int | List[int]]): Job(s)
+                        to wait for before starting (default: None).
+                        Could be a Tasker object or a slurm jobid.
+            overwrite (bool): Overwrite existing output files if True
+                        (default: False).
+            skip_sent (bool): If True, skip and return a DummyTasker if output
+                        already exists (default: False).
+
         Returns:
-            Tasker: Configured Tasker object to run the forest-quasar distortion matrix measurement.
-    
+            Tasker: Configured Tasker object to run the forest-quasar distortion
+                    matrix measurement.
+
         Raises:
-            ValueError: If initialized in read mode or if config defaults have changed since last run.
-        """        
+            ValueError: If initialized in read mode or if config defaults have
+                    changed since last run.
+        """
         if self.read_mode:
-            raise ValueError("Initialize bookkeeper without read_mode to run jobs.")
+            raise ValueError(
+                "Initialize bookkeeper without read_mode to run jobs.")
         if self.defaults_diff != {}:
             raise ValueError(
                 "Default values changed since last run of the "
@@ -2294,7 +2434,8 @@ class Bookkeeper:
             packages=["picca"],
             slurm_header_args=slurm_header_args,
             environment=self.config["general"]["conda environment"],
-            run_file=self.paths.correlations_path / f"scripts/run_{job_name}.sh",
+            run_file=self.paths.correlations_path /
+            f"scripts/run_{job_name}.sh",
             jobid_log_file=self.paths.correlations_path / f"logs/jobids.log",
             wait_for=wait_for,
             in_files=[
@@ -2317,30 +2458,41 @@ class Bookkeeper:
         skip_sent: bool = False,
     ) -> Tasker:
         if self.read_mode:
-            raise ValueError("Initialize bookkeeper without read_mode to run jobs.")
+            raise ValueError(
+                "Initialize bookkeeper without read_mode to run jobs.")
         """
         Method to get a Tasker object to run forest-quasar correlation export with
         picca.
-    
+
         Args:
-            region (str, optional): Absorption region to use ('lya', 'lyb'). Default is 'lya'.
-            absorber (str): First absorber to use for correlations. Default is 'lya'.
-            tracer (str, optional): Tracer type for the cross-correlation. Default is 'qso'.
-            system (Optional[str]): Execution system or shell to use  (e.g., 'slurm_perlmutter' to use slurm
-                scripts on perlmutter, 'bash' to  run it in login nodes or computer shell). 
-                Defaults to config value if None.
-            debug: Whether to use debug options.
-            wait_for (Optional[Tasker | ChainedTasker | int | List[int]]): Job(s) to wait for before starting
-                (default: None). Could be a Tasker object or a slurm jobid (int).
-            overwrite (bool): Overwrite existing output files if True (default: False).
-            skip_sent (bool): Skip and return DummyTasker if the output already exists (default: False).
-    
+            region (str, optional): Absorption region to use ('lya', 'lyb').
+                        Default is 'lya'.
+            absorber (str): First absorber to use for correlations.
+                        Default is 'lya'.
+            tracer (str, optional): Tracer type for the cross-correlation.
+                        Default is 'qso'.
+            system (Optional[str]): Execution system or shell to use
+                        (e.g., 'slurm_perlmutter' to use slurm cripts on perlmutter,
+                        'bash' to  run it in login nodes or computer shell).
+                        Defaults to config value if None.
+            debug (bool): Enable debug mode with reduced runtime and sample size
+                        (default: False).
+            wait_for (Optional[Tasker | ChainedTasker | int | List[int]]): Job(s)
+                        to wait for before starting (default: None).
+                        Could be a Tasker object or a slurm jobid.
+            overwrite (bool): Overwrite existing output files if True
+                        (default: False).
+            skip_sent (bool): If True, skip and return a DummyTasker if output
+                        already exists (default: False).
+
         Returns:
-            Tasker: Configured Tasker object to export forest-quasar correlation data.
-    
+            Tasker: Configured Tasker object to export forest-quasar
+                    correlation data.
+
         Raises:
-            ValueError: If initialized in read mode or if config defaults have changed since last run.
-        """        
+            ValueError: If initialized in read mode or if config defaults have
+                    changed since last run.
+        """
         if self.defaults_diff != {}:
             raise ValueError(
                 "Default values changed since last run of the "
@@ -2444,7 +2596,8 @@ class Bookkeeper:
             if (not self.config["fits"].get("no metals", False)) and not self.config[
                 "fits"
             ].get("vega metals", False):
-                xmetal_file = self.paths.metal_fname(absorber, region).resolve()
+                xmetal_file = self.paths.metal_fname(
+                    absorber, region).resolve()
                 precommand += f" --metal-dmat {str(xmetal_file)}"
                 in_files.append(xmetal_file)
         elif self.config["correlations"].get("unblind y1", False):
@@ -2460,7 +2613,8 @@ class Bookkeeper:
             slurm_header_args=slurm_header_args,
             environment=self.config["general"]["conda environment"],
             environmental_variables=environmental_variables,
-            run_file=self.paths.correlations_path / f"scripts/run_{job_name}.sh",
+            run_file=self.paths.correlations_path /
+            f"scripts/run_{job_name}.sh",
             jobid_log_file=self.paths.correlations_path / f"logs/jobids.log",
             wait_for=wait_for,
             in_files=in_files,
@@ -2482,29 +2636,40 @@ class Bookkeeper:
     ) -> Tasker:
         """
         Method to get a Tasker object to run forest-quasar metal distortion matrix
-                measurements with picca.    
-                
+                measurements with picca.
+
         Args:
-            region (str, optional): Absorption region to use ('lya', 'lyb'). Default is 'lya'.
-            absorber (str): First absorber to use for correlations. Default is 'lya'.
-            tracer (str, optional): Tracer type for the cross-correlation. Default is 'qso'.
-            system (Optional[str]): Execution system or shell to use  (e.g., 'slurm_perlmutter' to use slurm
-                scripts on perlmutter, 'bash' to  run it in login nodes or computer shell). 
-                Defaults to config value if None.
-            debug: Whether to use debug options.
-            wait_for (Optional[Tasker | ChainedTasker | int | List[int]]): Job(s) to wait for before starting
-                (default: None). Could be a Tasker object or a slurm jobid (int).
-            overwrite (bool): Overwrite existing output files if True (default: False).
-            skip_sent (bool): Skip and return DummyTasker if the output already exists (default: False).
-    
+            region (str, optional): Absorption region to use ('lya', 'lyb').
+                        Default is 'lya'.
+            absorber (str): First absorber to use for correlations.
+                        Default is 'lya'.
+            tracer (str, optional): Tracer type for the cross-correlation.
+                        Default is 'qso'.
+            system (Optional[str]): Execution system or shell to use
+                        (e.g., 'slurm_perlmutter' to use slurm cripts on perlmutter,
+                        'bash' to  run it in login nodes or computer shell).
+                        Defaults to config value if None.
+            debug (bool): Enable debug mode with reduced runtime and sample size
+                        (default: False).
+            wait_for (Optional[Tasker | ChainedTasker | int | List[int]]): Job(s)
+                        to wait for before starting (default: None).
+                        Could be a Tasker object or a slurm jobid.
+            overwrite (bool): Overwrite existing output files if True
+                        (default: False).
+            skip_sent (bool): If True, skip and return a DummyTasker if output
+                        already exists (default: False).
+
         Returns:
-            Tasker: Configured Tasker object to run forest-quasar metal distortion matrix computation.
-    
+            Tasker: Configured Tasker object to run forest-quasar metal distortion
+                    matrix computation.
+
         Raises:
-            ValueError: If initialized in read mode or if config defaults have changed since last run.
-        """ 
+            ValueError: If initialized in read mode or if config defaults have
+                    changed since last run.
+        """
         if self.read_mode:
-            raise ValueError("Initialize bookkeeper without read_mode to run jobs.")
+            raise ValueError(
+                "Initialize bookkeeper without read_mode to run jobs.")
         region = self.validate_region(region)
         absorber = self.validate_absorber(absorber)
         job_name = f"xmetal_{tracer}_{absorber}{region}"
@@ -2620,7 +2785,8 @@ class Bookkeeper:
             slurm_header_args=slurm_header_args,
             environment=self.config["general"]["conda environment"],
             environmental_variables=environmental_variables,
-            run_file=self.paths.correlations_path / f"scripts/run_{job_name}.sh",
+            run_file=self.paths.correlations_path /
+            f"scripts/run_{job_name}.sh",
             jobid_log_file=self.paths.correlations_path / f"logs/jobids.log",
             wait_for=wait_for,
             in_files=[
@@ -2639,24 +2805,29 @@ class Bookkeeper:
         skip_sent: bool = False,
     ) -> Tasker | DummyTasker:
         """
-        Create a Tasker to compute the effective redshift using 
+        Create a Tasker to compute the effective redshift using
         `picca_bookkeeper_correct_config_zeff`.
-    
+
         Args:
-            system (Optional[str]): Execution system or shell to use  (e.g., 'slurm_perlmutter' to use slurm
-                scripts on perlmutter, 'bash' to  run it in login nodes or computer shell). 
-                Defaults to config value if None.
-            wait_for (Optional[Tasker | ChainedTasker | int | List[int]]): Job(s) to wait for before starting
-                (default: None). Could be a Tasker object or a slurm jobid (int).
-            overwrite (bool): Overwrite existing output files if True (default: False).
-            skip_sent (bool): Skip and return DummyTasker if the output already exists (default: False).
-    
+            system (Optional[str]): Execution system or shell to use
+                        (e.g., 'slurm_perlmutter' to use slurm cripts on perlmutter,
+                        'bash' to  run it in login nodes or computer shell).
+                        Defaults to config value if None.
+            wait_for (Optional[Tasker | ChainedTasker | int | List[int]]): Job(s)
+                        to wait for before starting (default: None).
+                        Could be a Tasker object or a slurm jobid.
+            overwrite (bool): Overwrite existing output files if True
+                        (default: False).
+            skip_sent (bool): If True, skip and return a DummyTasker if output
+                        already exists (default: False).
+
         Returns:
-            Tasker | DummyTasker: Tasker object to submit the job, or 
+            Tasker | DummyTasker: Tasker object to submit the job, or
                     DummyTasker if the task is skipped.
-        """        
+        """
         if self.read_mode:
-            raise ValueError("Initialize bookkeeper without read_mode to run jobs.")
+            raise ValueError(
+                "Initialize bookkeeper without read_mode to run jobs.")
         if self.defaults_diff != {}:
             raise ValueError(
                 "Default values changed since last run of the "
@@ -2737,22 +2908,27 @@ class Bookkeeper:
     ) -> Tasker | DummyTasker:
         """
         Method to get a Tasker object to run vega with correlation data.
-    
+
         Args:
-            system (Optional[str]): Execution system or shell to use  (e.g., 'slurm_perlmutter' to use slurm
-                scripts on perlmutter, 'bash' to  run it in login nodes or computer shell). 
-                Defaults to config value if None.
-            wait_for (Optional[Tasker | ChainedTasker | int | List[int]]): Job(s) to wait for before starting
-                (default: None). Could be a Tasker object or a slurm jobid (int).
-            overwrite (bool): Overwrite existing output files if True (default: False).
-            skip_sent (bool): Skip and return DummyTasker if the output already exists (default: False).
-    
+            system (Optional[str]): Execution system or shell to use
+                        (e.g., 'slurm_perlmutter' to use slurm cripts on perlmutter,
+                        'bash' to  run it in login nodes or computer shell).
+                        Defaults to config value if None.
+            wait_for (Optional[Tasker | ChainedTasker | int | List[int]]): Job(s)
+                        to wait for before starting (default: None).
+                        Could be a Tasker object or a slurm jobid.
+            overwrite (bool): Overwrite existing output files if True
+                        (default: False).
+            skip_sent (bool): If True, skip and return a DummyTasker if output
+                        already exists (default: False).
+
         Returns:
-            Tasker | DummyTasker: Tasker object to submit the job, or 
+            Tasker | DummyTasker: Tasker object to submit the job, or
             DummyTasker if the task is skipped.
         """
         if self.read_mode:
-            raise ValueError("Initialize bookkeeper without read_mode to run jobs.")
+            raise ValueError(
+                "Initialize bookkeeper without read_mode to run jobs.")
         if self.defaults_diff != {}:
             raise ValueError(
                 "Default values changed since last run of the "
@@ -2820,25 +2996,31 @@ class Bookkeeper:
         skip_sent: bool = False,
     ) -> Tasker | DummyTasker:
         """
-        Method to get a Tasker object to run vega sampler with correlation data.    
-        
+        Method to get a Tasker object to run vega sampler with correlation data.
+
         Args:
             auto_correlations (List[str]): List of auto-correlation names to include.
             cross_correlations (List[str]): List of cross-correlation names to include.
-            system (Optional[str]): Execution system or shell to use  (e.g., 'slurm_perlmutter' to use slurm
-                scripts on perlmutter, 'bash' to  run it in login nodes or computer shell). 
-                Defaults to config value if None.
-            wait_for (Optional[Tasker | ChainedTasker | int | List[int]]): Job(s) to wait for before starting
-                (default: None). Could be a Tasker object or a slurm jobid (int).
-            overwrite (bool): Overwrite existing output files if True (default: False).
-            skip_sent (bool): Skip and return DummyTasker if the output already exists (default: False).
-    
+            system (Optional[str]): Execution system or shell to use
+                        (e.g., 'slurm_perlmutter' to use slurm cripts on perlmutter,
+                        'bash' to  run it in login nodes or computer shell).
+                        Defaults to config value if None.
+            wait_for (Optional[Tasker | ChainedTasker | int | List[int]]): Job(s)
+                        to wait for before starting (default: None).
+                        Could be a Tasker object or a slurm jobid.
+            overwrite (bool): Overwrite existing output files if True
+                        (default: False).
+            skip_sent (bool): If True, skip and return a DummyTasker if output
+                        already exists (default: False).
+
         Returns:
-            Tasker | DummyTasker: A Tasker object to submit the job, or a DummyTasker if
-            the task is skipped due to existing output or config issues.
+            Tasker | DummyTasker: A Tasker object to submit the job, or a
+            DummyTasker if the task is skipped due to existing output or
+            config issues.
         """
         if self.read_mode:
-            raise ValueError("Initialize bookkeeper without read_mode to run jobs.")
+            raise ValueError(
+                "Initialize bookkeeper without read_mode to run jobs.")
         if self.defaults_diff != {}:
             raise ValueError(
                 "Default values changed since last run of the "
@@ -2902,23 +3084,26 @@ class Bookkeeper:
 
     def generate_fit_configuration(self) -> Dict:
         """
-        Method to generate fit configuration args to be combined with input YAML file.
-    
-        This method constructs and validates a nested dictionary of fit options to be passed to
-        vega for correlation function fitting. It checks types for key fit flags and cut ranges,
-        and conditionally sets parameters and sampling flags based on booleans in the config
-        (e.g., disabling BAO, HCD, metals, sky systematics, or QSO radiation effects).
-    
+        Method to generate fit configuration args to be combined with input
+        YAML file.
+
+        This method constructs and validates a nested dictionary of fit options
+        to be passed to vega for correlation function fitting. It checks types
+        for key fit flags and cut ranges, and conditionally sets parameters and
+        sampling flags based on booleans in the config (e.g., disabling BAO,
+        HCD, metals, sky systematics, or QSO radiation effects).
+
         It also applies rmin/rmax cuts for auto- and cross-correlations if defined.
-    
+
         Returns:
-            Dict: A complete dictionary with validated and modified fit configuration,
-                  stored under `config["fits"]["extra args"]`.
-                  
+            Dict: A complete dictionary with validated and modified fit
+                configuration, stored under `config["fits"]["extra args"]`.
+
         Raises:
-            ValueError: If required fields in the config are not of the expected type.
+            ValueError: If required fields in the config are not of the
+                expected type.
         """
-        
+
         config = DictUtils.merge_dicts(
             {
                 "fits": {
@@ -3141,24 +3326,29 @@ class Bookkeeper:
 
     def write_fit_configuration(self) -> List[Path]:
         """
-        Generate and write full Vega configuration `.ini` files for auto, cross, and main fits, 
-        using the main bookkeeper config YAML.
-    
+        Generate and write full Vega configuration `.ini` files for auto, cross,
+        and main fits, using the main bookkeeper config YAML.
+
         This method uses the current bookkeeper config to:
-        - Generate correlation-specific configuration arguments (via `generate_fit_configuration`)
-        - Build `.ini` files for each auto- and cross-correlation, including optional metadata such as:
-            - Metal models (from precomputed files or Vega internal models)
-            - Distortion matrices
-            - Unblinding flags
-        - Assemble the final `vega_main.ini` file with paths to all sub-configs and output locations
-        - Add dependencies for sampler input, covariance matrix, or derived parameters if required
-    
+        - Generate correlation-specific configuration arguments
+          (via `generate_fit_configuration`)
+        - Build `.ini` files for each auto- and cross-correlation, including
+          optional metadata such as:
+              - Metal models (from precomputed files or Vega internal models)
+              - Distortion matrices
+              - Unblinding flags
+        - Assemble the final `vega_main.ini` file with paths to all sub-configs
+          and output locations
+        - Add dependencies for sampler input, covariance matrix, or derived
+          parameters if required
+
         Returns:
-            List[Path]: All input files (e.g., exports, distortions, metal files) used by the Tasker 
-            instance to correctly set up dependencies.
-    
+            List[Path]: All input files (e.g., exports, distortions, metal files)
+            used by the Tasker instance to correctly set up dependencies.
+
         Raises:
-            ValueError: If any required format or validation fails during file generation.
+            ValueError: If any required format or validation fails during file
+                        generation.
         """
 
         ini_files = []
@@ -3171,7 +3361,8 @@ class Bookkeeper:
         else:
             auto_correlations = []
         if config["fits"].get("cross correlations", None) not in (None, ""):
-            cross_correlations = config["fits"]["cross correlations"].split(" ")
+            cross_correlations = config["fits"]["cross correlations"].split(
+                " ")
         else:
             cross_correlations = []
 
@@ -3289,7 +3480,8 @@ class Bookkeeper:
                 absorber2=absorber2,
             )
 
-            filename = self.paths.fit_auto_fname(absorber, region, absorber2, region2)
+            filename = self.paths.fit_auto_fname(
+                absorber, region, absorber2, region2)
             self.write_ini(vega_args, filename)
             ini_files.append(str(filename))
 
@@ -3302,15 +3494,19 @@ class Bookkeeper:
 
         # Set because there can be repeated values.
         for cross_correlation in cross_correlations:
-            tracer, absorber, region = cross_correlation.replace("-", ".").split(".")
+            tracer, absorber, region = cross_correlation.replace(
+                "-", ".").split(".")
             region = self.validate_region(region)
             absorber = self.validate_absorber(absorber)
 
-            export_file = self.paths.exp_xcf_fname(absorber, region, tracer).resolve()
+            export_file = self.paths.exp_xcf_fname(
+                absorber, region, tracer).resolve()
             export_files_cross.append(export_file)
 
-            metals_file = self.paths.xmetal_fname(absorber, region, tracer).resolve()
-            distortion_file = self.paths.xdmat_fname(absorber, region, tracer).resolve()
+            metals_file = self.paths.xmetal_fname(
+                absorber, region, tracer).resolve()
+            distortion_file = self.paths.xdmat_fname(
+                absorber, region, tracer).resolve()
 
             args = DictUtils.merge_dicts(
                 config,
@@ -3489,7 +3685,8 @@ class Bookkeeper:
             Tasker: Tasker object to run covariance matrix.
         """
         if self.read_mode:
-            raise ValueError("Initialize bookkeeper without read_mode to run jobs.")
+            raise ValueError(
+                "Initialize bookkeeper without read_mode to run jobs.")
         if self.defaults_diff != {}:
             raise ValueError(
                 "Default values changed since last run of the "
@@ -3512,7 +3709,8 @@ class Bookkeeper:
         ):
             return DummyTasker()
 
-        copy_covariance_file = self.paths.copied_covariance_file(smoothed=False)
+        copy_covariance_file = self.paths.copied_covariance_file(
+            smoothed=False)
         if copy_covariance_file is not None:
             output_filename.unlink(missing_ok=True)
             output_filename.parent.mkdir(parents=True, exist_ok=True)
@@ -3522,11 +3720,13 @@ class Bookkeeper:
 
         input_files = []
         if self.config["fits"].get("auto correlations", None) not in (None, ""):
-            auto_correlations = self.config["fits"]["auto correlations"].split(" ")
+            auto_correlations = self.config["fits"]["auto correlations"].split(
+                " ")
         else:
             auto_correlations = []
         if self.config["fits"].get("cross correlations", None) not in (None, ""):
-            cross_correlations = self.config["fits"]["cross correlations"].split(" ")
+            cross_correlations = self.config["fits"]["cross correlations"].split(
+                " ")
         else:
             cross_correlations = []
 
@@ -3541,7 +3741,8 @@ class Bookkeeper:
             absorber2 = self.validate_absorber(absorber2)
 
             input_files.append(
-                self.paths.cf_fname(absorber, region, absorber2, region2).resolve()
+                self.paths.cf_fname(
+                    absorber, region, absorber2, region2).resolve()
             )
 
             args[f"{region}-{region2}"] = str(
@@ -3559,7 +3760,8 @@ class Bookkeeper:
             region = self.validate_region(region)
             absorber = self.validate_absorber(absorber)
 
-            input_files.append(self.paths.xcf_fname(absorber, region, tracer).resolve())
+            input_files.append(self.paths.xcf_fname(
+                absorber, region, tracer).resolve())
 
             args[f"{region}-qso"] = str(
                 self.paths.xcf_fname("lya", region, tracer).resolve()
@@ -3618,30 +3820,36 @@ class Bookkeeper:
     ) -> Tasker:
         """
         Method to get a Tasker object to run smooth covariance.
-    
-        This task reads the unsmoothed covariance matrix and outputs a smoothed version,
-        using configuration from the first available auto or cross-correlation. If the 
-        smoothed file already exists or has been copied, a DummyTasker is returned.
-    
+
+        This task reads the unsmoothed covariance matrix and outputs a smoothed
+        version, using configuration from the first available auto or
+        cross-correlation. If the smoothed file already exists or has been
+        copied, a DummyTasker is returned.
+
         Args:
-            system (Optional[str]): Execution system or shell to use  (e.g., 'slurm_perlmutter' to use slurm
-                scripts on perlmutter, 'bash' to  run it in login nodes or computer shell). 
-                Defaults to config value if None.
-            wait_for (Optional[Tasker | ChainedTasker | int | List[int]]): Job(s) to wait for before starting
-                (default: None). Could be a Tasker object or a slurm jobid (int).
-            overwrite (bool): Overwrite existing output files if True (default: False).
-            skip_sent (bool): Skip and return DummyTasker if the output already exists (default: False).
-    
+            system (Optional[str]): Execution system or shell to use
+                        (e.g., 'slurm_perlmutter' to use slurm cripts on perlmutter,
+                        'bash' to  run it in login nodes or computer shell).
+                        Defaults to config value if None.
+            wait_for (Optional[Tasker | ChainedTasker | int | List[int]]): Job(s)
+                        to wait for before starting (default: None).
+                        Could be a Tasker object or a slurm jobid.
+            overwrite (bool): Overwrite existing output files if True
+                        (default: False).
+            skip_sent (bool): If True, skip and return a DummyTasker if output
+                        already exists (default: False).
+
         Returns:
             Tasker: Configured Tasker to execute the smoothing job, or DummyTasker
             if no execution is needed.
-    
+
         Raises:
             ValueError: If bookkeeper is in read-only mode or config defaults differ.
         """
-        
+
         if self.read_mode:
-            raise ValueError("Initialize bookkeeper without read_mode to run jobs.")
+            raise ValueError(
+                "Initialize bookkeeper without read_mode to run jobs.")
         if self.defaults_diff != {}:
             raise ValueError(
                 "Default values changed since last run of the "
@@ -3680,11 +3888,13 @@ class Bookkeeper:
 
         input_files = []
         if self.config["fits"].get("auto correlations", None) not in (None, ""):
-            auto_correlations = self.config["fits"]["auto correlations"].split(" ")
+            auto_correlations = self.config["fits"]["auto correlations"].split(
+                " ")
         else:
             auto_correlations = []
         if self.config["fits"].get("cross correlations", None) not in (None, ""):
-            cross_correlations = self.config["fits"]["cross correlations"].split(" ")
+            cross_correlations = self.config["fits"]["cross correlations"].split(
+                " ")
         else:
             cross_correlations = []
 
@@ -3712,7 +3922,7 @@ class Bookkeeper:
                 if range_ in cf_args:
                     args[f"{range_}-auto"] = cf_args[range_]
 
-            # This ugly break indicates that we cannot pass multiple ranges, only 
+            # This ugly break indicates that we cannot pass multiple ranges, only
             # the first one...
             break
 
@@ -3740,7 +3950,7 @@ class Bookkeeper:
                 if range_ in xcf_args:
                     args[f"{range_}-cross"] = xcf_args[range_]
 
-            # This ugly break indicates that we cannot pass multiple ranges, only 
+            # This ugly break indicates that we cannot pass multiple ranges, only
             # the first one...
             break
 
@@ -3766,10 +3976,9 @@ class Bookkeeper:
             updated_slurm_header_extra_args,
         )
 
-        
         args["input-cov"] = str(self.paths.covariance_file_unsmoothed())
         args["output-cov"] = str(self.paths.covariance_file_smoothed())
-        
+
         args = DictUtils.merge_dicts(args, updated_extra_args)
 
         return get_Tasker(updated_system)(
@@ -3792,29 +4001,35 @@ class Bookkeeper:
     ) -> bool:
         """
         Method to check the status of an output file.
-    
-        This is primarily used to avoid re-running tasks that have already completed 
-        or are in progress, based on the presence and contents of the output file.
-    
+
+        This is primarily used to avoid re-running tasks that have already
+        completed or are in progress, based on the presence and contents of the
+        output file.
+
         Args:
             file (Path): Path to the output file to check.
             job_name (str): Name of the job (used for logging).
-            skip_sent (bool): If True, skip jobs that were already sent or are still running.
+            skip_sent (bool): If True, skip jobs that were already sent or
+                        are still running.
             overwrite (bool): Whether existing runs should be overwritten.
-            system (str): System where jobs are being run (used to query job status).
-    
+            system (str): System where jobs are being run
+                        (used to query job status).
+
         Returns:
             bool: True if the job should be skipped (file exists and skip_sent is True).
-                  False if the job should proceed (file does not exits, or run to be overwritten).
-    
+                  False if the job should proceed (file does not exits,
+                  or run to be overwritten).
+
         Raises:
-            FileExistsError: If the file exists, overwrite is False, and skip_sent is False.
-    
+            FileExistsError: If the file exists, overwrite is False,
+                        and skip_sent is False.
+
         Notes:
-            - If the file exists but is very small (<40 bytes), it is assumed to contain a job ID.
-              The job status is then checked via the system's scheduler.
+            - If the file exists but is very small (<40 bytes), it is assumed
+              to contain a job ID. The job status is then checked via the
+              system's scheduler.
             - If the job is no longer active, it will not be skipped.
-        """      
+        """
         if not file.is_file():
             return False
         else:
@@ -3834,7 +4049,8 @@ class Bookkeeper:
                         "SUSPENDED",
                     ):
                         return False
-                logger.info(f"{job_name}: skipping already run:\n\t{str(file)}")
+                logger.info(
+                    f"{job_name}: skipping already run:\n\t{str(file)}")
                 return True
             else:
                 raise FileExistsError(
@@ -3848,14 +4064,17 @@ class PathBuilder:
     """
     Class to define and manage filesystem paths according to bookkeeper conventions.
 
-    Handles the construction and validation of standardized paths for all input and output
-    files required by the picca_bookkeeper workflow, including locations for data, deltas,
-    correlations, fits, and configuration files. Automates creation and checking of directories,
-    provides utilities to resolve paths for specific analysis products, and implements logic for
-    linking or copying results from previous runs or external sources as specified in the config.
+    Handles the construction and validation of standardized paths for all input
+    and output files required by the picca_bookkeeper workflow, including
+    locations for data, deltas, correlations, fits, and configuration files.
+    Automates creation and checking of directories, provides utilities to
+    resolve paths for specific analysis products, and implements logic for
+    linking or copying results from previous runs or external sources as
+    specified in the config.
 
     Attributes:
-        config (dict / configparser.ConfigParser): Bookkeeper configuration used to build all relevant paths.
+        config (dict / configparser.ConfigParser): Bookkeeper configuration
+        used to build all relevant paths.
 
     Usage:
         paths = PathBuilder(config)
@@ -3866,10 +4085,14 @@ class PathBuilder:
 
     Main Features:
         - Constructs paths for all data products based on config.
-        - Validates existence of critical files and directories; raises errors if misconfigured.
-        - Supports both absolute and relative paths, expanding and checking as needed.
-        - Allows access to specialized outputs (deltas, correlations, fits, masks, metals, covariance, etc.).
-        - Handles linking/copying of external results into the workflow as configured.
+        - Validates existence of critical files and directories; raises errors
+          if misconfigured.
+        - Supports both absolute and relative paths, expanding and checking
+          as needed.
+        - Allows access to specialized outputs (deltas, correlations, fits,
+          masks, metals, covariance, etc.).
+        - Handles linking/copying of external results into the workflow
+          as configured.
         - Provides static comparison utilities for config validation.
         - Automates directory creation for each analysis stage.
     """
@@ -3897,7 +4120,8 @@ class PathBuilder:
         healpix_data = Path(self.config["data"]["healpix data"])
 
         if not healpix_data.is_dir():
-            raise FileNotFoundError("Invalid healpix data in config", str(healpix_data))
+            raise FileNotFoundError(
+                "Invalid healpix data in config", str(healpix_data))
         else:
             return healpix_data
 
@@ -3912,7 +4136,8 @@ class PathBuilder:
         Raises:
             ValueError: If the path is not specified in the config.
         """
-        bookkeeper_dir = self.config.get("data", dict()).get("bookkeeper dir", None)
+        bookkeeper_dir = self.config.get(
+            "data", dict()).get("bookkeeper dir", None)
 
         if bookkeeper_dir is None:
             raise ValueError("Invalid bookkeeper dir in config")
@@ -3925,7 +4150,8 @@ class PathBuilder:
         Get the path to the delta extraction directory.
 
         Returns:
-            Path: Path to the delta results, either from original path or run directory.
+            Path: Path to the delta results, either from original path or
+                  run directory.
         """
         if self.config.get("delta extraction", dict()).get("original path") is not None:
             return Path(self.config["delta extraction"]["original path"]) / "deltas"
@@ -3939,7 +4165,8 @@ class PathBuilder:
 
         Returns:
             Path: Path to `continuum_fitting_mask.txt`, used in continuum fitting.
-        """        return self.delta_extraction_path / "configs" / "continuum_fitting_mask.txt"
+        """
+        return self.delta_extraction_path / "configs" / "continuum_fitting_mask.txt"
 
     @property
     def correlations_path(self) -> Path:
@@ -3947,7 +4174,8 @@ class PathBuilder:
         Get the path to the correlation output directory.
 
         Returns:
-            Path: Path to correlation results, either from original path or run directory.
+            Path: Path to correlation results, either from original path or
+                  run directory.
         """
         if self.config.get("correlations", dict()).get("original path") is not None:
             return Path(self.config["correlations"]["original path"]) / "correlations"
@@ -3966,7 +4194,7 @@ class PathBuilder:
 
     @property
     def config_file(self) -> Path:
-       """
+        """
         Get the default path to the bookkeeper configuration file inside bookkeeper.
 
         Returns:
@@ -3988,9 +4216,9 @@ class PathBuilder:
         """
         Get the path to a catalog file from a catalog name in a given config field.
 
-        Supports resolution of catalogs for standard quasars, DLAs, or BALs. Validates
-        existence of the specified catalog file, expands the full path if only the filename
-        is given.
+        Supports resolution of catalogs for standard quasars, DLAs, or BALs.
+        Validates existence of the specified catalog file, expands the full
+        path if only the filename is given.
 
         Args:
             field (str): Catalog field to resolve. Options are:
@@ -4038,7 +4266,7 @@ class PathBuilder:
 
         Returns:
             Path: Path to the main catalog file.
-        """        
+        """
         return self.get_catalog_from_field("catalog")
 
     @property
@@ -4065,17 +4293,18 @@ class PathBuilder:
         """
         Get a tracer catalog used in cross-correlation.
 
-        If the tracer-specific catalog exists, it is returned; otherwise, the default
-        QSO catalog is used as a fallback.
+        If the tracer-specific catalog exists, it is returned; otherwise,
+        the default QSO catalog is used as a fallback.
 
         Args:
             tracer (str): Name of the tracer, e.g., "qso", "lya", etc.
 
         Returns:
             Path: Path to the resolved tracer catalog file.
-        """        
+        """
         candidate = (
-            self.config["correlations"].get("tracer catalogs", dict()).get(tracer, None)
+            self.config["correlations"].get(
+                "tracer catalogs", dict()).get(tracer, None)
         )
 
         if candidate not in ("", None) and Path(candidate).is_file():
@@ -4093,7 +4322,8 @@ class PathBuilder:
         """
         Compare two configurations and return their differences.
 
-        Optionally limits comparison to a specific section and ignores given fields.
+        Optionally limits comparison to a specific section and ignores
+        given fields.
 
         Args:
             config1 (Dict): First config dictionary.
@@ -4152,28 +4382,30 @@ class PathBuilder:
         """
         Ensure necessary subdirectories exist in the fits path.
 
-        Creates `scripts`, `results`, `logs`, `configs`, and nested `results/sampler` if missing.
+        Creates `scripts`, `results`, `logs`, `configs`, and nested
+        `results/sampler` if missing.
         """
         for folder in ("scripts", "results", "logs", "configs", "results/sampler"):
             (self.fits_path / folder).mkdir(exist_ok=True, parents=True)
 
     def deltas_path(
         self, region: Optional[str] = None, calib_step: Optional[int] = None
-    ) -> Path:       
+    ) -> Path:
         """
         Get the path to the deltas output directory.
 
         Args:
-            region (Optional[str]): Sky region label used (e.g., 'lya', 'lyb'). 
+            region (Optional[str]): Sky region label used (e.g., 'lya', 'lyb').
                                     Required if `calib_step` is not given.
-            calib_step (Optional[int]): Calibration step (1 or 2). If provided, region is ignored.
+            calib_step (Optional[int]): Calibration step (1 or 2). If provided,
+                                    region is ignored.
 
         Returns:
             Path: Path to the directory containing delta files.
 
         Raises:
             ValueError: If neither `calib_step` nor valid `region` is provided.
-        """        
+        """
         if calib_step is not None:
             return (
                 self.delta_extraction_path
@@ -4237,7 +4469,8 @@ class PathBuilder:
         Raises:
             FileNotFoundError: If a file is listed but does not exist.
         """
-        calibration_data = self.config["delta extraction"].get("calibration data", None)
+        calibration_data = self.config["delta extraction"].get(
+            "calibration data", None)
 
         if calibration_data is None:
             attributes = None
@@ -4264,18 +4497,21 @@ class PathBuilder:
         """
         Get paths to precomputed deltas and attributes for a region.
 
-        Checks for exiting delta files if specified in bookkeeper config file. 
+        Checks for exiting delta files if specified in bookkeeper config file.
         Looks for region-specific or general configuration, checks file existence,
         and logs whether files will be used or recomputed.
 
         Args:
-            region (str): Sky region name to look for in config file (e.g., 'lya').
+            region (str): Sky region name to look for in config file
+                          (e.g., 'lya').
 
         Returns:
-            List[Path] | None: Paths to [Delta/, delta_attributes.fits.gz], or None if not found.
+            List[Path] | None: Paths to [Delta/, delta_attributes.fits.gz],
+                          or None if not found.
 
         Raises:
-            FileNotFoundError: If provided paths exist in config but files are missing.
+            FileNotFoundError: If provided paths exist in config but files
+                          are missing.
         """
         if (
             self.config["delta extraction"]
@@ -4283,7 +4519,8 @@ class PathBuilder:
             .get(region, None)
             is not None
         ):
-            parent = Path(self.config["delta extraction"]["computed deltas"][region])
+            parent = Path(self.config["delta extraction"]
+                          ["computed deltas"][region])
             deltas = parent / "Delta"
             attributes = parent / "Log/delta_attributes.fits.gz"
 
@@ -4302,7 +4539,8 @@ class PathBuilder:
             .get("general", None)
             is not None
         ):
-            parent = Path(self.config["delta extraction"]["computed deltas"]["general"])
+            parent = Path(self.config["delta extraction"]
+                          ["computed deltas"]["general"])
             deltas = parent / region / "Delta"
             attributes = parent / region / "Log/delta_attributes.fits.gz"
 
@@ -4313,12 +4551,14 @@ class PathBuilder:
 
                 return None
         else:
-            logger.info(f"{region}: no files provided to use, deltas will be computed")
+            logger.info(
+                f"{region}: no files provided to use, deltas will be computed")
 
             return None
 
         logger.info(f"{region}: Using deltas from file:\n\t{str(deltas)}")
-        logger.info(f"{region}: Using attributes from file:\n\t{str(attributes)}")
+        logger.info(
+            f"{region}: Using attributes from file:\n\t{str(attributes)}")
         return [deltas, attributes]
 
     def copied_correlation_file(
@@ -4334,15 +4574,18 @@ class PathBuilder:
         """
         Get the path to a precomputed correlation file if configured.
 
-        Tries to retrieve correlation from bookkeeper config using absorber/region keys,
-        optionally falling back to a general file + filename.
+        Tries to retrieve correlation from bookkeeper config using absorber/region
+        keys, optionally falling back to a general file + filename.
 
         Args:
-            subsection (str): Subsection of the config to search in (e.g., "computed correlations").
+            subsection (str): Subsection of the config to search in
+                            (e.g., "computed correlations").
             absorber (str): First absorber name (e.g., "lya").
             region (str): First region where the correlation is computed.
-            absorber2 (Optional[str]): Second absorber name (for cross-correlations) if applicable.
-            region2 (Optional[str]): Second region where the correlation is computed, if applicable.
+            absorber2 (Optional[str]): Second absorber name (for cross-correlations)
+                            if applicable.
+            region2 (Optional[str]): Second region where the correlation is computed,
+                            if applicable.
             filename (Optional[str]): Name of the file to retrieve under general path.
             tracer (Optional[str]): Tracer name (e.g., "qso").
 
@@ -4360,11 +4603,13 @@ class PathBuilder:
             tracer = ""
 
         if (
-            self.config["correlations"].get(subsection, dict()).get(tracer + name, None)
+            self.config["correlations"].get(
+                subsection, dict()).get(tracer + name, None)
             is not None
         ):
             file = Path(
-                self.config["correlations"].get(subsection, dict()).get(tracer + name)
+                self.config["correlations"].get(
+                    subsection, dict()).get(tracer + name)
             )
 
             if not file.is_file():
@@ -4373,12 +4618,14 @@ class PathBuilder:
                 )
 
         elif (
-            self.config["correlations"].get(subsection, dict()).get("general", None)
+            self.config["correlations"].get(
+                subsection, dict()).get("general", None)
             is not None
             and filename is not None
         ):
             parent = Path(
-                self.config["correlations"].get(subsection, dict()).get("general")
+                self.config["correlations"].get(
+                    subsection, dict()).get("general")
             )
             file = parent / (tracer + name) / filename
 
@@ -4396,17 +4643,19 @@ class PathBuilder:
 
             return None
 
-        logger.info(f"{tracer + name}: Using correlation from file:\n\t{str(file)}")
+        logger.info(
+            f"{tracer + name}: Using correlation from file:\n\t{str(file)}")
         return file
 
     def copied_covariance_file(self, smoothed: bool = False) -> Path | None:
         """
-        Return the path to a precomputed covariance file, if specified in the bookkeeper config.
-    
+        Return the path to a precomputed covariance file, if specified in the
+        bookkeeper config.
+
         Args:
-            smoothed (bool, optional): If True, returns the smoothed covariance file.
-                                       Defaults to False.
-    
+            smoothed (bool, optional): If True, returns the smoothed covariance
+                                       file. Defaults to False.
+
         Returns:
             Path | None: Path to the covariance file, or None if it should be computed.
         """
@@ -4416,10 +4665,12 @@ class PathBuilder:
             name += "-smoothed"
 
         if (
-            self.config["fits"].get("computed covariances", dict()).get(name, None)
+            self.config["fits"].get(
+                "computed covariances", dict()).get(name, None)
             is not None
         ):
-            file = self.config["fits"].get("computed covariances", dict()).get(name)
+            file = self.config["fits"].get(
+                "computed covariances", dict()).get(name)
 
             if not file.is_file():
                 raise FileNotFoundError(
@@ -4427,7 +4678,8 @@ class PathBuilder:
                 )
 
         elif (
-            self.config["fits"].get("computed covariances", dict()).get("general", None)
+            self.config["fits"].get(
+                "computed covariances", dict()).get("general", None)
             is not None
         ):
             file = (
@@ -4447,7 +4699,8 @@ class PathBuilder:
                 return None
 
         else:
-            logger.info(f"{name}: no file provided to use, covariance will be computed")
+            logger.info(
+                f"{name}: no file provided to use, covariance will be computed")
 
             return None
 
@@ -4463,13 +4716,15 @@ class PathBuilder:
     ) -> Path:
         """
         Return the path to the forest-forest correlation function file.
-    
+
         Args:
             absorber (str): First absorber.
             region (str): Region where the correlation is computed.
-            absorber2 (Optional[str]): Second absorber (for cross-correlations), if applicable.
-            region2 (Optional[str]): Second region (for cross-correlations), if applicable.
-    
+            absorber2 (Optional[str]): Second absorber (for cross-correlations),
+                                       if applicable.
+            region2 (Optional[str]): Second region (for cross-correlations),
+                                       if applicable.
+
         Returns:
             Path: Path to the correlation file (cf.fits.gz).
         """
@@ -4479,7 +4734,8 @@ class PathBuilder:
             self.correlations_path
             / "results"
             / f"{absorber.replace('(', '').replace(')', '')}{region}_"
-            f"{absorber2.replace('(', '').replace(')', '')}{region2}" / f"cf.fits.gz"
+            f"{absorber2.replace('(', '').replace(')', '')}{region2}" /
+            f"cf.fits.gz"
         )
 
     def dmat_fname(
@@ -4491,18 +4747,21 @@ class PathBuilder:
     ) -> Path:
         """
         Return the path to the distortion matrix file for forest-forest correlations.
-    
+
         Args:
             absorber (str): First absorber.
             region (str): Region where the correlation is computed.
-            absorber2 (Optional[str]): Second absorber (for cross-correlations), if applicable.
-            region2 (Optional[str]): Second region (for cross-correlations), if applicable.
-    
+            absorber2 (Optional[str]): Second absorber (for cross-correlations),
+                                       if applicable.
+            region2 (Optional[str]): Second region (for cross-correlations),
+                                       if applicable.
+
         Returns:
             Path: Path to the distortion matrix file (dmat.fits.gz).
         """
         return (
-            self.cf_fname(absorber, region, absorber2, region2).parent / f"dmat.fits.gz"
+            self.cf_fname(absorber, region, absorber2,
+                          region2).parent / f"dmat.fits.gz"
         )
 
     def metal_fname(
@@ -4513,15 +4772,17 @@ class PathBuilder:
         region2: Optional[str] = None,
     ) -> Path:
         """
-        Return the path to the metal distortion matrix file, for forest-forest correlations,
-        if it exists.
-    
+        Return the path to the metal distortion matrix file, for forest-forest
+        correlations, if it exists.
+
         Args:
             absorber (str): First absorber.
             region (str): Region where the correlation is computed.
-            absorber2 (Optional[str]): Second absorber (for cross-correlations), if applicable.
-            region2 (Optional[str]): Second region (for cross-correlations), if applicable.
-    
+            absorber2 (Optional[str]): Second absorber (for cross-correlations),
+                                       if applicable.
+            region2 (Optional[str]): Second region (for cross-correlations),
+                                     if applicable.
+
         Returns:
             Path: Path to the metal distortion file (metal.fits or metal.fits.gz).
         """
@@ -4539,29 +4800,32 @@ class PathBuilder:
         region2: Optional[str] = None,
     ) -> Path:
         """
-        Return the path to the exported forest-forest correlation function export file.
-    
+        Return the path to the exported forest-forest correlation function
+        export file.
+
         Args:
             absorber (str): First absorber.
             region (str): Region where the correlation is computed.
-            absorber2 (Optional[str]): Second absorber (if cross-correlation), if applicable.
-            region2 (Optional[str]): Second region (if cross-correlation), if applicable.
-    
+            absorber2 (Optional[str]): Second absorber (if cross-correlation),
+                                       if applicable.
+            region2 (Optional[str]): Second region (if cross-correlation),
+                                       if applicable.
+
         Returns:
             Path: Path to the exported correlation file (cf_exp.fits.gz).
-        """        
+        """
         cor_file = self.cf_fname(absorber, region, absorber2, region2)
         return cor_file.parent / f"cf_exp.fits.gz"
 
     def xcf_fname(self, absorber: str, region: str, tracer: str = "qso") -> Path:
         """
         Return the path to the forest-quasar correlation function export file.
-    
+
         Args:
             absorber (str): Absorber to use (e.g., 'lya').
             region (str): Region of the forest used.
             tracer (str): Tracer to use (default: 'qso').
-    
+
         Returns:
             Path: Path to the correlation file (xcf.fits.gz).
         """
@@ -4575,26 +4839,27 @@ class PathBuilder:
     def xdmat_fname(self, absorber: str, region: str, tracer: str = "qso") -> Path:
         """
         Return the path to the distortion matrix file for forest-quasar correlations.
-    
+
         Args:
             absorber (str): Absorber to use (e.g., 'lya').
             region (str): Region of the forest used.
             tracer (str): Tracer to use (default: 'qso').
-    
+
         Returns:
             Path: Path to the distortion matrix file (xdmat.fits.gz).
-        """    
+        """
         return self.xcf_fname(absorber, region, tracer).parent / f"xdmat.fits.gz"
 
     def xmetal_fname(self, absorber: str, region: str, tracer: str = "qso") -> Path:
         """
-        Return the path to the metal distortion matrix file for forest-quasar correlations.
-    
+        Return the path to the metal distortion matrix file for forest-quasar
+        correlations.
+
         Args:
             absorber (str): Absorber to use (e.g., 'lya').
             region (str): Region of the forest used.
             tracer (str): Tracer to use (default: 'qso').
-    
+
         Returns:
             Path: Path to the metal distortion matrix file (xmetal.fits[.gz]).
         """
@@ -4607,15 +4872,15 @@ class PathBuilder:
     def exp_xcf_fname(self, absorber: str, region: str, tracer: str = "qso") -> Path:
         """
         Return the path to the exported forest-quasar correlation function export file.
-    
+
         Args:
             absorber (str): Absorber to use (e.g., 'lya').
             region (str): Region of the forest used.
             tracer (str): Tracer to use (default: 'qso').
-    
+
         Returns:
             Path: Path to the exported correlation file (xcf_exp.fits.gz).
-        """    
+        """
         cor_file = self.xcf_fname(absorber, region, tracer)
         return cor_file.parent / f"xcf_exp.fits.gz"
 
@@ -4628,13 +4893,15 @@ class PathBuilder:
     ) -> Path:
         """
         Return the path to the fit config file for forest-forest auto- correlations.
-    
+
         Args:
             absorber (str): First absorber.
             region (str): First region.
-            absorber2 (Optional[str]): Second absorber (defaults to first if None), if applicable.
-            region2 (Optional[str]): Second region (defaults to first if None), if applicable.
-    
+            absorber2 (Optional[str]): Second absorber (defaults to first if None),
+                                       if applicable.
+            region2 (Optional[str]): Second region (defaults to first if None),
+                                     if applicable.
+
         Returns:
             Path: Path to the fit config file (.ini).
         """
@@ -4642,19 +4909,20 @@ class PathBuilder:
         absorber2 = absorber if absorber2 is None else absorber2
 
         name = (
-            self.fits_path / "configs" / f"{absorber}{region}x{absorber2}{region2}.ini"
+            self.fits_path / "configs" /
+            f"{absorber}{region}x{absorber2}{region2}.ini"
         )
         return name.parent / name.name.replace("(", "").replace(")", "")
 
     def fit_cross_fname(self, absorber: str, region: str, tracer: str) -> Path:
         """
         Return the path to the fit config file for forest-quasar cross-correlations.
-    
+
         Args:
             absorber (str): Absorber used (e.g., 'lya').
             region (str): Region used.
             tracer (str): Tracer used (e.g., 'qso').
-    
+
         Returns:
             Path: Path to the fit config file (.ini).
         """
@@ -4664,16 +4932,16 @@ class PathBuilder:
     def fit_main_fname(self) -> Path:
         """
         Return the path to the main fit configuration file.
-    
+
         Returns:
             Path: Path to main fit config file (main.ini).
         """
         return self.fits_path / "configs" / "main.ini"
 
     def fit_out_fname(self) -> Path:
-         """
+        """
         Return the path to the output file from the fit.
-    
+
         Returns:
             Path: Path to fit output file (fit_output.fits).
         """
@@ -4682,7 +4950,7 @@ class PathBuilder:
     def covariance_file_unsmoothed(self) -> Path:
         """
         Return the path to the unsmoothed covariance file.
-    
+
         Returns:
             Path: The path to the unsmoothed covariance file (full-covariance.fits).
         """
@@ -4691,16 +4959,18 @@ class PathBuilder:
     def covariance_file_smoothed(self) -> Path:
         """
         Return the path to the smoothed covariance file.
-    
+
         Returns:
-            Path: The path to the smoothed covariance file (full-covariance-smoothed.fits).
+            Path: The path to the smoothed covariance file
+            (full-covariance-smoothed.fits).
         """
         return self.fits_path / "results" / "full-covariance-smoothed.fits"
 
     def covariance_file(self) -> Path:
         """
-        Return the path to the covariance file, selecting smoothed or unsmoothed based on config.
-    
+        Return the path to the covariance file, selecting smoothed or unsmoothed
+        based on config.
+
         Returns:
             Path: Path to the selected covariance file.
         """
@@ -4712,7 +4982,7 @@ class PathBuilder:
     def sampler_out_path(self) -> Path:
         """
         Return the path to the sampler output directory.
-    
+
         Returns:
             Path: Path to sampler output folder.
         """
@@ -4721,7 +4991,7 @@ class PathBuilder:
     def fit_computed_params_out(self) -> Path:
         """
         Return the path to the file containing computed fit parameters (e.g., zeff).
-    
+
         Returns:
             Path: Path to file (computed_parameters.yaml).
         """
