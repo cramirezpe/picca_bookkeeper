@@ -1,3 +1,32 @@
+"""
+dict_utils.py
+
+Overview:
+    This module provides utility functions for manipulating and inspecting
+    dictionaries, particularly nested dictionaries. The DictUtils class includes
+    static methods to merge, compare, clean, and print dictionaries, which are
+    useful for configuration management, data transformation, and general-purpose
+    dictionary operations.
+
+Main Features:
+    - merge_dicts: Recursively merges two dictionaries, preserving values
+                    from the second.
+    - remove_matching: Removes entries from a dictionary that match another
+                    dictionary.
+    - diff_dicts: Computes the difference between two dictionaries.
+    - remove_empty: Removes empty strings, empty dictionaries, and None values.
+    - remove_dollar: Removes keys with the value '$' from dictionaries.
+    - remove_none: Removes None values from dictionaries.
+    - print_dict: Nicely formats and prints nested dictionaries as a string.
+    - convert_to_string: Converts all values in a dictionary to strings
+                    (for .ini file output).
+
+Usage:
+    Import DictUtils and use its static methods to perform dictionary
+    manipulations, such as cleaning configuration data or comparing
+    nested dictionaries.
+"""
+
 from __future__ import annotations
 
 import collections
@@ -6,16 +35,37 @@ from typing import *
 
 
 class DictUtils:
+    """
+    A collection of static utility methods for manipulating and comparing dictionaries.
+
+    This class provides methods for recursively merging, diffing, cleaning,
+    and formatting dictionaries, especially useful when working with deeply
+    nested structures.
+    """
     @staticmethod
     def merge_dicts(dict1: Dict, dict2: Dict) -> Dict:
-        """Merges two dictionaries recursively preserving values in dict2"""
+        """
+        Recursively merge two dictionaries, preserving values from `dict2`.
+
+        If both dictionaries share a key whose value is itself a dictionary,
+        the merge proceeds recursively. Non-dictionary values from `dict2`
+        override those in `dict1`.
+
+        Args:
+            dict1 (Dict): Base dictionary.
+            dict2 (Dict): Dictionary whose values override those in `dict1`.
+
+        Returns:
+            Dict: A new merged dictionary.
+        """
         result = copy.deepcopy(dict1)
 
         for key, value in dict2.items():
             if isinstance(value, collections.abc.Mapping):
                 if not isinstance(result.get(key, {}), collections.abc.Mapping):
                     result[key] = dict()
-                result[key] = DictUtils.merge_dicts(result.get(key, {}), value)  # type: ignore
+                result[key] = DictUtils.merge_dicts(
+                    result.get(key, {}), value)  # type: ignore
             else:
                 result[key] = copy.deepcopy(dict2[key])
 
@@ -23,17 +73,32 @@ class DictUtils:
 
     @staticmethod
     def remove_matching(dict1: Dict, dict2: Dict) -> Dict:
-        """Removes occurrences happening in two dictionaries."""
+        """
+        Removes occurrences happening in two dictionaries.
+
+        Recursively remove entries from `dict1` that match keys in `dict2`.
+        If a key in `dict2` is `'all'`, the removal is applied to all keys
+        at that level.
+
+        Args:
+            dict1 (Dict): The original dictionary.
+            dict2 (Dict): The dictionary specifying entries to remove.
+
+        Returns:
+            Dict: A new dictionary with matching entries removed.
+        """
         result = copy.deepcopy(dict1)
 
         for key, value in dict2.items():
             if key == "all":
                 # special case, apply remove match to all keys in same level.
                 for key1 in result.keys():
-                    result[key1] = DictUtils.remove_matching(result.get(key1, {}), value)  # type: ignore
+                    result[key1] = DictUtils.remove_matching(
+                        result.get(key1, {}), value)  # type: ignore
             else:
                 if isinstance(value, collections.abc.Mapping):
-                    result[key] = DictUtils.remove_matching(result.get(key, {}), value)  # type: ignore
+                    result[key] = DictUtils.remove_matching(
+                        result.get(key, {}), value)  # type: ignore
                 elif key in result:
                     result.pop(key)
 
@@ -41,14 +106,28 @@ class DictUtils:
 
     @staticmethod
     def diff_dicts(dict1: Dict, dict2: Dict) -> Dict:
-        """Function to give differences between dicts"""
+        """
+        Compute differences between two dictionaries.
+
+        For each key, returns a list of the form [value_in_dict1, value_in_dict2].
+        If keys exist in one dictionary but not the other, the missing
+        value is `None`.
+
+        Args:
+            dict1 (Dict): First dictionary.
+            dict2 (Dict): Second dictionary.
+
+        Returns:
+            Dict: Dictionary showing differences between `dict1` and `dict2`.
+        """
         differences = dict()
 
         for key, value in dict1.items():
             if not isinstance(dict2, collections.abc.Mapping) or key not in dict2:
                 differences[key] = [dict1[key], None]
             elif isinstance(value, collections.abc.Mapping):
-                differences[key] = DictUtils.diff_dicts(dict1[key], dict2[key])  # type: ignore
+                differences[key] = DictUtils.diff_dicts(
+                    dict1[key], dict2[key])  # type: ignore
             elif not dict1[key] == dict2[key]:
                 differences[key] = [dict1[key], dict2[key]]
 
@@ -61,7 +140,20 @@ class DictUtils:
 
     @staticmethod
     def remove_empty(config: Dict) -> Dict:
-        """Function to remove empty strings from dict"""
+        """
+        Recursively remove empty values (str) from a dictionary.
+
+        This includes:
+        - empty strings (`""`)
+        - empty dictionaries (`{}`)
+        - `None` values
+
+        Args:
+            config (Dict): Input dictionary.
+
+        Returns:
+            Dict: Cleaned dictionary with empty values removed.
+        """
         result = copy.deepcopy(config)
 
         while True:
@@ -84,7 +176,15 @@ class DictUtils:
 
     @staticmethod
     def remove_dollar(config: Dict) -> Dict:
-        """Function to remove $ from dict"""
+        """
+        Recursively remove keys with value equal to the string '$'.
+
+        Args:
+            config (Dict): Input dictionary.
+
+        Returns:
+            Dict: Dictionary with all '$' values removed.
+        """
         result = copy.deepcopy(config)
 
         for key, value in result.items():
@@ -107,7 +207,17 @@ class DictUtils:
 
     @staticmethod
     def remove_none(config: Dict) -> Dict:
-        """Function to remove Nones from dict"""
+        """
+        Recursively remove keys with `None` values.
+
+        Also performs cleanup of now-empty structures using `remove_empty`.
+
+        Args:
+            config (Dict): Input dictionary.
+
+        Returns:
+            Dict: Cleaned dictionary with `None` values removed.
+        """
         result = copy.deepcopy(config)
 
         while True:
@@ -130,10 +240,16 @@ class DictUtils:
 
     @staticmethod
     def print_dict(dict_: Dict, depth: int = 0, string: str = "") -> str:
-        """Nicely prints a dict with multiple depth levels.
+        """
+        Return a nicely formatted string representation of a nested dictionary.
 
-        Returns
-            Printable string
+        Args:
+            dict_ (Dict): Dictionary to print.
+            depth (int, optional): Internal use for indentation level.
+            string (str, optional): Internal string accumulator.
+
+        Returns:
+            str: Indented string representation of the dictionary.
         """
         for key in dict_.keys():
             if isinstance(dict_[key], collections.abc.Mapping):
@@ -145,11 +261,17 @@ class DictUtils:
 
     @staticmethod
     def convert_to_string(dict_: Dict) -> Dict:
-        """Convert dictionary values into strings for savely output into .ini
-        file
+        """
+        Recursively convert all dictionary values to strings.
 
-        Returns
-            Dict with fields changed
+        Useful for saving data to formats like `.ini` that require string
+        values. `None` values are converted to empty strings.
+
+        Args:
+            dict_ (Dict): Dictionary to convert.
+
+        Returns:
+            Dict: Dictionary with all values converted to strings.
         """
         dict_ = copy.deepcopy(dict_)
         for key, value in dict_.items():
