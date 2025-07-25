@@ -1,3 +1,43 @@
+"""
+picca_bookkeeper/tasker.py
+
+This module defines the core job scheduling infrastructure for picca_bookkeeper.
+It provides classes and utilities for creating, managing, and executing
+computational tasks, both locally and on SLURM-based HPC systems (such as Cori
+and Perlmutter).
+
+The principal components are:
+    - Tasker: The base class for individual job definitions, encapsulating
+              command-line calls, environment setup, and file dependencies.
+              Child classes implement system-specific logic for writing and
+              submitting job scripts.
+    - SlurmTasker, SlurmCoriTasker, SlurmPerlmutterTasker: Specializations
+              for submitting jobs to specific SLURM-managed clusters.
+    - BashTasker: For running jobs directly in a shell environment without SLURM.
+    - ChainedTasker: For managing and executing sequences of dependent tasks.
+    - DummyTasker: A no-op placeholder used when actual computation is skipped
+              (e.g., when copying output files instead of recomputing).
+
+Interaction with Other Modules:
+------------------------------
+    - Used heavily by picca_bookkeeper/bookkeeper.py, which orchestrates pipelines
+      by generating Tasker objects for each processing step
+      (e.g., correlation computation, fitting, exporting).
+    - Bookkeeper generates Taskers tailored to the user's system and workflow,
+      then coordinates their execution via this module.
+    - Taskers interact with other modules such as dict_utils for configuration and
+      paths for file management, and are responsible for writing job scripts and
+      logging job IDs.
+    - Supports dependencies between jobs using SLURM's afterok mechanism or
+      file-based signaling, enabling complex workflows.
+
+Usage:
+------
+    - Typical usage involves a higher-level workflow module (Bookkeeper) instantiating
+      Taskers for each step in a pipeline, configuring command-line arguments,
+      input/output files, and system-specific settings. Taskers then write and submit
+      job scripts, handling environment setup and logging.
+"""
 from __future__ import annotations
 
 import importlib.metadata
