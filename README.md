@@ -6,7 +6,7 @@ Create a new conda environment, ensuring up to date dependencies for picca, vega
 conda create -n env_name numpy=1.24.4 scipy=1.15.3 matplotlib=3.10.3
 ```
 
-Activate new environment, and install Picca: 
+Activate new environment, and install a stable version of Picca: 
 ```bash
 conda activate evn_name
 
@@ -66,7 +66,7 @@ Inside this folder, the internal structure is the following:
 All the information needed to reproduce each of the run is (and should be) contained in the ``bookkeeper_config.yaml`` file. An example of a config file is stored under ``picca_bookkeeper.resources.example_config.yaml`` or can be retrieved in console by running  ``picca_bookkeeper_show_example`` anywhere.
 # Scripts
 There are multiple scripts associated with the package that are installed with the application, the most relevant are:
-- ``picca_bookkeeper_run_full_analysis``: Can be used to run the full analysis. It can skip some of the steps if needed.
+- ``picca_bookkeeper_run_full_analysis``: Can be used to run the full analysis. It can skip some of the steps (e.g. Deltas) if needed.
 - ``picca_bookkeeper_run_delta_extraction``: Can be used to run deltas.
 - ``picca_bookkeeper_run_cf`` and ``picca_bookkeeper_run_xcf``: Can be used to run correlations.
 - ``picca_bookkeeper_run_fit``: Run fit.
@@ -78,13 +78,19 @@ For more information on how to run each of them use the ``--help`` command. (the
 
 ## Run full analysis
 ``` bash
-picca_bookkeeper_run_full_analysis config.yaml
+picca_bookkeeper_run_full_analysis /path_to_config.yaml
 ```
 
 ## Run full analysis if some steps where already computed (skipping them)
 This will also check sent jobs, if they failed, they will be rerun automatically.
 ``` bash
-picca_bookkeeper_run_full_analysis config.yaml --skip-sent
+picca_bookkeeper_run_full_analysis /path_to_config.yaml --skip-sent
+```
+
+## Write full analysis config files only (do not schedule to run)
+Useful for just writing the config files, and checking the contents without scheduling jobs.
+``` bash
+picca_bookkeeper_run_full_analysis /path_to_config.yaml --only-write
 ```
 
 ## Run two different correlations 
@@ -96,5 +102,5 @@ Similarly as in the case of correlations, one can use the same deltas and correl
 ## Run on mocks
 To run on mocks, use as a defulat file  ``quickquasars``, ``raw`` or ``True``. Then use one of the examples as a base and modify it. Remember to run without distortion and metals, removing them in the fits section:
 ```
-picca_bookkeeper_run_full_analysis mock_config.yaml
+picca_bookkeeper_run_full_analysis \path_to_mock_config.yaml
 ```
