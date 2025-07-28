@@ -20,8 +20,8 @@ The principal components are:
 
 Interaction with Other Modules:
 ------------------------------
-    - Used heavily by picca_bookkeeper/bookkeeper.py, which orchestrates pipelines
-      by generating Tasker objects for each processing step
+    - Used heavily by picca_bookkeeper/bookkeeper.py, which orchestrates
+      pipelines by generating Tasker objects for each processing step
       (e.g., correlation computation, fitting, exporting).
     - Bookkeeper generates Taskers tailored to the user's system and workflow,
       then coordinates their execution via this module.
@@ -33,10 +33,11 @@ Interaction with Other Modules:
 
 Usage:
 ------
-    - Typical usage involves a higher-level workflow module (Bookkeeper) instantiating
-      Taskers for each step in a pipeline, configuring command-line arguments,
-      input/output files, and system-specific settings. Taskers then write and submit
-      job scripts, handling environment setup and logging.
+    - Typical usage involves a higher-level workflow module (Bookkeeper)
+      instantiating Taskers for each step in a pipeline, configuring
+      command-line arguments, input/output files, and system-specific settings.
+      Taskers then write and submit job scripts, handling environment setup and
+      logging.
 """
 from __future__ import annotations
 
@@ -68,11 +69,13 @@ def get_Tasker(system: str) -> Type[Tasker]:
 
     Arguments:
     ----------
-        system (str): Identifier for the target system. Valid options are:
-            - 'slurm_cori': Use SLURM scripts for the Cori HPC system.
-            - 'slurm_perlmutter': Use SLURM scripts for the Perlmutter HPC system.
-            - 'bash': Use a local shell script for login nodes or standalone machines.
-            - 'slurm': Deprecated alias for 'slurm_cori'.
+        - system (str): Identifier for the target system. Valid options are:
+        -'slurm_cori': Use SLURM scripts for the Cori HPC system.
+        -'slurm_perlmutter': Use SLURM scripts for the Perlmutter HPC
+              system.
+        - 'bash': Use a local shell script for login nodes or standalone
+              machines.
+        - 'slurm': Deprecated alias for 'slurm_cori'.
 
     Returns:
     ----------
@@ -84,7 +87,8 @@ def get_Tasker(system: str) -> Type[Tasker]:
 
     Warnings:
     ----------
-        DeprecationWarning: If the 'slurm' alias is used instead of a specific system.
+        DeprecationWarning: If the 'slurm' alias is used instead of a specific
+                            system.
     """
     if system == "slurm":
         from warnings import warn
@@ -109,7 +113,7 @@ def get_Tasker(system: str) -> Type[Tasker]:
         )
 
 
-class Tasker:   
+class Tasker:
     """
     Base class for defining and managing computational jobs.
 
@@ -120,24 +124,24 @@ class Tasker:
 
     Attributes:
     ----------
-        slurm_header_args (dict): SLURM header options for job submission.
-            Use a dictionary with the format {'option_name': 'option_value'}
-        command (str): Base command to be executed.
-        command_args (dict): Dictionary of command-line arguments.
-        packages (List[str]): Python packages to log version info for.
-        precommand (str): Optional shell command to run before the main command.
-        environment (str): Name of the conda or Python environment to activate.
-        environmental_variables (dict): Key-value pairs of environment variables to set.
-            Format: {'environmental_variable': 'value'}.
-        srun_options (dict): SLURM `srun` options for job execution.
-        run_file (Path): File path for the job script to be written.
-        jobid_log_file (Path): Path to the file logging job submission IDs.
-        wait_for (various): Taskers or job IDs that this job should wait for.
-            running (if Tasker) or jobid of the task to wait (if str).
-        in_files (List[Path | str]): Input files whose presence/status gates job execution.
-            Input files that must exists or contain a jobid in order for the
-            job to be launched.
-        out_files (List[Path | str]): Output files where job ID may be written.
+        - slurm_header_args (dict): SLURM header options for job submission.
+                Use a dictionary with the format {'option_name': 'option_value'}
+        - command (str): Base command to be executed.
+        - command_args (dict): Dictionary of command-line arguments.
+        - packages (List[str]): Python packages to log version info for.
+        - precommand (str): Optional shell command to run before the main command.
+        - environment (str): Name of the conda or Python environment to activate.
+        - environmental_variables (dict): Key-value pairs of environment variables
+                to set. Format: {'environmental_variable': 'value'}.
+        - srun_options (dict): SLURM `srun` options for job execution.
+        - run_file (Path): File path for the job script to be written.
+        - jobid_log_file (Path): Path to the file logging job submission IDs.
+        - wait_for (various): Taskers or job IDs that this job should wait for.
+                running (if Tasker) or jobid of the task to wait (if str).
+        - in_files (List[Path | str]): Input files whose presence/status gates
+                job execution. Input files that must exists or contain a jobid in
+                order for the job to be launched.
+        - out_files (List[Path | str]): Output files where job ID may be written.
     """
     default_srun_options: Dict = dict()
     default_header: Dict = dict()
@@ -163,19 +167,23 @@ class Tasker:
         """
         Arguments:
         ----------
-            command (str): Command to be run in the job.
-            command_args (str): Arguments to the command.
-            packages (List[str]): Packages to list versions from.
-            slurm_header_args (dict): Header options to write if slurm tasker is selected. Use a dictionary with the format {'option_name': 'option_value'}.
-            srun_options (str): If slurm tasker selected. Options for the srun command.
-            environment (str): Conda/python environment to load before running the command.
-            run_file (Path): Location of the job file.
-            wait_for (Tasker or int, optional): In NERSC, wait for a given job to finish before running the current one. Could be a  Tasker object or a slurm jobid (int). (Default: None, won't wait for anything).
-            environmental_variables (dict, optional): Environmental variables to set before running the job. Format: {'environmental_variable': 'value'}. Default: No environmental variables defined.
-            jobid_log_file (Path): Location of log file where to include jobids of runs.
-            in_files: Input files that must exists or contain a jobid in order for the
-            job to be launched.
-            out_files: Out files that will be write by the job (to add jobid if available).
+            - command (str): Command to be run in the job.
+            - command_args (str): Arguments to the command.
+            - packages (List[str]): Packages to list versions from.
+            - slurm_header_args (dict): Header options to write if slurm tasker is
+                    selected. Use a dictionary with the format {'option_name': 'option_value'}.
+            - srun_options (str): If slurm tasker selected. Options for the srun command.
+            - environment (str): Conda/python environment to load before running the command.
+            - run_file (Path): Location of the job file.
+            - wait_for (Tasker or int, optional): In NERSC, wait for a given job
+                    to finish before running the current one. Could be a  Tasker object
+                    or a slurm jobid (int). (Default: None, won't wait for anything).
+            - environmental_variables (dict, optional): Environmental variables to
+                    set before running the job. Format: {'environmental_variable': 'value'}. Default: No environmental variables defined.
+            - jobid_log_file (Path): Location of log file where to include jobids of runs.
+            - in_files: Input files that must exists or contain a jobid in order for the
+                    job to be launched.
+            - out_files: Out files that will be write by the job (to add jobid if available).
         """
         self.jobid: Optional[int] = None
 
@@ -215,17 +223,18 @@ class Tasker:
     def get_wait_for_ids(self) -> None:
         """
         Resolves and stores the list of job IDs this task should wait for.
-    
+
         This method processes the `wait_for` attribute, which may contain
         Tasker instances, integers (SLURM job IDs), or input files with
         embedded job IDs. It also checks for input file existence and extracts
         job IDs from those that appear to be dependency markers.
-    
+
         Raises:
         ----------
-            Exception: If a Tasker object in `wait_for` does not have a job ID set.
-            FileNotFoundError: If any required input file is missing.
-            ValueError: If `wait_for` contains an unrecognized type.
+            - Exception: If a Tasker object in `wait_for` does not have a job
+              ID set.
+            - FileNotFoundError: If any required input file is missing.
+            - ValueError: If `wait_for` contains an unrecognized type.
         """
         self.wait_for = list(np.array(self.wait_for).reshape(-1))
         self.wait_for_ids = []
@@ -249,7 +258,8 @@ class Tasker:
         for file in self.in_files:
             file = Path(file)
             if not file.is_file():
-                raise FileNotFoundError("Input file for run not found", str(file))
+                raise FileNotFoundError(
+                    "Input file for run not found", str(file))
 
             size = file.stat().st_size
             if size > 1 and size < 20:
@@ -262,10 +272,11 @@ class Tasker:
     def _make_command(self) -> str:
         """
         Constructs the shell command with its arguments.
-    
+
         Returns:
         ----------
-            str: The full command line string, wrapped for assignment to a shell variable.
+            str: The full command line string, wrapped for assignment to a
+                 shell variable.
         """
         args_list = []
         for key, value in self.command_args.items():
@@ -283,10 +294,10 @@ class Tasker:
     def _make_body(self) -> str:
         """
         Constructs the full content of the job script.
-    
+
         This includes the header, environment setup, version logging, and
         final execution call wrapped with date stamps.
-    
+
         Returns:
         ----------
             str: The complete shell script body as a string.
@@ -320,7 +331,7 @@ class Tasker:
     def write_jobid(self) -> None:
         """
         Records the submitted job ID in the log file and output files.
-    
+
         Appends the job ID to a global job log file, and optionally writes
         it to specified output files.
         """
@@ -334,10 +345,11 @@ class Tasker:
     def send_job(self) -> None:
         """
         Placeholder for job submission logic.
-    
+
         Raises:
         ----------
-            ValueError: Always raised in the base class. Subclasses must override this method.
+            ValueError: Always raised in the base class. Subclasses must
+                        override this method.
         """
         raise ValueError(
             "Tasker class has no send_job defined, use child classes instead."
@@ -346,10 +358,10 @@ class Tasker:
     def _make_header(self) -> str:
         """
         Placeholder for generating SLURM or script headers.
-    
+
         Raises:
         ----------
-            ValueError: Always raised in the base class. 
+            ValueError: Always raised in the base class.
                         Subclasses must override this method.
         """
         raise ValueError(
@@ -359,9 +371,9 @@ class Tasker:
     def _make_env_opts(self) -> str:
         """
         Placeholder for generating environment activation commands.
-    
+
         Raises:
-            ValueError: Always raised in the base class. 
+            ValueError: Always raised in the base class.
                         Subclasses must override this method.
         """
         raise ValueError(
@@ -371,9 +383,10 @@ class Tasker:
     def _make_version_control(self) -> str:
         """
         Creates shell commands for printing version information of used packages.
-    
+
         Returns:
-            str: Bash code that echoes the version of picca_bookkeeper and other packages.
+            str: Bash code that echoes the version of picca_bookkeeper and
+                 other packages.
         """
         text = "\necho used picca_bookkeeper version: "
         text += importlib.metadata.version("picca_bookkeeper")
@@ -387,9 +400,9 @@ class Tasker:
     def _make_run_command(self) -> str:
         """
         Placeholder for defining how the job's command is executed.
-    
+
         Raises:
-            ValueError: Always raised in the base class. 
+            ValueError: Always raised in the base class.
                         Subclasses must override this method.
         """
         raise ValueError(
@@ -400,18 +413,18 @@ class Tasker:
     def get_jobid_status(jobid: int) -> str:
         """
         Query the SLURM scheduler for the status of a specific job ID.
-    
+
         Attempts to retrieve the job's state using the `sacct` command, retrying up
         to 10 times with short delays if the query fails.
-    
+
         Arguments:
         ----------
             jobid (int): SLURM job ID to check.
-    
+
         Returns:
         ----------
             str: The final reported job state (e.g., 'COMPLETED', 'FAILED').
-    
+
         Logs:
         ----------
             - Debug message on each retry if status retrieval fails.
@@ -439,27 +452,29 @@ class Tasker:
 
 class SlurmTasker(Tasker):
     """
-    SLURM-specific subclass of Tasker for writing and running jobs to SLURM-based clusters.
+    SLURM-specific subclass of Tasker for writing and running jobs to
+    SLURM-based clusters.
 
-    This class defines how to build SLURM-compliant job scripts, load environments,
-    and submit jobs using `sbatch`.
+    This class defines how to build SLURM-compliant job scripts, load
+    environments, and submit jobs using `sbatch`.
 
     Attributes:
     ----------
-        default_srun_options (dict): Default `srun` options such as node/task count.
-        default_header (dict): Default SLURM script headers (e.g., time, cpus).
-        slurm_header_args (dict): SLURM-specific options for job header.
-            Use a dictionary with the format {'option_name': 'option_value'}
-        command (str): Command to execute.
-        command_args (dict): Arguments passed to the command.
-        environment (str): Environment to activate (conda or sourced script).
-            Conda/python environment to load before running the command.
-        environmental_variables (dict): Shell variables to export before execution.
-            Format: {'environmental_variable': 'value'}.
-        srun_options (dict): Arguments passed to the `srun` command.
-        run_file (Path): Path to the generated job script.
-        wait_for (Tasker | int | list): Job dependencies.
-            Tasker to wait for before running (if Tasker) or jobid of the task to wait (if str).
+        - default_srun_options (dict): Default `srun` options such as node/task count.
+        - default_header (dict): Default SLURM script headers (e.g., time, cpus).
+        - slurm_header_args (dict): SLURM-specific options for job header.
+                Use a dictionary with the format {'option_name': 'option_value'}
+        - command (str): Command to execute.
+        - command_args (dict): Arguments passed to the command.
+        - environment (str): Environment to activate (conda or sourced script).
+                Conda/python environment to load before running the command.
+        - environmental_variables (dict): Shell variables to export before execution.
+                Format: {'environmental_variable': 'value'}.
+        - srun_options (dict): Arguments passed to the `srun` command.
+        - run_file (Path): Path to the generated job script.
+        - wait_for (Tasker | int | list): Job dependencies.
+                Tasker to wait for before running (if Tasker) or jobid of the
+                task to wait (if str).
     """
 
     default_srun_options = {
@@ -477,25 +492,29 @@ class SlurmTasker(Tasker):
     def __init__(self, *args: Any, **kwargs: Any):
         """
         Initialize a SlurmTasker with inherited Tasker options.
-    
+
         Arguments:
         ----------
             *args, **kwargs: All arguments are passed to the base Tasker class.
 
-            command (str): Command to be run in the job.
-            command_args (str): Arguments to the command.
-            slurm_header_args (dict): Header options to write if slurm tasker is selected. 
-                Use a dictionary with the format {'option_name': 'option_value'}.
-            srun_options (str): If slurm tasker selected. Options for the srun command.
-            environment (str): Conda/python environment to load before running the command.
-            run_file (Path): Location of the job file.
-            wait_for (Tasker or int, optional): In NERSC, wait for a given job to finish before 
-                running the current one. Could be a  Tasker object or a slurm jobid (int). 
-                (Default: None, won't wait for anything).
-            environmental_variables (dict, optional): Environmental variables to set before 
-                running the job. Format: {'environmental_variable': 'value'}. 
-                Default: No environmental variables defined.
-    
+            - command (str): Command to be run in the job.
+            - command_args (str): Arguments to the command.
+            - slurm_header_args (dict): Header options to write if slurm tasker
+                    is selected. Use a dictionary with the format
+                    {'option_name': 'option_value'}.
+            - srun_options (str): If slurm tasker selected. Options for the srun
+                    command.
+            - environment (str): Conda/python environment to load before running
+                    the command.
+            - run_file (Path): Location of the job file.
+            - wait_for (Tasker or int, optional): In NERSC, wait for a given job
+                    to finish before running the current one. Could be a  Tasker
+                    object or a slurm jobid (int).
+                    (Default: None, won't wait for anything).
+            - environmental_variables (dict, optional): Environmental variables to
+                    set before running the job. Format: {'environmental_variable': 'value'}.
+                    Default: No environmental variables defined.
+
         Inherits:
         ----------
             See Tasker.__init__ for full list of accepted arguments.
@@ -504,8 +523,9 @@ class SlurmTasker(Tasker):
 
     def _make_header(self) -> str:
         """
-        Generate the SLURM header section for the job script given the slurm_header_args attribute.
-    
+        Generate the SLURM header section for the job script given the
+        slurm_header_args attribute.
+
         Returns:
         ----------
             str: SLURM job header containing `#SBATCH` directives.
@@ -521,12 +541,13 @@ class SlurmTasker(Tasker):
 
     def _make_env_opts(self) -> str:
         """
-        Generate shell commands to set environment variables and activate the environment.
-    
+        Generate shell commands to set environment variables and activate the
+        environment.
+
         Returns:
         ----------
-            str: Shell script section for environment setup, including module loading,
-            conda activation or shell sourcing, and exported variables.
+            str: Shell script section for environment setup, including module
+                loading, conda activation or shell sourcing, and exported variables.
         """
         if self.OMP_threads is not None:
             text = f"export OMP_NUM_THREADS={self.OMP_threads}\n"
@@ -556,7 +577,7 @@ umask 0002
     def _make_run_command(self) -> str:
         """
         Construct the `srun` command line used to execute the job.
-    
+
         Returns:
             str: Final line to run the job with `srun` and user-defined options.
         """
@@ -568,11 +589,11 @@ umask 0002
     def send_job(self) -> None:
         """
         Submit the job script to the SLURM scheduler / queue.
-    
+
         Handles job dependencies via SLURM's `--dependency=afterok:` flag, writes
         the assigned job ID to the log, and updates the Tasker's `jobid`.
         Sets the wait_for variables beforehand.
-    
+
         Raises:
         ----------
             ValueError: If SLURM job submission fails (e.g., sbatch returns non-zero).
@@ -612,7 +633,7 @@ umask 0002
 class SlurmCoriTasker(SlurmTasker):
     """
     SLURM tasker with default options for NERSC Cori Haswell nodes.
-    """    
+    """
     default_header = {
         "qos": "regular",
         "nodes": 1,
@@ -651,25 +672,25 @@ class BashTasker(Tasker):
 
     Attributes:
     ----------
-        command (str): Base command to run.
-        command_args (str): Optional arguments to the command.
-        environment (str): Conda or shell environment to activate.
-        environmental_variables (dict): Environment variables to export prior to execution.
-            Format: {'environmental_variable': 'value'}.
+        - command (str): Base command to run.
+        - command_args (str): Optional arguments to the command.
+        - environment (str): Conda or shell environment to activate.
+        - environmental_variables (dict): Environment variables to export prior
+            to execution. Format: {'environmental_variable': 'value'}.
     """
 
     def __init__(self, *args: Any, **kwargs: Any):
         """
         Initialize BashTasker.
-                
+
         Arguments:
         ----------
-            command (str): Base command to run.
-            command_args (str): Optional arguments to the command.
-            environment (str): Conda or shell environment to activate.
-            environmental_variables (dict): Environment variables to export prior to execution.
-                Format: {'environmental_variable': 'value'}.
-            
+            - command (str): Base command to run.
+            - command_args (str): Optional arguments to the command.
+            - environment (str): Conda or shell environment to activate.
+            - environmental_variables (dict): Environment variables to export
+                prior to execution. Format: {'environmental_variable': 'value'}.
+
          Raises:
          ----------
             ValueError: If `wait_for` is set, which is unsupported for BashTasker.
@@ -681,8 +702,8 @@ class BashTasker(Tasker):
     def _make_header(self) -> str:
         """
         Return an empty string to override SLURM header behavior.
-        
-        Dummy method to generate an empty header and keep 
+
+        Dummy method to generate an empty header and keep
         compatibility with Tasker default class.
         """
         return ""
@@ -730,7 +751,7 @@ umask 0002
 
     def send_job(self) -> None:
         """
-        Execute the generated bash job script, 
+        Execute the generated bash job script,
         redirecting stdout and stderr.
         """
         out = open(
@@ -758,21 +779,22 @@ class ChainedTasker:
 
     Attributes:
     ----------
-        taskers (List[Tasker]): List of Tasker instances to run.
+        - taskers (List[Tasker]): List of Tasker instances to run.
             (tasker.Tasker or list of tasker.Tasker)
     """
 
     def __init__(self, taskers: List[Tasker]):
         """
         Args:
-            taskers (tasker.Tasker or list of tasker.Tasker): tasker objects associated with the class
+            taskers (tasker.Tasker or list of tasker.Tasker): tasker objects
+                associated with the class
         """
         self.taskers = taskers
 
     def write_job(self) -> None:
-    """
-    Write job files for each tasker in the chain.
-    """
+        """
+        Write job files for each tasker in the chain.
+        """
         for tasker in self.taskers:
             tasker.write_job()
 
@@ -792,14 +814,10 @@ class ChainedTasker:
 
 
 class DummyTasker(Tasker):
-    """Tasker object that performs no action. Useful for when files
-    are copied and runs are not needed.
-    """
-
     """
     Tasker object that performs no action when no execution is needed.
-    
-    Used in workflows where job writing or running is intentionally skipped 
+
+    Used in workflows where job writing or running is intentionally skipped
     (e.g. files are coppied but runs not needed).
     """
 
