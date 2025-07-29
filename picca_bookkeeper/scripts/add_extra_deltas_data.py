@@ -61,6 +61,7 @@ Typical Workflow:
     2. Execute this script to add extended mask and flux data.
     3. Use the output for downstream cosmological or systematics analysis.
 """
+
 from __future__ import annotations
 
 import argparse
