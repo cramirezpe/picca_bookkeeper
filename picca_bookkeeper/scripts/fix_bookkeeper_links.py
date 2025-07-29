@@ -1,6 +1,47 @@
 """
-Script to modify all the links/paths inside the bookkeeper to match
-the current path structure.
+fix_bookkeeper_links.py
+-----------------------
+
+This script updates all references to directory paths within a picca_bookkeeper
+data structure to reflect a new directory layout. It scans through configuration,
+Slurm, and INI files, as well as symbolic links, and replaces old directory
+paths with a specified new directory path.
+
+Functionality:
+---------------
+    - Recursively searches the provided source directory for:
+        - YAML configuration files (especially bookkeeper_config.yaml)
+        - Slurm scripts (*.sh)
+        - INI files (*.ini)
+        - Symbolic links to FITS files (*.fits, *.fits.gz)
+    - Identifies all occurrences of old bookkeeper directories and replaces
+      them with a new directory path in the above files and symlinks.
+    - Provides options to specify additional paths to replace, and to restrict
+      replacement only to directories parsed from configs.
+    - Prompts the user for confirmation before making irreversible changes.
+
+Usage:
+------
+    Run from the command line, specifying the base directory and new directory path:
+        python fix_bookkeeper_links.py /path/to/bookkeeper --new-dir /new/bookkeeper/path
+
+    Optional arguments:
+        --replace-dirs DIR1 DIR2 ...    Additional directory strings to replace.
+        --only-replace-parsed-dirs      Only replace directories found in configs,
+                                        not from current structure.
+        --log-level [CRITICAL|ERROR|WARNING|INFO|DEBUG|NOTSET]  Set log verbosity.
+
+Example:
+--------
+    python fix_bookkeeper_links.py ~/my/bookkeeper --new-dir ~/my/new_bookkeeper
+    --replace-dirs /old/path1 /old/path2 --log-level DEBUG
+
+Note:
+-----
+    - This operation is destructive and cannot be undone. Ensure you have
+      backups or version control in place before running.
+    - All modifications are confirmed interactively unless run non-interactively
+      (adapt if automating).
 """
 
 from __future__ import annotations
@@ -21,6 +62,34 @@ logger = logging.getLogger(__name__)
 
 
 def main(args: Optional[argparse.Namespace] = None) -> None:
+    """
+    Main routine that updates paths within a bookkeeper structure to a new
+    base directory.
+
+    Arguments
+    ----------
+    args : Optional[argparse.Namespace]
+        Command-line arguments parsed by `getArgs()`.
+        If None, they will be parsed automatically.
+
+    Behavior
+    --------
+        - Parses arguments and sets up logging.
+        - Collects .yaml, .sh (Slurm), .ini files, and symbolic links under
+          `source_dir`.
+        - Parses old bookkeeper paths from configs or uses those passed via
+          `--replace-dirs`.
+        - Replaces all matching paths in file contents and updates symbolic links.
+        - Prompts for confirmation before making irreversible changes.
+
+    Raises
+    ------
+        - SystemExit
+            If the user does not confirm with exact string `"Yes, I am"`.
+        - ValueError
+            If the file paths contain malformed strings or unsupported symbolic
+            link targets.
+    """
     if args is None:
         args = getArgs()
 
@@ -119,29 +188,96 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
     for link in links:
         for dir_ in old_dirs:
             if dir_ in str(link.readlink().absolute()):
-                new_link = Path(re.sub(dir_, new_dir, str(link.readlink().absolute())))
+                new_link = Path(
+                    re.sub(dir_, new_dir, str(link.readlink().absolute())))
 
                 link.unlink()
                 link.symlink_to(new_link)
 
 
 def strRed(skk: str) -> str:
+    """
+    Format a string with ANSI escape codes to appear in red text.
+
+    Arguments
+    ----------
+    skk : str
+        Input string to be colorized.
+
+    Returns
+    -------
+    str
+        The input string wrapped in ANSI red color codes.
+
+    Example
+    -------
+    >>> strRed("Warning")
+    '\\033[91m Warning\\033[00m'
+    """
     return "\033[91m {}\033[00m".format(skk)
 
 
 def strCyan(skk: str) -> str:
+    """
+    Format a string with ANSI escape codes to appear in cyan text.
+
+    Arguments
+    ----------
+    skk : str
+        Input string to be colorized.
+
+    Returns
+    -------
+    str
+        The input string wrapped in ANSI cyan color codes.
+
+    Example
+    -------
+    >>> strCyan("Path")
+    '\\033[34m Path\\033[00m'
+    """
     return "\033[34m {}\033[00m".format(skk)
 
 
 def getArgs() -> argparse.Namespace:
+    """
+    Parse command-line arguments for fixing bookkeeper directory paths.
+
+    Returns
+    -------
+    argparse.Namespace
+        Namespace with the following attributes:
+            - source_dir (Path): Root directory to search for files to update.
+            - new_dir (str): New directory path to replace old references with.
+            - replace_dirs (list of str): List of old directory strings to be
+              replaced.
+            - only_replace_parsed_dirs (bool): If True, use only parsed old
+              paths from configs.
+            - log_level (str): Logging verbosity level.
+
+    Raises
+    ------
+        - SystemExit
+            If required arguments are missing or improperly formatted.
+
+    Notes
+    -----
+        This parser is tailored to match the file-scanning and path-replacement
+        workflow described in the module docstring.
+    """
+
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawTextHelpFormatter,
         description="""
-Script to modify all the links/paths inside a bookkeeper structure to match the current path structure where the files are located in. The internal structure of the files shouldn't have been modified.
+Script to modify all the links/paths inside a bookkeeper structure to match the
+current path structure where the files are located in. The internal structure of
+the files shouldn't have been modified.
 
 This script will modify the following things under the given bookkeeper-dir:
-    - All .yaml files under the given bookkeeper-dir. To substitute the "bookkeeper dir" specified in the files for the real one.
-    - All .sl files, from the collected "bookkeeper dir" in the previous step into the real one.
+    - All .yaml files under the given bookkeeper-dir. To substitute the
+      "bookkeeper dir" specified in the files for the real one.
+    - All .sl files, from the collected "bookkeeper dir" in the previous step
+      into the real one.
     - All symlinks, again from the collected "bookkeeper dir" into the real one.
 """,
     )
