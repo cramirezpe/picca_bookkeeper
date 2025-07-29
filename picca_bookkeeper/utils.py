@@ -1,5 +1,31 @@
-"""Utils."""
+"""
+utils.py
+--------
 
+Utility functions for the picca_bookkeeper package.
+
+This module provides supporting functions for quasar and Lyman-alpha forest
+analysis, including array bin finding, Healpix pixel identification, zeff
+computation, spectra extraction, flux coaddition, and quasar continuum construction.
+
+Utilities facilitate reading and processing FITS files, handling wavelength
+grids, and support continuum modeling using survey metadata.
+
+Key functionality:
+------------------
+    - find_bins: Map data arrays to wavelength grids using nearest bin search.
+    - find_qso_pixel: Locate the Healpix pixel and survey for a given quasar
+      by los_id.
+    - compute_zeff: Calculate the effective redshift (zeff) from survey export
+      files.
+    - get_spectra_from_los_id: Extract spectra for a given quasar, including
+      flux and inverse variance.
+    - coadd_flux_data: Combine flux data from multiple spectral arms into a
+      single grid.
+    - Ulambda: Normalize rest-frame wavelengths for continuum construction.
+    - compute_cont: Build the quasar continuum using fitted parameters from
+      attributes files.
+"""
 from __future__ import annotations
 
 from pathlib import Path
@@ -18,6 +44,22 @@ if TYPE_CHECKING:
 
 
 def find_bins(original_array: wave_grid, grid_array: wave_grid) -> wave_grid_int:
+    """
+    Find the nearest bin indices for values in `original_array` within `grid_array`.
+
+    Arguments
+    ----------
+    original_array : wave_grid
+        Array of values to map onto the grid.
+    grid_array : wave_grid
+        The reference grid to map to.
+
+    Returns
+    -------
+    wave_grid_int
+        Array of indices in `grid_array` corresponding to nearest neighbors
+        of `original_array`.
+    """
     idx = np.searchsorted(grid_array, original_array)
     np.clip(idx, 0, len(grid_array) - 1, out=idx)
 
@@ -28,12 +70,21 @@ def find_bins(original_array: wave_grid, grid_array: wave_grid) -> wave_grid_int
 
 
 def find_qso_pixel(los_id: int, catalog: str | Path) -> Tuple[int, str]:
-    """Find healpix pixel where given quasar is located
+    """
+    Find the HEALPix pixel and survey for a given quasar.
 
     Arguments
-    ---------
-    los_id: Line of sight id of quasar.
-    catalog: Path to quasar catalog.
+    ----------
+    los_id : int
+        Line-of-sight ID of the quasar.
+    catalog : str or Path
+        Path to the quasar catalog FITS file.
+
+    Returns
+    -------
+    Tuple[int, str]
+        Tuple containing the HEALPix pixel index (nested, Nside=64) and
+        survey name.
     """
     with fitsio.FITS(catalog) as hdul:
         indx = np.where(hdul["ZCATALOG"]["TARGETID"][:] == los_id)[0][0]
@@ -52,7 +103,23 @@ def compute_zeff(
     rmins: List[float] | float = 0,
     rmaxs: List[float] | float = 1000,
 ) -> float:
-    """Compute zeff from a set of export files"""
+    """
+    Compute the effective redshift (zeff) from a list of export files.
+
+    Arguments
+    ----------
+    export_files : List[Path]
+        Paths to the FITS export files.
+    rmins : List[float] or float, optional
+        Minimum R values for filtering (can be a scalar or list), by default 0.
+    rmaxs : List[float] or float, optional
+        Maximum R values for filtering (can be a scalar or list), by default 1000.
+
+    Returns
+    -------
+    float
+        Weighted average effective redshift.
+    """
     if not isinstance(rmins, list) or (isinstance(rmins, list) and len(rmins) == 1):
         rmins = [rmins for file in export_files]  # type: ignore
 
@@ -63,7 +130,8 @@ def compute_zeff(
     weights = []
     for export_file, rmin, rmax in zip(export_files, rmins, rmaxs):
         with fitsio.FITS(export_file) as hdul:
-            r_arr = np.sqrt(hdul[1].read()["RP"] ** 2 + hdul[1].read()["RT"] ** 2)
+            r_arr = np.sqrt(hdul[1].read()["RP"] ** 2 +
+                            hdul[1].read()["RT"] ** 2)
             cells = (r_arr > rmin) * (r_arr < rmax)
 
             inverse_variance = 1 / np.diag(hdul[1].read()["CO"])
@@ -84,19 +152,32 @@ def get_spectra_from_los_id(
     input_healpix: Optional[str | Path] = None,
     lambda_grid: wave_grid = np.arange(3600, 9824, 0.8),
 ) -> Tuple[wave_grid, wave_grid, wave_grid]:
-    """Get quasar spectra given los_id
+    """
+    Retrieve flux, wavelength, and inverse variance arrays for a given quasar.
 
     Arguments
-    ---------
-    los_id: Line of sight id of quasar.
-    catalog: Path to quasar catalog.
-    lambda_grid: Grid to show spectra for (np.array).
+    ----------
+    los_id : int
+        Line-of-sight ID of the quasar.
+    catalog : str or Path
+        Path to the quasar catalog FITS file.
+    input_healpix : str or Path, optional
+        Path to the root healpix directory, by default uses DESI standard location.
+    lambda_grid : wave_grid, optional, np.array
+        Wavelength grid for interpolated output,
+        by default np.arange(3600, 9824, 0.8)
+
+    Returns
+    -------
+    Tuple[wave_grid, wave_grid, wave_grid]
+        Tuple of (lambda_grid, flux, inverse variance)
     """
     healpix, survey = find_qso_pixel(los_id, catalog)
     healpix_str = str(healpix)
 
     if input_healpix is None:
-        input_healpix = Path("/global/cfs/cdirs/desi/science/lya/fugu_healpix/healpix")
+        input_healpix = Path(
+            "/global/cfs/cdirs/desi/science/lya/fugu_healpix/healpix")
     else:
         input_healpix = Path(input_healpix)
 
@@ -126,9 +207,12 @@ def get_spectra_from_los_id(
             B_MASK=hdul["B_MASK"].read()[idx],
             R_MASK=hdul["R_MASK"].read()[idx],
             Z_MASK=hdul["Z_MASK"].read()[idx],
-            B_IVAR=hdul["B_IVAR"].read()[idx] * (hdul["B_MASK"].read()[idx] == 0),
-            R_IVAR=hdul["R_IVAR"].read()[idx] * (hdul["R_MASK"].read()[idx] == 0),
-            Z_IVAR=hdul["Z_IVAR"].read()[idx] * (hdul["Z_MASK"].read()[idx] == 0),
+            B_IVAR=hdul["B_IVAR"].read()[idx] *
+            (hdul["B_MASK"].read()[idx] == 0),
+            R_IVAR=hdul["R_IVAR"].read()[idx] *
+            (hdul["R_MASK"].read()[idx] == 0),
+            Z_IVAR=hdul["Z_IVAR"].read()[idx] *
+            (hdul["Z_MASK"].read()[idx] == 0),
         )
 
     return coadd_flux_data(flux_data, lambda_grid)
@@ -137,12 +221,21 @@ def get_spectra_from_los_id(
 def coadd_flux_data(
     flux_data: Dict, lambda_grid: wave_grid
 ) -> Tuple[wave_grid, wave_grid, wave_grid]:
-    """Coadd flux data for different arms
+    """
+    Combine flux data from B, R, and Z arms into a coadded spectrum on a common grid.
 
     Arguments
-    ---------
-    flux_data: Dictionary containing flux data in keys 'B', 'R', 'Z'.
-    lambda_grid: Grid to show spectra for (np.array).
+    ----------
+    flux_data : dict
+        Dictionary containing flux, inverse variance, and wavelength arrays for
+        each arm (keys 'B', 'R', 'Z').
+    lambda_grid : wave_grid, np.array
+        Wavelength grid to coadd onto.
+
+    Returns
+    -------
+    Tuple[wave_grid, wave_grid, wave_grid]
+        Tuple of (lambda_grid, coadded_flux, coadded_ivar)
     """
     flux = np.zeros_like(lambda_grid)
     ivar = np.zeros_like(lambda_grid)
@@ -166,7 +259,24 @@ def coadd_flux_data(
 
 
 def Ulambda(lambda_rest: wave_grid, region: str = "lya") -> wave_grid_rf:
-    """Helper function to buid quasar continuum from aq bq parameters"""
+    """
+    Normalize rest-frame wavelengths for continuum modeling.
+
+    Helper function to buid quasar continuum from aq bq parameters.
+
+    Arguments
+    ----------
+    lambda_rest : wave_grid, np.array
+        Rest-frame wavelength array.
+    region : str, optional
+        Spectral region to use for normalization, by default "lya".
+
+    Returns
+    -------
+    wave_grid_rf
+        Normalized log-scale rest-frame wavelength array.
+    """
+
     lambda_min = forest_regions[region]["lambda-rest-min"]
     lambda_max = forest_regions[region]["lambda-rest-max"]
 
@@ -178,13 +288,23 @@ def Ulambda(lambda_rest: wave_grid, region: str = "lya") -> wave_grid_rf:
 def compute_cont(
     los_id: int, attrs_file: str | Path, region: str = "lya"
 ) -> Tuple[wave_grid_rf, wave_grid_rf]:
-    """Compute quasar continuum using attributes file (will read aq, bq and mean cont)
+    """
+    Construct quasar continuum from metadata attributes file
+    (will read aq, bq and mean cont).
 
-    Arguments:
+    Arguments
     ----------
-    los_id: Line of sight id of quasar.
-    attrs_file: Path to delta attributes file.
-    region: Region where to compute the continuum.
+    los_id : int
+        Line-of-sight ID of the quasar.
+    attrs_file : str or Path
+        Path to the delta attributes FITS file containing fitted Arguments.
+    region : str, optional
+        Region to compute continuum over (e.g., "lya"), by default "lya".
+
+    Returns
+    -------
+    Tuple[wave_grid_rf, wave_grid_rf]
+        Tuple of (rest-frame wavelength, continuum model)
     """
     with fitsio.FITS(attrs_file) as hdul:
         lambda_rest = 10 ** hdul["CONT"]["loglam_rest"][:]

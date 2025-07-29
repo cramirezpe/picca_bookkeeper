@@ -1,4 +1,23 @@
-""" FakeBookkeeper class to use for plotting non-bookkeeper runs"""
+"""
+fake_bookkeeper.py
+
+FakeBookkeeper class to use for plotting non-bookkeeper runs.
+
+This module provides the FakeBookkeeper and FakePaths classes, which are
+lightweight, mock implementations of the Bookkeeper and PathBuilder interfaces.
+
+ - FakeBookkeeper can be used for plotting or testing scenarios where a real
+   bookkeeper run is not available or not needed. It allows users to pass in
+   custom file paths for attributes, exports, and fits, without requiring the
+   full bookkeeping infrastructure.
+
+ - FakePaths mimics the behavior of PathBuilder, returning file paths from
+   user-provided dictionaries and inputs, enabling flexible, controlled access
+   to file locations for downstream code or plotting utilities.
+
+Usage: Development, testing, or quick visualization workflows where
+       reproducibility and speed are prioritized over strict bookkeeping.
+"""
 
 from __future__ import annotations
 
@@ -15,6 +34,22 @@ logger = logging.getLogger(__name__)
 
 
 class FakeBookkeeper(Bookkeeper):
+    """
+    Mock Bookkeeper used for plotting or testing without requiring
+    the full bookkeeping pipeline.
+
+    Args:
+        attributes_files (Dict): Mapping from region names to attribute file paths.
+        export_files (Dict): Mapping from file labels to export file paths.
+        fit_file (Path or str, optional): Path to the fit output file.
+
+    Example:
+        fbk = FakeBookkeeper(
+            attributes_files={"lya": "path/to/lya_attr.fits"},
+            export_files={"lyalya_lyalya": "path/to/corr.fits"},
+            fit_file="path/to/fit.json")
+    """
+
     def __init__(
         self,
         attributes_files: Dict = dict(),
@@ -29,6 +64,18 @@ class FakeBookkeeper(Bookkeeper):
 
 
 class FakePaths(PathBuilder):
+    """
+    Mock PathBuilder used to return paths to attributes, correlation
+    functions, and fit outputs using user-defined dictionaries.
+
+    Args:
+        attributes_files (Dict): Dictionary mapping region names to attribute
+                                file paths.
+        export_files (Dict): Dictionary mapping file identifiers to export
+                                file paths.
+        fit_file (Path or str, optional): Path to the fit output file.
+    """
+
     def __init__(
         self,
         attributes_files: Dict = dict(),
@@ -43,6 +90,17 @@ class FakePaths(PathBuilder):
     def delta_attributes_file(
         self, region: Optional[str] = None, calib_step: Optional[int] = None
     ) -> Path:
+        """
+        Returns the path to the delta attributes file for a given region.
+
+        Args:
+            region (str, optional): Region key used in the attributes_files
+                                    dictionary.
+            calib_step (int, optional): Calibration step (ignored in FakePaths).
+
+        Returns:
+            Path: File path to the delta attributes file.
+        """
         return Path(self.attributes_files[region])
 
     def exp_cf_fname(
@@ -52,6 +110,18 @@ class FakePaths(PathBuilder):
         absorber2: Optional[str] = None,
         region2: Optional[str] = None,
     ) -> Path:
+        """
+        Returns the path to the exported correlation function file.
+
+        Args:
+            absorber (str): First absorber type (e.g., "lya").
+            region (str): First region name.
+            absorber2 (str, optional): Second absorber type. Defaults to absorber 1.
+            region2 (str, optional): Second region name. Defaults to region 1.
+
+        Returns:
+            Path: File path to the exported correlation function file.
+        """
         if absorber is None:
             absorber = "lya"
         if region is None:
@@ -64,6 +134,17 @@ class FakePaths(PathBuilder):
         return Path(self.export_files[f"{absorber}{region}_{absorber2}{region2}"])
 
     def exp_xcf_fname(self, absorber: str, region: str, tracer: str = "qso") -> Path:
+        """
+        Returns the path to the exported cross-correlation function file.
+
+        Args:
+            absorber (str): Absorber type (e.g., "lya").
+            region (str): Region name.
+            tracer (str, optional): Tracer type (default: "qso").
+
+        Returns:
+            Path: File path to the exported cross-correlation file.
+        """
         if absorber is None:
             absorber = "lya"
         if region is None:
@@ -71,4 +152,10 @@ class FakePaths(PathBuilder):
         return Path(self.export_files[f"{tracer}_{absorber}{region}"])
 
     def fit_out_fname(self) -> Path:
+        """
+        Returns the path to the fit output file.
+
+        Returns:
+            Path: File path to the fit result file.
+        """
         return self.fit_file

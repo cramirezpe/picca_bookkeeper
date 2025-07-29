@@ -1,6 +1,60 @@
 """
-    Build new deltas format from original deltas. This new format will allow for faster reading of data.
+Convert delta FITS files to a new, more efficient format for fast data access.
+
+This script reads "delta" FITS files (typically named delta*fits*) produced by
+the picca pipeline, and rewrites them to a new format that is optimized for
+faster reading and downstream processing.
+
+Functionality:
+--------------
+    - Reads all delta FITS files in a specified input directory.
+    - For each file, rebins the data onto a common wavelength grid
+      (linear or logarithmic, as defined by the config file).
+    - Aggregates and stores spectra, weights, continua, and relevant metadata
+      into new FITS extensions.
+    - Optionally, if survey data is provided, computes and stores flux and flux
+      variance arrays aligned with the delta files.
+    - Metadata such as RA, DEC, redshift, line-of-sight ID, SNR, target ID,
+      observation night, petal, and tile are preserved and output as a
+      METADATA extension.
+    - Handles both blinded and unblinded delta data.
+
+Dependencies:
+--------------
+    - Internal modules: picca_bookkeeper.utils (find_bins, wavelength grid mapping),
+                        picca.delta_extraction.survey (Survey class, data handeling)
+
+Usage:
+------
+Run the script from the command line:
+    python convert_deltas_format.py --in-dir <input_delta_dir> --out-dir <output_dir>
+    --config-file <delta_config_file> --nproc <num_processes> [--config-for-flux <survey_config_file>]
+
+Arguments:
+----------
+    --in-dir           Directory containing input delta FITS files.
+    --out-dir          Directory to write reformatted delta FITS files.
+    --config-file      Path to a picca delta extraction config file (ini format).
+    --nproc            Number of parallel processes to use.
+    --log-level        Logging level (default: INFO).
+    --config-for-flux  (Optional) Path to a config file for extracting flux properties.
+
+Example:
+--------
+    python convert_deltas_format.py \
+        --in-dir /data/picca/deltas \
+        --out-dir /data/picca/deltas_converted \
+        --config-file /data/picca/config.ini \
+        --nproc 4
+
+Notes:
+------
+    - The script is parallelized using multiprocessing.Pool for speed.
+    - All output FITS files are overwritten if they already exist in the
+      output directory.
+    - Logging is provided for progress and error reporting.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -23,6 +77,27 @@ logger = logging.getLogger(__name__)
 
 
 def main(args: Optional[argparse.Namespace] = None) -> None:
+    """
+    Main entry point for the delta conversion script.
+
+    Arguments:
+    ----------
+        args (Optional[argparse.Namespace]): Parsed command-line arguments.
+            If None, arguments are parsed from the command line using `getArgs()`.
+
+    Behavior:
+    ----------
+        - Initializes logging based on user-specified log level.
+        - Creates the output directory if it does not exist.
+        - Optionally loads survey data if a flux config is provided.
+        - Loads delta extraction configuration from file.
+        - Uses multiprocessing to convert all delta files in the input directory.
+
+    Raises:
+    ----------
+        FileNotFoundError: If any required file paths do not exist.
+        ValueError: If the configuration file is invalid or incomplete.
+    """
     if args is None:
         args = getArgs()
 
@@ -62,11 +137,38 @@ def convert_delta_file(
     config: Dict,
     survey_data: Optional[Tuple[np.ndarray, ...]] = None,
 ) -> None:
+    """
+    Reads a single delta FITS file and converts it to the new format.
+
+    Arguments:
+    ----------
+        - delta_path (Path): Path to the input delta FITS file.
+        - out_dir (Path): Directory to write the reformatted FITS file.
+        - config (Dict): Configuration dictionary parsed from the ini file.
+        - survey_data (Optional[Tuple[np.ndarray, ...]]): Tuple of preprocessed
+            survey arrays: (LOS_IDs, fluxes, inverse variances, wavelengths).
+            Used to align flux data with delta entries if provided.
+
+    Behavior:
+    ---------
+        - Rebins delta, weight, and continuum data onto a common wavelength grid.
+        - Preserves metadata such as RA, DEC, Z, LOS_ID, MEANSNR, etc.
+        - Detects whether the file is blinded and handles accordingly.
+        - Optionally inserts FLUX and FLUX_IVAR extensions from matched survey data.
+        - Writes all processed arrays to a new FITS file in the output directory.
+
+    Raises:
+    -------
+        - KeyError: If required FITS header keywords are missing.
+        - ValueError: If the input file format or contents are malformed.
+        - IOError: If the output file cannot be written.
+    """
     logger.info(f"Reading file: {delta_path.name}")
     if config["data"]["wave solution"] == "lin":
         lambda_grid = np.arange(
             float(config["data"]["lambda min"]),
-            float(config["data"]["lambda max"]) + float(config["data"]["delta lambda"]),
+            float(config["data"]["lambda max"]) +
+            float(config["data"]["delta lambda"]),
             float(config["data"]["delta lambda"]),
         )
     else:
@@ -204,6 +306,27 @@ def convert_delta_file(
 
 
 def read_survey_data(config_file: Path | str) -> Tuple[np.ndarray, ...]:
+    """
+    Reads and processes survey data used for aligning flux arrays with delta files.
+
+    Arguments:
+    ----------
+        config_file (Path | str): Path to a valid survey configuration file
+            compatible with picca.delta_extraction.survey.
+
+    Returns:
+    ----------
+        Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]: Sorted arrays:
+            - LOS_IDs (int64): Line-of-sight IDs.
+            - fluxes (float64): Flux values per forest.
+            - inverse variances (float64): Inverse variance of flux values.
+            - wavelengths (float64): Wavelengths corresponding to each flux entry.
+
+    Raises:
+    -------
+        - FileNotFoundError: If the config file is missing.
+        - RuntimeError: If survey corrections or data cannot be processed.
+    """
     from picca.delta_extraction.survey import Survey
 
     survey = Survey()
@@ -218,13 +341,38 @@ def read_survey_data(config_file: Path | str) -> Tuple[np.ndarray, ...]:
     ids = np.asarray([forest.los_id for forest in survey.data.forests])
     fluxes = np.asarray([forest.flux for forest in survey.data.forests])
     ivars = np.asarray([forest.ivar for forest in survey.data.forests])
-    lambdas = np.asarray([10**forest.log_lambda for forest in survey.data.forests])
+    lambdas = np.asarray(
+        [10**forest.log_lambda for forest in survey.data.forests])
 
     sortinds = ids.argsort()
     return ids[sortinds], fluxes[sortinds], ivars[sortinds], lambdas[sortinds]
 
 
 def getArgs() -> argparse.Namespace:
+    """
+    Parses command-line arguments for the delta conversion script.
+
+    Returns:
+    --------
+        argparse.Namespace: Parsed arguments with the following attributes:
+            - in_dir (Path): Directory containing input delta FITS files.
+            - out_dir (Path): Output directory for converted delta files.
+            - config_file (Path): Path to a delta config file (INI format).
+            - config_for_flux (Optional[Path]): Optional path to a config for
+              survey data.
+            - nproc (int): Number of processes to use for parallel conversion.
+            - log_level (str): Logging level (default: INFO).
+
+    Raises:
+    -------
+        argparse.ArgumentError: If required arguments are missing or invalid.
+
+    Example:
+    --------
+        python convert_deltas_format.py \
+            --in-dir ./deltas --out-dir ./converted \
+            --config-file delta_config.ini --nproc 4
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--log-level",

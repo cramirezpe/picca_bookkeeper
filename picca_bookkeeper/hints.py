@@ -1,3 +1,15 @@
+"""
+This module defines type aliases using NumPy and Matplotlib for arrays and
+objects commonly used throughout the picca_bookkeeper package.
+
+These type hints standardize the typing of wavelength grids and related data
+structures (e.g., wave_grid, wave_grid_rf) as well as Matplotlib Axes and
+Figure objects.
+
+By importing this file, other modules in the repository can annotate functions
+and variables for improved code clarity and static type checking, facilitating
+consistent development and easier maintenance across the package.
+"""
 from typing import Tuple, TypeVar
 
 import matplotlib

@@ -1,4 +1,50 @@
-"""Script to fully compare two bookkeeper's configurations"""
+"""
+compare_bookkeepers.py
+
+A script for performing a comprehensive comparison between two Bookkeeper configs.
+
+Functionality:
+--------------
+This script compares two Bookkeeper configuration files, highlighting all
+differences in data paths, catalog paths (QSO, DLA, BAL), and any tracer catalogs
+defined in the "correlations" section of the configs. It also compares all .ini
+configuration files and .sh scripts in the delta extraction, correlations,
+and fits subdirectories of both Bookkeepers, providing a line-by-line unified
+diff of their contents, with colorized output for additions and deletions.
+
+Usage:
+-------
+Run this script from the command line:
+    python -m picca_bookkeeper.scripts.compare_bookkeepers <bookkeeper1_config.yaml>
+    <bookkeeper2_config.yaml> [--log-level LEVEL]
+
+Arguments:
+----------
+    bookkeeper1_config    Path to the first Bookkeeper YAML configuration file.
+    bookkeeper2_config    Path to the second Bookkeeper YAML configuration file.
+    --log-level LEVEL     Optional. Logging verbosity. Choose from CRITICAL,
+                          ERROR, WARNING, INFO, DEBUG, NOTSET. Default is INFO.
+
+Internal dependencies:
+----------------------
+    - picca_bookkeeper.bookkeeper.Bookkeeper: Main configuration and environment handler.
+                                              The script instantiates two of these per run.
+    - picca_bookkeeper.scripts.fix_bookkeeper_links.strCyan, strRed: Utility functions
+                                              for colored diff output.
+
+Example:
+--------
+To compare two Bookkeeper setups (e.g., for two different data releases):
+    python -m picca_bookkeeper.scripts.compare_bookkeepers config_release1.yaml
+    config_release2.yaml --log-level INFO
+
+Notes:
+------
+    - The script attempts to filter out irrelevant differences by normalizing
+      certain path strings and keywords before diffing file contents.
+    - Differences in key configuration values are highlighted in color.
+
+"""
 
 from __future__ import annotations
 
@@ -19,6 +65,20 @@ logger = logging.getLogger(__name__)
 
 
 def main(args: Optional[argparse.Namespace] = None) -> None:
+    """
+    Entry point for comparing two Bookkeeper configurations.
+
+    This function loads two Bookkeeper YAML configs, compares key data paths
+    (e.g., QSO, DLA, BAL, tracer catalogs), and generates unified diffs
+    for all `.ini` and `.sh` configuration files in relevant subdirectories.
+    Output is printed to the console with color highlighting for differences.
+
+    Arguments:
+    ----------
+        args (Optional[argparse.Namespace]): Parsed arguments including the two
+            config file paths and optional log level. If None, arguments will
+            be parsed from the command line via `getArgs()`.
+    """
     if args is None:
         args = getArgs()
 
@@ -90,7 +150,8 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
         for x in ini_files
     ]
 
-    script_files = list((bookkeeper2.paths.correlations_path / "scripts").glob("*.sh"))
+    script_files = list(
+        (bookkeeper2.paths.correlations_path / "scripts").glob("*.sh"))
     script_files_base = [
         (bookkeeper1.paths.correlations_path / "scripts") / x.name for x in script_files
     ]
@@ -162,6 +223,24 @@ def replace_strings(text: str, bookkeeper: Bookkeeper) -> str:
     """Replaces strings for catalogs and bookkeeper paths so they don't
     show up in the diff
     """
+    """
+    Normalizes Bookkeeper-specific path and config values in a string to
+    prevent irrelevant differences from showing in diffs.
+
+    This function replaces paths such as fits, delta, correlations, and
+    catalog paths with placeholder strings. Also normalizes some common
+    keywords or config patterns (e.g., 'zeff', '--').
+
+    Arguments:
+    ----------
+        - text (str): Original text content from a config or script file.
+        - bookkeeper (Bookkeeper): Bookkeeper object whose paths will be
+            replaced with standardized placeholders.
+
+    Returns:
+    --------
+        - str: The modified text with replaced strings, suitable for clean diffing.
+    """
     originals = [
         str(bookkeeper.paths.fits_path),
         str(bookkeeper.paths.correlations_path),
@@ -205,6 +284,16 @@ def replace_strings(text: str, bookkeeper: Bookkeeper) -> str:
 
 
 def getArgs() -> argparse.Namespace:
+    """
+    Parses command-line arguments for the Bookkeeper comparison script.
+
+    Returns:
+        argparse.Namespace: Namespace containing the following attributes:
+            - bookkeeper1_config (Path): Path to the first YAML config file.
+            - bookkeeper2_config (Path): Path to the second YAML config file.
+            - log_level (str): Logging level (default: 'INFO'). Options include
+              'CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'NOTSET'.
+    """
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
