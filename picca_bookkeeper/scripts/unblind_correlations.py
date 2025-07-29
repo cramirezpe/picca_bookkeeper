@@ -127,7 +127,7 @@ def main(args: Optional[argparse.Namespace] = None) -> None:
 
 
 def unblind_cf(cf_file: Path) -> None:
-     """
+    """
     Unblind a correlation function FITS file.
 
     This function modifies the FITS file in-place by:
