@@ -1,3 +1,10 @@
+loa:
+
+  main:
+    v1:  /global/cfs/cdirs/desicollab/science/lya/y3/loa/catalogs/gp_and_tmp_or_gp_and_cnn_snr_2_cat_20241114.fits
+    v2:  /global/cfs/cdirs/desi/science/lya/y3/loa/catalogs/loa_gp_and_tmp_or_gp_and_cnn_snr_2_cat_20241217.fits
+    current: /global/cfs/cdirs/desi/science/lya/y3/loa/catalogs/loa_gp_and_tmp_or_gp_and_cnn_snr_2_cat_20241217.fits
+
 iron:
 
   main:
