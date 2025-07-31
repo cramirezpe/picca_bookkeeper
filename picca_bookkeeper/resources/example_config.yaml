@@ -1,13 +1,14 @@
 general:
   #python environment to be used when running jobs
   #something that would be activated as:
-  # source activate picca
-  conda environment: picca
+  # source activate env_name
+  conda environment: env_name # or /path/to/env_name
   
-  # default system to run bookkeeper on
-  # slurm_cori: slurm for cori
-  # slurm_perlmutter: slurm for perlmutter
-  # bash: run on terminal (login nodes at NERSC)
+  # Default system for job submission.
+  # Options:
+  #   slurm_cori: Use SLURM on Cori
+  #   slurm_perlmutter: Use SLURM on Perlmutter
+  #   bash: Run jobs directly in terminal (e.g. login node at NERSC)
   system: slurm_perlmutter
 
   # general slurm args, e.g. mail options
@@ -16,10 +17,11 @@ general:
     mail-user: user@host.com
 
   defaults file: # Use a defaults file like Y1v7
+  # defaults locaed in picca_bookkeeper/resources/default_configs
 
 data:
-  # Parent path of the bookkeeper.
-  bookkeeper dir: /blabla
+  # Parent path of the bookkeeper, where outputs will go.
+  bookkeeper dir: /desired/output/path/
 
   healpix data: /global/cfs/cdirs/desi/spectro/redux/iron/healpix/
 
@@ -30,51 +32,70 @@ data:
 delta extraction:
   # If full delta extraction already computed can use this to always point to it
   # use existing: /path/to/bookkeeper (bookkeeper folder)
+  # (then pass --skip-sent option in terminal)
 
+  # Calibration mode for delta extraction.
   calib: 0
-  calib region: mgii_r
-  
-  dla: # If added, DLAs will be masked automatically
-  bal: # If added, BALs selected from added catalog, if True BALs from data/catalog above
+  # Options:
+  #   0: No calibration (default, just run extraction)
+  #   1: Apply calibration from a previous run (single step)
+  #   2: Two-step calibration (calibration and IvarCorrection)
+  #   3: Special calibration mode (see Bookkeeper docs/code)
+  #   10: User provides all calibration corrections manually
+  # If using 2, you may need to specify calibration data paths below.
 
+  # Calibration region to use, e.g. mgii_r, lya, etc.
+  calib region: mgii_r
+  # Only needed if calib != 0.
+  
+  dla: /path/to/dla_catalog
+  # If added, DLAs will be masked automatically
+  bal: /path/to/bal_catalog
+  # If added, BALs selected from added catalog, if True BALs from data/catalog above
+
+ # Optional: Path to a line mask file for delta extraction.
   mask file: # Add a line mask file
+  # e.g. /.../desicollab/science/lya/y3/loa/deltas/delta-lya-2-0/continuum_fitting_mask.txt
 
   # Only if you want to re-use calibration data from a different analysis.
   # Insert here the path of a delta-attributes.fits.gz file to use it as 
-  # calibration data for the current run..
+  # calibration data for the current run.
   calibration data:
     step 1:
     step 2: # leave this empty if only 1 step calib.
 
-  # If you want to use deltas from another place you can use the following
-  # options.
-  # Insert here the parent folder containing both Delta and Log folders
-  # One can use general to use all deltas from given folder.
+  # Optional: Use precomputed deltas from another location.
+  # Insert here the parent folder containing both Delta and Log folders. 
+  # Keys:
+  #   general: Path with all deltas
+  #   lya: Path for Lyman-alpha region deltas
+  #   <region>: Path for other regions as defined in forest_regions (e.g. ciii)
   computed deltas:
     # general: /path/to/deltas/results
     # lya: /path/to/deltas/results/lya
     
   # extra args to be used by the bookkeeper
   # match the section name with the name of the scripts under picca.bin
+  # You can set general options, or override per region (e.g. ciii, lya).
+  # To remove an option, set its value to '$' (see fits.extra args section for example).
   extra args:
     picca_delta_extraction:
       # Default value for all regions
       general:
         expected flux:
-          type: Dr16FixedFudgeExpectedFlux # This to deactivate fudge.
-          fudge value: 0
+          type: Dr16FixedFudgeExpectedFlux 
+          fudge value: 0 # This to deactivate fudge.
         data:
-          wave solution: lin # This is an example, wave solution is set to lin by default in the bookkeeper.
+          wave solution: lin # Example, wave solution already lin by default (options: lin, log, etc).
 
-      # To affect an specific region use 
-      # remember fo follow the region names in picca_bookkeeper.Bookkeeper.forest_regions
+
+      # To affect a specific region (must match region names in Bookkeeper.forest_regions):
       # The values set here will extend the ones defined in picca_delta_extraction
-      # for the ciii region only.
-      ciii:
+      ciii: # e.g. for the ciii region only.
 
       # To force the change even if there are specific defaults for some regions
       # in the default config file, use all regions
-      # all:
+      # "all:"
 
     # Scripts with terminal argumentss are also compatible
     picca_convert_transmission:
@@ -214,6 +235,11 @@ fits:
     vega_auto:
       data:
         tracer1-type: continuous
+    # include the following to only run A region, and exclude B region
+    # defualt: auto auto cross cross (lyaxlya, lyaxqso, lyaxlyb, lybxqso)
+    smooth_covariance:
+      general:
+        block-types: auto cross
 
     vega_auto:
       general:
@@ -249,3 +275,22 @@ fits:
       general:
         nodes: 2
         ntasks-per-node: 128 # Use always per-node within the bookkeeper!
+        
+#################################################################################
+
+# Command-line override options #
+# ----------------------------- #
+# note: these are not .yaml options, but are useful for submitting from the terminal
+#       e.g. "picca_bookkeeper_run_full_analysis /path/to/config --[args]"
+#
+#   --system <name>        : Override system for this run.
+#   --region <region>      : Run for specific region (default: 'lya').
+#   --overwrite            : Overwrite output data.
+#   --overwrite-config     : Overwrite bookkeeper config.
+#   --skip-sent            : Skip already-submitted jobs.
+#   --debug                : Enable debug mode.
+#   --only-calibration     : Only run calibration steps.
+#   --skip-calibration     : Skip calibration even if enabled in config.
+#   --only-write           : Only write job scripts, don't submit.
+#   --wait-for <ids>       : Wait for job IDs before running.
+#   --log-level <level>    : Logging verbosity (default: INFO).
