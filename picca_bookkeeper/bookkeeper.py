@@ -3055,6 +3055,7 @@ class Bookkeeper:
             "job-name": job_name,
             "output": str(self.paths.fits_path / f"logs/{job_name}-%j.out"),
             "error": str(self.paths.fits_path / f"logs/{job_name}-%j.err"),
+            "OMP_NUM_THREADS": 1
         }
 
         slurm_header_args = DictUtils.merge_dicts(
