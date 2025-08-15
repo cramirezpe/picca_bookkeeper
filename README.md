@@ -10,7 +10,7 @@ Activate new environment, and install a stable version of Picca:
 ```bash
 conda activate evn_name
 
-pip install picca --version=9.13.0
+pip install picca==9.13.0
 ```
 
 Install Vega:
@@ -19,7 +19,7 @@ git clone https://github.com/andreicuceu/vega.git Vega
 
 cd vega
 
-pip install -e
+pip install -e .
 ```
 
 If using the Vega sampler, install MPI: 
