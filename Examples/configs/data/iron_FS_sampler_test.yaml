@@ -30,6 +30,7 @@ fits:
     smooth_covariance:
       general:
         block-types: auto cross
+        # note: specify 'auto cross' to just run A region (omit B)
   slurm args:
     run_vega_mpi:
       general:
