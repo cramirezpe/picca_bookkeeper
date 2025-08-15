@@ -9,6 +9,7 @@
 #SBATCH --job-name vega_sampler
 #SBATCH --output /picca_bookkeeper/tests/test_files/output/results/fits/logs/vega_sampler-%j.out
 #SBATCH --error /picca_bookkeeper/tests/test_files/output/results/fits/logs/vega_sampler-%j.err
+export OMP_NUM_THREADS=1
 
 module load python
 source /global/common/software/desi/users/acuceu/stable_vega/activate_vega.sh

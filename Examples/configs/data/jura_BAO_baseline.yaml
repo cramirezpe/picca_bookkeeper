@@ -1,0 +1,19 @@
+general:
+  conda environment: /global/common/software/desi/users/cramireez/conda/envs/picca.marseille
+  system: slurm_perlmutter
+  slurm args:
+    mail-type: fail
+    mail-user: cramireez@ifae.es
+  defaults file: Jurav1
+data:
+  bookkeeper dir: /global/cfs/cdirs/desicollab/science/lya/y3/jura/validation_tests/baseline
+  healpix data: /dvs_ro/cfs/cdirs/desi/spectro/redux/jura/healpix
+  catalog: /global/cfs/cdirs/desicollab/science/lya/y3/jura/catalogs/QSO_cat_jura_main_dark_healpix_v1_zwarn_cut.fits
+delta extraction:
+  calib: 1
+  calib region: ciii
+  dla: /global/cfs/cdirs/desicollab/science/lya/y3/jura/catalogs/dlacat-20240618-conf05-nhi203-snr3.fits
+  bal: /global/cfs/cdirs/desicollab/science/lya/y3/jura/catalogs/QSO_cat_jura_main_dark_healpix_v1-bal.fits
+  mask file: /global/cfs/cdirs/desicollab/science/lya/y3/jura/deltas/delta-lya-1-0/continuum_fitting_mask.txt
+correlations: {}
+fits: {}

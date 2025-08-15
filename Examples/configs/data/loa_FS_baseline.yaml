@@ -1,0 +1,28 @@
+general:
+  conda environment: /global/homes/m/mherbold/.conda/envs/full_shape_bookkeeper
+  system: slurm_perlmutter
+  slurm args:
+    mail-type: fail
+    mail-user: herbold.9@osu.edu
+  defaults file: /global/cfs/cdirs/desi/science/lya/y3-fs/validation-tests/v1-0-0-0/configs/loa_fs_v1.yaml
+  
+data:
+  bookkeeper dir: /global/cfs/cdirs/desi/science/lya/y3-fs/validation-tests/v1-0-0-0/baseline
+  healpix data: /global/cfs/cdirs/desi/spectro/redux/loa/healpix/
+  catalog: /global/cfs/cdirs/desi/survey/catalogs/DA2/QSO/loa/QSO_cat_loa_main_dark_healpix_v2.fits
+
+delta extraction:
+  calib: 1
+  calib region: ciii
+  dla: /global/cfs/cdirs/desi/science/lya/y3/loa/catalogs/loa_gp_and_tmp_or_gp_and_cnn_snr_2_cat_20241217.fits
+  bal: /global/cfs/cdirs/desi/science/lya/y3/loa/catalogs/QSO_cat_loa_main_dark_healpix_v2-altbal-20241115.fits
+  mask file: /global/cfs/cdirs/desi/science/lya/y3/loa/deltas/delta-lya-3-0/continuum_fitting_mask.txt
+  
+correlations: {}
+
+fits: 
+  extra args:
+    smooth_covariance:
+      general:
+        block-types: auto cross # us to omit B-region
+        

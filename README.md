@@ -10,7 +10,7 @@ Activate new environment, and install a stable version of Picca:
 ```bash
 conda activate evn_name
 
-pip install picca --version=9.13.0
+pip install picca==9.13.0
 ```
 
 Install Vega:
@@ -19,7 +19,12 @@ git clone https://github.com/andreicuceu/vega.git Vega
 
 cd vega
 
-pip install -e
+pip install -e .
+```
+
+If using the Vega sampler, install MPI: 
+```bash
+MPICC="cc -shared" pip install --force-reinstall --no-cache-dir --no-binary=mpi4py mpi4py
 ```
 
 To get the most up-to-date version of the bookkeper, clone the repo:
@@ -103,4 +108,24 @@ Similarly as in the case of correlations, one can use the same deltas and correl
 To run on mocks, use as a defulat file  ``quickquasars``, ``raw`` or ``True``. Then use one of the examples as a base and modify it. Remember to run without distortion and metals, removing them in the fits section:
 ```
 picca_bookkeeper_run_full_analysis \path_to_mock_config.yaml
+```
+
+## Run the Vega Sampler
+To run the sampler, ensure that MPI is properly installed with NERSC specific settings in your conda environment: 
+```bash
+MPICC="cc -shared" pip install --force-reinstall --no-cache-dir --no-binary=mpi4py mpi4py
+```
+Note: for the bookkeeper config file, you will need to specify your conda environment again. (Otherwise the bookkeeper will default to sourcing a separate Vega installation.)
+```bash
+general:
+  conda environment: /path/to/conda_environment
+
+...
+
+fits:
+  sampler environment: /path/to/conda_environment
+```
+Then to run from the terminal (including arguments like ``--skip-sent`` if skipping deltas, etc.): 
+```bash
+picca_bookkeeper_run_sampler /path_to_config.yaml
 ```
