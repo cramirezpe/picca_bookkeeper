@@ -1,3 +1,4 @@
+# the goal is to modify this for full shape analysis
 delta extraction: 
   extra args:
     picca_delta_extraction:
@@ -389,16 +390,16 @@ fits:
           # smooth-scaling: False
           
         ## FS peak/smooth AP: fit phi-alpha, smooth-scaling True
-          cosmo fit func: phi_alpha
-          full-shape: False
-          full-shape-alpha: False
-          smooth-scaling: True
-
-        ## FS AP: fit phi_alpha, smooth-scaling True, FS True
           # cosmo fit func: phi_alpha
-          # full-shape: True
+          # full-shape: False
           # full-shape-alpha: False
           # smooth-scaling: True
+
+        ## FS AP: fit phi_alpha, smooth-scaling True, FS True
+          cosmo fit func: phi_alpha
+          full-shape: True
+          full-shape-alpha: False
+          smooth-scaling: True
           
         ## FS galaxy: fit phi-alpha, all True
           # cosmo fit func: phi_alpha
@@ -439,15 +440,15 @@ fits:
           dnl_arinyo_kp: 5 22 19.47 0.1
 
           # Peak/smooth AP config
-          phi: True
-          alpha: True
-          phi_smooth: True
-          alpha_smooth: True
+          # phi: True
+          # alpha: True
+          # phi_smooth: True
+          # alpha_smooth: True
             
           # Full-shape AP config
-          # alpha: True
-          # phi_full: True
-          # alpha_smooth: True
+          alpha: True
+          phi_full: True
+          alpha_smooth: True
             
           # Galaxy full-shape config
           # phi_full: True
@@ -503,15 +504,15 @@ fits:
           desi_inst_sys_amp: 1e-4
 
           # Peak/smooth AP config
-          phi: 1.0
-          alpha: 1.0
-          phi_smooth: 1.0
-          alpha_smooth: 1.0
+          # phi: 1.0
+          # alpha: 1.0
+          # phi_smooth: 1.0
+          # alpha_smooth: 1.0
             
           # Full-shape AP config
-          # alpha: 1.0
-          # phi_full: 1.0
-          # alpha_smooth: 1.0
+          alpha: 1.0
+          phi_full: 1.0
+          alpha_smooth: 1.0
             
           # Galaxy full-shape config
           # phi_full: 1.0
