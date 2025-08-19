@@ -22,10 +22,12 @@ cd vega
 pip install -e .
 ```
 
-If using the Vega sampler, install MPI: 
+For running the Vega sampler, install MPI: 
 ```bash
 MPICC="cc -shared" pip install --force-reinstall --no-cache-dir --no-binary=mpi4py mpi4py
 ```
+
+Then install Polychord or PocoMC (Vega instructions here: https://github.com/andreicuceu/vega). 
 
 To get the most up-to-date version of the bookkeper, clone the repo:
 ```bash
@@ -115,7 +117,38 @@ To run the sampler, ensure that MPI is properly installed with NERSC specific se
 ```bash
 MPICC="cc -shared" pip install --force-reinstall --no-cache-dir --no-binary=mpi4py mpi4py
 ```
-Note: for the bookkeeper config file, you will need to specify your conda environment again. (Otherwise the bookkeeper will default to sourcing a separate Vega installation.)
+
+### You will also need to install Polychord or PocoMC (Polychord instructions here are taken from: https://github.com/andreicuceu/vega): 
+
+1) Clone the Polychord repo (does not require conda environment yet):
+```bash
+git clone https://github.com/PolyChord/PolyChordLite.git
+cd PolyChordLite
+```
+2) In the PolyChordLite folder, locate a file called ``Makefile_gnu``, and change 3 lines:
+ ```bash
+FC = mpifort
+CC = mpicc
+CXX = mpicxx
+```
+to
+ ```bash
+FC = ftn
+CC = CC
+CXX = CC
+```
+3) Then, inside your conda environment, install Polychord:
+```bash
+make veryclean
+make COMPILER_TYPE=gnu
+pip install -e .
+```
+4) You can test by running the following on an interractive node:
+```bash
+srun -n 2 python run_pypolychord.py
+```
+
+Note: for the bookkeeper.yaml config file, you will need to specify your conda environment again. (Otherwise the bookkeeper will default to sourcing a separate Vega installation.)
 ```bash
 general:
   conda environment: /path/to/conda_environment
@@ -125,6 +158,18 @@ general:
 fits:
   sampler environment: /path/to/conda_environment
 ```
+
+You will also need to specify which sampler (Polychord / PocoMC) you will be using. 
+```bash
+fits:
+  extra args: 
+    vega_main:
+      general:
+        control:
+          run_sampler: True
+          sampler: Polychord   # or PocoMC
+```
+
 Then to run from the terminal (including arguments like ``--skip-sent`` if skipping deltas, etc.): 
 ```bash
 picca_bookkeeper_run_sampler /path_to_config.yaml
