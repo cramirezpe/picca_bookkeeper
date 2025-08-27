@@ -1,5 +1,5 @@
 # the goal is to modify this for full shape analysis
-delta extraction: 
+delta extraction:
   extra args:
     picca_delta_extraction:
       general:
@@ -24,7 +24,7 @@ delta extraction:
       lya:
         data:
           lambda max rest frame: 1205.0
-    
+
 
   slurm args:
     picca_convert_transmission:
@@ -32,7 +32,7 @@ delta extraction:
         time: "03:30:00"
         qos: regular
         cpus-per-task: 256
-    
+
     picca_delta_extraction:
       general:
         time: "03:30:00"
@@ -45,9 +45,6 @@ delta extraction:
 
       lya:
         time: "02:30:00"
-
-      # lyb:
-      #   time: "01:10:00"
 
 
 correlations:
@@ -121,9 +118,6 @@ correlations:
         fid-Om: 0.315
         rebin-factor: 3
 
-      # lyalya_lyalyb:
-      #   smooth-per-r-par: ""
-
     picca_xdmat:
       general:
         mode: "desi_healpix"
@@ -170,20 +164,13 @@ correlations:
         fid-Om: 0.315
         rebin-factor: 3
         coef-binning-model: 1
-    
+
     picca_export:
       lyalya_lyalya:
         blind-corr-type: lyaxlya
-      
-      # lyalya_lyalyb:
-      #   blind-corr-type: lyaxlyb
-      #   smooth-per-r-par: ""
 
       qso_lyalya:
         blind-corr-type: qsoxlya
-        
-      # lyalyb:
-      #   blind-corr-type: qsoxlyb
 
 
   slurm args:
@@ -192,25 +179,19 @@ correlations:
         qos: regular
         time: "01:30:00"
         cpus-per-task: 256
-      
+
       lyalya_lyalya:
         time: "00:50:00"
-
-      # lyalya_lyalyb:
-      #   time: "00:30:00"
 
     picca_dmat:
       general:
         qos: regular
         time: "05:00:00"
         cpus-per-task: 256
-      
+
       lyalya_lyalya:
         time: "05:00:00"
         OMP_NUM_THREADS: 1
-
-      # lyalya_lyalyb:
-      #   time: "03:00:00"
 
     picca_export:
       general:
@@ -222,7 +203,7 @@ correlations:
       general:
         qos: regular
         time: "00:20:00"
-        cpus-per-task: 256     
+        cpus-per-task: 256
 
     picca_metal_dmat:
       general:
@@ -239,9 +220,6 @@ correlations:
       qso_lyalya:
         time: "01:00:00"
 
-      # lyalyb:
-      #   time: "00:30:00"
-
     picca_xdmat:
       general:
         qos: regular
@@ -250,9 +228,6 @@ correlations:
 
       qso_lyalya:
         time: "01:40:00"
-
-      # qso_lyalyb:
-      #   time: "00:40:00"
 
     picca_fast_metal_xdmat:
       general:
@@ -268,8 +243,8 @@ correlations:
 
 
 fits:
-  auto correlations: lya.lya-lya.lya # lya.lya-lya.lyb
-  cross correlations: qso-lya.lya # qso-lya.lyb
+  auto correlations: lya.lya-lya.lya
+  cross correlations: qso-lya.lya
 
   sampler environment: /global/common/software/desi/users/acuceu/stable_vega/activate_vega.sh
 
@@ -286,7 +261,7 @@ fits:
   no sky: False
   no qso rad: False
   rmin cf:
-  rmax cf: 
+  rmax cf:
   rmin xcf:
   rmax xcf:
 
@@ -333,7 +308,7 @@ fits:
         metals:
           in tracer1: CIV(eff)
           in tracer2: CIV(eff)
-      
+
       lyaciv:
         metals:
           in tracer2: CIV(eff)
@@ -364,7 +339,7 @@ fits:
           z evol: bias_vs_z_std
           in tracer1:  SiII(1190) SiII(1193) SiIII(1207) SiII(1260) CIV(eff)
           velocity dispersion: lorentz
-        
+
         metal-matrix:
           rebin_factor: 3
           alpha_LYA: 2.9
@@ -388,7 +363,7 @@ fits:
           # full-shape: False
           # full-shape-alpha: False
           # smooth-scaling: False
-          
+
         ## FS peak/smooth AP: fit phi-alpha, smooth-scaling True
           # cosmo fit func: phi_alpha
           # full-shape: False
@@ -400,20 +375,20 @@ fits:
           full-shape: True
           full-shape-alpha: False
           smooth-scaling: True
-          
+
         ## FS galaxy: fit phi-alpha, all True
           # cosmo fit func: phi_alpha
           # full-shape: True
           # full-shape-alpha: True
           # smooth-scaling: True
-          
-        fiducial: 
+
+        fiducial:
           filename: Planck18/DESI-2024_z_2.33.fits
 
         output:
           filename: combined.fits
           overwrite: True
-          
+
         sample:
           # ap: True
           # at: True
@@ -444,12 +419,12 @@ fits:
           # alpha: True
           # phi_smooth: True
           # alpha_smooth: True
-            
+
           # Full-shape AP config
           alpha: True
           phi_full: True
           alpha_smooth: True
-            
+
           # Galaxy full-shape config
           # phi_full: True
           # alpha_full: True
@@ -508,12 +483,12 @@ fits:
           # alpha: 1.0
           # phi_smooth: 1.0
           # alpha_smooth: 1.0
-            
+
           # Full-shape AP config
           alpha: 1.0
           phi_full: 1.0
           alpha_smooth: 1.0
-            
+
           # Galaxy full-shape config
           # phi_full: 1.0
           # alpha_full: 1.0

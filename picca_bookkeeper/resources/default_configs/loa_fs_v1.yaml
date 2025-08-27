@@ -1,4 +1,3 @@
-# This is a test default configuration matching Jurav1
 # the goal is to modify this for full shape analysis
 delta extraction: 
   extra args:
@@ -47,8 +46,8 @@ delta extraction:
       lya:
         time: "02:30:00"
 
-      lyb:
-        time: "01:10:00"
+      # lyb:
+      #   time: "01:10:00"
 
 
 correlations:
@@ -122,8 +121,8 @@ correlations:
         fid-Om: 0.315
         rebin-factor: 3
 
-      lyalya_lyalyb:
-        smooth-per-r-par: ""
+      # lyalya_lyalyb:
+      #   smooth-per-r-par: ""
 
     picca_xdmat:
       general:
@@ -176,15 +175,15 @@ correlations:
       lyalya_lyalya:
         blind-corr-type: lyaxlya
       
-      lyalya_lyalyb:
-        blind-corr-type: lyaxlyb
-        smooth-per-r-par: ""
+      # lyalya_lyalyb:
+      #   blind-corr-type: lyaxlyb
+      #   smooth-per-r-par: ""
 
       qso_lyalya:
         blind-corr-type: qsoxlya
         
-      lyalyb:
-        blind-corr-type: qsoxlyb
+      # lyalyb:
+      #   blind-corr-type: qsoxlyb
 
 
   slurm args:
@@ -197,8 +196,8 @@ correlations:
       lyalya_lyalya:
         time: "00:50:00"
 
-      lyalya_lyalyb:
-        time: "00:30:00"
+      # lyalya_lyalyb:
+      #   time: "00:30:00"
 
     picca_dmat:
       general:
@@ -210,8 +209,8 @@ correlations:
         time: "05:00:00"
         OMP_NUM_THREADS: 1
 
-      lyalya_lyalyb:
-        time: "03:00:00"
+      # lyalya_lyalyb:
+      #   time: "03:00:00"
 
     picca_export:
       general:
@@ -240,8 +239,8 @@ correlations:
       qso_lyalya:
         time: "01:00:00"
 
-      lyalyb:
-        time: "00:30:00"
+      # lyalyb:
+      #   time: "00:30:00"
 
     picca_xdmat:
       general:
@@ -252,8 +251,8 @@ correlations:
       qso_lyalya:
         time: "01:40:00"
 
-      qso_lyalyb:
-        time: "00:40:00"
+      # qso_lyalyb:
+      #   time: "00:40:00"
 
     picca_fast_metal_xdmat:
       general:
@@ -269,8 +268,8 @@ correlations:
 
 
 fits:
-  auto correlations: lya.lya-lya.lya lya.lya-lya.lyb
-  cross correlations: qso-lya.lya qso-lya.lyb
+  auto correlations: lya.lya-lya.lya #lya.lya-lya.lyb
+  cross correlations: qso-lya.lya #qso-lya.lyb
 
   sampler environment: /global/common/software/desi/users/acuceu/stable_vega/activate_vega.sh
 
