@@ -389,8 +389,20 @@ class Tasker:
                  other packages.
         """
         text = "\necho used picca_bookkeeper version: "
-        text += importlib.metadata.version("picca_bookkeeper")
-
+        try:
+            text += importlib.metadata.version("picca_bookkeeper")
+        except importlib.metadata.PackageNotFoundError:
+            # Fallback for PYTHONPATH installs: read version from pyproject.toml
+            import re
+            import picca_bookkeeper as _pb
+            _toml = Path(_pb.__file__).parent.parent / "pyproject.toml"
+            if _toml.exists():
+                _match = re.search(
+                    r'^version\s*=\s*"([^"]+)"', _toml.read_text(), re.MULTILINE
+                )
+                text += _match.group(1) if _match else "unknown"
+            else:
+                text += "unknown"
         for package in self.packages:
             text += f'\necho using {package} version: $(python -c "import importlib.metadata; '
             text += f"print(importlib.metadata.version('{package}'))\")"
