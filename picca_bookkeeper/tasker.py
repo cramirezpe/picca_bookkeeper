@@ -533,6 +533,15 @@ class SlurmTasker(Tasker):
         """
         super().__init__(*args, **kwargs)
 
+        # Mirror nodes/ntasks from slurm_header_args into srun_options so that
+        # whatever the user sets in 'slurm args' also drives the srun command.
+        for key in ("nodes", "ntasks"):
+            if key in self.slurm_header_args:
+                self.srun_options[key] = self.slurm_header_args[key]
+        # ntasks-per-node conflicts with an explicit ntasks in the srun command.
+        if "ntasks" in self.srun_options:
+            self.slurm_header_args.pop("ntasks-per-node", None)
+
     def _make_header(self) -> str:
         """
         Generate the SLURM header section for the job script given the
