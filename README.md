@@ -1,9 +1,9 @@
 ``picca_bookkeeper`` is a tool designed to help running analyses using the package [picca](https://github.com/igmhub/picca/). It allows for the computation of all the steps necessary for the Lyman-alpha 3D analysis using a unified configuration file, appropriately chaining all the jobs.
 
-# Installation (Updated 5/1/26)
+# Installation (Updated 10/13/26)
 Create a new conda environment, ensuring up to date dependencies for picca, vega, and the bookkeeper: 
 ```bash
-conda create -n env_name python=3.10.6 numpy scipy pip matplotlib
+conda create -n env_name python=3.14 numpy scipy pip matplotlib
 ```
 
 Activate new environment, and install Picca. 
