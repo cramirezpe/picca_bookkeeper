@@ -61,8 +61,7 @@ correlations:
         fid-Or: 7.975e-5
         rebin-factor: 3
         z-max-sources: 3.79
-        no-project: ""
-
+        #no-project: "" # This line adds --no-project to the dmat calculation, a parameter not defined for picca_dmat.py
     picca_metal_dmat:
       general:
         nproc: 256
