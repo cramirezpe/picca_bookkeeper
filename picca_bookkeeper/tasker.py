@@ -41,7 +41,6 @@ Usage:
 """
 from __future__ import annotations
 
-import importlib.metadata
 import logging
 import os
 import textwrap
@@ -388,24 +387,10 @@ class Tasker:
             str: Bash code that echoes the version of picca_bookkeeper and
                  other packages.
         """
-        text = "\necho used picca_bookkeeper version: "
-        try:
-            text += importlib.metadata.version("picca_bookkeeper")
-        except importlib.metadata.PackageNotFoundError:
-            # Fallback for PYTHONPATH installs: read version from pyproject.toml
-            import re
-            import picca_bookkeeper as _pb
-            _toml = Path(_pb.__file__).parent.parent / "pyproject.toml"
-            if _toml.exists():
-                _match = re.search(
-                    r'^version\s*=\s*"([^"]+)"', _toml.read_text(), re.MULTILINE
-                )
-                text += _match.group(1) if _match else "unknown"
-            else:
-                text += "unknown"
+        from picca_bookkeeper.get_version import get_version
+        text = f"\necho used picca_bookkeeper version: {get_version('picca_bookkeeper')}"
         for package in self.packages:
-            text += f'\necho using {package} version: $(python -c "import importlib.metadata; '
-            text += f"print(importlib.metadata.version('{package}'))\")"
+            text += f"\necho using {package} version: $(python3 -m picca_bookkeeper.get_version {package})"
 
         return text + "\necho -e '\\n'\n"
 
