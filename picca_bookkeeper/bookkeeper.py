@@ -126,7 +126,7 @@ class Bookkeeper:
             self.paths.check_delta_directories()
             self.check_existing_config(
                 "delta extraction", self.paths.config_file)
-        self.enable_qsonic_interjection = self.config["delta extraction"].get("use qsonic", False)
+        self.use_qsonic = self.config["delta extraction"].get("use qsonic", False)
 
         if self.config["correlations"].get("use existing", None) is not None:
             original_config = (
@@ -320,6 +320,7 @@ class Bookkeeper:
             ],
             "data": ["bookkeeper dir", "healpix data", "catalog"],
             "delta extraction": [
+                "use qsonic",
                 "use existing",
                 "calib",
                 "calib region",
@@ -1322,7 +1323,7 @@ class Bookkeeper:
                 {"max num spec": 1000})
 
         # Convert this to qsonic script
-        if self.enable_qsonic_interjection:
+        if self.use_qsonic:
             command = self.qsonic_interjection(config_file)
             command_args = {}
             packages = ["qsonic"]
@@ -4154,6 +4155,7 @@ class PathBuilder:
             config (dict): Configuration dictionary used to resolve paths.
         """
         self.config = config
+        self.use_qsonic = self.config["delta extraction"].get("use qsonic", False)
 
     @property
     def healpix_data(self) -> Path:
@@ -4497,7 +4499,7 @@ class PathBuilder:
         Returns:
             Path: Path to `delta_attributes.fits.gz`.
         """
-        if self.enable_qsonic_interjection:
+        if self.use_qsonic:
             return self.paths.deltas_path(
                 region=region, calib_step=calib_step
             ) / "attributes.fits"
