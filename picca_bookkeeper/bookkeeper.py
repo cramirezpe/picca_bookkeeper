@@ -271,9 +271,9 @@ class Bookkeeper:
         """
         from subprocess import run
         qsonic_command = run(
-            f"{PICCA2QSONIC} -i {picca_ini}", shell=True, check=True,
+            [PICCA2QSONIC, picca_ini], shell=False, check=True,
             capture_output=True, text=True)
-        return qsonic_command.stdout
+        return qsonic_command.stdout.replace("\"", "\'")
 
     @staticmethod
     def write_bookkeeper(config: Dict, file: Path | str) -> None:
@@ -4500,7 +4500,7 @@ class PathBuilder:
             Path: Path to `delta_attributes.fits.gz`.
         """
         if self.use_qsonic:
-            return self.paths.deltas_path(
+            return self.deltas_path(
                 region=region, calib_step=calib_step
             ) / "attributes.fits"
 
