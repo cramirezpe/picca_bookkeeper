@@ -27,6 +27,7 @@ import numpy as np
 import yaml
 from importlib_resources import files
 from yaml import SafeDumper
+from os import getenv as os_getenv
 
 from picca_bookkeeper import resources
 from picca_bookkeeper.constants import absorber_igm, forest_regions
@@ -46,7 +47,14 @@ SafeDumper.add_representer(
 )
 
 config_file_sorting = ["general", "delta extraction", "correlations", "fits"]
-PICCA2QSONIC = "/global/common/software/desi/users/naimgk/qsonic/bin/picca2qsonic"
+PICCA2QSONIC = os_getenv(
+    "PICCA2QSONIC",
+    "/global/common/software/desi/users/naimgk/qsonic/bin/picca2qsonic"
+)
+QSONIC_ENV = os_getenv(
+    "QSONIC_ENV",
+    "/global/cfs/projectdirs/desi/science/lya/scripts/activate_qsonic.sh"
+)
 
 class Bookkeeper:
     """
@@ -257,7 +265,7 @@ class Bookkeeper:
             parser.write(write_file)
 
     @staticmethod
-    def qsonic_interjection(picca_ini: Path | str) -> str:
+    def qsonic_intercept(picca_ini: Path | str) -> str:
         """
         Convert a picca .ini config file into a qsonic command string.
 
@@ -1324,20 +1332,22 @@ class Bookkeeper:
 
         # Convert this to qsonic script
         if self.use_qsonic:
-            command = self.qsonic_interjection(config_file)
+            command = self.qsonic_intercept(config_file)
             command_args = {}
             packages = ["qsonic"]
             slurm_header_args["OMP_NUM_THREADS"] = 2
+            environment = QSONIC_ENV
         else:
             command_args = {"": str(config_file.resolve())}
             packages = ["picca"]
+            environment = self.config["general"]["conda environment"]
 
         return get_Tasker(updated_system)(
             command=command,
             command_args=command_args,
             packages=packages,
             slurm_header_args=slurm_header_args,
-            environment=self.config["general"]["conda environment"],
+            environment=environment,
             run_file=self.paths.delta_extraction_path /
             f"scripts/run_{job_name}.sh",
             jobid_log_file=self.paths.delta_extraction_path / f"logs/jobids.log",
