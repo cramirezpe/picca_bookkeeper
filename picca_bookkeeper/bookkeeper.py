@@ -25,7 +25,10 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 import yaml
-from importlib_resources import files
+try:
+    from importlib_resources import files
+except ModuleNotFoundError:
+    from importlib.resources import files
 from yaml import SafeDumper
 
 from picca_bookkeeper import resources
