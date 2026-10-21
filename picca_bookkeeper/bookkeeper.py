@@ -25,7 +25,10 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 import yaml
-from importlib_resources import files
+try:
+    from importlib_resources import files
+except ModuleNotFoundError:
+    from importlib.resources import files
 from yaml import SafeDumper
 
 from picca_bookkeeper import resources
@@ -248,9 +251,24 @@ class Bookkeeper:
 
         config = DictUtils.convert_to_string(config)
 
+        # configparser.read_dict requires all section values to be Mappings.
+        # Scalar values (str/int/float/None → str after convert_to_string) arise
+        # when a user writes a flat key directly under the subcommand level
+        # (e.g., `num processors: 1`) instead of nesting it in a section dict.
+        # Collect those flat params and merge them into [general].
+        sections: dict = {}
+        flat_params: dict = {}
+        for k, v in config.items():
+            if isinstance(v, dict):
+                sections[k] = v
+            else:
+                flat_params[k] = v
+        if flat_params:
+            sections.setdefault("general", {}).update(flat_params)
+
         parser = configparser.ConfigParser()
         parser.optionxform = str  # type: ignore
-        parser.read_dict(config)
+        parser.read_dict(sections)
 
         with open(file, "w") as write_file:
             parser.write(write_file)

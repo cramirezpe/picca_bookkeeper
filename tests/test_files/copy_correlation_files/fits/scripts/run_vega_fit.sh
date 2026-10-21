@@ -18,7 +18,7 @@ umask 0002
 
 
 echo used picca_bookkeeper version: x.xx
-echo using vega version: $(python -c "import importlib.metadata; print(importlib.metadata.version('vega'))")
+echo using vega version: $(python3 -m picca_bookkeeper.get_version vega)
 echo -e '\n'
 
 command="run_vega.py /picca_bookkeeper/tests/test_files/output/results/copycorrs/fits/configs/main.ini"

@@ -19,11 +19,11 @@ umask 0002
 
 
 echo used picca_bookkeeper version: x.xx
-echo using picca version: $(python -c "import importlib.metadata; print(importlib.metadata.version('picca'))")
+echo using picca version: $(python3 -m picca_bookkeeper.get_version picca)
 echo -e '\n'
 
 command="picca_write_full_covariance.py --correlations /picca_bookkeeper/tests/test_files/output/results/correlations/results/lyalya_lyalya/cf.fits.gz /picca_bookkeeper/tests/test_files/output/results/correlations/results/qso_lyalya/xcf.fits.gz --output /picca_bookkeeper/tests/test_files/output/results/fits/results/full-covariance.fits"
 date
-srun  $command
+srun --nodes 1 $command
 
 date

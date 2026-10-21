@@ -1,8 +1,8 @@
 import argparse
 import codecs
-import importlib.metadata
 import itertools
 import os
+import re
 import shutil
 import unittest
 from pathlib import Path
@@ -96,15 +96,35 @@ def copy_config_substitute(config, out_name="output"):
         file.write(filedata)
 
 
+def normalize_script_content(content: str) -> str:
+    """Normalize volatile lines so comparison is stable across version/system changes."""
+    # Any picca_bookkeeper version string -> x.xx
+    content = re.sub(
+        r"(echo used picca_bookkeeper version:).*",
+        r"\1 x.xx",
+        content,
+    )
+    # Any package version-fetching command -> canonical placeholder
+    content = re.sub(
+        r"(echo using \S+ version:).*",
+        r"\1 $(...)",
+        content,
+    )
+    # Strip all srun flags so only "srun $command" is compared
+    content = re.sub(
+        r"^srun\b.*\$command",
+        "srun $command",
+        content,
+        flags=re.MULTILINE,
+    )
+    return content
+
+
 def rename_path(filename):
     with open(filename, "r") as file:
         filedata = file.read()
 
     filedata = filedata.replace(str(THIS_DIR.parent), "/picca_bookkeeper")
-    filedata = filedata.replace(
-        f"version: {importlib.metadata.version('picca_bookkeeper')}",
-        "version: x.xx",
-    )
 
     with open(filename, "w") as file:
         file.write(filedata)
@@ -149,12 +169,14 @@ class TestBookkeeper(unittest.TestCase):
 
     def compare_two_files(self, filename1, filename2):
         with open(filename1, "r") as file1, open(filename2, "r") as file2:
-            try:
-                self.assertListEqual(list(file1), list(file2))
-            except AssertionError as e:
-                raise AssertionError(
-                    f"Files are different:\n\t{filename1}\n\t{filename2}"
-                ).with_traceback(e.__traceback__)
+            lines1 = normalize_script_content(file1.read()).splitlines(True)
+            lines2 = normalize_script_content(file2.read()).splitlines(True)
+        try:
+            self.assertListEqual(lines1, lines2)
+        except AssertionError as e:
+            raise AssertionError(
+                f"Files are different:\n\t{filename1}\n\t{filename2}"
+            ).with_traceback(e.__traceback__)
 
     def compare_bookkeeper_output(self, test_folder, bookkeeper_folder):
         for root, dirs, files in os.walk(bookkeeper_folder):

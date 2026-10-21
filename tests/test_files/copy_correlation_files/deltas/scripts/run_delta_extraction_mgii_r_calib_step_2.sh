@@ -18,7 +18,7 @@ umask 0002
 
 
 echo used picca_bookkeeper version: x.xx
-echo using picca version: $(python -c "import importlib.metadata; print(importlib.metadata.version('picca'))")
+echo using picca version: $(python3 -m picca_bookkeeper.get_version picca)
 echo -e '\n'
 
 command="picca_delta_extraction.py /picca_bookkeeper/tests/test_files/output/results/copycorrs/deltas/configs/delta_extraction_mgii_r_calib_step_2.ini"
