@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """Simple script to print default values"""
 
 from __future__ import annotations

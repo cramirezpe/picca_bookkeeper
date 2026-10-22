@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 fix_bookkeeper_links.py
 -----------------------

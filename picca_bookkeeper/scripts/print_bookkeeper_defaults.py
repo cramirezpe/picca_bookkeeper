@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 print_bookkeeper_defaults.py
 -----------------------------

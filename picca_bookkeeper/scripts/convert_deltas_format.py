@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Convert delta FITS files to a new, more efficient format for fast data access.
 

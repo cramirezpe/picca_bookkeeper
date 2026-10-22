@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 add_last_night_column.py
 

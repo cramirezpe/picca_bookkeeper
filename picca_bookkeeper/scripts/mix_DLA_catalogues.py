@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 mix_DLA_catalogues.py
 ---------------------

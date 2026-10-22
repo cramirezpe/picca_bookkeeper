@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 run_sampler.py
 --------------

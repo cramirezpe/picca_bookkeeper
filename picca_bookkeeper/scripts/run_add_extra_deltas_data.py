@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 run_add_extra_deltas_data.py
 ----------------------------

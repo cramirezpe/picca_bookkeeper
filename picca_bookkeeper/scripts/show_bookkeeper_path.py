@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 show_bookkeeper_path.py
 -----------------------

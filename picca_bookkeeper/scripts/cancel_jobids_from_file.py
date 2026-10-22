@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 cancel_jobids_from_file.py
 

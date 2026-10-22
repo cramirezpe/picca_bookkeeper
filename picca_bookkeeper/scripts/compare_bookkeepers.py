@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 compare_bookkeepers.py
 

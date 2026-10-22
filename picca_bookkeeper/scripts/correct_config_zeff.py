@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 correct_config_zeff.py
 ----------------------
